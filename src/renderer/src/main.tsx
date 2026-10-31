@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { SimResult } from '../../main/index'
+import type { OsOpen } from '../../preload/index'
 import type { RawPlot } from '../../main/rawfile'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
@@ -54,6 +55,9 @@ type Session =
   | { kind: 'loose'; path: string | null; sheet: Sheet; net?: { path: string; text: string } }
 
 const LOOSE = 'untitled.nsch' // the single sheet's key in loose-file mode
+// Leaving the current session (window close/quit, a file opened from the OS): the mounted Workspace swaps in its
+// unsaved-changes guard; with no session there's nothing to lose.
+const leaving = { guard: (then: () => void) => then() }
 
 async function loadProject(o: { dir: string; file: string; text: string }): Promise<Session> {
   const project = parseProject(o.text), api = window.api.project
@@ -90,6 +94,13 @@ function App() {
   const [gen, setGen] = useState(0) // remounts the workspace per session: fresh undo, tabs, plots
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    const osOpen = (x: OsOpen) =>
+      'error' in x ? setError(x.error) : leaving.guard(() => start(async () => ('project' in x ? loadProject(x.project) : { kind: 'loose', path: x.path, sheet: parseSheet(x.text) })))
+    window.api.osOpens().then((x) => x && osOpen(x))
+    const offs = [window.api.onOsOpen(osOpen), window.api.onCloseRequest(() => leaving.guard(window.api.closeNow))]
+    return () => offs.forEach((f) => f())
+  }, [])
   useEffect(() => { if (!session) document.title = route === 'library' ? 'Component library — ngspice Studio' : 'ngspice Studio' }, [session, route])
 
   const start = async (f: () => Promise<Session | null>) => {
@@ -484,6 +495,11 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
     if (dirty.current.size || netEdited) setGuard(() => then)
     else then()
   }
+  // every commit: latest leave(); React runs the old session's cleanup before the new session's effect
+  useEffect(() => {
+    leaving.guard = (then) => (go('editor'), leave(then)) // the banner lives in the editor view
+    return () => void (leaving.guard = (then) => then())
+  })
   async function guardSave() {
     const ok = (!dirty.current.size || (await saveSheets())) && (!netEdited || (await saveNet()))
     if (ok) guard?.()

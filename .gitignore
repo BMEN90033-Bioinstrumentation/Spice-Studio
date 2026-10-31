@@ -3,3 +3,4 @@ out/
 dist/
 ngspice-ngspice/
 .DS_Store
+vendor/

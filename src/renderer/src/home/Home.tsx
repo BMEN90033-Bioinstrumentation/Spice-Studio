@@ -30,11 +30,13 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error }: {
   const [parent, setParent] = useState('')
   const [tpl, setTpl] = useState(BLANK)
   const [busy, setBusy] = useState(false)
+  const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
 
   const reload = () => window.api.recent.list().then(setRecents)
   useEffect(() => {
     reload()
+    window.api.engine().then(setEngine)
     window.api.project.defaultParent().then((p) => setParent((cur) => cur || p))
   }, [])
   useEffect(() => { if (form) nameRef.current?.focus() }, [form])
@@ -62,7 +64,14 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error }: {
 
   return (
     <div className="home">
-      <div className="home-bar"><span className="brand">ngspice Studio</span></div>
+      <div className="home-bar">
+        <span className="brand">ngspice Studio</span>
+        {engine && (
+          <span className={'engine' + (engine.path ? '' : ' bad')} title={engine.path ?? 'Build it with npm run ngspice:build, or install ngspice'}>
+            {engine.version}{engine.bundled ? ' (bundled)' : ''}
+          </span>
+        )}
+      </div>
       <div className="home-body">
         <section className="hero">
           <svg className="logo" viewBox="0 0 48 48" aria-hidden>

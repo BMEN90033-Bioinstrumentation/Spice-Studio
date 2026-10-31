@@ -3,7 +3,7 @@ import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path'
+import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path'
 import { inside, safeName } from './paths'
 import { parseRaw, type RawPlot } from './rawfile'
 
@@ -13,29 +13,58 @@ export interface SimResult {
   plots: RawPlot[]
 }
 
-// ponytail: Homebrew/PATH lookup for dev; Phase 5 bundles ngspice in extraResources.
-// Apps launched from Finder don't inherit the shell PATH, hence the explicit paths.
-const NGSPICE =
-  process.env.NGSPICE_PATH ??
-  ['/opt/homebrew/bin/ngspice', '/usr/local/bin/ngspice'].find(existsSync) ??
-  'ngspice'
+// ngspice: NGSPICE_PATH > bundled (packaged: Resources/ngspice; dev: vendor/ngspice/<platform>-<arch>) > Homebrew > PATH.
+// Apps launched from Finder don't inherit the shell PATH, hence the explicit Homebrew paths.
+const EXE = process.platform === 'win32' ? 'ngspice.exe' : 'ngspice'
+const BUNDLED = app.isPackaged ? join(process.resourcesPath, 'ngspice') : join(app.getAppPath(), 'vendor', 'ngspice', `${process.platform}-${process.arch}`)
+type Engine = { path: string; bundled: boolean; env: NodeJS.ProcessEnv }
+// SPICE_SCRIPTS would redirect spinit lookup; SPICE_ASCIIRAWFILE would make the rawfile ASCII (parseRaw wants binary)
+const { SPICE_SCRIPTS: _s, SPICE_ASCIIRAWFILE: _a, ...ENV } = process.env
+function engine(): Engine | null {
+  if (process.env.NGSPICE_PATH) return { path: process.env.NGSPICE_PATH, bundled: false, env: ENV }
+  const b = join(BUNDLED, 'bin', EXE)
+  // required on macOS/Linux: ngspice finds spinit (and through it the .cm code models) only via SPICE_LIB_DIR
+  if (existsSync(b)) return { path: b, bundled: true, env: { ...ENV, SPICE_LIB_DIR: join(BUNDLED, 'share', 'ngspice') } }
+  const dirs = ['/opt/homebrew/bin', '/usr/local/bin', ...(process.env.PATH ?? '').split(delimiter).filter(Boolean)]
+  const p = dirs.map((d) => join(d, EXE)).find(existsSync)
+  return p ? { path: p, bundled: false, env: ENV } : null
+}
+const NO_NGSPICE =
+  'ngspice was not found.\n' +
+  `This build has no bundled engine (looked in ${BUNDLED}), and there is no ngspice on the PATH.\n` +
+  '  • from source: npm run ngspice:build  (puts a relocatable ngspice in vendor/ngspice/)\n' +
+  '  • or install it: brew install ngspice  /  apt install ngspice  /  https://ngspice.sourceforge.io\n' +
+  '  • or point NGSPICE_PATH at an ngspice executable.'
 
+const run = (e: Engine, args: string[], cwd?: string) =>
+  new Promise<{ code: number | null; log: string }>((resolve) => {
+    let log = ''
+    const p = spawn(e.path, args, { cwd, env: e.env })
+    p.stdout.on('data', (d) => (log += d))
+    p.stderr.on('data', (d) => (log += d))
+    p.on('error', (err) => resolve({ code: -1, log: `Failed to start ngspice (${e.path}): ${err.message}` }))
+    p.on('close', (code) => resolve({ code, log }))
+  })
+
+ipcMain.handle('engine:info', async () => {
+  const e = engine()
+  if (!e) return { path: null, version: 'ngspice not found', bundled: false }
+  const { log } = await run(e, ['--version'])
+  return { path: e.path, version: log.match(/ngspice-[\w.+-]+/)?.[0] ?? log.split('\n')[0], bundled: e.bundled }
+})
+
+// -n: skip ~/.spiceinit (a `set filetype=ascii` there would break parseRaw). Success = exit code, not 'warning' lines.
 // ponytail: CLI + rawfile; move to libngspice via koffi in a utilityProcess for live streaming.
 // cwd = baseDir so relative .include/.lib resolve next to the user's file (ngspice resolves them against cwd).
 async function runSim(netlist: string, baseDir?: string): Promise<SimResult> {
+  const e = engine()
+  if (!e) return { ok: false, log: NO_NGSPICE, plots: [] }
   const dir = await mkdtemp(join(tmpdir(), 'ngspice-'))
   const cir = join(dir, 'circuit.cir')
   const raw = join(dir, 'out.raw')
   try {
     await writeFile(cir, netlist.endsWith('\n') ? netlist : netlist + '\n')
-    const { code, log } = await new Promise<{ code: number | null; log: string }>((resolve) => {
-      let log = ''
-      const p = spawn(NGSPICE, ['-b', '-r', raw, cir], { cwd: baseDir && existsSync(baseDir) ? baseDir : dir })
-      p.stdout.on('data', (d) => (log += d))
-      p.stderr.on('data', (d) => (log += d))
-      p.on('error', (e) => resolve({ code: -1, log: `Failed to start ngspice (${NGSPICE}): ${e.message}` }))
-      p.on('close', (code) => resolve({ code, log }))
-    })
+    const { code, log } = await run(e, ['-b', '-n', '-r', raw, cir], baseDir && existsSync(baseDir) ? baseDir : dir)
     let plots: RawPlot[] = []
     let parseErr = ''
     if (existsSync(raw)) {
@@ -181,9 +210,66 @@ const viewMenu: MenuItemConstructorOptions = {
 const menu: MenuItemConstructorOptions[] = [{ role: 'editMenu' }, viewMenu, { role: 'windowMenu' }]
 if (process.platform === 'darwin') menu.unshift({ role: 'appMenu' })
 
+// ---- files opened from the OS (.nsproj/.nsch associations): macOS open-file, argv on Windows/Linux ----
+// Queued until the renderer pulls them (app:opens), then pushed as 'open-path'.
+let win: BrowserWindow | null = null
+let pulled = false
+const queue: string[] = []
+const OPENABLE = /\.(nsproj|nsch)$/i
+async function deliver(p: string) {
+  try {
+    return extname(p).toLowerCase() === '.nsproj' ? { project: await opened(p) } : { path: p, text: await readFile(p, 'utf8') }
+  } catch (e) {
+    return { error: `Can't open ${p}: ${(e as Error).message}` }
+  }
+}
+function openPath(p: string) {
+  if (!OPENABLE.test(p)) return
+  if (!pulled || !win) return void queue.push(resolve(p))
+  if (win.isMinimized()) win.restore()
+  win.focus()
+  deliver(resolve(p)).then((x) => win?.webContents.send('open-path', x))
+}
+const fromArgv = (argv: string[], cwd = process.cwd()) => argv.slice(1).filter((a) => OPENABLE.test(a) && !a.startsWith('-')).map((a) => resolve(cwd, a))
+ipcMain.handle('app:opens', async () => {
+  pulled = true
+  const p = queue.splice(0).at(-1) // ponytail: one session at a time, so the last file wins
+  return p ? deliver(p) : null
+})
+app.on('open-file', (e, p) => (e.preventDefault(), openPath(p))) // before ready: macOS sends launch files early
+if (!app.requestSingleInstanceLock()) app.quit()
+app.on('second-instance', (_e, argv, cwd) => fromArgv(argv, cwd).forEach(openPath))
+fromArgv(process.argv).forEach(openPath)
+
+// ---- quit guard: closing the window asks the renderer (it owns the dirty state and the inline Save/Discard/Cancel banner) ----
+// The renderer acks at once and later calls app:closeNow; no ack within 3 s (hung renderer) -> native dialog.
+let closeNow = false
+let ackTimer: NodeJS.Timeout | undefined
+ipcMain.on('app:closeAck', () => clearTimeout(ackTimer))
+ipcMain.on('app:closeNow', () => ((closeNow = true), win?.close()))
+function guardClose(w: BrowserWindow) {
+  w.on('close', (e) => {
+    if (closeNow || w.webContents.isCrashed()) return
+    e.preventDefault()
+    clearTimeout(ackTimer)
+    w.webContents.send('app:closeRequest')
+    ackTimer = setTimeout(async () => {
+      const r = await dialog.showMessageBox(w, {
+        type: 'warning',
+        message: 'ngspice Studio is not responding',
+        detail: 'Any unsaved changes will be lost if you quit now.',
+        buttons: ['Quit anyway', 'Cancel'],
+        defaultId: 1,
+        cancelId: 1
+      })
+      if (r.response === 0) (closeNow = true), w.close()
+    }, 3000)
+  })
+}
+
 app.whenReady().then(() => {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menu))
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     // editor = sheets + library panel + canvas + plots: use most of the screen
     width: Math.max(1200, Math.round(screen.getPrimaryDisplay().workAreaSize.width * 0.92)),
     height: Math.max(800, Math.round(screen.getPrimaryDisplay().workAreaSize.height * 0.92)),
@@ -191,6 +277,7 @@ app.whenReady().then(() => {
     titleBarStyle: 'hiddenInset',
     webPreferences: { preload: join(__dirname, '../preload/index.js') }
   })
+  guardClose(win)
   if (process.env.ELECTRON_RENDERER_URL) win.loadURL(process.env.ELECTRON_RENDERER_URL)
   else win.loadFile(join(__dirname, '../renderer/index.html'))
 })
