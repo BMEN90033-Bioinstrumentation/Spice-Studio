@@ -1,0 +1,93 @@
+.sch { position: relative; height: 100%; overflow: hidden; background: var(--bg); }
+.sch > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; touch-action: none; }
+.sch.draw > svg { cursor: crosshair; }
+.sch.pan > svg { cursor: grab; }
+.sch .dot { fill: #3a404d; }
+
+.sch .sym path, .sch .sym circle {
+  fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.sch .sym .f { fill: currentColor; }
+.sch .sym .hit { fill: transparent; stroke: none; }
+.sch .part { color: #c9d1dc; }
+.sch .part text { fill: var(--dim); font: 9px var(--mono); }
+.sch .part text.n { fill: var(--text); }
+.sch .part.on { color: #ffb74d; }
+.sch .part.on text { fill: #ffb74d; }
+
+.sch .wire line { stroke: #6fcf97; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.sch .wire line.hit { stroke: transparent; stroke-width: 10; }
+.sch .wire.on line:not(.hit) { stroke: #ffb74d; }
+.sch .jn { fill: #6fcf97; pointer-events: none; }
+.sch .nc { fill: var(--err); pointer-events: none; }
+
+.sch .ghost { color: var(--accent); opacity: 0.6; pointer-events: none; }
+.sch .preview { pointer-events: none; }
+.sch .preview line { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+.sch .preview circle { fill: var(--accent); }
+.sch .boxsel { fill: rgba(79, 195, 247, 0.08); stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+.sch-bar {
+  position: absolute; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 3px;
+  pointer-events: none;
+}
+.sch-bar > * { pointer-events: auto; }
+.sch-bar button { height: 28px; min-width: 28px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; }
+.sch-bar button.icon { padding: 0 3px; }
+.sch-bar button.on { background: #2f4a5c; border-color: var(--accent); color: var(--accent); }
+.sch-bar svg { width: 20px; height: 20px; color: #c9d1dc; }
+.sch-bar button.on svg { color: var(--accent); }
+.sch-bar .sym path, .sch-bar .sym circle { stroke-width: 1.2; }
+.sch-bar .sep { width: 1px; height: 20px; margin: 0 2px; background: #353b48; }
+
+.sch-insp {
+  position: absolute; top: calc(var(--bar-h, 28px) + 20px); right: 8px; width: 230px; display: grid; gap: 8px; padding: 10px;
+  background: var(--panel); border: 1px solid #353b48; border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.sch-insp .t { font-weight: 600; font-size: 12px; }
+.sch-insp label { display: grid; gap: 3px; font-size: 11px; color: var(--dim); }
+.sch-insp input {
+  font: 12px var(--mono); color: var(--text); background: var(--bg); border: 1px solid #353b48; border-radius: 6px; padding: 5px 7px;
+}
+.sch-insp input:focus, .sch-insp textarea:focus { outline: none; border-color: var(--accent); }
+.sch-hint { position: absolute; left: 10px; bottom: 6px; color: var(--dim); font-size: 11px; pointer-events: none; }
+
+.sch .dir rect { fill: #1d2230; stroke: #3a4252; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sch .dir text { fill: #b8c4d6; font: 10px var(--mono); white-space: pre; }
+.sch .dir.on rect { stroke: var(--accent); fill: #1f2d3a; }
+.sch .dir.on text { fill: var(--accent); }
+.sch .dir.ghost { opacity: 0.5; pointer-events: none; }
+.sch-bar button.mono { font-family: var(--mono); font-size: 12px; }
+.sch-insp textarea {
+  font: 12px/1.4 var(--mono); color: var(--text); background: var(--bg); border: 1px solid #353b48; border-radius: 6px; padding: 5px 7px;
+  resize: vertical; min-height: 60px; white-space: pre; overflow-wrap: normal; overflow-x: auto;
+}
+
+/* probe, OP tags, blame */
+.sch.probe > svg {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M1 23l6-6M6 13l5 5 11-11-5-5z' fill='%23ffd54f' stroke='%23111' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E") 1 23, crosshair;
+}
+.sch .part.hl { color: var(--accent); }
+.sch .part.hl text { fill: var(--accent); }
+.sch .wire.hl line:not(.hit) { stroke: var(--accent); stroke-width: 3; }
+.sch .part.blame { color: var(--err); }
+.sch .part.blame .sym { filter: drop-shadow(0 0 3px rgba(255, 107, 107, 0.7)); }
+.sch .wire.blame line:not(.hit) { stroke: var(--err); stroke-width: 3; }
+.sch .op { pointer-events: none; }
+.sch .op rect { fill: rgba(22, 26, 34, 0.88); stroke: #4a5366; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sch .op text { fill: #ffd54f; font-family: var(--mono); }
+.sch-insp button { justify-self: start; }
+
+/* library panel beside the canvas (width = LIBW in Schematic.tsx) */
+.sch.lib > svg { left: 240px; width: calc(100% - 240px); }
+.sch.lib .sch-bar { left: 248px; }
+.sch.lib .sch-hint { left: 250px; }
+.sch-bar svg.symp { width: 20px; height: 20px; color: #c9d1dc; }
+.sch .part text.pn, .sch .ghost text.pn { fill: #9aa6b8; font-family: var(--mono); }
+.sch .ghost text { fill: currentColor; font: 7px var(--mono); }
+.sch .part.on text.pn { fill: #ffb74d; }
+.sch-insp .d { font-size: 11px; line-height: 1.4; color: var(--dim); }
+.sch-insp .d code { font: 11px var(--mono); color: var(--text); }
+.sch-insp .warn { color: var(--warn); }
+.sch-insp .row { display: flex; gap: 6px; flex-wrap: wrap; }
