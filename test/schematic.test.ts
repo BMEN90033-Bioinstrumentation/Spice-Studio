@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  blockShape, connections, emptySheet, exampleSheet, junctions, key, newPart, nextName, onSegment, parseSheet, pins, route, stretch,
+  blockShape, connections, emptySheet, exampleSheet, junctions, key, newPart, nextName, onSegment, parseSheet, pins, remap, route, stretch,
   sheetPorts, unconnectedPins, xform, type Sheet
 } from '../src/renderer/src/schematic/model.ts'
 
@@ -49,6 +49,16 @@ test('part dropped on a wire interior is not connected', () => {
   s.parts.push(newPart(s, 'res', 0, 0))
   assert.deepEqual(unconnectedPins(s), [{ x: 0, y: -30 }, { x: 0, y: 30 }])
   assert.deepEqual(junctions(s), [])
+})
+
+test('moving a part off a pin-to-pin connection adds a wire back', () => {
+  const s = emptySheet()
+  s.parts.push(newPart(s, 'res', 0, 0), newPart(s, 'res', 0, 60)) // touch at (0,30)
+  const id = s.parts[0].id, d = { x: 40, y: 20 }
+  const r = remap(s, new Set([id]), (p) => ({ ...p, x: p.x + d.x, y: p.y + d.y }))
+  assert.deepEqual(unconnectedPins(r), [{ x: 40, y: -10 }, { x: 0, y: 90 }])
+  for (const w of r.wires) assert.ok(w.a.x === w.b.x || w.a.y === w.b.y)
+  assert.equal(remap(s, new Set(s.parts.map((p) => p.id)), (p) => ({ ...p, x: p.x + 40 })).wires.length, 0) // moved together
 })
 
 test('nextName picks max + 1 per prefix, case-insensitive', () => {

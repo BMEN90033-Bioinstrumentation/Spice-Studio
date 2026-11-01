@@ -1,5 +1,5 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, same, snap, stretch, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
@@ -81,24 +81,6 @@ const UndoIcon = ({ redo }: { redo?: boolean }) => (
     <path d="M7 4 3 8l4 4M3 8h9a4.5 4.5 0 0 1 0 9H8" />
   </svg>
 )
-
-// Apply f to selected parts and g to selected wires' endpoints. Any wire endpoint (selected or not) that sat on a
-// moved pin or moved wire endpoint follows it, so connections rubber-band through moves, rotates and mirrors.
-function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: Pt) => Pt = (q) => q): Sheet {
-  const m = new Map<string, Pt>()
-  for (const w of s.wires) if (sel.has(w.id)) for (const q of [w.a, w.b]) m.set(`${q.x},${q.y}`, g(q))
-  const parts = s.parts.map((p) => {
-    if (!sel.has(p.id)) return p
-    const n = f(p), b = pins(n)
-    pins(p).forEach((q, i) => m.set(`${q.x},${q.y}`, b[i]))
-    return n
-  })
-  const wires = s.wires.flatMap((w) => {
-    const h = (q: Pt) => m.get(`${q.x},${q.y}`) ?? (sel.has(w.id) ? g(q) : q)
-    return stretch(w, h(w.a), h(w.b))
-  })
-  return { ...s, parts, wires }
-}
 
 // Name/value text, drawn unrotated beside the part.
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance

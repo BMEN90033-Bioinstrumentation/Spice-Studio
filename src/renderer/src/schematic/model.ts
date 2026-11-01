@@ -166,6 +166,29 @@ export function stretch(w: Wire, a: Pt, b: Pt): Wire[] {
   return r
 }
 
+// Apply f to selected parts and g to selected wires' endpoints. Any wire endpoint (selected or not) that sat on a
+// moved pin or moved wire endpoint follows it, so connections rubber-band through moves, rotates and mirrors. A moved
+// pin that touched a pin of a part staying put gets a new wire back to it, so pin-to-pin connections survive too.
+export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: Pt) => Pt = (q) => q): Sheet {
+  const m = new Map<string, Pt>(), added: Wire[] = []
+  const still = new Set(s.parts.filter((p) => !sel.has(p.id)).flatMap((p) => pins(p).map(key)))
+  for (const w of s.wires) if (sel.has(w.id)) for (const q of [w.a, w.b]) m.set(key(q), g(q))
+  const parts = s.parts.map((p) => {
+    if (!sel.has(p.id)) return p
+    const n = f(p), b = pins(n)
+    pins(p).forEach((q, i) => {
+      m.set(key(q), b[i])
+      if (still.has(key(q))) added.push(...route(q, b[i]))
+    })
+    return n
+  })
+  const wires = s.wires.flatMap((w) => {
+    const h = (q: Pt) => m.get(key(q)) ?? (sel.has(w.id) ? g(q) : q)
+    return stretch(w, h(w.a), h(w.b))
+  })
+  return { ...s, parts, wires: [...wires, ...added] }
+}
+
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {
   const s = JSON.parse(text)
