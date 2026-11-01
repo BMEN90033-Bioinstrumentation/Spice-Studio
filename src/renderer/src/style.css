@@ -20,9 +20,10 @@ body { background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, 
 
 header {
   height: 44px; flex-shrink: 0;
-  display: flex; align-items: center; gap: 16px; padding: 0 12px 0 84px; /* room for mac traffic lights */
+  display: flex; align-items: center; gap: 16px; padding: 0 12px;
   background: var(--panel); border-bottom: 1px solid var(--line); -webkit-app-region: drag;
 }
+.mac header { padding-left: 84px; } /* room for mac traffic lights */
 .brand { font-weight: 600; }
 .file { color: var(--dim); }
 .views { margin: 0; -webkit-app-region: no-drag; }

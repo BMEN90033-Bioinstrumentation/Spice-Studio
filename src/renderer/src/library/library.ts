@@ -1,7 +1,8 @@
 // Component libraries: bundled parts + vendor .lib/.mod import. Pure TS (node --test loads it).
 // Bundled models are self-written from datasheet key figures and checked against ngspice in test/library.test.ts.
 import type { Kind } from '../schematic/symbols.ts'
-import { blockShape, type Part } from '../schematic/model.ts'
+import { blockShape, type Part, type Sheet } from '../schematic/model.ts'
+import type { Project } from '../project/project.ts'
 
 export type Category = 'Passives' | 'Sources' | 'Diodes' | 'BJTs' | 'MOSFETs' | 'Op-amps' | 'Subcircuits'
 export interface LibEntry {
@@ -15,7 +16,9 @@ export interface LibEntry {
     | { type: 'model'; name: string; text: string }
     | { type: 'subckt'; name: string; pins: string[]; pinMap: number[]; text?: string; include?: string }
   params?: Record<string, string>
-  source: 'bundled' | 'project'
+  source: 'bundled' | 'project' | 'user' | 'pack'
+  group?: string // non-bundled: 'Project', 'My library' or the pack's name (panel/browser group header)
+  compat?: string // pack dialect hint (e.g. 'ltspice'), carried through; netlister handling comes later
 }
 export interface ImportedLib { file: string; entries: { name: string; kind: Kind; category: Category; pinMap: number[] }[] }
 export interface ParsedLib {
@@ -137,16 +140,69 @@ export function suggest(p: ParsedLib): ImportedLib['entries'] {
   return out
 }
 
-export function entriesFromImport(lib: ImportedLib, text: string): LibEntry[] {
+// Library file outside the project: ids `${prefix}${file}#NAME` ('user:' / 'pack:<id>/'), subckts .include'd by
+// absolute path (dir + '/' + file). Without it: a project lib, 'proj:' ids, include relative to the project folder.
+export interface LibSource { source: 'user' | 'pack'; prefix: string; dir: string; group: string; compat?: string }
+
+export function entriesFromImport(lib: ImportedLib, text: string, src?: LibSource): LibEntry[] {
   const p = parseLibFile(text), same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+  const include = src ? `${src.dir}/${lib.file}` : lib.file
   return lib.entries.flatMap((e): LibEntry[] => {
-    const base = { id: `proj:${lib.file}#${e.name}`, name: e.name, category: e.category, kind: e.kind, value: e.name, source: 'project' as const }
+    const base = {
+      id: `${src?.prefix ?? 'proj:'}${lib.file}#${e.name}`, name: e.name, category: e.category, kind: e.kind, value: e.name,
+      source: src?.source ?? ('project' as const), group: src?.group ?? 'Project', ...(src?.compat && { compat: src.compat })
+    }
     const m = p.models.find((m) => same(m.name, e.name))
     if (m) return [{ ...base, description: `${m.type} model from ${lib.file}`, spice: { type: 'model', name: m.name, text: m.text }, params: m.params }]
     const s = p.subckts.find((s) => same(s.name, e.name))
-    if (s) return [{ ...base, description: `${s.pins.length}-pin subcircuit (${s.pins.join(' ')}) from ${lib.file}`, spice: { type: 'subckt', name: s.name, pins: s.pins, pinMap: e.pinMap, include: lib.file } }]
+    if (s) return [{ ...base, description: `${s.pins.length}-pin subcircuit (${s.pins.join(' ')}) from ${lib.file}`, spice: { type: 'subckt', name: s.name, pins: s.pins, pinMap: e.pinMap, include } }]
     return [] // gone from the file since import
   })
+}
+
+// 'user:a.lib#Q1' -> 'user:a.lib' (the library file's key); '' for bundled parts
+export const libKey = (id: string) => (id.startsWith('std:') ? '' : id.slice(0, id.indexOf('#')))
+
+// ---------------------------------------------------------------------------------------------- copy-on-use
+
+export interface SourceLibs { prefix: string; libs: ImportedLib[]; texts: Record<string, string> }
+export interface ProjectIO { list(): Promise<string[]>; read(rel: string): Promise<string>; write(rel: string, text: string): Promise<void> }
+
+// Parts in project sheets that use a personal/pack library get a project copy: the file goes to libs/ once (reused
+// when a same-named file with the same text is there, else a -2, -3… name), its mapping joins project.libs and the
+// parts' ids become 'proj:'. `only` limits which parts count. Returns only what changed, or null when nothing to copy.
+export async function copyOnUse(sheets: Record<string, Sheet>, project: Project, srcs: SourceLibs[], io: ProjectIO, only = (_: Part) => true) {
+  const foreign = (p: Part) => /^(user|pack):/.test(p.lib ?? '') && only(p)
+  const keys = new Set(Object.values(sheets).flatMap((s) => s.parts.flatMap((p) => (foreign(p) ? [libKey(p.lib!)] : []))))
+  const to = new Map<string, string>(), texts: Record<string, string> = {}
+  let libs = project.libs, have: Set<string> | undefined
+  for (const key of keys) {
+    const src = srcs.find((s) => key.startsWith(s.prefix)), file = key.slice(src?.prefix.length ?? 0)
+    const lib = src?.libs.find((l) => l.file === file), text = src?.texts[file]
+    if (!lib || text == null) continue // unknown source: the netlister reports the part
+    have ??= new Set(await io.list())
+    const m = /^(.*?)(\.[^.]*)?$/.exec(file.replace(/^.*\//, ''))!
+    let rel = ''
+    for (let i = 1; ; i++) {
+      rel = `libs/${m[1]}${i > 1 ? '-' + i : ''}${m[2] ?? ''}`
+      if (!have.has(rel)) {
+        await io.write(rel, text)
+        have.add(rel)
+        break
+      }
+      if ((await io.read(rel)) === text) break
+    }
+    const old = libs.find((l) => l.file === rel), got = new Set(old?.entries.map((e) => e.name.toLowerCase()))
+    const merged = { file: rel, entries: [...(old?.entries ?? []), ...lib.entries.filter((e) => !got.has(e.name.toLowerCase()))] }
+    libs = [...libs.filter((l) => l.file !== rel), merged]
+    to.set(key, 'proj:' + rel), (texts[rel] = text)
+  }
+  if (!to.size) return null
+  const out: Record<string, Sheet> = {}
+  for (const [f, s] of Object.entries(sheets))
+    if (s.parts.some((p) => foreign(p) && to.has(libKey(p.lib!))))
+      out[f] = { ...s, parts: s.parts.map((p) => (foreign(p) && to.has(libKey(p.lib!)) ? { ...p, lib: to.get(libKey(p.lib!)) + p.lib!.slice(libKey(p.lib!).length) } : p)) }
+  return { project: { ...project, libs }, texts, sheets: out }
 }
 
 export function resolver(entries: LibEntry[]): (id: string) => LibEntry | undefined {

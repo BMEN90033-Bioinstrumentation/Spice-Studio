@@ -19,7 +19,8 @@ export function LibraryPanel({ entries, sheets, onPick, active, search }: {
   const ql = q.trim().toLowerCase()
   const groups = useMemo(() => {
     const m = new Map<string, LibEntry[]>()
-    for (const e of entries) if (match(e, ql)) m.set(e.category, [...(m.get(e.category) ?? []), e])
+    // bundled parts by category, then one group per source: 'Project', 'My library', each pack
+    for (const e of entries) if (match(e, ql)) m.set(e.group ?? e.category, [...(m.get(e.group ?? e.category) ?? []), e])
     return [...m]
   }, [entries, ql])
   const sh = sheets.filter((s) => !ql || s.file.toLowerCase().includes(ql))

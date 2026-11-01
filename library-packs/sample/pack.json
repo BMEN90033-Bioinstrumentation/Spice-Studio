@@ -1,0 +1,17 @@
+{
+ "id": "sample",
+ "name": "Sample pack",
+ "description": "Three generic parts that show how bundled library packs work.",
+ "license": "CC0-1.0",
+ "source": "ngspice Studio",
+ "libs": [
+  {
+   "file": "sample.lib",
+   "entries": [
+    { "name": "SAMPLE_D", "kind": "diode", "category": "Diodes", "pinMap": [] },
+    { "name": "SAMPLE_SBD", "kind": "diode", "category": "Diodes", "pinMap": [] },
+    { "name": "SAMPLE_LIMITER", "kind": "block", "category": "Subcircuits", "pinMap": [0, 1] }
+   ]
+  }
+ ]
+}

@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { SimResult } from '../main/index'
+import type { Pack } from '../main/userlib'
+import type { ImportedLib } from '../renderer/src/library/library'
 
 type Opened = { dir: string; file: string; text: string }
 // a file the OS asked us to open (double-click / Open With): a project, a loose sheet, or why it failed
@@ -34,6 +36,21 @@ const api = {
   // window close / quit: ack at once (main falls back to a native dialog if this never arrives), then cb decides
   onCloseRequest: (cb: () => void) => on('app:closeRequest', () => (ipcRenderer.send('app:closeAck'), cb())),
   closeNow: () => ipcRenderer.send('app:closeNow'),
+  // native menu (main/menu.ts <-> renderer commands.ts)
+  menu: {
+    setState: (s: Record<string, { enabled: boolean; checked?: boolean }>) => ipcRenderer.send('menu:state', s),
+    onCommand: (cb: (x: { id: string; accel: boolean }) => void) => on('menu:command', cb),
+    native: (op: string) => ipcRenderer.send('menu:native', op),
+    info: (): Promise<{ name: string; version: string; electron: string; chrome: string; node: string; platform: string }> => inv('app:info')
+  },
+  // personal library (userData) + read-only packs shipped with the app
+  userlib: {
+    list: (): Promise<{ dir: string; libs: ImportedLib[]; texts: Record<string, string> }> => inv('userlib:list'),
+    import: (): Promise<{ file: string; text: string } | null> => inv('userlib:import'),
+    save: (lib: ImportedLib): Promise<void> => inv('userlib:save', lib),
+    remove: (file: string): Promise<void> => inv('userlib:remove', file)
+  },
+  packs: { list: (): Promise<(Omit<Pack, 'libs'> & { libs: ImportedLib[] })[]> => inv('packs:list') },
   recent: {
     list: (): Promise<{ name: string; file: string; opened: number; exists: boolean }[]> => inv('recent:list'),
     remove: (file: string): Promise<void> => inv('recent:remove', file)

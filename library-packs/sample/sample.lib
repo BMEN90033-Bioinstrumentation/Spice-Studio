@@ -1,0 +1,16 @@
+* ngspice Studio sample pack: self-written models, CC0-1.0 (public domain dedication).
+* Generic parts that prove the pack path end to end; not fitted to any vendor's device.
+
+* small-signal silicon switching diode, Vf ~0.7 V @ 10 mA
+.model SAMPLE_D D(IS=3n N=1.9 RS=0.7 CJO=2p M=0.33 VJ=0.5 TT=5n BV=80 IBV=100n)
+
+* 1 A Schottky rectifier, Vf ~0.4 V @ 1 A
+.model SAMPLE_SBD D(IS=8u N=1.1 RS=0.07 CJO=100p M=0.35 VJ=0.35 EG=0.69 XTI=2 BV=30 IBV=1m)
+
+* signal limiter: antiparallel diodes with a series resistance, clips at about +/-0.6 V
+.subckt SAMPLE_LIMITER a b
+R1 a m 10
+D1 m b SAMPLE_LIM_D
+D2 b m SAMPLE_LIM_D
+.model SAMPLE_LIM_D D(IS=3n N=1.9 RS=0.7)
+.ends SAMPLE_LIMITER

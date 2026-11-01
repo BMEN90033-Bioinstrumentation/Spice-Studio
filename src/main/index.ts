@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, screen, type MenuItemConstructorOptions } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os'
 import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path'
 import { inside, safeName } from './paths'
 import { parseRaw, type RawPlot } from './rawfile'
+import './userlib' // personal library + packs IPC
+import { installMenu, refreshMenu } from './menu'
 
 export interface SimResult {
   ok: boolean
@@ -129,7 +131,7 @@ async function recents(): Promise<Recent[]> {
     return []
   }
 }
-const saveRecents = (r: Recent[]) => writeFile(RECENT(), JSON.stringify(r.slice(0, 12), null, 1))
+const saveRecents = (r: Recent[]) => writeFile(RECENT(), JSON.stringify(r.slice(0, 12), null, 1)).then(refreshMenu) // File > Open Recent
 async function opened(file: string) {
   const dir = dirname(file)
   projects.add(dir)
@@ -202,14 +204,6 @@ ipcMain.handle('project:importLib', async (_e, dir: string) => {
 ipcMain.handle('recent:list', async () => (await recents()).map((x) => ({ ...x, exists: existsSync(x.file) })))
 ipcMain.handle('recent:remove', async (_e, file: string) => saveRecents((await recents()).filter((x) => x.file !== file)))
 
-// Minimal menu: the default one binds Ctrl/Cmd+R to reload, which fights the schematic's rotate.
-const viewMenu: MenuItemConstructorOptions = {
-  label: 'View',
-  submenu: [{ role: 'toggleDevTools' }, { role: 'togglefullscreen' }, { type: 'separator' }, { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }]
-}
-const menu: MenuItemConstructorOptions[] = [{ role: 'editMenu' }, viewMenu, { role: 'windowMenu' }]
-if (process.platform === 'darwin') menu.unshift({ role: 'appMenu' })
-
 // ---- files opened from the OS (.nsproj/.nsch associations): macOS open-file, argv on Windows/Linux ----
 // Queued until the renderer pulls them (app:opens), then pushed as 'open-path'.
 let win: BrowserWindow | null = null
@@ -267,17 +261,31 @@ function guardClose(w: BrowserWindow) {
   })
 }
 
+// window.open: only the results pop-out (renderer layout/PopOut.tsx) gets a window; http(s) links go to the browser.
+// The pop-out closes with the main window.
+function popouts(w: BrowserWindow) {
+  w.webContents.setWindowOpenHandler(({ frameName, url }) => {
+    if (frameName === 'ngspice-plots')
+      return { action: 'allow', overrideBrowserWindowOptions: { width: 1000, height: 700, minWidth: 480, minHeight: 320, backgroundColor: '#16181d', autoHideMenuBar: true, title: 'Plots' } }
+    if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+  w.on('closed', () => BrowserWindow.getAllWindows().forEach((x) => x.destroy()))
+}
+
 app.whenReady().then(() => {
-  Menu.setApplicationMenu(Menu.buildFromTemplate(menu))
+  installMenu({ recents, engineDir: BUNDLED, window: () => win }) // menu.ts; no Reload item: Ctrl/Cmd+R is the schematic's rotate
   win = new BrowserWindow({
     // editor = sheets + library panel + canvas + plots: use most of the screen
     width: Math.max(1200, Math.round(screen.getPrimaryDisplay().workAreaSize.width * 0.92)),
     height: Math.max(800, Math.round(screen.getPrimaryDisplay().workAreaSize.height * 0.92)),
     backgroundColor: '#16181d',
-    titleBarStyle: 'hiddenInset',
+    // mac: inset traffic lights over the header; Windows/Linux: a normal frame with the menu bar in the window
+    ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const } : { autoHideMenuBar: false }),
     webPreferences: { preload: join(__dirname, '../preload/index.js') }
   })
   guardClose(win)
+  popouts(win)
   if (process.env.ELECTRON_RENDERER_URL) win.loadURL(process.env.ELECTRON_RENDERER_URL)
   else win.loadFile(join(__dirname, '../renderer/index.html'))
 })

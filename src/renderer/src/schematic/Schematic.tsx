@@ -7,6 +7,8 @@ import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
 import { analysisText, parseAnalysis, type Analysis } from '../sim/analysis'
 import { AnalysisDialog } from '../sim/AnalysisDialog'
+import { useCommands } from '../commands'
+import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import './schematic.css'
 
 export interface SchematicHandle { get(): Sheet; load(s: Sheet): void; replace(s: Sheet): void; select(ids: string[]): void }
@@ -125,9 +127,10 @@ const typing = (e: KeyboardEvent) => {
 }
 const blurOnEnter = (e: RKE<HTMLInputElement>) => (e.key === 'Enter' || e.key === 'Escape') && e.currentTarget.blur()
 
-export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], sheets = [], netCtx, onOpenSheet }: {
+export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen }: {
   active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
   library?: LibEntry[]; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
+  libOpen?: boolean; onLibOpen?: (open: boolean) => void // parts panel, controlled by the workspace layout when given
 }) {
   const [sheet, setSheet] = useState(initial)
   const [sel, setSel] = useState<Set<string>>(() => new Set())
@@ -142,7 +145,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [hov, setHov] = useState<ProbeTarget | null>(null)
   const [showOp, setShowOp] = useState(true)
   const [dlg, setDlg] = useState(false)
-  const [libOpen, setLibOpen] = useState(true)
+  const [libOwn, setLibOwn] = useState(true)
+  const libOpen = libProp ?? libOwn
   const search = useRef<HTMLInputElement>(null)
   const gridId = 'g' + useId().replace(/[^\w-]/g, '') // several canvases are mounted at once
   const cur = useRef(sheet) // latest sheet, readable synchronously between renders
@@ -236,12 +240,15 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     setGhost({ rot: 0, mirror: false })
     setHov(null)
   }
-  // panel opens/closes beside the canvas; shift the view so the drawing stays put on screen
   function toggleLib(open = !libOpen) {
-    if (open === libOpen) return
-    setLibOpen(open)
-    setView((v) => ({ ...v, x: v.x + (open ? -LIBW : LIBW) }))
+    if (open !== libOpen) (onLibOpen ?? setLibOwn)(open)
   }
+  // panel opens/closes beside the canvas (also from outside); shift the view so the drawing stays put on screen
+  const libWas = useRef(libOpen)
+  useLayoutEffect(() => {
+    if (libWas.current !== libOpen) setView((v) => ({ ...v, x: v.x + (libOpen ? RAILW - LIBW : LIBW - RAILW) }))
+    libWas.current = libOpen
+  }, [libOpen])
   function pick(e: LibPick) {
     if ('file' in e) {
       const ports = sheetPorts(e.sheet)
@@ -303,6 +310,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else if (mod && k === 'z') e.shiftKey ? redo() : undo()
     else if (mod && k === 'y') redo()
     else if (mod && k === 'c') clip.current = picked()
+    else if (mod && k === 'x') cut()
     else if (mod && k === 'v') clip.current = paste(clip.current)
     else if (mod && k === 'd') paste(picked())
     else if (mod && k === 'a') setSel(new Set(all(cur.current)))
@@ -353,6 +361,33 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       el.removeEventListener('wheel', w)
     }
   }, [])
+
+  // menu commands (commands.ts) for the active canvas only; the keys stay in onKey above
+  const cut = () => ((clip.current = picked()), del())
+  const some = (s: Sheet | null) => !!s && s.parts.length + s.wires.length + s.texts.length > 0
+  const orientable = () => typeof tool === 'object' || picked().parts.length > 0
+  useCommands(active && !dlg ? [
+    { id: 'edit.undo', run: undo, enabled: () => hist.current.undo.length > 0 },
+    { id: 'edit.redo', run: redo, enabled: () => hist.current.redo.length > 0 },
+    { id: 'edit.cut', run: cut, enabled: () => sel.size > 0 },
+    { id: 'edit.copy', run: () => (clip.current = picked()), enabled: () => sel.size > 0 },
+    { id: 'edit.paste', run: () => (clip.current = paste(clip.current)), enabled: () => some(clip.current) },
+    { id: 'edit.duplicate', run: () => paste(picked()), enabled: () => sel.size > 0 },
+    { id: 'edit.delete', run: del, enabled: () => sel.size > 0 },
+    { id: 'edit.selectAll', run: () => setSel(new Set(all(cur.current))), enabled: () => some(cur.current) },
+    { id: 'edit.rotate', run: () => orient(true), enabled: orientable },
+    { id: 'edit.mirror', run: () => orient(false), enabled: orientable },
+    { id: 'view.zoomIn', run: () => zoomBy(1.25) },
+    { id: 'view.zoomOut', run: () => zoomBy(0.8) },
+    { id: 'view.fit', run: () => fit() },
+    { id: 'view.showOp', run: () => setShowOp((v) => !v), enabled: () => !!overlay?.op, checked: () => !!overlay?.op && showOp },
+    { id: 'place.wire', run: () => use('wire') },
+    { id: 'place.directive', run: () => use('text') },
+    { id: 'place.fromLibrary', run: () => (toggleLib(true), setTimeout(() => search.current?.focus())) },
+    ...(['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'npn', 'pnp', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port'] as Kind[]).map((k) => ({ id: 'place.' + k, run: () => use({ place: k, title: SYMBOLS[k].title }) })),
+    { id: 'sim.setup', run: () => setDlg(true) },
+    { id: 'sim.probe', run: () => use('probe') }
+  ] : [])
 
   useImperativeHandle(ref, () => ({
     get: () => cur.current,
@@ -574,7 +609,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </g>
       </svg>
 
-      {libOpen && <LibraryPanel entries={library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />}
+      {libOpen ? <LibraryPanel entries={library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
+        : <Rail side="left" label="Parts" title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar" ref={bar}>
         <button className={libOpen ? 'on' : ''} title="Parts library (Shift+L) · search (/)" aria-pressed={libOpen} onClick={() => toggleLib()}>Parts</button>
         <span className="sep" />

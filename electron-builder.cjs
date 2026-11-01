@@ -18,7 +18,11 @@ const signed = !!(process.env.CSC_LINK || process.env.CSC_NAME) || (process.env.
 const macArch = (process.env.MAC_ARCH || process.arch).split(',')
 // bundled ngspice: vendor/ngspice/<process.platform>-<arch> -> <resources>/ngspice. ${arch} is electron-builder's
 // (x64/arm64, same as Node's); the platform part is spelled out per OS because ${platform} is the *host* platform.
-const ngspice = (platform) => [{ from: `vendor/ngspice/${platform}-\${arch}`, to: 'ngspice', filter: ['**/*'] }]
+// library-packs/ (read-only parts packs) -> <resources>/library-packs
+const ngspice = (platform) => [
+  { from: `vendor/ngspice/${platform}-\${arch}`, to: 'ngspice', filter: ['**/*'] },
+  { from: 'library-packs', to: 'library-packs', filter: ['**/*'] }
+]
 
 module.exports = {
   appId: 'com.callumvidler.ngspicestudio',

@@ -40,12 +40,14 @@ export function defaultSel(plot: RawPlot): string[] {
   return (volts.length ? volts : sig).slice(0, 4).map(lc)
 }
 
-function series(v: RawVar, complex: boolean, mode: Mode): Float64Array {
+// dB of an exactly-zero AC magnitude (e.g. a DC supply node) is -Infinity, which wrecks uPlot's y range for the
+// whole chart: non-finite points become gaps (null) instead
+function series(v: RawVar, complex: boolean, mode: Mode): Float64Array | (number | null)[] {
   if (!complex) return v.re
-  const out = new Float64Array(v.re.length)
-  for (let i = 0; i < out.length; i++)
-    out[i] = mode === 'db' ? 20 * Math.log10(Math.hypot(v.re[i], v.im![i])) : (Math.atan2(v.im![i], v.re[i]) * 180) / Math.PI
-  return out
+  return Array.from(v.re, (re, i) => {
+    const y = mode === 'db' ? 20 * Math.log10(Math.hypot(re, v.im![i])) : (Math.atan2(v.im![i], re) * 180) / Math.PI
+    return Number.isFinite(y) ? y : null
+  })
 }
 
 export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void }) {
@@ -88,8 +90,8 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     }))
     const u = new uPlot(
       {
-        width: el.clientWidth,
-        height: el.clientHeight,
+        width: el.clientWidth - PAD_X,
+        height: el.clientHeight - PAD_Y,
         scales: { x: { time: false, distr: first.complex ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, { auto: true }])) },
         series: [{ label: scale.name, value: (_u, v) => eng(v, UNIT[scale.type]) }, ...ser],
         axes: [
@@ -100,9 +102,11 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
         legend: { live: true }
       },
       data,
-      el
+      // mount by callback: uPlot's `instanceof HTMLElement` check fails for the pop-out window's elements (other realm)
+      (u, init) => (el.appendChild(u.root), init())
     )
-    const ro = new ResizeObserver(() => u.setSize({ width: el.clientWidth, height: el.clientHeight - legendH(el) }))
+    // the element's own window: an opener-window observer never fires for the pop-out's elements
+    const ro = new (el.ownerDocument.defaultView ?? window).ResizeObserver(() => u.setSize({ width: el.clientWidth - PAD_X, height: el.clientHeight - PAD_Y - legendH(el) }))
     ro.observe(el)
     return () => (ro.disconnect(), u.destroy())
   }, [runs, sel, mode])
@@ -161,4 +165,5 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   )
 }
 
+const PAD_X = 16, PAD_Y = 8 // .chart padding (style.css): uPlot sizes the canvas, not the box
 const legendH = (el: HTMLElement) => (el.querySelector('.u-legend') as HTMLElement | null)?.offsetHeight ?? 0

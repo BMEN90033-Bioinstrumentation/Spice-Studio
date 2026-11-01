@@ -17,15 +17,16 @@ const tilde = (p: string) => p.replace(/^\/Users\/[^/]+/, '~')
 export const BLANK = 'blank'
 const CHOICES = [{ id: BLANK, name: 'Blank', description: 'An empty main sheet.' }, ...TEMPLATES]
 
-export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error }: {
+export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, setForm }: {
   onCreate: (parent: string, name: string, template: string) => Promise<void>
   onOpen: (file?: string) => Promise<void>
   onOpenFile: () => Promise<void>
   onLibrary: () => void
   error: string
+  form: boolean // the new-project form (owned by App: File › New Project opens it)
+  setForm: (open: boolean) => void
 }) {
   const [recents, setRecents] = useState<Recent[] | null>(null)
-  const [form, setForm] = useState(false)
   const [name, setName] = useState('')
   const [parent, setParent] = useState('')
   const [tpl, setTpl] = useState(BLANK)
@@ -41,14 +42,10 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error }: {
   }, [])
   useEffect(() => { if (form) nameRef.current?.focus() }, [form])
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey)) return e.key === 'Escape' && setForm(false)
-      const fn = ({ n: () => setForm(true), o: () => onOpen() } as Record<string, () => void>)[e.key]
-      if (fn) e.preventDefault(), fn()
-    }
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setForm(false) // ⌘N/⌘O: commands in main.tsx
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onOpen])
+  }, [])
 
   const ok = validName(name) && !!parent
   async function create(e: FormEvent) {
@@ -102,7 +99,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error }: {
               <button className="tile" onClick={onOpenFile}>
                 <span className="ic">≡</span>
                 <b>Open file</b>
-                <small>A single .nsch or .cir</small>
+                <small>A single .nsch or .cir · ⇧⌘O</small>
               </button>
             </div>
 

@@ -1,8 +1,9 @@
 // Full-page library browser + vendor .lib import with pin mapping.
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as RKE } from 'react'
 import { SYMBOLS, type Kind } from '../schematic/symbols'
-import { blockPartFields, parseLibFile, suggest, type Category, type ImportedLib, type LibEntry, type ParsedLib } from './library'
+import { blockPartFields, libKey, parseLibFile, suggest, type Category, type ImportedLib, type LibEntry, type ParsedLib } from './library'
 import { match } from './LibraryPanel'
+import { useImportRequest, type PackInfo } from './sources'
 import { SymbolPreview } from './Symbol'
 import '../sim/AnalysisDialog.css' // shared modal chrome (.adlg-*)
 import './library.css'
@@ -11,7 +12,9 @@ const CATS: Category[] = ['Passives', 'Sources', 'Diodes', 'BJTs', 'MOSFETs', 'O
 const MODEL_KINDS: Kind[] = ['diode', 'zener', 'led', 'npn', 'pnp', 'nmos', 'pmos']
 const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']
 const KIND_CAT: Partial<Record<Kind, Category>> = { diode: 'Diodes', zener: 'Diodes', led: 'Diodes', npn: 'BJTs', pnp: 'BJTs', nmos: 'MOSFETs', pmos: 'MOSFETs', opamp: 'Op-amps', opamp5: 'Op-amps', block: 'Subcircuits' }
-const fileOf = (e: LibEntry) => (e.source === 'project' ? e.id.slice(5).split('#')[0] : '')
+type Target = 'user' | 'project'
+const fileOf = (e: LibEntry) => libKey(e.id).replace(/^(proj|user):|^pack:[^/]*\//, '')
+const KEY: Record<Target, string> = { user: 'user:', project: 'proj:' }
 const pinName = (k: Kind, i: number) => SYMBOLS[k].pinNames?.[i] ?? `pin ${i + 1}`
 const spiceText = (e: LibEntry) =>
   e.spice?.type === 'model' ? e.spice.text : e.spice?.text ?? (e.spice?.include ? `.include ${e.spice.include}\n* .subckt ${e.spice.name} ${e.spice.pins.join(' ')}` : '')
@@ -25,43 +28,59 @@ function arrows(e: RKE<HTMLElement>, sel: string) {
   to?.focus(), to?.click()
 }
 
-export function LibraryView({ entries, project, onImport, onRemove }: {
+export function LibraryView({ entries, project, user, packs, onImport, onRemove }: {
   entries: LibEntry[]
   project: { dir: string; libs: ImportedLib[] } | null
-  onImport: (lib: ImportedLib) => void
-  onRemove: (file: string) => void
+  user: ImportedLib[] // My library
+  packs: PackInfo[]
+  onImport: (lib: ImportedLib, to: Target) => unknown
+  onRemove: (file: string, from: Target) => unknown
 }) {
   const [q, setQ] = useState('')
-  const [cat, setCat] = useState('all') // 'all' | Category | 'file:<rel>'
+  const [cat, setCat] = useState('all') // 'all' | Category | 'file:<lib key>' ('user:a.lib', 'pack:id/a.lib', 'proj:libs/a.lib')
   const [selId, setSelId] = useState<string>()
-  const [imp, setImp] = useState<{ rel: string; parsed: ParsedLib } | null>(null)
+  const [to, setTo] = useState<Target>('user')
+  const target: Target = project ? to : 'user'
+  const [imp, setImp] = useState<{ rel: string; to: Target; parsed: ParsedLib } | null>(null)
   const [err, setErr] = useState('')
   const ql = q.trim().toLowerCase()
   const found = useMemo(() => entries.filter((e) => match(e, ql)), [entries, ql])
-  const shown = found.filter((e) => cat === 'all' || (cat.startsWith('file:') ? fileOf(e) === cat.slice(5) : e.category === cat))
+  const shown = found.filter((e) => cat === 'all' || (cat.startsWith('file:') ? libKey(e.id) === cat.slice(5) : e.category === cat))
   const sel = shown.find((e) => e.id === selId) ?? shown[0]
   const count = (f: (e: LibEntry) => boolean) => found.filter(f).length
   const cats = CATS.filter((c) => entries.some((e) => e.category === c))
+  const fail = (e: unknown) => setErr(`Import failed: ${String((e as Error)?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}`)
 
   async function startImport() {
     setErr('')
     try {
-      const r = await window.api.project.importLib(project!.dir)
-      if (r) setImp({ rel: r.rel, parsed: parseLibFile(r.text) })
+      const r = target === 'user' ? await window.api.userlib.import().then((r) => r && { rel: r.file, text: r.text }) : await window.api.project.importLib(project!.dir)
+      if (r) setImp({ rel: r.rel, to: target, parsed: parseLibFile(r.text) })
     } catch (e) {
-      setErr(`Import failed: ${(e as Error).message}`)
+      fail(e)
     }
   }
-  // importLib already copied the file into libs/: drop it again unless it was imported before
+  useImportRequest(startImport) // tools.importLibrary
+  // the import already copied the file: drop it again unless it was imported before
   function cancelImport() {
-    if (imp && project && !project.libs.some((l) => l.file === imp.rel)) window.api.project.remove(project.dir, imp.rel).catch(() => {})
+    if (imp?.to === 'user' && !user.some((l) => l.file === imp.rel)) window.api.userlib.remove(imp.rel).catch(() => {})
+    if (imp?.to === 'project' && project && !project.libs.some((l) => l.file === imp.rel)) window.api.project.remove(project.dir, imp.rel).catch(() => {})
     setImp(null)
   }
-  function remove(file: string) {
-    if (!confirm(`Remove ${file} from the project?\nParts already placed from it will stop netlisting.`)) return
-    if (cat === 'file:' + file) setCat('all')
-    onRemove(file)
+  function remove(file: string, from: Target) {
+    const what = from === 'user'
+      ? `Remove ${file} from My library?\nProjects that already use its parts keep their own copy; loose sheets using it will stop netlisting.`
+      : `Remove ${file} from the project?\nParts already placed from it will stop netlisting.`
+    if (!confirm(what)) return
+    if (cat === 'file:' + KEY[from] + file) setCat('all')
+    Promise.resolve(onRemove(file, from)).catch((e) => setErr(`Remove failed: ${(e as Error).message}`))
   }
+  const fileRow = (key: string, label: string, from?: Target, file = '') => (
+    <div key={key} className="libv-file">
+      {navBtn('file:' + key, label, count((e) => libKey(e.id) === key))}
+      {from && <button className="libv-rm" title={`Remove ${file}`} aria-label={`Remove ${file}`} onClick={() => remove(file, from)}>×</button>}
+    </div>
+  )
 
   const navBtn = (id: string, label: string, n: number) => (
     <button className={`libv-nav-b${cat === id ? ' on' : ''}`} aria-pressed={cat === id} onClick={() => setCat(id)}>
@@ -76,22 +95,36 @@ export function LibraryView({ entries, project, onImport, onRemove }: {
         <nav aria-label="Categories" onKeyDown={(e) => arrows(e, '.libv-nav-b')}>
           {navBtn('all', 'All parts', found.length)}
           {cats.map((c) => <div key={c}>{navBtn(c, c, count((e) => e.category === c))}</div>)}
+          <h4>My library</h4>
+          {user.length === 0 && <p className="libv-muted">Import vendor libraries here to use them in every project.</p>}
+          {user.map((l) => fileRow('user:' + l.file, l.file, 'user', l.file))}
+          {packs.map((p) => (
+            <div key={p.id} className="libv-pack">
+              <h4 title={p.description}>{p.name}{p.license && <span className="libv-lic" title="License">{p.license}</span>}</h4>
+              {p.source && <p className="libv-src">{p.source}</p>}
+              {p.libs.map((l) => fileRow(`pack:${p.id}/${l.file}`, l.file))}
+            </div>
+          ))}
           {project && (
             <>
               <h4>Project</h4>
               {project.libs.length === 0 && <p className="libv-muted">No imported libraries yet.</p>}
-              {project.libs.map((l) => (
-                <div key={l.file} className="libv-file">
-                  {navBtn('file:' + l.file, l.file.replace(/^libs\//, ''), count((e) => fileOf(e) === l.file))}
-                  <button className="libv-rm" title={`Remove ${l.file}`} aria-label={`Remove ${l.file}`} onClick={() => remove(l.file)}>×</button>
-                </div>
-              ))}
+              {project.libs.map((l) => fileRow('proj:' + l.file, l.file.replace(/^libs\//, ''), 'project', l.file))}
             </>
           )}
         </nav>
         <div className="libv-import">
-          <button onClick={startImport} disabled={!project}>Import library…</button>
-          <small>{project ? 'Vendor .lib / .mod / .sub files are copied into the project’s libs/ folder.' : 'Open or create a project to import vendor libraries: they are stored in the project folder.'}</small>
+          {project && (
+            <div className="libv-to" role="radiogroup" aria-label="Import into">
+              {(['user', 'project'] as const).map((t) => (
+                <button key={t} role="radio" aria-checked={to === t} className={to === t ? 'on' : ''} onClick={() => setTo(t)}>{t === 'user' ? 'My library' : 'This project'}</button>
+              ))}
+            </div>
+          )}
+          <button onClick={startImport}>Import library…</button>
+          <small>{target === 'user'
+            ? 'Vendor .lib / .mod / .sub files are kept in your personal library. A project that uses a part gets its own copy.'
+            : 'Vendor .lib / .mod / .sub files are copied into the project’s libs/ folder.'}</small>
           {err && <small className="err" role="alert">{err}</small>}
         </div>
       </aside>
@@ -101,26 +134,31 @@ export function LibraryView({ entries, project, onImport, onRemove }: {
           <button key={e.id} className={`libv-row${e === sel ? ' on' : ''}`} aria-pressed={e === sel} onClick={() => setSelId(e.id)}>
             <SymbolPreview kind={e.kind} part={e.kind === 'block' ? blockPartFields(e) : undefined} size="small" />
             <span><b>{e.name}</b><small>{e.description}</small></span>
-            {e.source === 'project' && <span className="chip">project</span>}
+            {e.group && <span className="chip">{e.group}</span>}
           </button>
         ))}
         {!shown.length && <p className="libv-muted pad">Nothing matches{q ? ` “${q}”` : ''}.</p>}
       </section>
 
-      <section className="libv-detail">{sel ? <Detail e={sel} /> : <p className="libv-muted pad">Select a part.</p>}</section>
+      <section className="libv-detail">{sel ? <Detail e={sel} packs={packs} /> : <p className="libv-muted pad">Select a part.</p>}</section>
 
       {imp && (
         <ImportDialog rel={imp.rel} parsed={imp.parsed} onClose={cancelImport}
-          onImport={(lib) => { setImp(null); onImport(lib); setCat('file:' + lib.file) }} />
+          onImport={(lib) => {
+            const t = imp.to
+            setImp(null)
+            Promise.resolve(onImport(lib, t)).then(() => setCat('file:' + KEY[t] + lib.file), fail)
+          }} />
       )}
     </div>
   )
 }
 
-function Detail({ e }: { e: LibEntry }) {
+function Detail({ e, packs }: { e: LibEntry; packs: PackInfo[] }) {
   const [copied, setCopied] = useState(false)
   const text = spiceText(e)
   const sub = e.spice?.type === 'subckt' ? e.spice : undefined
+  const pack = e.source === 'pack' ? packs.find((p) => e.id.startsWith(`pack:${p.id}/`)) : undefined
   useEffect(() => setCopied(false), [e.id])
   const copy = () => navigator.clipboard.writeText(text).then(() => (setCopied(true), setTimeout(() => setCopied(false), 1200)))
   return (
@@ -129,13 +167,21 @@ function Detail({ e }: { e: LibEntry }) {
         <h2>{e.name}</h2>
         <span className="chip">{e.category}</span>
         <span className="chip">{e.source === 'bundled' ? 'bundled' : fileOf(e)}</span>
+        {pack?.license && <span className="chip libv-lic">{pack.license}</span>}
       </div>
       <p className="libv-desc">{e.description}</p>
       <div className="libv-sym"><SymbolPreview kind={e.kind} part={e.kind === 'block' ? blockPartFields(e) : undefined} size="large" /></div>
       <dl className="libv-dl">
         <dt>Value</dt><dd><code>{e.value}</code></dd>
         <dt>Symbol</dt><dd>{SYMBOLS[e.kind].title}</dd>
-        <dt>Source</dt><dd>{e.source === 'bundled' ? 'Bundled with ngspice Studio' : `Project file ${fileOf(e)}`}</dd>
+        <dt>Source</dt><dd>{
+          e.source === 'bundled' ? 'Bundled with ngspice Studio'
+          : e.source === 'user' ? `My library · ${fileOf(e)}`
+          : e.source === 'pack' ? `${pack?.name ?? 'Pack'} · ${fileOf(e)}${pack?.source ? ` · from ${pack.source}` : ''}`
+          : `Project file ${fileOf(e)}`
+        }</dd>
+        {pack?.license && <><dt>License</dt><dd>{pack.license}</dd></>}
+        {e.compat && <><dt>Dialect</dt><dd>{e.compat}</dd></>}
         {!e.spice && <><dt>Model</dt><dd>Built-in SPICE element: the value is the whole spec</dd></>}
       </dl>
       {sub && (

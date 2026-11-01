@@ -5,9 +5,14 @@ import type { OsOpen } from '../../preload/index'
 import type { RawPlot } from '../../main/rawfile'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
-import { BUNDLED, entriesFromImport, resolver, type ImportedLib, type LibEntry } from './library/library'
+import { useCommands } from './commands'
+import { Help } from './Help'
+import { BUNDLED, copyOnUse, entriesFromImport, resolver, type ImportedLib, type LibEntry } from './library/library'
 import { LibraryView } from './library/LibraryView'
-import { defaultSel, Plot, pretty, type PlotRun } from './Plot'
+import { useImportCommand, useSources, type Sources } from './library/sources'
+import { usePanels } from './layout/Panel'
+import { ResultsPanel } from './layout/ResultsPanel'
+import { defaultSel, pretty, type PlotRun } from './Plot'
 import { newProject, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
 import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
@@ -16,6 +21,8 @@ import { TEMPLATES } from './schematic/templates'
 import { blame, currentVectors, findVector, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { expandSweep } from './sim/sweep'
 import './style.css'
+
+if (/Mac/.test(navigator.platform)) document.documentElement.classList.add('mac') // header leaves room for traffic lights
 
 const EXAMPLE = `* RC low-pass filter, fc = 159 Hz
 V1 in 0 DC 0 AC 1 PULSE(0 1 0 1u 1u 5m 10m)
@@ -93,6 +100,9 @@ function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [gen, setGen] = useState(0) // remounts the workspace per session: fresh undo, tabs, plots
   const [error, setError] = useState('')
+  const [form, setForm] = useState(false) // Home's new-project form: File › New Project opens it from anywhere
+  const sources = useSources() // My library + packs: app-wide, survive sessions
+  useImportCommand(() => setRoute('library'))
 
   useEffect(() => {
     const osOpen = (x: OsOpen) =>
@@ -107,7 +117,7 @@ function App() {
     try {
       const s = await f()
       if (!s) return
-      setSession(s), setGen((g) => g + 1), setRoute('editor'), setError('')
+      setSession(s), setGen((g) => g + 1), setRoute('editor'), setError(''), setForm(false)
     } catch (e) {
       setError(msg(e))
     }
@@ -138,14 +148,23 @@ function App() {
       if (/\.nsch$/i.test(f.path)) return { kind: 'loose', path: f.path, sheet: parseSheet(f.text) }
       return { kind: 'loose', path: null, sheet: emptySheet(), net: { path: f.path, text: f.text } }
     })
+  // menu + shortcuts (commands.ts); leaving.guard asks about unsaved work first when a session is open
+  useCommands([
+    { id: 'file.newProject', keys: 'Mod+N', run: () => leaving.guard(() => (setSession(null), setRoute('home'), setForm(true))) },
+    { id: 'file.openProject', keys: 'Mod+O', run: () => leaving.guard(() => open()) },
+    { id: 'file.openFile', keys: 'Mod+Shift+O', run: () => leaving.guard(openFile) },
+    { id: 'file.openRecent', run: (f) => f && leaving.guard(() => open(f)) }, // menu id 'file.openRecent:<file>'
+    ...(session ? [] : [{ id: 'tools.library', run: () => setRoute('library') }, ...(route === 'library' ? [{ id: 'view.home', run: () => setRoute('home') }] : [])])
+  ])
 
-  if (session) return <Workspace key={gen} session={session} route={route} go={setRoute} onClose={() => (setSession(null), setRoute('home'))} />
+  if (session) return <Workspace key={gen} session={session} route={route} go={setRoute} onClose={() => (setSession(null), setRoute('home'))} sources={sources} />
   if (route === 'library')
-    return <LibraryPage title="Bundled parts" onHome={() => setRoute('home')} entries={BUNDLED} project={null} onImport={() => {}} onRemove={() => {}} />
-  return <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} />
+    return <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.entries]} project={null}
+      user={sources.user.libs} packs={sources.packs} onImport={sources.save} onRemove={sources.remove} />
+  return <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} />
 }
 
-function Workspace({ session, route, go, onClose }: { session: Session; route: Route; go: (r: Route) => void; onClose: () => void }) {
+function Workspace({ session, route, go, onClose, sources }: { session: Session; route: Route; go: (r: Route) => void; onClose: () => void; sources: Sources }) {
   const api = window.api.project
   const pdir = session.kind === 'project' ? session.dir : null
   const pfile = session.kind === 'project' ? session.file : ''
@@ -191,7 +210,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
     () => (proj?.libs ?? []).flatMap((l) => (libTexts[l.file] != null ? entriesFromImport(l, libTexts[l.file]) : [])),
     [proj, libTexts]
   )
-  const library: LibEntry[] = useMemo(() => [...BUNDLED, ...projEntries], [projEntries])
+  const library: LibEntry[] = useMemo(() => [...BUNDLED, ...projEntries, ...sources.entries], [projEntries, sources.entries])
   const resolve = useMemo(() => resolver(library), [library])
   const netCtx: NetCtx = useMemo(() => ({ sheets: { ...disk.current }, lib: resolve }), [rev, resolve])
   const sheetList = useMemo(() => (proj ? files.map((file) => ({ file, sheet: disk.current[file] })) : []), [rev, proj])
@@ -234,6 +253,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
     if (!dirty.current.has(f)) dirty.current.add(f), bump()
     // stale annotations are worse than none: drop op/blame on the first edit (same object otherwise, so no re-render)
     setOverlay((o) => (o?.op || o?.blame ? { nets: o.nets, wireNets: o.wireNets } : o))
+    if (pdir) clearTimeout(adoptT.current), (adoptT.current = setTimeout(() => adopt(false), 250))
   }
   const writeProj = (p: Project) => api.write(pdir!, pfile, json(p))
 
@@ -323,6 +343,29 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
     } catch (e) {
       setStatus(`Can't remove ${file}: ${msg(e)}`)
     }
+  }
+  // copy-on-use: My library / pack parts in project sheets get a libs/ copy and 'proj:' ids (see copyOnUse). After an
+  // edit only parts not rewritten before (re-rewriting one after its undo would trap the undo); save rewrites all.
+  // ponytail: run doesn't adopt (its resolver would be stale); unrewritten parts netlist via the absolute include.
+  const adoptT = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const adopting = useRef<Promise<Project | null>>(Promise.resolve(null))
+  const libNow = useRef({ proj, libTexts }) // latest, also between an adopt and the next render
+  libNow.current = { proj, libTexts }
+  const rewritten = useRef(new Set<string>())
+  function adopt(all: boolean): Promise<Project | null> {
+    return (adopting.current = adopting.current.then(async () => {
+      const { proj: p, libTexts: t } = libNow.current
+      if (!pdir || !p) return p
+      const sheets = Object.fromEntries(Object.keys(disk.current).map((f) => [f, live(f)]))
+      const io = { list: () => api.list(pdir), read: (rel: string) => (rel in t ? Promise.resolve(t[rel]) : api.read(pdir, rel)), write: (rel: string, s: string) => api.write(pdir, rel, s) }
+      const r = await copyOnUse(sheets, p, sources.srcs, io, (q) => all || !rewritten.current.has(q.id))
+      if (!r) return p
+      await writeProj(r.project)
+      for (const [f, s] of Object.entries(r.sheets)) s.parts.forEach((q) => rewritten.current.add(q.id)), put(f, s)
+      libNow.current = { proj: r.project, libTexts: { ...t, ...r.texts } }
+      setProj(r.project), setLibTexts(libNow.current.libTexts), setStatus(`Using the project copy: ${Object.keys(r.texts).join(', ')}`)
+      return r.project
+    }).catch((e) => (setStatus(`Can't copy a library into the project: ${msg(e)}`), libNow.current.proj)))
   }
 
   // ---- netlisting / run (Phase 4 flow; projects always netlist the top sheet) ----
@@ -459,18 +502,19 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
   }
 
   // ---- saving ----
-  async function saveNet() {
-    const p = await window.api.saveFile(text.current, path, 'cir')
+  async function saveNet(as = false) {
+    const p = await window.api.saveFile(text.current, as ? null : path, 'cir')
     if (p) setPath(p), setNetDirty(false)
     return !!p
   }
-  async function saveSheets(): Promise<boolean> {
+  async function saveSheets(as = false): Promise<boolean> {
     if (!proj) {
-      const p = await window.api.saveFile(json(live(LOOSE)), schPath, 'nsch')
+      const p = await window.api.saveFile(json(live(LOOSE)), as ? null : schPath, 'nsch')
       if (p) setSchPath(p), dirty.current.delete(LOOSE), bump()
       return !!p
     }
     try {
+      const p = (await adopt(true)) ?? proj
       for (const f of [...dirty.current]) syncBlocks(f) // saved ports -> blocks elsewhere (they get saved too)
       for (const f of [...dirty.current]) {
         const s = live(f)
@@ -478,7 +522,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
         disk.current[f] = s
         dirty.current.delete(f)
       }
-      await writeProj(proj)
+      await writeProj(p)
       setStatus('Saved')
       return true
     } catch (e) {
@@ -506,18 +550,29 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
     setGuard(null)
   }
 
-  const keys = useRef<Record<string, () => void>>({})
-  keys.current = { Enter: run, s: save, ...(!proj && { o: openLoose }) }
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.target as Element | null)?.closest?.('[aria-modal="true"]')) return // the open dialog owns its keys
-      const fn = (e.metaKey || e.ctrlKey) && keys.current[e.key]
-      if (fn) e.preventDefault(), e.stopPropagation(), fn()
-    }
-    if (route !== 'editor') return
-    window.addEventListener('keydown', onKey, true) // capture: beat CodeMirror's Mod-Enter
-    return () => window.removeEventListener('keydown', onKey, true)
-  }, [route])
+  async function exportNet() {
+    const n = gen()
+    if (n.errors.length) return setStatus(`Netlist errors (${n.errors.length}): fix them before exporting`)
+    const p = await window.api.saveFile(n.text, null, 'cir')
+    if (p) setStatus(`Exported ${base(p)}`)
+  }
+
+  // menu + shortcuts (commands.ts); the canvas' own commands come from the active Schematic
+  const lastSheet = useRef(top)
+  if (isSch) lastSheet.current = view
+  const toSheet = () => (go('editor'), switchTo(disk.current[lastSheet.current] ? lastSheet.current : top))
+  useCommands([
+    { id: 'file.save', keys: 'Mod+S', run: save, enabled: () => (isSch ? dirty.current.size > 0 : netDirty) },
+    { id: 'file.saveAs', keys: 'Mod+Shift+S', run: () => (isSch ? saveSheets(true) : saveNet(true)), enabled: () => !(proj && isSch) }, // projects save in place
+    { id: 'file.closeProject', run: () => leave(onClose), enabled: () => !!proj },
+    { id: 'file.exportNetlist', run: exportNet },
+    { id: 'view.home', run: () => leave(onClose) },
+    { id: 'view.schematic', run: toSheet, checked: () => route === 'editor' && isSch },
+    { id: 'view.netlist', run: () => (go('editor'), switchTo('net')), checked: () => route === 'editor' && !isSch },
+    { id: 'sim.run', keys: 'Mod+Enter', run, enabled: () => !running && (isSch ? live(top).parts.length > 0 : /\S/.test(text.current)) },
+    { id: 'sim.viewNetlist', run: peek, enabled: () => isSch && canPeek },
+    { id: 'tools.library', run: () => (isSch && snap(view), bump(), go('library')) }
+  ])
 
   const name = isSch ? (proj ? view : (base(schPath) ?? 'untitled.nsch')) : (base(path) ?? 'untitled.cir')
   const isDirty = isSch ? dirty.current.has(view) : netDirty
@@ -529,6 +584,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
   const plot = cur?.runs[0].plot
   const logLines = log ? log.split('\n') : []
   const trail = crumbs.length > 1 && crumbs.at(-1) === view ? crumbs : null
+  const panels = usePanels({ active: route === 'editor', hasSheets: !!proj, isSch, runs, title: proj?.name ?? name })
 
   const editKeys = (e: { key: string }, commit: () => void) => (e.key === 'Enter' ? commit() : e.key === 'Escape' && setEdit(null))
   const editInput = (commit: () => void) => (
@@ -564,7 +620,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
                 View netlist
               </button>
             )}
-            {!proj && <button onClick={openLoose} title="Open (⌘O)">Open</button>}
+            {!proj && <button onClick={openLoose} title="Open a schematic or netlist here">Open</button>}
             <button onClick={save} title={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}>Save</button>
             <button className="run" onClick={run} disabled={running} title={proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
               {running ? 'Running…' : '▶ Run'}
@@ -585,11 +641,15 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
         )}
 
         <div className="body">
-          {proj && (
+          {proj && !panels.sheets && panels.sheetsRail}
+          {proj && panels.sheets && (
             <aside className="side">
               <div className="side-h">
                 Sheets
-                <button className="icon" onClick={() => setEdit({ op: 'add', value: '' })} title="Add sheet" aria-label="Add sheet">＋</button>
+                <span>
+                  <button className="icon" onClick={() => setEdit({ op: 'add', value: '' })} title="Add sheet" aria-label="Add sheet">＋</button>
+                  {panels.sheetsHide}
+                </span>
               </div>
               {files.map((f) =>
                 edit?.file === f && edit.op === 'rename' ? (
@@ -628,7 +688,7 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
             </aside>
           )}
 
-          <main className={isSch ? 'sch' : 'net'}>
+          <main className={(isSch ? 'sch' : 'net') + (panels.docked ? '' : ' solo')}>
             <section className="left">
               {proj && open.length > 0 && isSch && (
                 <nav className="stabs">
@@ -665,6 +725,8 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
                     sheets={sheetList.filter((s) => s.file !== f)}
                     netCtx={netCtx}
                     onOpenSheet={proj ? descend : undefined}
+                    libOpen={panels.parts}
+                    onLibOpen={panels.setParts}
                   />
                 </div>
               ))}
@@ -672,32 +734,9 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
                 <Editor initial={initial} onChange={(s) => ((text.current = s), setNetDirty(true))} />
               </div>
             </section>
-            <section className="right">
-              <nav className="tabs">
-                {tabs.map((t) => (
-                  <button key={t.key} className={t === cur ? 'on' : ''} onClick={() => setTab(t.key)}>
-                    {t.name}
-                  </button>
-                ))}
-                {!runs && <span className="empty">Press ▶ Run (⌘↵) to simulate</span>}
-                {runs && !tabs.length && <span className="empty">No analysis results. Check the console.</span>}
-              </nav>
-              <div className="plotarea">
-                {cur && <Plot key={cur.key} runs={cur.runs} sel={sels[cur.key] ?? []} onSel={(s) => setSels({ ...sels, [cur.key]: s })} />}
-              </div>
-              <pre className="console">
-                {logLines.map((l, i) => {
-                  const t = l.trim() // blame() trims lines and may append the culprit from the next one
-                  const b = t ? blamed.find((x) => x.line === t || x.line.startsWith(t + ' '))?.blame : undefined
-                  const cls = /^warning:/i.test(l) ? 'warn' : /error|fatal|failed/i.test(l) ? 'err' : /warning/i.test(l) ? 'warn' : ''
-                  return (
-                    <div key={i} className={b ? cls + ' blame' : cls} onClick={b && (() => show(b))} title={b && 'Show in schematic'}>
-                      {l}
-                    </div>
-                  )
-                })}
-              </pre>
-            </section>
+            {panels.results((actions) => (
+              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} />
+            ))}
           </main>
         </div>
 
@@ -712,17 +751,19 @@ function Workspace({ session, route, go, onClose }: { session: Session; route: R
       </div>
       {route === 'library' && (
         <LibraryPage
-          title={proj ? proj.name : 'Bundled parts'}
+          title={proj ? proj.name : 'All parts'}
           back={() => go('editor')}
           onHome={() => (go('editor'), leave(onClose))}
           entries={library}
           project={proj && { dir: pdir!, libs: proj.libs }}
-          onImport={onImport}
-          onRemove={onRemove}
+          user={sources.user.libs}
+          packs={sources.packs}
+          onImport={(l, to) => (to === 'user' ? sources.save(l) : onImport(l))}
+          onRemove={(f, from) => (from === 'user' ? sources.remove(f) : onRemove(f))}
         />
       )}
     </>
   )
 }
 
-createRoot(document.getElementById('root')!).render(<App />)
+createRoot(document.getElementById('root')!).render(<><App /><Help /></>)
