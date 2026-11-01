@@ -156,6 +156,16 @@ export function route(a: Pt, b: Pt, vFirst = false): Wire[] {
   ].filter((w) => !same(w.a, w.b))
 }
 
+// Wire w with its ends moved to a, b. A move that would leave it diagonal becomes an L instead, the end that stayed put
+// leaving in the wire's original direction (KiCad-style drag). The first segment keeps w's id.
+export function stretch(w: Wire, a: Pt, b: Pt): Wire[] {
+  if (a.x === b.x || a.y === b.y) return [{ ...w, a, b }]
+  const vert = w.a.x === w.b.x && w.a.y !== w.b.y
+  const r = same(b, w.b) && !same(a, w.a) ? route(b, a, vert) : route(a, b, vert)
+  r[0] = { ...r[0], id: w.id }
+  return r
+}
+
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {
   const s = JSON.parse(text)

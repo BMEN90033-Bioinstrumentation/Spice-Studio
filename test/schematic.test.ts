@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  blockShape, connections, emptySheet, exampleSheet, junctions, key, newPart, nextName, onSegment, parseSheet, pins, route,
+  blockShape, connections, emptySheet, exampleSheet, junctions, key, newPart, nextName, onSegment, parseSheet, pins, route, stretch,
   sheetPorts, unconnectedPins, xform, type Sheet
 } from '../src/renderer/src/schematic/model.ts'
 
@@ -71,6 +71,18 @@ test('route is orthogonal and drops zero-length segments', () => {
   assert.equal(route(a, { x: 50, y: 0 }).length, 1)
   assert.equal(route(a, { x: 0, y: 50 }, true).length, 1)
   assert.equal(route(a, a).length, 0)
+})
+
+test('stretch keeps dragged wires orthogonal, fixed end keeps its direction', () => {
+  const w = { id: 'w', a: { x: 0, y: 0 }, b: { x: 50, y: 0 } }
+  assert.deepEqual(stretch(w, w.a, { x: 60, y: 0 }), [{ id: 'w', a: w.a, b: { x: 60, y: 0 } }])
+  const r = stretch(w, w.a, { x: 50, y: 20 }) // b dragged down: leave a horizontally, then drop
+  assert.deepEqual(r.map((s) => [s.a, s.b]), [[w.a, { x: 50, y: 0 }], [{ x: 50, y: 0 }, { x: 50, y: 20 }]])
+  assert.equal(r[0].id, 'w')
+  const l = stretch(w, { x: 10, y: 20 }, w.b) // a dragged: leave b horizontally
+  assert.deepEqual(l.map((s) => [s.a, s.b]), [[w.b, { x: 10, y: 0 }], [{ x: 10, y: 0 }, { x: 10, y: 20 }]])
+  const v = { id: 'v', a: { x: 0, y: 0 }, b: { x: 0, y: 50 } }
+  assert.deepEqual(stretch(v, v.a, { x: 20, y: 50 }).map((s) => s.b), [{ x: 0, y: 50 }, { x: 20, y: 50 }])
 })
 
 test('parseSheet round-trips and rejects garbage', () => {

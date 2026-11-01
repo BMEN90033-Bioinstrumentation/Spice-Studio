@@ -1,5 +1,5 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, same, snap, stretch, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
@@ -75,6 +75,13 @@ function bounds(s: Sheet): Box | null {
   return pts.reduce((b, q) => ({ x0: Math.min(b.x0, q.x), y0: Math.min(b.y0, q.y), x1: Math.max(b.x1, q.x), y1: Math.max(b.y1, q.y) }), norm(pts[0], pts[0]))
 }
 
+// curved-arrow undo icon (font glyphs like ↶ render tiny/misaligned); redo is its mirror
+const UndoIcon = ({ redo }: { redo?: boolean }) => (
+  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" transform={redo ? 'scale(-1 1)' : undefined}>
+    <path d="M7 4 3 8l4 4M3 8h9a4.5 4.5 0 0 1 0 9H8" />
+  </svg>
+)
+
 // Apply f to selected parts and g to selected wires' endpoints. Any wire endpoint (selected or not) that sat on a
 // moved pin or moved wire endpoint follows it, so connections rubber-band through moves, rotates and mirrors.
 function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: Pt) => Pt = (q) => q): Sheet {
@@ -86,9 +93,9 @@ function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: Pt) => P
     pins(p).forEach((q, i) => m.set(`${q.x},${q.y}`, b[i]))
     return n
   })
-  const wires = s.wires.map((w) => {
+  const wires = s.wires.flatMap((w) => {
     const h = (q: Pt) => m.get(`${q.x},${q.y}`) ?? (sel.has(w.id) ? g(q) : q)
-    return { ...w, a: h(w.a), b: h(w.b) }
+    return stretch(w, h(w.a), h(w.b))
   })
   return { ...s, parts, wires }
 }
@@ -722,8 +729,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <button title="Rotate (Ctrl+R)" onClick={() => orient(true)}>⟳</button>
         <button title="Mirror (Ctrl+E)" onClick={() => orient(false)}>⇋</button>
         <button title="Delete (Del)" onClick={del} disabled={!sel.size}>⌫</button>
-        <button title="Undo (⌘Z)" onClick={undo} disabled={!hist.current.undo.length}>↶</button>
-        <button title="Redo (⇧⌘Z)" onClick={redo} disabled={!hist.current.redo.length}>↷</button>
+        <button title="Undo (⌘Z)" onClick={undo} disabled={!hist.current.undo.length}><UndoIcon /></button>
+        <button title="Redo (⇧⌘Z)" onClick={redo} disabled={!hist.current.redo.length}><UndoIcon redo /></button>
         <button title="Fit (F)" onClick={() => fit()}>⤢</button>
         <span className="sep" />
         <button title="Simulation setup (A)" onClick={() => setDlg('analysis')}>Analysis…</button>
