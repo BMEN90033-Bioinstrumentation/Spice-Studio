@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Windows (MSYS2 MINGW64) build of the bundled ngspice -> vendor/ngspice/win32-x64/.
 # Based on ngspice's compile_min.sh, but as a console build (no --with-wingui) without
-# readline, statically linked against the MinGW runtime (LDFLAGS="-s -static") so
+# readline, statically linked against the MinGW runtime (LDFLAGS: see the win32 branch of build-ngspice.sh) so
 # ngspice.exe and the .cm DLLs depend only on Windows system DLLs.
 #
 # Run from an MSYS2 "MINGW64" shell (CI: msys2/setup-msys2 with msystem: MINGW64). Packages:
