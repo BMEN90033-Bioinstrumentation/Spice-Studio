@@ -30,6 +30,7 @@ import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
 import './style.css'
+import { Icon } from './icons'
 
 if (/Mac/.test(navigator.platform)) document.documentElement.classList.add('mac') // header leaves room for traffic lights
 
@@ -103,8 +104,8 @@ function LibraryPage({ title, back, onHome, ...view }: Parameters<typeof Library
   return (
     <div className="app">
       <header>
-        <button onClick={onHome} title="Home">⌂ Home</button>
-        {back && <button onClick={back}>‹ Back to editor</button>}
+        <button className="icon" onClick={onHome} title="Home" aria-label="Home"><Icon name="home" /></button>
+        {back && <button onClick={back}><Icon name="left" />Back to editor</button>}
         <span className="brand">Component library</span>
         <span className="file">{title}</span>
       </header>
@@ -709,7 +710,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     <>
       <div className="app" hidden={route !== 'editor'}>
         <header>
-          <button onClick={() => leave(onClose)} title="Back to the home page">⌂ Home</button>
+          <button className="icon" onClick={() => leave(onClose)} title="Back to the home page" aria-label="Home"><Icon name="home" /></button>
           {proj ? (
             <span className="brand">{proj.name}</span>
           ) : (
@@ -728,9 +729,10 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
             )}
             {!proj && <button onClick={openLoose} title="Open a schematic or netlist here">Open</button>}
             <button onClick={save} title={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}>Save</button>
+            <span className="sep" />
             <button onClick={() => setSimEdit(simEdit ? null : sim)} title="Run settings: compatibility mode for vendor models, timeout">Run settings</button>
             <button className="run" onClick={running ? stop : run} title={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
-              {running ? '■ Stop' : '▶ Run'}
+              {running ? <><Icon name="stop" />Stop</> : <><Icon name="play" />Run</>}
             </button>
           </div>
         </header>

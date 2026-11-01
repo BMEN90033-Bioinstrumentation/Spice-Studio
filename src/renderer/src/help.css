@@ -1,9 +1,9 @@
 .help-dlg { width: min(760px, 100%); outline: none; }
 .help-keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 4px 28px; padding: 12px 16px 16px; overflow: auto; }
-.help-keys h3 { margin: 10px 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+.help-keys h3 { margin: 10px 0 4px; font-size: 12px; font-weight: 500; color: var(--dim); }
 .help-row { display: flex; align-items: baseline; gap: 12px; padding: 3px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .help-row span { flex: 1; }
-.help-row kbd { font: 11px var(--mono); padding: 1px 6px; border: 1px solid #353b48; border-radius: 4px; background: #23272f; color: var(--text); white-space: nowrap; }
+.help-row kbd { font: 11px var(--mono); padding: 1px 6px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--border); color: var(--text); white-space: nowrap; }
 .help-about { display: grid; gap: 10px; padding: 14px 16px 18px; }
 .help-about p { margin: 0; }
 .help-about dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 12px; }
@@ -18,14 +18,14 @@
 .help-link:hover { background: none; }
 .help-lic { display: grid; gap: 18px; align-content: start; padding: 12px 16px 18px; overflow: auto; min-height: 0; flex: 1; }
 .help-lic section { display: grid; gap: 8px; min-width: 0; }
-.help-lic h3 { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+.help-lic h3 { margin: 0; font-size: 12px; font-weight: 500; color: var(--dim); }
 .help-lic .bad { color: var(--warn); }
 .help-lic code, .help-pack code { font: 11px var(--mono); }
-.help-lic details { border: 1px solid var(--line); border-radius: 6px; background: #1a1d23; }
+.help-lic details { border: 1px solid var(--line); border-radius: var(--r); background: var(--s1); }
 .help-lic summary { display: flex; align-items: center; gap: 8px; padding: 7px 10px; cursor: pointer; font-size: 12px; font-weight: 500; }
 .help-lic details[open] > summary { border-bottom: 1px solid var(--line); }
 .help-lic details > .help-text, .help-lic details > .help-pack { margin: 10px; }
-.help-badge { font: 600 9px var(--mono); color: #8fc79a; border: 1px solid #3c5a43; border-radius: 4px; padding: 0 4px; }
+.help-badge { font: 600 9px var(--mono); color: var(--ok); border: 1px solid rgba(76, 195, 138, 0.35); border-radius: 4px; padding: 0 4px; }
 .help-pack { display: grid; gap: 10px; align-content: start; min-width: 0; min-height: 0; padding: 14px 16px 16px; overflow: auto; }
 .help-lic .help-pack { padding: 0; overflow: visible; }
 .help-pack dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 12px; }
@@ -35,7 +35,7 @@
 .help-prov th { text-align: left; font-weight: 500; color: var(--dim); }
 .help-prov th, .help-prov td { padding: 4px 12px 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
 .help-text {
-  margin: 0; max-height: 420px; overflow: auto; padding: 10px 12px; background: #121418; border: 1px solid var(--line); border-radius: 6px;
-  font: 11px/1.5 var(--mono); color: #b8c4d6; white-space: pre-wrap; overflow-wrap: anywhere;
+  margin: 0; max-height: 420px; overflow: auto; padding: 10px 12px; background: var(--s0); border: 1px solid var(--line); border-radius: var(--r);
+  font: 11px/1.5 var(--mono); color: var(--sym); white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .help-text:focus-visible { outline: 2px solid var(--accent); }

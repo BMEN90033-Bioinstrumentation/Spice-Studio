@@ -1,17 +1,14 @@
 /* collapsed panel rail (width = RAILW in Panel.tsx) */
 .rail {
-  flex-shrink: 0; width: 28px; position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 10px 0; border: 0; border-radius: 0; background: #1a1d23; color: var(--dim); animation: panel-in 120ms ease-out;
+  flex-shrink: 0; width: 28px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px;
+  padding: 10px 0; border: 0; border-radius: 0; background: var(--s1); color: var(--dim); animation: panel-in 120ms ease-out;
 }
-.rail:hover { background: #222631; color: var(--text); }
+.rail:hover { background: var(--s3); color: var(--text); }
 .rail:focus-visible { outline-offset: -2px; }
 .rail-left { border-right: 1px solid var(--line); }
 .rail-right { border-left: 1px solid var(--line); }
 .rail-bottom { width: auto; height: 28px; flex-direction: row; padding: 0 10px; border-top: 1px solid var(--line); }
-.rail-ic { font-size: 14px; line-height: 1; }
-.rail-lb { writing-mode: vertical-rl; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.rail-bottom .rail-lb { writing-mode: horizontal-tb; }
-.rail-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px #1a1d23; }
+.rail-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--s1); }
 
 /* panels slide in briefly when opened */
 @keyframes panel-in { from { opacity: 0; transform: translateX(var(--panel-from, -8px)); } }
@@ -25,7 +22,7 @@
 .side-h > span { display: flex; }
 /* results: header actions on the right of the plot tabs; collapsed/popped -> canvas takes the width */
 .tabs-act { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding-left: 8px; }
-.tabs .tabs-act button.primary { padding: 3px 12px; background: #1f5f86; border-color: #2a7bad; color: var(--text); }
+.tabs .tabs-act button.primary { padding: 3px 12px; background: var(--primary); border-color: transparent; color: var(--text); }
 .body > main.solo { grid-template-columns: 1fr auto; }
 .body > main.solo > .left { border-right: 0; }
 

@@ -31,7 +31,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
             Measurements
           </button>
         )}
-        {!ran && <span className="empty">Press ▶ Run (⌘↵) to simulate</span>}
+        {!ran && <span className="empty">Press Run (⌘↵) to simulate</span>}
         {ran && !tabs.length && !hasMeas && <span className="empty">No analysis results. Check the console.</span>}
         {actions && <span className="tabs-act">{actions}</span>}
       </nav>

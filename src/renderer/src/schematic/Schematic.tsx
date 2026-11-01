@@ -12,6 +12,7 @@ import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { createPortal } from 'react-dom'
 import './schematic.css'
+import { Icon } from '../icons'
 
 export interface SchematicHandle {
   get(): Sheet; load(s: Sheet): void; replace(s: Sheet): void; select(ids: string[]): void
@@ -74,13 +75,6 @@ function bounds(s: Sheet): Box | null {
   if (!pts.length) return null
   return pts.reduce((b, q) => ({ x0: Math.min(b.x0, q.x), y0: Math.min(b.y0, q.y), x1: Math.max(b.x1, q.x), y1: Math.max(b.y1, q.y) }), norm(pts[0], pts[0]))
 }
-
-// curved-arrow undo icon (font glyphs like ↶ render tiny/misaligned); redo is its mirror
-const UndoIcon = ({ redo }: { redo?: boolean }) => (
-  <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" transform={redo ? 'scale(-1 1)' : undefined}>
-    <path d="M7 4 3 8l4 4M3 8h9a4.5 4.5 0 0 1 0 9H8" />
-  </svg>
-)
 
 // Name/value text, drawn unrotated beside the part.
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance
@@ -635,7 +629,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         : 'Click to start a wire · Esc returns to select'
       : tool === 'probe'
       ? 'Click a wire to plot its voltage · click a part to plot its current · drag between two nets plots the difference · Esc returns to select'
-      : 'Click to select · Shift+click toggles · Alt+click probes · Alt+drag net to net probes the difference · drag to move or box-select · Space/middle-drag pans · pinch zooms · F fits'
+      : `Drag to move or box-select · Alt+click probes · Space-drag pans · F fits · ${keyLabel('Mod+/')} for all shortcuts`
 
   return (
     <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
@@ -692,14 +686,16 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       </svg>
 
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
-        : <Rail side="left" label="Parts" title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
+        : <Rail side="left" label="Parts" icon="chip" title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar" ref={bar}>
         <button className={libOpen ? 'on' : ''} title="Parts library (Shift+L) · search (/)" aria-pressed={libOpen} onClick={() => toggleLib()}>Parts</button>
         <span className="sep" />
-        <button className={tool === 'select' ? 'on' : ''} title="Select (Esc)" onClick={() => use('select')}>Select</button>
-        <button className={tool === 'wire' ? 'on' : ''} title="Wire (W)" onClick={() => use('wire')}>Wire</button>
-        <button className={tool === 'text' ? 'on mono' : 'mono'} title="SPICE directive (S)" onClick={() => use('text')}>.op</button>
-        <button className={tool === 'probe' ? 'on' : ''} title="Probe (P) · or Alt+click" onClick={() => use('probe')}>Probe</button>
+        <div className="seg" role="group" aria-label="Tool">
+          <button className={tool === 'select' && !placing ? 'on' : ''} title="Select (Esc)" aria-label="Select" onClick={() => use('select')}><Icon name="cursor" /></button>
+          <button className={tool === 'wire' ? 'on' : ''} title="Wire (W)" aria-label="Wire" onClick={() => use('wire')}><Icon name="wire" /></button>
+          <button className={tool === 'text' ? 'on mono' : 'mono'} title="SPICE directive (S)" onClick={() => use('text')}>.op</button>
+          <button className={tool === 'probe' ? 'on' : ''} title="Probe (P) · or Alt+click" aria-label="Probe" onClick={() => use('probe')}><Icon name="probe" /></button>
+        </div>
         <span className="sep" />
         {QUICK.map((k) => (
           <button key={k} className={placing?.place === k && !placing.id ? 'on icon' : 'icon'} title={SYMBOLS[k].title + (SYMBOLS[k].key ? ` (${SYMBOLS[k].key!.toUpperCase()})` : '')}
@@ -708,12 +704,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           </button>
         ))}
         <span className="sep" />
-        <button title="Rotate (Ctrl+R)" onClick={() => orient(true)}>⟳</button>
-        <button title="Mirror (Ctrl+E)" onClick={() => orient(false)}>⇋</button>
-        <button title="Delete (Del)" onClick={del} disabled={!sel.size}>⌫</button>
-        <button title="Undo (⌘Z)" onClick={undo} disabled={!hist.current.undo.length}><UndoIcon /></button>
-        <button title="Redo (⇧⌘Z)" onClick={redo} disabled={!hist.current.redo.length}><UndoIcon redo /></button>
-        <button title="Fit (F)" onClick={() => fit()}>⤢</button>
+        <button title="Rotate (Ctrl+R)" aria-label="Rotate" onClick={() => orient(true)}><Icon name="rotate" /></button>
+        <button title="Mirror (Ctrl+E)" aria-label="Mirror" onClick={() => orient(false)}><Icon name="mirror" /></button>
+        <button title="Delete (Del)" aria-label="Delete" onClick={del} disabled={!sel.size}><Icon name="trash" /></button>
+        <button title="Undo (⌘Z)" aria-label="Undo" onClick={undo} disabled={!hist.current.undo.length}><Icon name="undo" /></button>
+        <button title="Redo (⇧⌘Z)" aria-label="Redo" onClick={redo} disabled={!hist.current.redo.length}><Icon name="undo" flip /></button>
+        <button title="Fit (F)" aria-label="Fit to window" onClick={() => fit()}><Icon name="fit" /></button>
         <span className="sep" />
         <button title="Simulation setup (A)" onClick={() => setDlg('analysis')}>Analysis…</button>
         {overlay?.op && <button className={showOp ? 'on' : ''} title="Show DC operating point voltages" onClick={() => setShowOp((v) => !v)}>OP</button>}

@@ -143,7 +143,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     const el = host.current, doc = el.ownerDocument
     const yUnit = fftv ? 'dB' : first.complex ? (mode === 'db' ? 'dB' : '°') : ''
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
-    const axis = { stroke: '#9aa3b2', grid: { stroke: '#262a33' }, ticks: { stroke: '#262a33' } }
+    const axis = { stroke: '#8a9099', grid: { stroke: '#1f2227' }, ticks: { stroke: '#24272d' } } // --dim / grid between --s1 and --border (canvas can't read CSS vars)
     const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
     runs.forEach(({ label }, r) => {
       const ts = traces.filter((t) => t.run === r)

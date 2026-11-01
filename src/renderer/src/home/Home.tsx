@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { validName } from '../project/project'
 import { TEMPLATES } from '../schematic/templates'
+import { Icon } from '../icons'
 import './Home.css'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
@@ -62,7 +63,6 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   return (
     <div className="home">
       <div className="home-bar">
-        <span className="brand">Spice Studio</span>
         {engine && (
           <span className={'engine' + (engine.path ? '' : ' bad')} title={engine.path ?? 'Build it with npm run ngspice:build, or install ngspice'}>
             {engine.version}{engine.bundled ? ' (bundled)' : ''}
@@ -70,36 +70,25 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
         )}
       </div>
       <div className="home-body">
-        <section className="hero">
-          <svg className="logo" viewBox="0 0 48 48" aria-hidden>
-            <rect x="1" y="1" width="46" height="46" rx="11" />
-            <path d="M8 30h7l3-12 5 20 5-26 4 18h8" />
-          </svg>
-          <div>
-            <h1>Spice Studio</h1>
-            <p>Draw schematics, build hierarchical designs and simulate them with ngspice.</p>
-          </div>
-        </section>
+        <h1>Spice Studio</h1>
 
         {error && <div className="home-error" role="alert">{error}</div>}
 
         <div className="home-grid">
           <div className="col">
-            <div className="tiles">
-              <button className={'tile' + (form ? ' on' : '')} onClick={() => setForm(!form)} aria-expanded={form}>
-                <span className="ic">＋</span>
-                <b>New project</b>
-                <small>From a template or blank · ⌘N</small>
+            <h2>Start</h2>
+            <div className="acts">
+              <button className={form ? 'on' : ''} onClick={() => setForm(!form)} aria-expanded={form} title="From a template or blank">
+                <Icon name="plus" /><span>New project</span><kbd>⌘N</kbd>
               </button>
-              <button className="tile" onClick={() => onOpen()}>
-                <span className="ic">⌂</span>
-                <b>Open project</b>
-                <small>A .nsproj folder · ⌘O</small>
+              <button onClick={() => onOpen()} title="A .nsproj folder">
+                <Icon name="folder" /><span>Open project…</span><kbd>⌘O</kbd>
               </button>
-              <button className="tile" onClick={onOpenFile}>
-                <span className="ic">≡</span>
-                <b>Open file</b>
-                <small>A single .nsch or .cir · ⇧⌘O</small>
+              <button onClick={onOpenFile} title="A single .nsch or .cir">
+                <Icon name="file" /><span>Open file…</span><kbd>⇧⌘O</kbd>
+              </button>
+              <button onClick={onLibrary} title="Browse bundled diodes, transistors and op-amps with their models">
+                <Icon name="book" /><span>Component library</span>
               </button>
             </div>
 
@@ -135,14 +124,14 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           </div>
 
           <div className="col">
-            <h2>Recent projects</h2>
+            <h2>Recent</h2>
             <div className="recents">
               {recents?.length === 0 && <div className="none">No recent projects yet.</div>}
               {recents?.map((r) => (
                 <div key={r.file} className={'recent' + (r.exists ? '' : ' gone')}>
                   <button className="open" disabled={!r.exists} onClick={() => onOpen(r.file)} title={r.exists ? r.file : 'Missing: ' + r.file}>
                     <b>{r.name}</b>
-                    <small>{tilde(r.file.replace(/\/[^/]*$/, ''))}</small>
+                    <small><bdi dir="ltr">{tilde(r.file.replace(/\/[^/]*$/, ''))}</bdi></small>
                   </button>
                   <span className="when">{r.exists ? ago(r.opened) : 'missing'}</span>
                   {!r.exists && (
@@ -151,15 +140,6 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
                 </div>
               ))}
             </div>
-
-            <button className="libcard" onClick={onLibrary}>
-              <span className="ic">▤</span>
-              <span>
-                <b>Component library</b>
-                <small>Browse bundled diodes, transistors and op-amps with their models.</small>
-              </span>
-              <span className="go">›</span>
-            </button>
           </div>
         </div>
       </div>

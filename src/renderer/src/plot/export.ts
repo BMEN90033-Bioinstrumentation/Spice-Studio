@@ -203,7 +203,7 @@ export async function toPng(u: uPlot, cursors: (number | undefined)[] = []): Pro
   const c = src.ownerDocument.createElement('canvas')
   c.width = src.width, c.height = src.height + Math.round((legend.length * LEG + 6) * pr)
   const g = c.getContext('2d')!
-  g.fillStyle = '#16181d'
+  g.fillStyle = '#111316'
   g.fillRect(0, 0, c.width, c.height)
   g.drawImage(src, 0, 0)
   g.scale(pr, pr)
@@ -213,7 +213,7 @@ export async function toPng(u: uPlot, cursors: (number | undefined)[] = []): Pro
     if (x == null) return
     const p = u.valToPos(x, 'x')
     if (!(p >= 0 && p <= w)) return
-    g.strokeStyle = g.fillStyle = '#d7dce4'
+    g.strokeStyle = g.fillStyle = '#e2e4e8'
     g.setLineDash([4, 3])
     g.beginPath(), g.moveTo(l + p, t), g.lineTo(l + p, t + h), g.stroke()
     g.fillText('AB'[k], l + p + 3, t + 12)
@@ -224,7 +224,7 @@ export async function toPng(u: uPlot, cursors: (number | undefined)[] = []): Pro
     for (const { x, it } of row) {
       g.fillStyle = it.color
       g.fillRect(x, y - 1, 14, 2)
-      g.fillStyle = '#d7dce4'
+      g.fillStyle = '#e2e4e8'
       g.fillText(it.label, x + 18, y + 4)
     }
   })
