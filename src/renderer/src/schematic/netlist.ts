@@ -26,7 +26,9 @@ const MODELS: Record<string, string> = {
   npn: '.model NPN NPN',
   pnp: '.model PNP PNP',
   nmos: '.model NMOS NMOS (level=1 vto=0.7 kp=110u)',
-  pmos: '.model PMOS PMOS (level=1 vto=-0.7 kp=50u)'
+  pmos: '.model PMOS PMOS (level=1 vto=-0.7 kp=50u)',
+  njf: '.model NJF NJF (vto=-2 beta=1m)',
+  pjf: '.model PJF PJF (vto=-2 beta=1m)' // SPICE JFET: VTO is negative for P-channel too
 }
 const ANALYSIS = /^\s*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss|control)\b/im
 
@@ -36,6 +38,7 @@ interface Global {
   errors: string[]
   warnings: string[]
   libText: Map<string, string> // entry id / include path -> text, emitted once
+  defs: Map<string, { id: string; sig: string }> // lib model/subckt name (lowercase) -> who defines it
   models: Set<string> // default models
   subs: Map<string, string> // sheet file -> subckt name
   subText: string[]
@@ -46,7 +49,7 @@ interface Global {
 
 export function netlist(s: Sheet, title?: string, ctx: NetCtx = {}): NetlistResult {
   const g: Global = {
-    ctx, errors: [], warnings: [], libText: new Map(), models: new Set(), subs: new Map(), subText: [], names: new Set(), chain: [], ground: false
+    ctx, errors: [], warnings: [], libText: new Map(), defs: new Map(), models: new Set(), subs: new Map(), subText: [], names: new Set(), chain: [], ground: false
   }
   // lib subckt/model names can't be reused for sheet subckts
   for (const sh of [s, ...Object.values(ctx.sheets ?? {})])
@@ -155,6 +158,14 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     const entry = p.lib ? g.ctx.lib?.(p.lib) : undefined
     if (p.lib && !entry) err(`${ref}: unknown library part "${p.lib}"`)
     const spice = entry?.spice, sub = !!p.sheet || spice?.type === 'subckt'
+    if (spice) {
+      // two different library parts defining the same SPICE name: ngspice silently keeps the first definition for
+      // both, so one part would simulate with the other's model. Same source (e.g. a pack part and its project copy) is fine.
+      const k = spice.name.toLowerCase(), sig = spice.text ?? 'inc:' + ((spice.type === 'subckt' && spice.include) || '').split(/[\\/]/).pop()
+      const d = g.defs.get(k)
+      if (!d) g.defs.set(k, { id: entry!.id, sig })
+      else if (d.sig !== sig) err(`${ref}: "${spice.name}" is defined by two different library parts (${d.id} and ${entry!.id}); ngspice would use one model for both — use the same library part for both, or pick a differently named one`)
+    }
     const want = sub ? 'X' : prefix
     if (ref[0].toUpperCase() !== want) {
       // a library subckt placed with e.g. the npn symbol is named Q1: becoming XQ1 is expected, not worth a warning
@@ -191,7 +202,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     const m = value.split(' ')[0].toLowerCase()
     if (spice) g.libText.set(entry!.id, spice.text)
     // defaults go after the directives: ngspice keeps the first .model, so user/.include'd models of the same name win
-    else if ('DQM'.includes(prefix) && MODELS[m] && !userModels.has(m)) g.models.add(MODELS[m])
+    else if ('DQMJ'.includes(prefix) && MODELS[m] && !userModels.has(m)) g.models.add(MODELS[m])
   }
   return { lines, directives, parts: parts.length, nets, wireNets, refs }
 }

@@ -1,0 +1,3097 @@
+{
+ "id": "vendor-natsemi",
+ "name": "National Semiconductor op-amps",
+ "description": "National Semiconductor SPICE op-amp and comparator macromodels, version 4.4 (spice44.zip, 1996). Shipped unmodified with their notices.",
+ "license": "National Semiconductor notice: intended for free software support; the file may be copied and distributed; reselling the material is illegal.",
+ "source": "National Semiconductor (national.com/models/spice/analog/spice44.zip, archived), now Texas Instruments",
+ "version": "1",
+ "notice": "NOTICE.txt",
+ "provenance": [
+  {
+   "file": "LF155.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF155.MOD",
+   "sha256": "57084658861ed06899fb62741ca9dc9462b42d6c79ea05d3668729d77573516f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF156.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF156.MOD",
+   "sha256": "ca5cb6528d5adb3ce812ba658e1c81e640bb15e04902ea6ea451ac38ed43f163",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF157.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF157.MOD",
+   "sha256": "7258b28c5cf29882ea9c246c9ec997e13f6640ba3d94f7049adda7c92822eec1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF255.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF255.MOD",
+   "sha256": "7659db5cb42ff48f131d458f856ca743399edc99f443c09ce95c89367b40e67d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF256.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF256.MOD",
+   "sha256": "6bca29b3619ce6e64d5c32a4f1ec38932add194752c00f8f8d008524e2b99d10",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF257.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF257.MOD",
+   "sha256": "771c0ffb166aaa06cc679301b2397e9dc5686d9754c0c47ebcf1a8a04415e3c0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF351.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF351.MOD",
+   "sha256": "887960be86fb94489d2dd7e6ba4bbaeef772184748436fc5592f92b08b5c5c28",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF353.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF353.MOD",
+   "sha256": "1b1847068be2a4db039327e4c06b66f94ccab87a78050d455f543acf1e149c6b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF355.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF355.MOD",
+   "sha256": "9d158ff4fb6a8fb495e6fb4320a7cadd51587f7bdf598ba33128fbb524806cc2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF356.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF356.MOD",
+   "sha256": "40101e62fcc5d368d38e77c2143da550ed9ba49fa3e37745b44df846027e19d6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF357.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF357.MOD",
+   "sha256": "b5d94398432db305185f08e3a232a874f4096ba3f80057ccfd8ac4b2e5fa38b2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF411.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF411.MOD",
+   "sha256": "86045f46bb4c0a8b0fb3251cdc7afa2e7fe00b0686e5e8fd1cb9653d814f4000",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF412.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF412.MOD",
+   "sha256": "1a2c12149de09aa4997dccb9f97aca34ee2cc050616466709cb6f3b891054d3b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF441A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF441A.MOD",
+   "sha256": "d0eb17811ffe4fed25849aefb8795b4ed39317975873314cc7acd171bc594d11",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF441B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF441B.MOD",
+   "sha256": "2f8202ab408674c3e72ec392ad9001cb3490a5ad7f4781d7111c9b9660fd01ea",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF442A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF442A.MOD",
+   "sha256": "850259c479af331e0a5d6b45d26c539d3ade18b2901aa00a72a02b7adc0dd06a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF442B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF442B.MOD",
+   "sha256": "443d060abc8de835c1b84af112f2af6738fe2fbe9e8dc0e67328a1387314ffd6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF444A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF444A.MOD",
+   "sha256": "014d3c8e50f872c71d3d1c683d64b65d4a246e58f1f0a2a0f12de63e7660e2d5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF444B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF444B.MOD",
+   "sha256": "2510222edc4f0f568a7d06f421e56ac38df7b6db51dde8009d848ab867b0102a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF451.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF451.MOD",
+   "sha256": "0f3e91e478376605edd2ea6db0bf5d5909d5e11b28d335bfeebb14473bdb7c72",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LF453.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LF453.MOD",
+   "sha256": "bfbf0569d2a4d5b5057fddf03d840f12c92aeb34c339bafd4ce1c93c0c747951",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM111.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM111.MOD",
+   "sha256": "6befe768b306a119e956cec0937bfda2613b63953ef530a1f3c5f14225b8a5e1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM118.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM118.MOD",
+   "sha256": "0dccecc9675e6d3b189cd8d0c53d523566e37b59f51ca7ed18c7f44584865cac",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM124.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM124.MOD",
+   "sha256": "e9a84db5925e5bec889e863f57ab9ffe1d7ea00c2a360b1f97533fb56d6e6b68",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM158.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM158.MOD",
+   "sha256": "f4edcda1ba0cca5c055ab67436dc1619d9c6ac149d0aedcf735abde645adbca6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM218.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM218.MOD",
+   "sha256": "ac2a03e0a0e606816f466d918e2b69d4ddbd95b7c17c4c32ce18cd5c97cd7fcb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM224.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM224.MOD",
+   "sha256": "152cbe0237e7963de993e14024082327e58ca1b9bd430faa40a384741e4e928f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM258.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM258.MOD",
+   "sha256": "d3e920c023396c951e81bd80b9dbe47284e21088d6fc7046cd5587caaf6e0f24",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM2902.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM2902.MOD",
+   "sha256": "615dd1954520d633f44dd281cb2f57b2f4876af5ae386b263e27368d310d55c1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM2904.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM2904.MOD",
+   "sha256": "c9654a9c8b63a3e125833f7afe2307ea61612d75d26ff6cee6114beecb3cccb6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM318.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM318.MOD",
+   "sha256": "d760bdd386543588fb9b003d995ccc7ff9afabfb40b4a100d689996b8eeee3e4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM324.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM324.MOD",
+   "sha256": "0dde0daf9b991a0425b76301a1dfa8fcf419dccbf290f2b69979a2f79d5c76bd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM358.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM358.MOD",
+   "sha256": "bc6c1cc9b1d8c91522c9bd69891b2440523a6d8b00a2a654eb0609eaf798beef",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM4250.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM4250.MOD",
+   "sha256": "d43d10f5047b8129c743f8bd2d1991a62406fcf32f51efd111be9bf61e623949",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6118.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6118.MOD",
+   "sha256": "ab943a8c0e8709ac5e4cd2f082734913302212741e7fea0d8bb75092e0fee5dd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6121.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6121.MOD",
+   "sha256": "47a4c98caad0d775deb730e8a8749278c86b093ef63cb936b7ec0209895cfede",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6132A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6132A.MOD",
+   "sha256": "385bf17640c715b892af834b612215871bceeb317e526eaf4ade83e89d434ca2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6132B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6132B.MOD",
+   "sha256": "01863b19510afbbbe9bea9feeece564bbd2e22c354753154ff82dab2b13f1511",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6142A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6142A.MOD",
+   "sha256": "59a7921bf5b859c503c6b040a68bab7a1cb8f8b4e735bc385b421eae7fca2c30",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6142B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6142B.MOD",
+   "sha256": "b542d699904b54221e29c3d6f048f2fe703b57797d86e4de31d0fc57c37ec0e0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6152A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6152A.MOD",
+   "sha256": "5e0ad12f61b18fd61f8445d235912b482d0bf14d295fb8a284a5ed44790568c6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6152B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6152B.MOD",
+   "sha256": "3e8f7a84347b97f6b449520189b8f542b546b2b9b6df2790207b0ddc830e4c47",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6161.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6161.MOD",
+   "sha256": "2710f9dc6f7ace1ad61ce412adfff168433b4331f4057a23dee6110c0ad0cb63",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6162.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6162.MOD",
+   "sha256": "0c6c4b2b0806ce8ea6e134b59126c5d1d1398716e73581e025833125853c023b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6164.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6164.MOD",
+   "sha256": "230baf02487fb22e205d46a0ceb60ac914cc4a08b2958ec086a8829396ef37dc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6165.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6165.MOD",
+   "sha256": "f1ac40e1ab41d5ee3a6e1c7a041e49b09848357bbc4fc9a00f2f3f6ed691c809",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6171A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6171A.MOD",
+   "sha256": "62ccc86f915d6b5c97ae2d6d721f29fc507d1f9f8e36ed6345c4708ba9aee617",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6171B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6171B.MOD",
+   "sha256": "50147e63e9e6722995f1421ddc155f48bf8f5ae9d7b7b571777cfcb8c207a314",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6172.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6172.MOD",
+   "sha256": "6f08e7cef9fbb49d4ecac2b5e862a00d658b0c2698f66b4b946d5f3a1ea721c7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6181.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6181.MOD",
+   "sha256": "a03d90713570fda452d901d0ee1969c9f3bb42fb0ebe22e7b9e1213f65efe735",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6218.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6218.MOD",
+   "sha256": "a2bb13c3bac139ab6a8e925018961749d16129eaf6a2dbf1cc1b7e04cdba5529",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6261.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6261.MOD",
+   "sha256": "dde09a7c60db9f0bb057f248268caca17a473ca7db6db0b74f08c16f925429a2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6262.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6262.MOD",
+   "sha256": "5ccb5e5cde3e37b3caa3004379e8ad8b9eb75a2783185540122f0f59aac6cfa2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6264.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6264.MOD",
+   "sha256": "342de344ef1d7e01d670988afd5676b3db0b51c3acf3c3ce44bd3f98168a7f1b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6265.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6265.MOD",
+   "sha256": "a196a0d1b18a894684f7274240657030f0e468a4727423cc5e6e9701e472ab35",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6311.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6311.MOD",
+   "sha256": "c79039d11057914d964cc3c9472003095ec90a3f711305813b6f3048dff1c966",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6317.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6317.MOD",
+   "sha256": "fc2a4c6aabd3698d0759b662e76eae65d23226c91daacb60c9303699f5fe6163",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6361.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6361.MOD",
+   "sha256": "34ae0a3126a6bfddf36c743401c5f0126cd0978239da42765578231a6aa8ced5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6362.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6362.MOD",
+   "sha256": "5f2c430703d5176e869b6c82f51273bb768b964b74e2bd6ddc1d57e7ff11bb57",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6364.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6364.MOD",
+   "sha256": "2b8d0e931fed877046279d27b6c59669c423fb710aeadbcbed85aa750b34c087",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM6365.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM6365.MOD",
+   "sha256": "aed35f4912fe6a109b9af03967107566d8104811e6eb76be253ce10267b93795",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7121.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7121.MOD",
+   "sha256": "3070991c351722f8a8433be5336cb9811a879db2b47b4726efb881714bf0d679",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7131A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7131A.MOD",
+   "sha256": "abd238c66624ac807cd455911a4e5d7338b58af43ec1f76fcf2a3431cde00fbf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7131B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7131B.MOD",
+   "sha256": "f5c83633887c8a8962722b9fc5deb95b4a1678708685a0574cfc966b2303e8a0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7171A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7171A.MOD",
+   "sha256": "a8764c05f4b9a8dac727cdd90a41622090ae6dc61da403ebc1a981c61113edbc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7171B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7171B.MOD",
+   "sha256": "13cb37d01cc2b8e9500b9c920c1d038aeb38e6fdc0bbfd4627d41c615d7fd972",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM7301.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM7301.MOD",
+   "sha256": "002a901bb977737db29dc4d6bec1714cf8d1b3bc8d6e2fda7172c34bc581335c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LM741.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LM741.MOD",
+   "sha256": "78ffbec9e05013a45e8be59143cb9de64d03a309af444aadf274d2ab9a1bc8f6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6001A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6001A.MOD",
+   "sha256": "d7a73587a14656b02fc8519f141cc7fc54c3f0f3a10c3fe6702f972fd5514700",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6001B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6001B.MOD",
+   "sha256": "4b9a306ef4d84640bd2bca5ee9d404f4baaed4ede87d4835fe285474b1e7592a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6022.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6022.MOD",
+   "sha256": "ad3ceb87da45489b4ec298612bc0d933824cbabea871d5a2b5e7679a4196d4fa",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6024.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6024.MOD",
+   "sha256": "1ec6031ba2fba49e3887a4d74b3bf43f9b80f1a7a997513440a221bfcd54c642",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6032.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6032.MOD",
+   "sha256": "06ddbf021fb6b56f28fbae83baa135ed6ecc9e8878a6960539d24b093c2c4ef2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6034.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6034.MOD",
+   "sha256": "20e13eaaeee0d70a65a148308f1142e76de6ec1b49757081ccfd9fdf558a9314",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6035.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6035.MOD",
+   "sha256": "3bedd10c0e34694cf0c444ac05eccbb02b9b84c0d1826d0e718f81ae7b9b32a5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6036.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6036.MOD",
+   "sha256": "4b168555cd5609fff99398c5378b5f31625171aa1adabbfb273bc7ee1d4ddcb4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6041A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6041A.MOD",
+   "sha256": "b73198de38795247c3e5ec32a7575921151f7523a144ce1268c092a5d7809c0d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6041B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6041B.MOD",
+   "sha256": "4b0ac375804c4f5321a8f229339a5a9d745fd3c00a3da8967329d379a9c0ceea",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6042A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6042A.MOD",
+   "sha256": "97790ee87f341d48927183e7ea7cb7040545ba3425e27c01226533e2f576f07f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6044A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6044A.MOD",
+   "sha256": "c6a5d4289796abb0f171ac3b9a634150da45097013a78dd3c98de87035358482",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6044B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6044B.MOD",
+   "sha256": "02115d6b80cff48998baf9bb840106b31e5be0f3686d44db856e198759b1dffa",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6061A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6061A.MOD",
+   "sha256": "00c8587d17dc860a4bcf33b10a2858f02d1709e070c9f09eb106e16791a3b87e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6061B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6061B.MOD",
+   "sha256": "d63eb997ae714e368cd1c1a94862e5f328b27fd00372ac861d80f42afd400766",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6062A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6062A.MOD",
+   "sha256": "78708c16393d086caea9cff4ef34f9f69c539f42088c8654086c7c13150bafd5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6062B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6062B.MOD",
+   "sha256": "f1578f36240ada7b7b3d5752837845fba2834f7dad4b2c5b4f0f8aecd1e1a691",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6064A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6064A.MOD",
+   "sha256": "3db36620ea61d31393ea75436dce5ea3c21d4fe30c9ad7dd7a3dff3604750298",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6064B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6064B.MOD",
+   "sha256": "cfcb159ce7eddfce32db7b783d3fc58111a535ff13e072d0e51b063d11a3936b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6081A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6081A.MOD",
+   "sha256": "b90c10814295ffb8f93a53036890970b0f7257d6409a2cb0b8e4f6d6c39ec0e3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6081B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6081B.MOD",
+   "sha256": "5fd737cd430ad4ca66d08f9c428007793453af0cf65e6fbd3470eb50701a226d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6082A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6082A.MOD",
+   "sha256": "dc5e665e5ac8de0c0b548a8054b8eab2008eae8b6d2a1a1baf6e48cb2d646a02",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6082B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6082B.MOD",
+   "sha256": "e768b694f675fc4284ca5d8746f66aeac86bca65e48415abaa90a790b283949e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6084A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6084A.MOD",
+   "sha256": "783ffc23d6a35f0f321de116d07145c3694fe701505f37458bc58f42de87644e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6084B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6084B.MOD",
+   "sha256": "1ee40747138a4d32ee113d838dba2f44ef951bf94a3a04f0a7734b5cfcc40ffc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6462A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6462A.MOD",
+   "sha256": "b09c18c48d01822e8ac407037670547b32748d6ff5d25fd82aba23df3897d835",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6462B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6462B.MOD",
+   "sha256": "eac0897b39e9e36d986407f79ccb0d0d2042b4e05901815b6bb2c649b95127f7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6464A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6464A.MOD",
+   "sha256": "89d3729a17b3f55ad2fd5851b157f3e0820b17348b6104d895651e02fde574ee",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6464B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6464B.MOD",
+   "sha256": "ae70de6b809dd8692953d9832a8ae2fefb1f46883e7d25e0164342cfe8a6fe5b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6482A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6482A.MOD",
+   "sha256": "701d52a1f3dd4111f4cc3244b3d211766798709cb2da11fdf8cb630172892c8a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6484A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6484A.MOD",
+   "sha256": "851cd680886c7548d6aa7773d2d53c41b144ae8cf2a3e2be676b62fe53d9515c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6492A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6492A.MOD",
+   "sha256": "d8d015c5b63edbf39162a9707e508ce2b5994366c93059058c43c36ecc4751e5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6492B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6492B.MOD",
+   "sha256": "0267d3a8bef42e6371004346c2fdfbfb1bef5a0f4bd1c1c18e5e716479584cb4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6494A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6494A.MOD",
+   "sha256": "955949e3b12687af7e4309db09b4ceb6dbea53b95d299bb5c91d5ac97662fcdd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6494B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6494B.MOD",
+   "sha256": "67749ae027d7f2e3d1ed9eccc1da4430944996e13fe3255656be58e1b06518ab",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6572A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6572A.MOD",
+   "sha256": "28e46e6aa66e254ab18e4ee7be87506abe10f132d6ce28b4ca43471beca3b7ca",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6572B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6572B.MOD",
+   "sha256": "3b7b62b6cc2bd5619832339de10d2b12221eb9a091a04f42204b11a8e84a1a5c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6574A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6574A.MOD",
+   "sha256": "fff2b41ccbc50682f128100ded79297bb48880aafa92c2de6e150aff644f4fb7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6574B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6574B.MOD",
+   "sha256": "0381c368ad38ecbbb2893b67f3c99931e41f93d55f2a2d52f0e152cfd624463a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6582A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6582A.MOD",
+   "sha256": "794a4e071d5bbc50c39035962411c97a5bf08169a226015a76fc35ffcb25a9eb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6582B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6582B.MOD",
+   "sha256": "3b29b5ad51deef298e068a52f40a145682aedb256c558e73745100e3b1882517",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6584A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6584A.MOD",
+   "sha256": "3c89af44239094f11b20489f1e1b54364541385961f131edda50de316cec98c0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6584B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6584B.MOD",
+   "sha256": "89d28ec3ee6323173b1086feafa08584767f2ca11c4d5f662e89eca0dae6fc92",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC660A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC660A.MOD",
+   "sha256": "1e647b4d75b76130bcc651904c2ec8c31fe6d26358eaedef801002557a4f5075",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC660B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC660B.MOD",
+   "sha256": "21aa02765264336c984e34600461ca67b5ee4b13d7131bcb5cdec64f3741f6b1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC662A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC662A.MOD",
+   "sha256": "f149c5ff2663f2e3c454d11d18d6adc83c6f1a188832a24dc64561de6eb8a16f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6762A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6762A.MOD",
+   "sha256": "0e06a33a4e5a3946f875cfe827730b99e6803a9421efdc0e4bd014b0b8678d10",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6762B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6762B.MOD",
+   "sha256": "467cdcfc3ee18e669610f3e89ba8f12c01d985303bee8964f101e9f7be7d52bc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6772A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6772A.MOD",
+   "sha256": "3a74926807daf056ea7e0479a6b46af8ddfa4076f47fce8ec9302fd278e21d4d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC6772B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC6772B.MOD",
+   "sha256": "0e304c1c7feadd1dc3faa09161a061fb592e15ceec8760001438f65ea97420de",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7101A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7101A.MOD",
+   "sha256": "9ad5ee359d8b8909bc67bdeb417586acf690933fac9b9a825b268550feda49e3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7101B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7101B.MOD",
+   "sha256": "309ace65f5d8e200a10b5d6172ff8fad30a3649a9cc10640ab10c00a4bc6d823",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7111A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7111A.MOD",
+   "sha256": "16b9fea93cbb877a04d5705600a9089ba5cc5ba685d0b8f2bc777e0c84cb2ee9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7111B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7111B.MOD",
+   "sha256": "c1d802cf299aaaac3e042c7b749576bdefc9998bc7f5cdd36b392dc78cb4c298",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7211A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7211A.MOD",
+   "sha256": "2ecf7461e5d43c3e54bd53102d4b53584c9f0940f22700a2c517820a3afabb34",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7211B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7211B.MOD",
+   "sha256": "380c94e1a513fe6231e4bece59cc17beb344b0224a6e2425550970bc3ef2bfa0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7215.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7215.MOD",
+   "sha256": "b7e454230ed1a3077da69f4cebdad07fbcf993bd8c1d4e8bde9c00f9c3ae67f9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7221A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7221A.MOD",
+   "sha256": "bab43cc0292bf901a186ef9cf576c7f69b5fab7969af9cfd645cfed511e7f2d0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7221B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7221B.MOD",
+   "sha256": "7c17615875f9503ad12c84f10dadd68bf24b003606c1f59c9c413e39f0a5bf31",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LMC7225.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LMC7225.MOD",
+   "sha256": "2cee0426bdbd4c4ef6e894eb3cd63b777791077744a41fb4d19c06324a43ef50",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC660A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC660A.MOD",
+   "sha256": "7352e19fb74ac90550965f50f7aed7dd1d1ab3e51f57c70725b45b1df08da96f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC660B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC660B.MOD",
+   "sha256": "eacd52090625a9de460e54c71fee64e89bfda2ba3a439abacc2d626cda8a09bd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC661A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC661A.MOD",
+   "sha256": "fe0decbb6e43f79537241caafeb7eddd1e9db3e419412498746e9000870a49e5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC661B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC661B.MOD",
+   "sha256": "9b31d3f9b3e9bb197f7263d0827f658d5c2a599588c434ad162c3b07c54023d6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC662A.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC662A.MOD",
+   "sha256": "304db75454fec70c3472d85627add2302a889d1ff2c1f0eb1005e2c4d0e6917a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "LPC662B.MOD",
+   "url": "https://web.archive.org/web/20000902035440id_/http://www.national.com:80/models/spice/analog/spice44.zip#LPC662B.MOD",
+   "sha256": "73079154d363c272fae94164e6e28c28be3e0aecf4f105bafa9205fed0fe10ff",
+   "retrieved": "2026-11-01"
+  }
+ ],
+ "libs": [
+  {
+   "file": "LF155.MOD",
+   "entries": [
+    {
+     "name": "LF155/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF156.MOD",
+   "entries": [
+    {
+     "name": "LF156/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF157.MOD",
+   "entries": [
+    {
+     "name": "LF157/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF255.MOD",
+   "entries": [
+    {
+     "name": "LF255/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF256.MOD",
+   "entries": [
+    {
+     "name": "LF256/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF257.MOD",
+   "entries": [
+    {
+     "name": "LF257/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF351.MOD",
+   "entries": [
+    {
+     "name": "LF351/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF353.MOD",
+   "entries": [
+    {
+     "name": "LF353/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF355.MOD",
+   "entries": [
+    {
+     "name": "LF355/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF356.MOD",
+   "entries": [
+    {
+     "name": "LF356/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF357.MOD",
+   "entries": [
+    {
+     "name": "LF357/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF411.MOD",
+   "entries": [
+    {
+     "name": "LF411/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF412.MOD",
+   "entries": [
+    {
+     "name": "LF412/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF441A.MOD",
+   "entries": [
+    {
+     "name": "LF441A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF441B.MOD",
+   "entries": [
+    {
+     "name": "LF441B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF442A.MOD",
+   "entries": [
+    {
+     "name": "LF442A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF442B.MOD",
+   "entries": [
+    {
+     "name": "LF442B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF444A.MOD",
+   "entries": [
+    {
+     "name": "LF444A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF444B.MOD",
+   "entries": [
+    {
+     "name": "LF444B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF451.MOD",
+   "entries": [
+    {
+     "name": "LF451/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LF453.MOD",
+   "entries": [
+    {
+     "name": "LF453/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM111.MOD",
+   "entries": [
+    {
+     "name": "LM111/NS",
+     "kind": "block",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM118.MOD",
+   "entries": [
+    {
+     "name": "LM118/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM124.MOD",
+   "entries": [
+    {
+     "name": "LM124/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM158.MOD",
+   "entries": [
+    {
+     "name": "LM158/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM218.MOD",
+   "entries": [
+    {
+     "name": "LM218/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM224.MOD",
+   "entries": [
+    {
+     "name": "LM224/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM258.MOD",
+   "entries": [
+    {
+     "name": "LM258/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM2902.MOD",
+   "entries": [
+    {
+     "name": "LM2902/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM2904.MOD",
+   "entries": [
+    {
+     "name": "LM2904/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM318.MOD",
+   "entries": [
+    {
+     "name": "LM318/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM324.MOD",
+   "entries": [
+    {
+     "name": "LM324/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM358.MOD",
+   "entries": [
+    {
+     "name": "LM358/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM4250.MOD",
+   "entries": [
+    {
+     "name": "LM4250/NS",
+     "kind": "block",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6118.MOD",
+   "entries": [
+    {
+     "name": "LM6118/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6121.MOD",
+   "entries": [
+    {
+     "name": "LM6121/NS",
+     "kind": "block",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6132A.MOD",
+   "entries": [
+    {
+     "name": "LM6132A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6132B.MOD",
+   "entries": [
+    {
+     "name": "LM6132B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6142A.MOD",
+   "entries": [
+    {
+     "name": "LM6142A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6142B.MOD",
+   "entries": [
+    {
+     "name": "LM6142B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6152A.MOD",
+   "entries": [
+    {
+     "name": "LM6152A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6152B.MOD",
+   "entries": [
+    {
+     "name": "LM6152B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6161.MOD",
+   "entries": [
+    {
+     "name": "LM6161/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6162.MOD",
+   "entries": [
+    {
+     "name": "LM6162/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6164.MOD",
+   "entries": [
+    {
+     "name": "LM6164/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6165.MOD",
+   "entries": [
+    {
+     "name": "LM6165/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6171A.MOD",
+   "entries": [
+    {
+     "name": "LM6171A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6171B.MOD",
+   "entries": [
+    {
+     "name": "LM6171B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6172.MOD",
+   "entries": [
+    {
+     "name": "LM6172/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6181.MOD",
+   "entries": [
+    {
+     "name": "LM6181/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6218.MOD",
+   "entries": [
+    {
+     "name": "LM6218/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6261.MOD",
+   "entries": [
+    {
+     "name": "LM6261/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6262.MOD",
+   "entries": [
+    {
+     "name": "LM6262/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6264.MOD",
+   "entries": [
+    {
+     "name": "LM6264/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6265.MOD",
+   "entries": [
+    {
+     "name": "LM6265/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6311.MOD",
+   "entries": [
+    {
+     "name": "LM6311/NS",
+     "kind": "block",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6317.MOD",
+   "entries": [
+    {
+     "name": "LM6317/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6361.MOD",
+   "entries": [
+    {
+     "name": "LM6361/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6362.MOD",
+   "entries": [
+    {
+     "name": "LM6362/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6364.MOD",
+   "entries": [
+    {
+     "name": "LM6364/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM6365.MOD",
+   "entries": [
+    {
+     "name": "LM6365/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7121.MOD",
+   "entries": [
+    {
+     "name": "LM7121/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7131A.MOD",
+   "entries": [
+    {
+     "name": "LM7131A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7131B.MOD",
+   "entries": [
+    {
+     "name": "LM7131B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7171A.MOD",
+   "entries": [
+    {
+     "name": "LM7171A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7171B.MOD",
+   "entries": [
+    {
+     "name": "LM7171B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM7301.MOD",
+   "entries": [
+    {
+     "name": "LM7301/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LM741.MOD",
+   "entries": [
+    {
+     "name": "LM741/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6001A.MOD",
+   "entries": [
+    {
+     "name": "LMC6001A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6001B.MOD",
+   "entries": [
+    {
+     "name": "LMC6001B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6022.MOD",
+   "entries": [
+    {
+     "name": "LMC6022/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6024.MOD",
+   "entries": [
+    {
+     "name": "LMC6024/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6032.MOD",
+   "entries": [
+    {
+     "name": "LMC6032/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6034.MOD",
+   "entries": [
+    {
+     "name": "LMC6034/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6035.MOD",
+   "entries": [
+    {
+     "name": "LMC6035/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6036.MOD",
+   "entries": [
+    {
+     "name": "LMC6036/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6041A.MOD",
+   "entries": [
+    {
+     "name": "LMC6041A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6041B.MOD",
+   "entries": [
+    {
+     "name": "LMC6041B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6042A.MOD",
+   "entries": [
+    {
+     "name": "LMC6042A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6044A.MOD",
+   "entries": [
+    {
+     "name": "LMC6044A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6044B.MOD",
+   "entries": [
+    {
+     "name": "LMC6044B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6061A.MOD",
+   "entries": [
+    {
+     "name": "LMC6061A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6061B.MOD",
+   "entries": [
+    {
+     "name": "LMC6061B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6062A.MOD",
+   "entries": [
+    {
+     "name": "LMC6062A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6062B.MOD",
+   "entries": [
+    {
+     "name": "LMC6062B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6064A.MOD",
+   "entries": [
+    {
+     "name": "LMC6064A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6064B.MOD",
+   "entries": [
+    {
+     "name": "LMC6064B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6081A.MOD",
+   "entries": [
+    {
+     "name": "LMC6081A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6081B.MOD",
+   "entries": [
+    {
+     "name": "LMC6081B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6082A.MOD",
+   "entries": [
+    {
+     "name": "LMC6082A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6082B.MOD",
+   "entries": [
+    {
+     "name": "LMC6082B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6084A.MOD",
+   "entries": [
+    {
+     "name": "LMC6084A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6084B.MOD",
+   "entries": [
+    {
+     "name": "LMC6084B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6462A.MOD",
+   "entries": [
+    {
+     "name": "LMC6462A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6462B.MOD",
+   "entries": [
+    {
+     "name": "LMC6462B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6464A.MOD",
+   "entries": [
+    {
+     "name": "LMC6464A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6464B.MOD",
+   "entries": [
+    {
+     "name": "LMC6464B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6482A.MOD",
+   "entries": [
+    {
+     "name": "LMC6482A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6484A.MOD",
+   "entries": [
+    {
+     "name": "LMC6484A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6492A.MOD",
+   "entries": [
+    {
+     "name": "LMC6492A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6492B.MOD",
+   "entries": [
+    {
+     "name": "LMC6492B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6494A.MOD",
+   "entries": [
+    {
+     "name": "LMC6494A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6494B.MOD",
+   "entries": [
+    {
+     "name": "LMC6494B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6572A.MOD",
+   "entries": [
+    {
+     "name": "LMC6572A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6572B.MOD",
+   "entries": [
+    {
+     "name": "LMC6572B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6574A.MOD",
+   "entries": [
+    {
+     "name": "LMC6574A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6574B.MOD",
+   "entries": [
+    {
+     "name": "LMC6574B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6582A.MOD",
+   "entries": [
+    {
+     "name": "LMC6582A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6582B.MOD",
+   "entries": [
+    {
+     "name": "LMC6582B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6584A.MOD",
+   "entries": [
+    {
+     "name": "LMC6584A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6584B.MOD",
+   "entries": [
+    {
+     "name": "LMC6584B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC660A.MOD",
+   "entries": [
+    {
+     "name": "LMC660A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC660B.MOD",
+   "entries": [
+    {
+     "name": "LMC660B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC662A.MOD",
+   "entries": [
+    {
+     "name": "LMC662A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6762A.MOD",
+   "entries": [
+    {
+     "name": "LMC6762A/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6762B.MOD",
+   "entries": [
+    {
+     "name": "LMC6762B/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6772A.MOD",
+   "entries": [
+    {
+     "name": "LMC6772A/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC6772B.MOD",
+   "entries": [
+    {
+     "name": "LMC6772B/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7101A.MOD",
+   "entries": [
+    {
+     "name": "LMC7101A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7101B.MOD",
+   "entries": [
+    {
+     "name": "LMC7101B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7111A.MOD",
+   "entries": [
+    {
+     "name": "LMC7111A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7111B.MOD",
+   "entries": [
+    {
+     "name": "LM7111B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7211A.MOD",
+   "entries": [
+    {
+     "name": "LMC7211A/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7211B.MOD",
+   "entries": [
+    {
+     "name": "LMC7211B/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7215.MOD",
+   "entries": [
+    {
+     "name": "LMC7215/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7221A.MOD",
+   "entries": [
+    {
+     "name": "LMC7221A/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7221B.MOD",
+   "entries": [
+    {
+     "name": "LMC7221B/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LMC7225.MOD",
+   "entries": [
+    {
+     "name": "LMC7225/NS",
+     "kind": "opamp5",
+     "category": "Comparators",
+     "pinMap": [
+      0,
+      1,
+      3,
+      4,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC660A.MOD",
+   "entries": [
+    {
+     "name": "LPC660A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC660B.MOD",
+   "entries": [
+    {
+     "name": "LPC660B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC661A.MOD",
+   "entries": [
+    {
+     "name": "LPC661A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC661B.MOD",
+   "entries": [
+    {
+     "name": "LPC661B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC662A.MOD",
+   "entries": [
+    {
+     "name": "LPC662A/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  },
+  {
+   "file": "LPC662B.MOD",
+   "entries": [
+    {
+     "name": "LPC662B/NS",
+     "kind": "opamp5",
+     "category": "Op-amps",
+     "pinMap": [
+      0,
+      1,
+      2,
+      3,
+      4
+     ]
+    }
+   ]
+  }
+ ]
+}

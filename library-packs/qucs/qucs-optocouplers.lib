@@ -1,0 +1,133 @@
+* Qucs-S community parts: Optocouplers, 3 parts
+* Converted from https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library by scripts/packs/qucs.ts (ngspice Studio).
+* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.
+
+* 4N25: 4N25 BJT optocoupler
+* from Qucs-S library/Optocoupler.lib <Component 4N25>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt 4N25 a k c e
+X4N25_q 0 a k c e Optocoupler_4N25
+* OPTO-ISO from User Library in TURBO SPICE
+* Orig 8/17/99
+* Modified TMH 2/15/23
+*
+*4N25 NPN Optoisolator pkg:DIP6
+* Transistor Base not modeled
+*            A K C E
+.SUBCKT 4N25_inner 1 2 5 4
+VM    1 12 DC 0
+D1   12  2 LED
+R1   10 11 450
+C1   11  0 1000PF
+H1   10  0 VM 3.33E-2
+G1    5  6 11 0 1
+Q1    5  6  4 QNPN
+.MODEL LED D(IS=2.5E-12 RS=.75 CJO=3.5E-11 N=2)
+.MODEL QNPN NPN(IS=3.33E-11 NF=1.35 CJC=4.74E-11 CJE=167E-12 TF=9.23E-10 TR=1.48E-7 BF=150 BR=10 IKF=.1 VAF=100)
+.ENDS
+
+.SUBCKT Optocoupler_4N25  gnd _net0 _net1 _net2 _net3
+X1 _net0 _net1 _net2 _net3 4N25_inner
+.ENDS
+
+.ends 4N25
+
+* CPC1018: CPC1018 phtovoltaic relay.
+* from Qucs-S library/PhotovoltaicRelay.lib <Component CPC1018>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt CPC1018 a k d1 d2
+XCPC1018_q 0 a k d1 d2 PhotovoltaicRelay_CPC1018
+* Qucs 2.0.0  PhotovoltaicRelay_CPC1018.sch
+
+* IXYS-Clare CPC1018N Photovoltaic AC/DC Relay
+* Helmut Sennewald 2008
+.subckt CPC1018N A K D1 D2
+*.param IFON=1m RON=0.65 TOFF=250u COUT=25p CIO=1p
+.PARAM IFON=1m
+.PARAM RON=0.65
+.PARAM TOFF=250u
+.PARAM COUT=25p
+.PARAM CIO=1p
+D1 A N003 LED
+C1 A K 10p
+V1 N003 K 0
+R2 gs 0 1k
+C2 gs 0 {2*TOFF/1000}
+B1 0 gs I=7m*atan(abs(0.8*I(V1)/IFON))
+C4 A D2 {CIO/2}
+C5 K D1 {CIO/2}
+C7 D2 D1 {COUT}
+M1 D2 N001 N004 N004 NMOS1
+M2 D1 N005 N004 N004 NMOS1
+G1 N004 N001 gs 0 1m
+R1 N001 N004 1k
+G2 N004 N005 gs 0 1m
+R3 N005 N004 1k
+V2 N002 0 6
+D2 gs N002 DD
+.model LED D(Is=1e-16 Rs=3 N=1.5 Eg=1.8 CJO=18p TT=100n)
+.model NMOS1 NMOS(Vto=3.5 Kp={0.65/RON})
+.model DD D(Is=1e-14 N=1)
+.ends
+
+.SUBCKT PhotovoltaicRelay_CPC1018  gnd _net0 _net1 _net2 _net3
+X1 _net0 _net1 _net2 _net3 CPC1018N
+.ENDS
+
+.ends CPC1018
+
+* MOC3082: MOC3082 OPTO TRIAC with zero crossing switching model provided by Helmut Sennewald 11/23/2008
+* from Qucs-S library/Optocoupler.lib <Component MOC3082>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt MOC3082 a k mt2 mt1
+XMOC3082_q 0 a k mt2 mt1 Optocoupler_MOC3082
+* OPTO TRIAC With Zero Crossing Switching
+* Helmut Sennewald  11/23/2008
+* 04/12/2009, change in B-sources: V(ctrl10) -> V(ctrl10,4)
+*
+* Ported to ngspice Vadim Kusnetsov 2/15/23
+*
+* MOC3082  I_trig=10mA
+*  D+  D-  MT2  MT1
+*
+.subckt moc3082_sub 1 2 3 4
+.PARAM Itrig=10m
+.PARAM RH1=20k
+.PARAM RH2=20k
+.PARAM RH3=16.7k
+Q1 vb1p vb1 4 0 NPN1
+Q2 vb1 vb1p vd1 0 PNP1
+R3 vb1 4 {RH2}
+D1 1 2 DL
+R1 ctrl10 4 1
+C1 ctrl10 4 10u
+R2 ctrl1 vb1 {RH1}
+R4 vd1 vb1p {RH3}
+B1 ctrl10 4 I=-500*I(D1)*3m/Itrig
+R7 vb2p 4 {RH3}
+R6 vd2 vb2 {RH2}
+Q3 vb2p vb2 vd2 0 NPN1
+Q4 vb2 vb2p 4 0 PNP1
+D3 vd2 3 D1
+D2 3 vd1 D1
+R5 N001 vb2 {RH1}
+E1 vd2 N001 ctrl1 4 -1
+R34 3 4 100MEG
+R12 ctrl1 4 1
+B2 ctrl1 4 V=(V(ctrl10,4)>1.45 && abs(V(34)) < 12?2:0)
+C2 ctrl1 4 1u
+B3 34 0 I=-V(3,4)/1000
+R13 34 0 1k
+C3 34 0 .1u
+.MODEL PNP1 PNP(Is=1e-15 BF=10 Cjc=10p Cje=20p Tf=0.1u Ise=1e-12)
+.MODEL NPN1 NPN(Is=1e-15 BF=10 Cjc=10p Cje=20p Tf=0.1u Ise=1e-12)
+.MODEL D1 D(Is=0.1u Rs=2 Cj0=50p)
+.MODEL DL D(Is=1e-20 Rs=5)
+*.ends moc3082_sub
+.ends moc3082
+
+.SUBCKT Optocoupler_MOC3082  gnd _net0 _net3 _net1 _net2
+X1 _net0 _net3 _net1 _net2 moc3082_sub
+.ENDS
+
+.ends MOC3082

@@ -41,16 +41,23 @@ const api = {
     setState: (s: Record<string, { enabled: boolean; checked?: boolean }>) => ipcRenderer.send('menu:state', s),
     onCommand: (cb: (x: { id: string; accel: boolean }) => void) => on('menu:command', cb),
     native: (op: string) => ipcRenderer.send('menu:native', op),
-    info: (): Promise<{ name: string; version: string; electron: string; chrome: string; node: string; platform: string }> => inv('app:info')
+    info: (): Promise<{ name: string; version: string; electron: string; chrome: string; node: string; platform: string }> => inv('app:info'),
+    licenses: (): Promise<{ dir: string; files: { name: string; text: string }[] }> => inv('app:licenses')
   },
-  // personal library (userData) + read-only packs shipped with the app
+  // personal library (userData) + library packs (bundled or user-installed)
   userlib: {
     list: (): Promise<{ dir: string; libs: ImportedLib[]; texts: Record<string, string> }> => inv('userlib:list'),
     import: (): Promise<{ file: string; text: string } | null> => inv('userlib:import'),
     save: (lib: ImportedLib): Promise<void> => inv('userlib:save', lib),
+    setEnabled: (file: string, on: boolean): Promise<void> => inv('userlib:setEnabled', file, on),
     remove: (file: string): Promise<void> => inv('userlib:remove', file)
   },
-  packs: { list: (): Promise<(Omit<Pack, 'libs'> & { libs: ImportedLib[] })[]> => inv('packs:list') },
+  packs: {
+    list: (): Promise<(Omit<Pack, 'libs'> & { libs: ImportedLib[] })[]> => inv('packs:list'),
+    setEnabled: (id: string, on: boolean): Promise<void> => inv('packs:setEnabled', id, on),
+    add: (): Promise<{ id: string } | { errors: string[] } | null> => inv('packs:add'), // folder picker + validation + copy
+    remove: (id: string): Promise<void> => inv('packs:remove', id) // user-installed packs only
+  },
   recent: {
     list: (): Promise<{ name: string; file: string; opened: number; exists: boolean }[]> => inv('recent:list'),
     remove: (file: string): Promise<void> => inv('recent:remove', file)

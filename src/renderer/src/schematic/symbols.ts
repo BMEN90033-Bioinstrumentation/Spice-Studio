@@ -5,7 +5,7 @@
 export type Kind =
   | 'res' | 'cap' | 'ind' | 'vsrc' | 'isrc' | 'diode'
   | 'npn' | 'pnp' | 'nmos' | 'pmos' | 'opamp' | 'gnd' | 'label'
-  | 'port' | 'block' | 'opamp5' | 'zener' | 'led'
+  | 'port' | 'block' | 'opamp5' | 'zener' | 'led' | 'njf' | 'pjf'
 
 export interface SymbolDef {
   title: string
@@ -119,8 +119,21 @@ export const SYMBOLS: Record<Kind, SymbolDef> = {
     title: 'LED', prefix: 'D', value: 'LED', ...diodeBody,
     path: 'M0 -30V-8M-10 8H10M0 8V30M11 -2L17.5 -8.5M11 6L17.5 -0.5',
     fill: 'M-10 -8H10L0 8ZM21 -12L15.7 -10.2L19.2 -6.7ZM21 -4L15.7 -2.2L19.2 1.3Z'
+  },
+  // JFETs: gate arrow points into the channel for N, out of it for P
+  njf: {
+    title: 'N-channel JFET', prefix: 'J', value: 'NJF',
+    pins: [{ x: 20, y: -30 }, { x: -20, y: 0 }, { x: 20, y: 30 }], pinNames: ['D', 'G', 'S'],
+    path: 'M-20 0H-3M-3 -15V15M-3 -10H20V-30M-3 10H20V30',
+    fill: 'M-3 0L-10 -4V4Z'
+  },
+  pjf: {
+    title: 'P-channel JFET', prefix: 'J', value: 'PJF',
+    pins: [{ x: 20, y: -30 }, { x: -20, y: 0 }, { x: 20, y: 30 }], pinNames: ['D', 'G', 'S'],
+    path: 'M-20 0H-3M-3 -15V15M-3 -10H20V-30M-3 10H20V30',
+    fill: 'M-16 0L-9 -4V4Z'
   }
 }
 
-export const PALETTE: Kind[] = ['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'zener', 'led', 'npn', 'pnp', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port']
+export const PALETTE: Kind[] = ['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'zener', 'led', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port']
 export const isFlag = (k: Kind) => k === 'gnd' || k === 'label' || k === 'port' // connect nets, not SPICE elements

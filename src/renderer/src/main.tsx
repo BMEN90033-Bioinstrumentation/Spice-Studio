@@ -7,9 +7,10 @@ import { Editor } from './Editor'
 import { Home } from './home/Home'
 import { useCommands } from './commands'
 import { Help } from './Help'
-import { BUNDLED, copyOnUse, entriesFromImport, resolver, type ImportedLib, type LibEntry } from './library/library'
+import { BUNDLED, copyOnUse, libEntries, resolver, type ImportedLib, type LibEntry } from './library/library'
 import { LibraryView } from './library/LibraryView'
-import { useImportCommand, useSources, type Sources } from './library/sources'
+import { ManageLibraries } from './library/ManageLibraries'
+import { useSources, type Sources } from './library/sources'
 import { usePanels } from './layout/Panel'
 import { ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
@@ -102,7 +103,6 @@ function App() {
   const [error, setError] = useState('')
   const [form, setForm] = useState(false) // Home's new-project form: File › New Project opens it from anywhere
   const sources = useSources() // My library + packs: app-wide, survive sessions
-  useImportCommand(() => setRoute('library'))
 
   useEffect(() => {
     const osOpen = (x: OsOpen) =>
@@ -158,10 +158,15 @@ function App() {
   ])
 
   if (session) return <Workspace key={gen} session={session} route={route} go={setRoute} onClose={() => (setSession(null), setRoute('home'))} sources={sources} />
-  if (route === 'library')
-    return <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.entries]} project={null}
-      user={sources.user.libs} packs={sources.packs} onImport={sources.save} onRemove={sources.remove} />
-  return <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} />
+  // no project: Manage Libraries here (a Workspace renders its own, with the project's libraries)
+  return (
+    <>
+      {route === 'library'
+        ? <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.browse]} packs={sources.packs} />
+        : <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} />}
+      <ManageLibraries sources={sources} project={null} />
+    </>
+  )
 }
 
 function Workspace({ session, route, go, onClose, sources }: { session: Session; route: Route; go: (r: Route) => void; onClose: () => void; sources: Sources }) {
@@ -206,11 +211,10 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const live = (f: string) => handles.current[f]?.get() ?? disk.current[f]
   const isSch = view !== 'net'
 
-  const projEntries = useMemo(
-    () => (proj?.libs ?? []).flatMap((l) => (libTexts[l.file] != null ? entriesFromImport(l, libTexts[l.file]) : [])),
-    [proj, libTexts]
-  )
-  const library: LibEntry[] = useMemo(() => [...BUNDLED, ...projEntries, ...sources.entries], [projEntries, sources.entries])
+  const projEntries = useMemo(() => libEntries(proj?.libs ?? [], libTexts), [proj, libTexts])
+  const library: LibEntry[] = useMemo(() => [...BUNDLED, ...projEntries.all, ...sources.entries], [projEntries, sources.entries])
+  // the parts lists + search: enabled libraries only (Manage Libraries)
+  const browse: LibEntry[] = useMemo(() => [...BUNDLED, ...projEntries.shown, ...sources.browse], [projEntries, sources.browse])
   const resolve = useMemo(() => resolver(library), [library])
   const netCtx: NetCtx = useMemo(() => ({ sheets: { ...disk.current }, lib: resolve }), [rev, resolve])
   const sheetList = useMemo(() => (proj ? files.map((file) => ({ file, sheet: disk.current[file] })) : []), [rev, proj])
@@ -322,27 +326,25 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setProj(p), setOverlay(null), setRuns(null), setStatus(`${f} is now the top sheet`)
   }
 
-  // ---- libraries ----
+  // ---- libraries (Manage Libraries: it reports failures) ----
   async function onImport(lib: ImportedLib) {
-    try {
-      const t = await api.read(pdir!, lib.file)
-      const p = { ...proj!, libs: [...proj!.libs.filter((l) => l.file !== lib.file), lib] }
-      await writeProj(p)
-      setProj(p), setLibTexts((m) => ({ ...m, [lib.file]: t }))
-      setStatus(`Imported ${lib.entries.length} part${lib.entries.length === 1 ? '' : 's'} from ${lib.file}`)
-    } catch (e) {
-      setStatus(`Import failed: ${msg(e)}`)
-    }
+    const t = await api.read(pdir!, lib.file)
+    const p = { ...proj!, libs: [...proj!.libs.filter((l) => l.file !== lib.file), lib] }
+    await writeProj(p)
+    setProj(p), setLibTexts((m) => ({ ...m, [lib.file]: t }))
+    setStatus(`Imported ${lib.entries.length} part${lib.entries.length === 1 ? '' : 's'} from ${lib.file}`)
   }
   async function onRemove(file: string) {
-    try {
-      await api.remove(pdir!, file).catch(() => {}) // already gone is fine
-      const p = { ...proj!, libs: proj!.libs.filter((l) => l.file !== file) }
-      await writeProj(p)
-      setProj(p), setLibTexts(({ [file]: _, ...m }) => m)
-    } catch (e) {
-      setStatus(`Can't remove ${file}: ${msg(e)}`)
-    }
+    await api.remove(pdir!, file).catch(() => {}) // already gone is fine
+    const p = { ...proj!, libs: proj!.libs.filter((l) => l.file !== file) }
+    await writeProj(p)
+    setProj(p), setLibTexts(({ [file]: _, ...m }) => m)
+  }
+  // shown / hidden: stored on the .nsproj entry (enabled: false), applied at once
+  async function onToggleLib(file: string, on: boolean) {
+    const p = { ...proj!, libs: proj!.libs.map((l) => (l.file !== file ? l : { ...l, enabled: on ? undefined : (false as const) })) }
+    setProj(p)
+    await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
   }
   // copy-on-use: My library / pack parts in project sheets get a libs/ copy and 'proj:' ids (see copyOnUse). After an
   // edit only parts not rewritten before (re-rewriting one after its undo would trap the undo); save rewrites all.
@@ -722,6 +724,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
                     overlay={f === top ? overlay : null}
                     onProbe={probe}
                     library={library}
+                    browse={browse}
                     sheets={sheetList.filter((s) => s.file !== f)}
                     netCtx={netCtx}
                     onOpenSheet={proj ? descend : undefined}
@@ -754,14 +757,11 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           title={proj ? proj.name : 'All parts'}
           back={() => go('editor')}
           onHome={() => (go('editor'), leave(onClose))}
-          entries={library}
-          project={proj && { dir: pdir!, libs: proj.libs }}
-          user={sources.user.libs}
+          entries={browse}
           packs={sources.packs}
-          onImport={(l, to) => (to === 'user' ? sources.save(l) : onImport(l))}
-          onRemove={(f, from) => (from === 'user' ? sources.remove(f) : onRemove(f))}
         />
       )}
+      <ManageLibraries sources={sources} project={proj && { dir: pdir!, libs: proj.libs, texts: libTexts, onImport, onRemove, onToggle: onToggleLib }} />
     </>
   )
 }

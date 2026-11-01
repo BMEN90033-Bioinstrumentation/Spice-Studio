@@ -1,20 +1,22 @@
-// Full-page library browser + vendor .lib import with pin mapping.
+// Full-page library browser (enabled libraries, by category) + the vendor .lib import pin-mapping dialog (Manage Libraries).
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as RKE } from 'react'
 import { SYMBOLS, type Kind } from '../schematic/symbols'
-import { blockPartFields, libKey, parseLibFile, suggest, type Category, type ImportedLib, type LibEntry, type ParsedLib } from './library'
-import { match } from './LibraryPanel'
-import { useImportRequest, type PackInfo } from './sources'
+import { blockPartFields, CATEGORIES as CATS, libKey, suggest, type Category, type ImportedLib, type LibEntry, type ParsedLib } from './library'
+import { match, mini, useDebounced, VList } from './LibraryPanel'
+import type { PackInfo } from './sources'
 import { SymbolPreview } from './Symbol'
+import { isUrl, Modal, PackLicence } from '../Help'
+import { runCommand } from '../commands'
 import '../sim/AnalysisDialog.css' // shared modal chrome (.adlg-*)
 import './library.css'
 
-const CATS: Category[] = ['Passives', 'Sources', 'Diodes', 'BJTs', 'MOSFETs', 'Op-amps', 'Subcircuits']
-const MODEL_KINDS: Kind[] = ['diode', 'zener', 'led', 'npn', 'pnp', 'nmos', 'pmos']
-const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']
-const KIND_CAT: Partial<Record<Kind, Category>> = { diode: 'Diodes', zener: 'Diodes', led: 'Diodes', npn: 'BJTs', pnp: 'BJTs', nmos: 'MOSFETs', pmos: 'MOSFETs', opamp: 'Op-amps', opamp5: 'Op-amps', block: 'Subcircuits' }
-type Target = 'user' | 'project'
+const MODEL_KINDS: Kind[] = ['diode', 'zener', 'led', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos']
+const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']
+const KIND_CAT: Partial<Record<Kind, Category>> = { diode: 'Diodes', zener: 'Diodes', led: 'Diodes', npn: 'BJTs', pnp: 'BJTs', njf: 'JFETs', pjf: 'JFETs', nmos: 'MOSFETs', pmos: 'MOSFETs', opamp: 'Op-amps', opamp5: 'Op-amps', block: 'Subcircuits' }
+const packOf = (id: string) => (id.startsWith('pack:') ? id.slice(5, id.indexOf('/')) : '')
+const ROW_H = 46
+const rowH = () => ROW_H, rowKey = (e: LibEntry) => e.id
 const fileOf = (e: LibEntry) => libKey(e.id).replace(/^(proj|user):|^pack:[^/]*\//, '')
-const KEY: Record<Target, string> = { user: 'user:', project: 'proj:' }
 const pinName = (k: Kind, i: number) => SYMBOLS[k].pinNames?.[i] ?? `pin ${i + 1}`
 const spiceText = (e: LibEntry) =>
   e.spice?.type === 'model' ? e.spice.text : e.spice?.text ?? (e.spice?.include ? `.include ${e.spice.include}\n* .subckt ${e.spice.name} ${e.spice.pins.join(' ')}` : '')
@@ -22,69 +24,34 @@ const spiceText = (e: LibEntry) =>
 // arrow keys move between buttons of a list
 function arrows(e: RKE<HTMLElement>, sel: string) {
   if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-  const all = [...e.currentTarget.querySelectorAll<HTMLElement>(sel)], i = all.indexOf(document.activeElement as HTMLElement)
+  const all = [...e.currentTarget.querySelectorAll<HTMLElement>(sel)], i = all.indexOf(e.currentTarget.ownerDocument.activeElement as HTMLElement)
   e.preventDefault()
   const to = all[Math.max(0, Math.min(all.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]
   to?.focus(), to?.click()
 }
 
-export function LibraryView({ entries, project, user, packs, onImport, onRemove }: {
-  entries: LibEntry[]
-  project: { dir: string; libs: ImportedLib[] } | null
-  user: ImportedLib[] // My library
-  packs: PackInfo[]
-  onImport: (lib: ImportedLib, to: Target) => unknown
-  onRemove: (file: string, from: Target) => unknown
+export function LibraryView({ entries, packs }: {
+  entries: LibEntry[] // enabled libraries only (Manage Libraries hides the rest)
+  packs: PackInfo[] // detail card: pack name, version, licence
 }) {
   const [q, setQ] = useState('')
-  const [cat, setCat] = useState('all') // 'all' | Category | 'file:<lib key>' ('user:a.lib', 'pack:id/a.lib', 'proj:libs/a.lib')
+  const [cat, setCat] = useState('all') // 'all' | Category
+  const [notice, setNotice] = useState<PackInfo | null>(null)
   const [selId, setSelId] = useState<string>()
-  const [to, setTo] = useState<Target>('user')
-  const target: Target = project ? to : 'user'
-  const [imp, setImp] = useState<{ rel: string; to: Target; parsed: ParsedLib } | null>(null)
-  const [err, setErr] = useState('')
-  const ql = q.trim().toLowerCase()
+  const ql = useDebounced(q.trim().toLowerCase())
   const found = useMemo(() => entries.filter((e) => match(e, ql)), [entries, ql])
-  const shown = found.filter((e) => cat === 'all' || (cat.startsWith('file:') ? libKey(e.id) === cat.slice(5) : e.category === cat))
+  const shown = useMemo(() => found.filter((e) => cat === 'all' || e.category === cat), [found, cat])
   const sel = shown.find((e) => e.id === selId) ?? shown[0]
-  const count = (f: (e: LibEntry) => boolean) => found.filter(f).length
-  const cats = CATS.filter((c) => entries.some((e) => e.category === c))
-  const fail = (e: unknown) => setErr(`Import failed: ${String((e as Error)?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}`)
-
-  async function startImport() {
-    setErr('')
-    try {
-      const r = target === 'user' ? await window.api.userlib.import().then((r) => r && { rel: r.file, text: r.text }) : await window.api.project.importLib(project!.dir)
-      if (r) setImp({ rel: r.rel, to: target, parsed: parseLibFile(r.text) })
-    } catch (e) {
-      fail(e)
-    }
-  }
-  useImportRequest(startImport) // tools.importLibrary
-  // the import already copied the file: drop it again unless it was imported before
-  function cancelImport() {
-    if (imp?.to === 'user' && !user.some((l) => l.file === imp.rel)) window.api.userlib.remove(imp.rel).catch(() => {})
-    if (imp?.to === 'project' && project && !project.libs.some((l) => l.file === imp.rel)) window.api.project.remove(project.dir, imp.rel).catch(() => {})
-    setImp(null)
-  }
-  function remove(file: string, from: Target) {
-    const what = from === 'user'
-      ? `Remove ${file} from My library?\nProjects that already use its parts keep their own copy; loose sheets using it will stop netlisting.`
-      : `Remove ${file} from the project?\nParts already placed from it will stop netlisting.`
-    if (!confirm(what)) return
-    if (cat === 'file:' + KEY[from] + file) setCat('all')
-    Promise.resolve(onRemove(file, from)).catch((e) => setErr(`Remove failed: ${(e as Error).message}`))
-  }
-  const fileRow = (key: string, label: string, from?: Target, file = '') => (
-    <div key={key} className="libv-file">
-      {navBtn('file:' + key, label, count((e) => libKey(e.id) === key))}
-      {from && <button className="libv-rm" title={`Remove ${file}`} aria-label={`Remove ${file}`} onClick={() => remove(file, from)}>×</button>}
-    </div>
-  )
+  const counts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const e of found) m.set(e.category, (m.get(e.category) ?? 0) + 1)
+    return m
+  }, [found])
+  const cats = useMemo(() => CATS.filter((c) => entries.some((e) => e.category === c)), [entries])
 
   const navBtn = (id: string, label: string, n: number) => (
     <button className={`libv-nav-b${cat === id ? ' on' : ''}`} aria-pressed={cat === id} onClick={() => setCat(id)}>
-      <span>{label}</span><span className="cnt">{n}</span>
+      <span>{label}</span><span className="cnt">{n.toLocaleString()}</span>
     </button>
   )
 
@@ -94,71 +61,36 @@ export function LibraryView({ entries, project, user, packs, onImport, onRemove 
         <input className="libv-search" type="search" placeholder="Search library" aria-label="Search library" value={q} spellCheck={false} onChange={(e) => setQ(e.target.value)} />
         <nav aria-label="Categories" onKeyDown={(e) => arrows(e, '.libv-nav-b')}>
           {navBtn('all', 'All parts', found.length)}
-          {cats.map((c) => <div key={c}>{navBtn(c, c, count((e) => e.category === c))}</div>)}
-          <h4>My library</h4>
-          {user.length === 0 && <p className="libv-muted">Import vendor libraries here to use them in every project.</p>}
-          {user.map((l) => fileRow('user:' + l.file, l.file, 'user', l.file))}
-          {packs.map((p) => (
-            <div key={p.id} className="libv-pack">
-              <h4 title={p.description}>{p.name}{p.license && <span className="libv-lic" title="License">{p.license}</span>}</h4>
-              {p.source && <p className="libv-src">{p.source}</p>}
-              {p.libs.map((l) => fileRow(`pack:${p.id}/${l.file}`, l.file))}
-            </div>
-          ))}
-          {project && (
-            <>
-              <h4>Project</h4>
-              {project.libs.length === 0 && <p className="libv-muted">No imported libraries yet.</p>}
-              {project.libs.map((l) => fileRow('proj:' + l.file, l.file.replace(/^libs\//, ''), 'project', l.file))}
-            </>
-          )}
+          {cats.map((c) => <div key={c}>{navBtn(c, c, counts.get(c) ?? 0)}</div>)}
         </nav>
-        <div className="libv-import">
-          {project && (
-            <div className="libv-to" role="radiogroup" aria-label="Import into">
-              {(['user', 'project'] as const).map((t) => (
-                <button key={t} role="radio" aria-checked={to === t} className={to === t ? 'on' : ''} onClick={() => setTo(t)}>{t === 'user' ? 'My library' : 'This project'}</button>
-              ))}
-            </div>
-          )}
-          <button onClick={startImport}>Import library…</button>
-          <small>{target === 'user'
-            ? 'Vendor .lib / .mod / .sub files are kept in your personal library. A project that uses a part gets its own copy.'
-            : 'Vendor .lib / .mod / .sub files are copied into the project’s libs/ folder.'}</small>
-          {err && <small className="err" role="alert">{err}</small>}
-        </div>
+        <button className="libv-manage" onClick={() => runCommand('tools.manageLibraries')} title="Show, hide or import component libraries">Manage libraries…</button>
       </aside>
 
-      <section className="libv-list" aria-label="Parts" onKeyDown={(e) => arrows(e, '.libv-row')}>
-        {shown.map((e) => (
-          <button key={e.id} className={`libv-row${e === sel ? ' on' : ''}`} aria-pressed={e === sel} onClick={() => setSelId(e.id)}>
-            <SymbolPreview kind={e.kind} part={e.kind === 'block' ? blockPartFields(e) : undefined} size="small" />
-            <span><b>{e.name}</b><small>{e.description}</small></span>
-            {e.group && <span className="chip">{e.group}</span>}
-          </button>
-        ))}
-        {!shown.length && <p className="libv-muted pad">Nothing matches{q ? ` “${q}”` : ''}.</p>}
+      <section className="libv-list" aria-label="Parts">
+        <div className="libv-count">{shown.length.toLocaleString()} part{shown.length === 1 ? '' : 's'}{ql ? ` matching “${ql}”` : ''}</div>
+        {shown.length ? (
+          <VList className="libv-rows" items={shown} height={rowH} keyOf={rowKey} reset={`${ql}|${cat}`} onKeyDown={(e) => arrows(e, '.libv-row')}
+            render={(e) => (
+              <button className={`libv-row${e === sel ? ' on' : ''}`} aria-pressed={e === sel} onClick={() => setSelId(e.id)}>
+                {mini(e)}
+                <span><b>{e.name}</b><small>{e.description}</small></span>
+              </button>
+            )} />
+        ) : <p className="libv-muted pad">Nothing matches{q ? ` “${q}”` : ''}.</p>}
       </section>
 
-      <section className="libv-detail">{sel ? <Detail e={sel} packs={packs} /> : <p className="libv-muted pad">Select a part.</p>}</section>
+      <section className="libv-detail">{sel ? <Detail e={sel} packs={packs} onNotice={setNotice} /> : <p className="libv-muted pad">Select a part.</p>}</section>
 
-      {imp && (
-        <ImportDialog rel={imp.rel} parsed={imp.parsed} onClose={cancelImport}
-          onImport={(lib) => {
-            const t = imp.to
-            setImp(null)
-            Promise.resolve(onImport(lib, t)).then(() => setCat('file:' + KEY[t] + lib.file), fail)
-          }} />
-      )}
+      {notice && <Modal title={`${notice.name}: licence`} onClose={() => setNotice(null)}><PackLicence pack={notice} /></Modal>}
     </div>
   )
 }
 
-function Detail({ e, packs }: { e: LibEntry; packs: PackInfo[] }) {
+function Detail({ e, packs, onNotice }: { e: LibEntry; packs: PackInfo[]; onNotice: (p: PackInfo) => void }) {
   const [copied, setCopied] = useState(false)
   const text = spiceText(e)
   const sub = e.spice?.type === 'subckt' ? e.spice : undefined
-  const pack = e.source === 'pack' ? packs.find((p) => e.id.startsWith(`pack:${p.id}/`)) : undefined
+  const pack = e.source === 'pack' ? packs.find((p) => p.id === packOf(e.id)) : undefined
   useEffect(() => setCopied(false), [e.id])
   const copy = () => navigator.clipboard.writeText(text).then(() => (setCopied(true), setTimeout(() => setCopied(false), 1200)))
   return (
@@ -177,10 +109,10 @@ function Detail({ e, packs }: { e: LibEntry; packs: PackInfo[] }) {
         <dt>Source</dt><dd>{
           e.source === 'bundled' ? 'Bundled with ngspice Studio'
           : e.source === 'user' ? `My library · ${fileOf(e)}`
-          : e.source === 'pack' ? `${pack?.name ?? 'Pack'} · ${fileOf(e)}${pack?.source ? ` · from ${pack.source}` : ''}`
+          : e.source === 'pack' ? <>{pack?.name ?? 'Pack'}{pack?.version && ` ${/^\d/.test(pack.version) ? 'v' : ''}${pack.version}`} · {fileOf(e)}{pack?.source && <> · from {isUrl(pack.source) ? <a href={pack.source} target="_blank" rel="noreferrer">{pack.source}</a> : pack.source}</>}</>
           : `Project file ${fileOf(e)}`
         }</dd>
-        {pack?.license && <><dt>License</dt><dd>{pack.license}</dd></>}
+        {pack && <><dt>Licence</dt><dd>{pack.license || 'not stated'} · <button className="libv-link" onClick={() => onNotice(pack)}>notice</button></dd></>}
         {e.compat && <><dt>Dialect</dt><dd>{e.compat}</dd></>}
         {!e.spice && <><dt>Model</dt><dd>Built-in SPICE element: the value is the whole spec</dd></>}
       </dl>
@@ -223,7 +155,8 @@ function rowErrors(r: Row, sub?: string[]): string[] {
   return []
 }
 
-function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void }) {
+// renders in whichever window holds it (Manage Libraries is its own window): keys and focus use that window
+export function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void }) {
   const orig = useMemo(() => suggest(parsed), [parsed])
   const [rows, setRows] = useState<Row[]>(() => orig.map((r) => ({ ...r, include: true })))
   const card = useRef<HTMLDivElement>(null)
@@ -252,7 +185,8 @@ function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed:
   const cb = useRef({ onClose, submit })
   cb.current = { onClose, submit }
   useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null
+    const d = card.current!.ownerDocument, w = d.defaultView!
+    const prev = d.activeElement as HTMLElement | null
     card.current?.querySelector<HTMLElement>('input, select, button:not(.adlg-x)')?.focus()
     const k = (e: KeyboardEvent) => {
       e.stopPropagation() // modal: canvas shortcuts never see these keys
@@ -260,13 +194,13 @@ function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed:
       else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.preventDefault(), cb.current.submit()
       else if (e.key === 'Tab') {
         const f = [...card.current!.querySelectorAll<HTMLElement>('button:not(:disabled), input, select')]
-        const i = f.indexOf(document.activeElement as HTMLElement)
+        const i = f.indexOf(d.activeElement as HTMLElement)
         const to = i < 0 ? f[0] : e.shiftKey && i === 0 ? f[f.length - 1] : !e.shiftKey && i === f.length - 1 ? f[0] : null
         if (to) e.preventDefault(), to.focus()
       }
     }
-    window.addEventListener('keydown', k, true)
-    return () => { window.removeEventListener('keydown', k, true); prev?.focus?.() }
+    w.addEventListener('keydown', k, true)
+    return () => { w.removeEventListener('keydown', k, true); prev?.focus?.() }
   }, [])
 
   return (

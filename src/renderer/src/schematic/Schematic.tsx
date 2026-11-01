@@ -2,7 +2,7 @@ import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef
 import { GRID, blockShape, junctions, newPart, nextName, onSegment, pins, route, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { netlist, type NetCtx } from './netlist'
-import { blockPartFields, type LibEntry } from '../library/library'
+import { blockPartFields, libKey, type LibEntry } from '../library/library'
 import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
 import { analysisText, parseAnalysis, type Analysis } from '../sim/analysis'
@@ -127,9 +127,9 @@ const typing = (e: KeyboardEvent) => {
 }
 const blurOnEnter = (e: RKE<HTMLInputElement>) => (e.key === 'Enter' || e.key === 'Escape') && e.currentTarget.blur()
 
-export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen }: {
+export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen }: {
   active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
-  library?: LibEntry[]; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
+  library?: LibEntry[]; browse?: LibEntry[] /* Parts panel list, default library */; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
   libOpen?: boolean; onLibOpen?: (open: boolean) => void // parts panel, controlled by the workspace layout when given
 }) {
   const [sheet, setSheet] = useState(initial)
@@ -609,7 +609,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </g>
       </svg>
 
-      {libOpen ? <LibraryPanel entries={library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
+      {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
         : <Rail side="left" label="Parts" title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar" ref={bar}>
         <button className={libOpen ? 'on' : ''} title="Parts library (Shift+L) · search (/)" aria-pressed={libOpen} onClick={() => toggleLib()}>Parts</button>
@@ -641,6 +641,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <div className="sch-insp" key={one.id}>
           <div className="t">{entry?.name ?? (one.sheet ? 'Sheet block' : SYMBOLS[one.kind].title)}</div>
           {entry && <div className="d">{entry.description}</div>}
+          {entry?.group && <div className="d">From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
           {one.lib && !entry && <div className="d warn">Unknown library part {one.lib}</div>}
           {!isFlag(one.kind) && (
             <label>Name

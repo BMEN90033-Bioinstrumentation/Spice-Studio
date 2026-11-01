@@ -1,0 +1,720 @@
+* Qucs-S community parts: Op-amps, 17 parts
+* Converted from https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library by scripts/packs/qucs.ts (ngspice Studio).
+* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.
+
+* 544ud1: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_544.lib <Component 544ud1>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt 544ud1 in+ in- v+ v- out
+X544ud1_q 0 in+ in- v+ v- out OpAmp_544_544UD1
+.subckt	OpAmp_544_544UD1 gnd 1 2 3 4 5
+c1   11 12 2.887E-12
+c2	6  7 10.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	39.78E6	-40E6 40E6 40E6	-40E6
+ga	6  0 11	12 62.84E-6
+gcm	0  6 10	99 41.89E-9
+iss	3 10 dc	20.00E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	4 11 15.91E3
+rd2	4 12 15.91E3
+ro1	8  5 100
+ro2	7 99 20
+rp	3  4 9.000E3
+rss  10 99 10.00E6
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	15
+vln	0 92 dc	15
+.model dx D(Is=800.0E-18)
+.model jx PJF(Is=15.00E-12 Beta=394.9E-6 Vto=-1)
+.ends
+
+.ends 544ud1
+
+* 544ud2a: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_544.lib <Component 544ud2a>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt 544ud2a in+ in- v+ v- out
+X544ud2a_q 0 in+ in- v+ v- out OpAmp_544_544ud2a
+.subckt	OpAmp_544_544ud2a gnd 1 2 3 4 5
+c1   11 12 2.99E-12
+c2	6  7 15.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	353.7E3	-40E3 40E3 40E3	-40E3
+ga	6  0 11	12 2.827E-3
+gcm	0  6 10	99 80.78E-9
+iss  10  4 dc	300.0E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	3 11 353.7
+rd2	3 12 353.7
+ro1	8  5 25
+ro2	7 99 25
+rp	3  4 4.286E3
+rss  10 99 666.7E3
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	15
+vln	0 92 dc	15
+.model dx D(Is=800.0E-18)
+.model jx NJF(Is=15.00E-12 Beta=26.65E-3 Vto=-1)
+.ends
+
+.ends 544ud2a
+
+* K140ud11: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud11>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud11 in+ in- v+ v- out
+XK140ud11_q 0 in+ in- v+ v- out OpAmp_140_K140ud11
+.subckt	OpAmp_140_K140ud11 gnd 1 2 3 4 5
+*
+c1   11 12 2.469E-12
+c2	6  7 28.00E-12
+cee  10 99 42.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	4.737E6	-5E6 5E6 5E6 -5E6
+ga	6  0 11	12 2.639E-3
+gcm	0  6 10	99 83.51E-9
+iee  10  4 dc	1.400E-3
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 378.9
+rc2	3 12 378.9
+re1  13 10 341.9
+re2  14 10 341.9
+ree  10 99 142.8E3
+ro1	8  5 30
+ro2	7 99 40
+rp	3  4 4.546E3
+vb	9  0 dc	0
+vc	3 53 dc	3
+ve   54  4 dc	3
+vlim	7  8 dc	0
+vlp  91  0 dc	25
+vln	0 92 dc	25
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=2.800E3)
+.ends
+
+.ends K140ud11
+
+* K140ud12: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud12>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud12 in+ in- v+ v- out
+XK140ud12_q 0 in+ in- v+ v- out OpAmp_140_K140UD12
+.subckt OpAmp_140_K140UD12 gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	29.84E6	-30E6 30E6 30E6	-30E6
+ga	6  0 11	12 125.7E-6
+gcm	0  6 10	99 39.27E-9
+iee  10  4 dc	16.80E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 7.957E3
+rc2	3 12 7.957E3
+re1  13 10 4.499E3
+re2  14 10 4.499E3
+ree  10 99 11.90E6
+ro1	8  5 810
+ro2	7 99 40
+rp	3  4 50.00E6
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	10
+vln	0 92 dc	10
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=20)
+.ends
+
+.ends K140ud12
+
+* K140ud17: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud17>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud17 in+ in- v+ v- out
+XK140ud17_q 0 in+ in- v+ v- out OpAmp_140_K140ud17
+.subckt OpAmp_140_K140ud17 gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 30.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	29.47E6	-30E6 30E6 30E6	-30E6
+ga	6  0 11	12 113.1E-6
+gcm	0  6 10	99 56.55E-12
+iss  10  4 dc	75.00E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	3 11 8.842E3
+rd2	3 12 8.842E3
+ro1	8  5 70
+ro2	7 99 60
+rp	3  4 6.000E3
+rss  10 99 2.667E6
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	6
+vln	0 92 dc	6
+.model dx D(Is=800.0E-18)
+.model jx NJF(Is=1.900E-9 Beta=170.5E-6	Vto=-1)
+.ends
+
+.ends K140ud17
+
+* K140ud18: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud18>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud18 in+ in- v+ v- out
+XK140ud18_q 0 in+ in- v+ v- out OpAmp_140_K140ud18
+.subckt OpAmp_140_K140ud18 gnd 1 2 3 4 5
+*
+c1   11 12 174.6E-15
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	53.05E6	-50E6 50E6 50E6	-50E6
+ga	6  0 11	12 37.70E-6
+gcm	0  6 10	99 2.120E-9
+iss	3 10 dc	40.00E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	4 11 26.52E3
+rd2	4 12 26.52E3
+ro1	8  5 50
+ro2	7 99 25
+rp	3  4 15.00E3
+rss  10 99 5.000E6
+vb	9  0 dc	0
+vc	3 53 dc	2
+ve   54  4 dc	2
+vlim	7  8 dc	0
+vlp  91  0 dc	7.500
+vln	0 92 dc	7.500
+.model dx D(Is=800.0E-18)
+.model jx PJF(Is=500.0E-12 Beta=71.08E-6 Vto=-1)
+.ends
+
+.ends K140ud18
+
+* K140ud20a: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud20a>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud20a in+ in- v+ v- out
+XK140ud20a_q 0 in+ in- v+ v- out OpAmp_140_K140UD20A
+.subckt OpAmp_140_K140UD20A gnd 1 2 3 4 5
+*
+c1 11 12 2.887E-12
+c2 6 7 30.00E-12
+dc 5 53 dx
+de 54 5 dx
+dlp 90 91 dx
+dln 92 90 dx
+dp 4 3 dx
+egnd 99 0 poly(2) (3,0) (4,0) 0 .5 .5
+fb 7 99 poly(5) vb vc ve vlp vln 0 42.44E6 -40E6 40E6 40E6 -40E6
+ga 6 0 11 12 103.7E-6
+gcm 0 6 10 99 32.40E-9
+iee 10 4 dc 9.400E-6
+hlim 90 0 vlim 1K
+q1 11 2 13 qx
+q2 12 1 14 qx
+r2 6 9 100.0E3
+rc1 3 11 9.646E3
+rc2 3 12 9.646E3
+re1 13 10 3.732E3
+re2 14 10 3.732E3
+ree 10 99 21.28E6
+ro1 8 5 50
+ro2 7 99 25
+rp 3 4 10.75E3
+vb 9 0 dc 0
+vc 3 53 dc 2
+ve 54 4 dc 2
+vlim 7 8 dc 0
+vlp 91 0 dc 20
+vln 0 92 dc 20
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=22.50)
+.ends
+
+.ends K140ud20a
+
+* K140ud23: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud23>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud23 in+ in- v+ v- out
+XK140ud23_q 0 in+ in- v+ v- out OpAmp_140_K140UD23
+.subckt	OpAmp_140_K140UD23 gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 30.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	2.122E6	-2E6 2E6 2E6 -2E6
+ga	6  0 11	12 942.6E-6
+gcm	0  6 10	99 377.0E-9
+iee  10  4 dc	900.2E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 1.061E3
+rc2	3 12 1.061E3
+re1  13 10 1.003E3
+re2  14 10 1.003E3
+ree  10 99 222.2E3
+ro1	8  5 125
+ro2	7 99 25
+rp	3  4 4.918E3
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	10
+vln	0 92 dc	10
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=4.500E3)
+.ends
+
+.ends K140ud23
+
+* K140ud25a: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud25a>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud25a in+ in- v+ v- out
+XK140ud25a_q 0 in+ in- v+ v- out OpAmp_140_K140ud25a
+.subckt OpAmp_140_K140ud25a gnd 1 2 3 4 5
+*
+c1   11 12 27.30E-12
+c2	6  7 150.0E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	11.32E6	-10E6 10E6 10E6	-10E6
+ga	6  0 11	12 4.712E-3
+gcm	0  6 10	99 14.73E-9
+iee  10  4 dc	255.1E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 212.2
+rc2	3 12 212.2
+re1  13 10 9.347
+re2  14 10 9.347
+ree  10 99 784.1E3
+ro1	8  5 35
+ro2	7 99 15
+rp	3  4 12.44E3
+vb	9  0 dc	0
+vc	3 53 dc	3
+ve   54  4 dc	3
+vlim	7  8 dc	0
+vlp  91  0 dc	6
+vln	0 92 dc	6
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=3.188E3)
+.ends
+
+.ends K140ud25a
+
+* K140ud27: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud27>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud27 in+ in- v+ v- out
+XK140ud27_q 0 in+ in- v+ v- out OpAmp_140_K140ud27
+.subckt	OpAmp_140_K140ud27 gnd 1 2 3 4 5
+*
+c1   11 12 5.460E-12
+c2	6  7 30.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	39.78E6	-40E6 40E6 40E6	-40E6
+ga	6  0 11	12 1.508E-3
+gcm	0  6 10	99 755.9E-12
+iee  10  4 dc	84.02E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 663.1
+rc2	3 12 663.1
+re1  13 10 47.24
+re2  14 10 47.24
+ree  10 99 2.380E6
+ro1	8  5 40
+ro2	7 99 30
+rp	3  4 9.233E3
+vb	9  0 dc	0
+vc	3 53 dc	1.200
+ve   54  4 dc	1.200
+vlim	7  8 dc	0
+vlp  91  0 dc	40
+vln	0 92 dc	40
+.model dx D(Is=800.0E-18 Rs=1)
+.model qx NPN(Is=800.0E-18 Bf=4.200E3)
+.ends
+
+.ends K140ud27
+
+* K140ud6a: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud6a>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud6a in+ in- v+ v- out
+XK140ud6a_q 0 in+ in- v+ v- out OpAmp_140_K140UD6A
+.subckt	OpAmp_140_K140UD6A gnd 1 2 3 4 5
+*
+c1   11 12 8.660E-12
+c2	6  7 20.00E-12
+cee  10 99 800.0E-15
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	42.44E6	-40E6 40E6 40E6	-40E6
+ga	6  0 11	12 125.7E-6
+gcm	0  6 10	99 12.57E-9
+iee  10  4 dc	52.06E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 7.958E3
+rc2	3 12 7.958E3
+re1  13 10 6.955E3
+re2  14 10 6.955E3
+ree  10 99 3.842E6
+ro1	8  5 50
+ro2	7 99 25
+rp	3  4 10.92E3
+vb	9  0 dc	0
+vc	3 53 dc	4
+ve   54  4 dc	4
+vlim	7  8 dc	0
+vlp  91  0 dc	20
+vln	0 92 dc	20
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=866.7)
+.ends
+
+.ends K140ud6a
+
+* K140ud6b: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud6b>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud6b in+ in- v+ v- out
+XK140ud6b_q 0 in+ in- v+ v- out OpAmp_140_K140UD6B
+.subckt	OpAmp_140_K140UD6B gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	11.94E6	-10E6 10E6 10E6	-10E6
+ga	6  0 11	12 125.7E-6
+gcm	0  6 10	99 15.71E-9
+iee  10  4 dc	50.04E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 7.957E3
+rc2	3 12 7.957E3
+re1  13 10 6.917E3
+re2  14 10 6.917E3
+ree  10 99 3.997E6
+ro1	8  5 720
+ro2	7 99 30
+rp	3  4 10.91E3
+vb	9  0 dc	0
+vc	3 53 dc	3
+ve   54  4 dc	3
+vlim	7  8 dc	0
+vlp  91  0 dc	10
+vln	0 92 dc	10
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=1.250E3)
+.ends
+
+.ends K140ud6b
+
+* K140ud7: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud7>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud7 in+ in- v+ v- out
+XK140ud7_q 0 in+ in- v+ v- out OpAmp_140_K140ud7
+.subckt	OpAmp_140_K140ud7 gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	42.44E6	-40E6 40E6 40E6	-40E6
+ga	6  0 11	12 100.5E-6
+gcm	0  6 10	99 31.79E-9
+iee  10  4 dc	14.14E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 9.946E3
+rc2	3 12 9.946E3
+re1  13 10 6.189E3
+re2  14 10 6.189E3
+ree  10 99 14.14E6
+ro1	8  5 50
+ro2	7 99 25
+rp	3  4 32.36E3
+vb	9  0 dc	0
+vc	3 53 dc	3
+ve   54  4 dc	3
+vlim	7  8 dc	0
+vlp  91  0 dc	20
+vln	0 92 dc	20
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=100)
+.ends
+
+.ends K140ud7
+
+* K140ud7b: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud7b>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud7b in+ in- v+ v- out
+XK140ud7b_q 0 in+ in- v+ v- out OpAmp_140_K140ud7b
+.subckt	OpAmp_140_K140ud7b gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	42.44E6	-40E6 40E6 40E6	-40E6
+ga	6  0 11	12 100.5E-6
+gcm	0  6 10	99 50.27E-9
+iee  10  4 dc	6.200E-6
+hlim 90  0 vlim 1K
+q1   11  2 13	qx
+q2   12  1 14	qx
+r2	6  9 100.0E3
+rc1	3 11 9.946E3
+rc2	3 12 9.946E3
+re1  13 10 1.282E3
+re2  14 10 1.282E3
+ree  10 99 32.26E6
+ro1	8  5 50
+ro2	7 99 25
+rp	3  4 10.61E3
+vb	9  0 dc	0
+vc	3 53 dc	4
+ve   54  4 dc	4
+vlim	7  8 dc	0
+vlp  91  0 dc	20
+vln	0 92 dc	20
+.model dx D(Is=800.0E-18)
+.model qx NPN(Is=800.0E-18 Bf=30)
+.ends
+
+.ends K140ud7b
+
+* K140ud8: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud8>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud8 in+ in- v+ v- out
+XK140ud8_q 0 in+ in- v+ v- out OpAmp_140_K140ud8
+.subckt	OpAmp_140_K140ud8 gnd 1 2 3 4 5
+*
+c1   11 12 174.6E-15
+c2	6  7 20.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	127.3E6	-100E6 100E6 100E6 -100E6
+ga	6  0 11	12 125.7E-6
+gcm	0  6 10	99 12.57E-9
+iss	3 10 dc	100.0E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	4 11 7.957E3
+rd2	4 12 7.957E3
+ro1	8  5 50
+ro2	7 99 25
+rp	3  4 18.00E3
+rss  10 99 2.000E6
+vb	9  0 dc	0
+vc	3 53 dc	2
+ve   54  4 dc	2
+vlim	7  8 dc	0
+vlp  91  0 dc	20
+vln	0 92 dc	20
+.model dx D(Is=800.0E-18)
+.model jx PJF(Is=10.00E-12 Beta=315.9E-6 Vto=-1)
+.ends
+
+.ends K140ud8
+
+* K140ud8a: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud8a>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud8a in+ in- v+ v- out
+XK140ud8a_q 0 in+ in- v+ v- out OpAmp_140_K140UD8A
+.subckt	OpAmp_140_K140UD8A gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 33.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	24.11E6	-20E6 20E6 20E6	-20E6
+ga	6  0 11	12 207.4E-6
+gcm	0  6 10	99 64.80E-9
+iss  10  4 dc	66.00E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	3 11 4.822E3
+rd2	3 12 4.822E3
+ro1	8  5 290
+ro2	7 99 10
+rp	3  4 6.000E3
+rss  10 99 3.030E6
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	15
+vln	0 92 dc	15
+.model dx D(Is=800.0E-18)
+.model jx NJF(Is=100.0E-12 Beta=1.303E-3 Vto=-1)
+.ends
+
+.ends K140ud8a
+
+* K140ud8b: Authors: Vadim Kuznetsov <ra3xdh@gmail.com> and Timofey Moiseev <voig1396@gmail.com>
+* from Qucs-S library/OpAmp_140.lib <Component K140ud8b>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt K140ud8b in+ in- v+ v- out
+XK140ud8b_q 0 in+ in- v+ v- out OpAmp_140_K140UD8B
+.subckt	OpAmp_140_K140UD8B gnd 1 2 3 4 5
+*
+c1   11 12 2.887E-12
+c2	6  7 33.00E-12
+dc	5 53 dx
+de   54  5 dx
+dlp  90 91 dx
+dln  92 90 dx
+dp	4  3 dx
+egnd 99  0 poly(2) (3,0) (4,0) 0 .5 .5
+fb	7 99 poly(5) vb	vc ve vlp vln 0	24.11E6	-20E6 20E6 20E6	-20E6
+ga	6  0 11	12 207.4E-6
+gcm	0  6 10	99 64.80E-9
+iss  10  4 dc	66.00E-6
+hlim 90  0 vlim 1K
+j1   11  2 10	jx
+j2   12  1 10	jx
+r2	6  9 100.0E3
+rd1	3 11 4.822E3
+rd2	3 12 4.822E3
+ro1	8  5 290
+ro2	7 99 10
+rp	3  4 6.000E3
+rss  10 99 3.030E6
+vb	9  0 dc	0
+vc	3 53 dc	5
+ve   54  4 dc	5
+vlim	7  8 dc	0
+vlp  91  0 dc	15
+vln	0 92 dc	15
+.model dx D(Is=800.0E-18)
+.model jx NJF(Is=100.0E-12 Beta=1.303E-3 Vto=-1)
+.ends
+
+.ends K140ud8b

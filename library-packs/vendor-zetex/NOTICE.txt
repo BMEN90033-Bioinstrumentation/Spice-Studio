@@ -1,0 +1,397 @@
+Zetex SPICE models: notice text
+Each model file in this pack is an unmodified copy of a Zetex PLC model file, as published at
+http://www.zetex.com/3.0/spice/ (retrieved from the Internet Archive; Zetex is now part of Diodes Incorporated).
+Every file carries one of the notices below, quoted exactly from the first file listed (the others in a group
+differ at most in spacing or line breaks).
+
+---- Notice 1 of 26 (101 files: 2n6715.mod, 2n6727.mod, 2n7002.mod, bc337ap.mod, bc338ap.mod, bc413bp.mod, …)
+*                          (C)  1991 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 2 of 26 (3 files: 2n7000.mod, 2n7000p.mod, zumt717.mod)
+*                          (C)  2000 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 3 of 26 (53 files: bal74.mod, bal99.mod, bar74.mod, bar99.mod, bas16.mod, bas19.mod, …)
+*                          (C)  1992 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 4 of 26 (104 files: bat54.mod, bc639.mod, bcx17.mod, bcx56.mod, bcx5610.mod, bcx5616.mod, …)
+*                (c)  2005 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc (" Zetex ").  They  are  supplied
+*   free of charge by Zetex for the purpose of research and design
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL
+
+---- Notice 5 of 26 (22 files: bc80716.mod, bc80816.mod, bcp5610.mod, bcp5616.mod, bcw67a.mod, bcw68f.mod, …)
+*                          (C)  2003 ZETEX PLC
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 6 of 26 (22 files: bfs17.mod, fmmt489.mod, fmmt491a.mod, fmmt5179.mod, fmmt591a.mod, fmmt619.mod, …)
+*                          (C)  1993 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 7 of 26 (10 files: bss123.mod, BSS123A.mod, zmv930.mod, zmv934.mod, zmv934a.mod, ZR431L.mod, …)
+*                (c)  2006 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc (" Zetex ").  They  are  supplied
+*   free of charge by Zetex for the purpose of research and design
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL
+
+---- Notice 8 of 26 (3 files: BST52.mod, FMMT614.mod, ZXT4M322.mod)
+*                          (C)  2004 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 9 of 26 (2 files: FCX458.mod, FCX558.mod)
+*                  (c)  2005 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc ("Zetex").  They  are  supplied  
+*   free of charge by Zetex for the purpose of research and design 
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL
+
+---- Notice 10 of 26 (14 files: fcx690b.mod, ZLLS1000.mod, ZLLS350.mod, ZLLS400.mod, ZLLS410.mod, ZLLS500.mod, …)
+*                (c)  2007 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc (" Zetex ").  They  are  supplied
+*   free of charge by Zetex for the purpose of research and design
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL
+
+---- Notice 11 of 26 (8 files: flld258.mod, fmmt560.mod, fzt491.mod, fzt560.mod, fzt853.mod, ztx550.mod, …)
+*                          (C)  2001 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 12 of 26 (22 files: flld261.mod, fmmt38c.mod, fmmt455.mod, fmmt459.mod, fmmta12.mod, fmmta14.mod, …)
+*                          (C)  2002 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 13 of 26 (12 files: fmmt497.mod, fzt849.mod, fzt851.mod, fzt948.mod, fzt949.mod, fzt951.mod, …)
+*                          (C)  2002 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 14 of 26 (9 files: fmmt549.mod, fmmt589.mod, fmmt717.mod, fzt1048a.mod, ztx1047a.mod, ztx1048a.mod, …)
+*                          (C)  1994 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 15 of 26 (1 file: fmmt558.mod)
+*                          (C)  2002 ZETEX PLC
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex PLC ("Zetex").  They  are  supplied  free of charge by
+*   Zetex for the purpose of research and design and may be used or
+*   copied intact  (including this notice)  for  that purpose only.
+*   All other rights are reserved. The models are believed accurate
+*   but  no condition  or warranty  as to their  merchantability or
+*   fitness for purpose is given and no liability in respect of any
+*   use is accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham OL9 8NP, UK
+
+---- Notice 16 of 26 (3 files: fmmt720.mod, zxt10p40de6.mod, zxt3m322.mod)
+*                          (C)  2003 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 17 of 26 (1 file: FSD273.mod)
+*                          (C)  2004 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham OL9 8NP, UK
+
+---- Notice 18 of 26 (4 files: fzt1047a.mod, fzt1049a.mod, fzt1051a.mod, fzt1053a.mod)
+*                          (C)  1997 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 19 of 26 (4 files: fzt1147a.mod, fzt1151a.mod, ztx1147a.mod, ztx1151a.mod)
+*                          (C)  1996 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 20 of 26 (5 files: fzt1149a.mod, fzt857.mod, zhcs750.mod, ztx1149a.mod, ztx857.mod)
+*                          (C)  1997 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 21 of 26 (9 files: FZT758.mod, ZTX758.mod, ZX5T3Z.mod, ZX5T851G.mod, ZXMP3A13G.mod, ZXMP3A16G.mod, …)
+*                          (C)  2004 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 22 of 26 (14 files: zc820a.mod, zc821a.mod, zc822a.mod, zc823a.mod, zc824a.mod, zc825a.mod, …)
+*                          (C)  1992 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 23 of 26 (1 file: zhcs1006.mod)
+*                          (C)  2001 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 24 of 26 (5 files: zmdc953.mod, zv950v2.mod, zv952v2.mod, zv953v2.mod, zxt10p20de6.mod)
+*                          (C)  2002 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham OL9 8NP, UK
+
+---- Notice 25 of 26 (4 files: ztx1049a.mod, ztx1053a.mod, ztx1055a.mod, ztx1056a.mod)
+*                          (C)  1995 ZETEX PLC
+*
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agents.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham  OL9 8NP
+
+---- Notice 26 of 26 (1 file: zxt13p12de6.mod)
+*                          (C)  2002 ZETEX PLC
+*   The copyright in this model  and  the design embodied belong to
+*   Zetex PLC ("Zetex"). It is supplied free of charge by Zetex for
+*   the purpose  of research  and design  and may be used or copied
+*   intact (including this notice) for that purpose only. All other
+*   rights  are  reserved.  The model  is believed  accurate but no
+*   condition or warranty as to its  merchantability or fitness for
+*   purpose  is  given  and  no liability  in respect of any use is
+*   accepted by Zetex PLC, its distributors or agent.
+*
+*
+*   Zetex PLC, Fields New Road, Chadderton, Oldham OL9 8NP, UK

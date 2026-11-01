@@ -1,0 +1,2414 @@
+* Qucs-S community parts: Diodes, 394 parts
+* Converted from https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library by scripts/packs/qucs.ts (ngspice Studio).
+* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.
+
+* 10A01: universal silicon rectifier diode 50.0V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A01>
+.model 10A01 D(IS=844e-9 N=2.06 CJ0=277e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=50 IBV=10e-6)
+
+* 10A02: universal silicon rectifier diode 100V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A02>
+.model 10A02 D(IS=844e-9 N=2.06 CJ0=277e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=100 IBV=10e-6)
+
+* 10A03: universal silicon rectifier diode 200V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A03>
+.model 10A03 D(IS=844e-9 N=2.06 CJ0=277e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32 KF=0 AF=1 BV=200
++IBV=10.0e-6)
+
+* 10A04: universal silicon rectifier diode 400V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A04>
+.model 10A04 D(IS=844e-9 N=2.06 CJ0=277e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=10.0e-6)
+
+* 10A05: universal silicon rectifier diode 600V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A05>
+.model 10A05 D(IS=844e-9 N=2.06 CJ0=148e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=600 IBV=10.0e-6)
+
+* 10A06: universal silicon rectifier diode 800V, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A06>
+.model 10A06 D(IS=844e-9 N=2.06 CJ0=148e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=800 IBV=10.0e-6)
+
+* 10A07: universal silicon rectifier diode 1KV, 10.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 10A07>
+.model 10A07 D(IS=844e-9 N=2.06 CJ0=148e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.06e-3 TT=4.32e-6 KF=0 AF=1
++BV=1e3 IBV=10e-6)
+
+* 1N4001: universal silicon rectifier diode 50V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4001>
+.model 1N4001 D(IS=76.9e-12 N=1.45 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=50 IBV=5e-6)
+
+* 1N4002: universal silicon rectifier diode 100V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4002>
+.model 1N4002 D(IS=76.9e-12 N=1.45 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=100 IBV=5e-6)
+
+* 1N4003: universal silicon rectifier diode 200V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4003>
+.model 1N4003 D(IS=76.9e-12 N=1.45 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=200 IBV=5e-6)
+
+* 1N4004: universal silicon rectifier diode 400V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4004>
+.model 1N4004 D(IS=76.9e-12 N=1.45 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=5e-6)
+
+* 1N4005: universal silicon rectifier diode 600V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4005>
+.model 1N4005 D(IS=76.9e-12 N=1.45 CJ0=26.5e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=600 IBV=5e-6)
+
+* 1N4006: universal silicon rectifier diode 800V, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4006>
+.model 1N4006 D(IS=76.9e-12 N=1.45 CJ0=26.5e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=800 IBV=5e-6)
+
+* 1N4007: universal silicon rectifier diode 1kV, 1.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4007>
+.model 1N4007 D(IS=76.9e-12 N=1.45 CJ0=26.5e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=1e3 IBV=5e-6)
+
+* 1N4148: universal silicon switching diode 75V, 300mA, 4.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4148>
+.model 1N4148 D(IS=222e-12 N=1.65 CJ0=4e-12 M=0.333 VJ=0.7 FC=0.5 RS=68.6e-3 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* 1N4148W: universal silicon switching diode 75V, 300mA, 4.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4148W>
+.model 1N4148W D(IS=10.4e-9 N=2.07 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=51.5e-3 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* 1N4148WS: universal silicon switching diode 75V, 300mA, 4.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4148WS>
+.model 1N4148WS D(IS=10.4e-9 N=2.07 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=51.5e-3 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* 1N4148WT: universal silicon switching diode 80V, 125mA, 4.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N4148WT>
+.model 1N4148WT D(IS=111e-9 N=1.7 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.628 TT=5.76e-9 KF=0 AF=1 BV=80
++IBV=1e-6)
+
+* 1N4728: 3.3V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4728>
+.subckt 1N4728 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=5.97E-16 N=1.27 RS=0.659 CJ0=3.63E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=3.251
++IBV=0.076 AF=1 KF=0)
+.ends 1N4728
+
+* 1N4728A: 3.30V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4728A>
+.subckt 1N4728A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=125e-12 RS=0.62 N=1.1 CJ0=364e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=25e-15 RS=1.24 N=3 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 0.972
+.ends 1N4728A
+
+* 1N4729: 3.6V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4729>
+.subckt 1N4729 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=5.81E-16 N=1.27 RS=0.624 CJ0=3.19E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=3.558
++IBV=0.069 AF=1 KF=0)
+.ends 1N4729
+
+* 1N4729A: 3.60V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4729A>
+.subckt 1N4729A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=114e-12 RS=0.62 N=1.1 CJ0=319e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=22.9e-15 RS=0.923 N=3 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 1.3
+.ends 1N4729A
+
+* 1N4730: 3.9V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4730>
+.subckt 1N4730 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=6.63E-16 N=1.27 RS=0.795 CJ0=2.83E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=3.851
++IBV=0.064 AF=1 KF=0)
+.ends 1N4730
+
+* 1N4730A: 3.90V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4730A>
+.subckt 1N4730A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=106e-12 RS=0.62 N=1.1 CJ0=283e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=21.1e-15 RS=0.645 N=3 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 1.63
+.ends 1N4730A
+
+* 1N4731: 4.3V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4731>
+.subckt 1N4731 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=6.42E-16 N=1.27 RS=0.753 CJ0=2.44E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=4.258
++IBV=0.058 AF=1 KF=0)
+.ends 1N4731
+
+* 1N4731A: 4.30V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4731A>
+.subckt 1N4731A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=95.8e-12 RS=0.62 N=1.1 CJ0=244e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=19.2e-15 RS=0.377 N=2.82 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 2.18
+.ends 1N4731A
+
+* 1N4732: 4.7V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4732>
+.subckt 1N4732 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=6.71E-16 N=1.27 RS=0.811 CJ0=2.14E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=4.659
++IBV=0.053 AF=1 KF=0)
+.ends 1N4732
+
+* 1N4732A: 4.70V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4732A>
+.subckt 1N4732A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=87.7e-12 RS=0.62 N=1.1 CJ0=214e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=17.5e-15 RS=0.333 N=2.28 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 2.99
+.ends 1N4732A
+
+* 1N4733: 5.1V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4733>
+.subckt 1N4733 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.03E-16 N=1.27 RS=0.871 CJ0=1.89E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=5.059
++IBV=0.049 AF=1 KF=0)
+.ends 1N4733
+
+* 1N4733A: 5.10V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4733A>
+.subckt 1N4733A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=80.8e-12 RS=0.62 N=1.1 CJ0=189e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=16.2e-15 RS=0.296 N=1.87 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 3.69
+.ends 1N4733A
+
+* 1N4734: 5.6V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4734>
+.subckt 1N4734 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.32E-16 N=1.27 RS=0.924 CJ0=1.64E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=5.561
++IBV=0.045 AF=1 KF=0)
+.ends 1N4734
+
+* 1N4734A: 5.60V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4734A>
+.subckt 1N4734A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=73.6e-12 RS=0.62 N=1.1 CJ0=165e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=14.7e-15 RS=0.256 N=1.49 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 4.48
+.ends 1N4734A
+
+* 1N4735: 6.2V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4735>
+.subckt 1N4735 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.57E-16 N=1.27 RS=0.968 CJ0=1.41E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=6.163
++IBV=0.041 AF=1 KF=0)
+.ends 1N4735
+
+* 1N4735A: 6.20V, 1.00W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4735A>
+.subckt 1N4735A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=66.5e-12 RS=0.62 N=1.1 CJ0=141e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=13.3e-15 RS=0.218 N=1.16 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 5.33
+.ends 1N4735A
+
+* 1N4736: 6.8V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4736>
+.subckt 1N4736 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.76E-16 N=1.27 RS=1 CJ0=1.23E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=6.766
++IBV=0.037 AF=1 KF=0)
+.ends 1N4736
+
+* 1N4737: 7.5V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4737>
+.subckt 1N4737 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=9.33E-16 N=1.27 RS=1.23 CJ0=1.06E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=7.461
++IBV=0.034 AF=1 KF=0)
+.ends 1N4737
+
+* 1N4738: 8.2V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4738>
+.subckt 1N4738 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.06E-15 N=1.27 RS=1.41 CJ0=9.28E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=8.16
++IBV=0.031 AF=1 KF=0)
+.ends 1N4738
+
+* 1N4739: 9.1V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4739>
+.subckt 1N4739 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.46E-15 N=1.27 RS=1.82 CJ0=7.94E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=9.053
++IBV=0.028 AF=1 KF=0)
+.ends 1N4739
+
+* 1N4740: 10V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4740>
+.subckt 1N4740 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.91E-15 N=1.27 RS=2.71 CJ0=6.89E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=9.937
++IBV=0.025 AF=1 KF=0)
+.ends 1N4740
+
+* 1N4741: 11V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4741>
+.subckt 1N4741 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.14E-15 N=1.27 RS=3.87 CJ0=1.01E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=10.91
++IBV=0.023 AF=1 KF=0)
+.ends 1N4741
+
+* 1N4741A: 11.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4741A>
+.subckt 1N4741A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=37.5e-12 RS=0.62 N=1.1 CJ0=101e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=7.49e-15 RS=0.474 N=1.41 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 9.94
+.ends 1N4741A
+
+* 1N4742: 12V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4742>
+.subckt 1N4742 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=9.67E-15 N=1.27 RS=4.26 CJ0=9.42E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=11.91
++IBV=0.021 AF=1 KF=0)
+.ends 1N4742
+
+* 1N4742A: 12.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4742A>
+.subckt 1N4742A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=34.3e-12 RS=0.62 N=1.1 CJ0=94.2e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=6.87e-15 RS=0.55 N=1.49 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 10.9
+.ends 1N4742A
+
+* 1N4743: 13V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4743>
+.subckt 1N4743 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.28E-14 N=1.27 RS=4.63 CJ0=8.81E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=12.91
++IBV=0.019 AF=1 KF=0)
+.ends 1N4743
+
+* 1N4743A: 13.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4743A>
+.subckt 1N4743A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=31.7e-12 RS=0.62 N=1.1 CJ0=88.1e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=6.34e-15 RS=0.63 N=1.55 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 11.8
+.ends 1N4743A
+
+* 1N4744: 15V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4744>
+.subckt 1N4744 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=5.32E-14 N=1.27 RS=6.47 CJ0=7.83E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=14.89
++IBV=0.017 AF=1 KF=0)
+.ends 1N4744
+
+* 1N4744A: 15.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4744A>
+.subckt 1N4744A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=27.5e-12 RS=0.62 N=1.1 CJ0=78.3e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=5.49e-15 RS=0.804 N=1.77 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 13.7
+.ends 1N4744A
+
+* 1N4745: 16V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4745>
+.subckt 1N4745 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.02E-13 N=1.27 RS=7.33 CJ0=7.44E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=15.89
++IBV=0.0155 AF=1 KF=0)
+.ends 1N4745
+
+* 1N4745A: 16.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4745A>
+.subckt 1N4745A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=25.7e-12 RS=0.62 N=1.1 CJ0=74.4e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=5.15e-15 RS=0.897 N=1.8 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 14.6
+.ends 1N4745A
+
+* 1N4746: 18V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4746>
+.subckt 1N4746 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=4.19E-13 N=1.27 RS=9.15 CJ0=6.78E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=17.88
++IBV=0.014 AF=1 KF=0)
+.ends 1N4746
+
+* 1N4746A: 18.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4746A>
+.subckt 1N4746A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=22.9e-12 RS=0.62 N=1.1 CJ0=67.8e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=4.58e-15 RS=1.1 N=1.98 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 16.5
+.ends 1N4746A
+
+* 1N4747: 20V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4747>
+.subckt 1N4747 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-12 N=1.27 RS=10.9 CJ0=6.25E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=19.87
++IBV=0.0125 AF=1 KF=0)
+.ends 1N4747
+
+* 1N4747A: 20.0V, 1.00W (available voltages 10V-50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4747A>
+.subckt 1N4747A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=20.6e-12 RS=0.62 N=1.1 CJ0=62.5e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=4.12e-15 RS=1.31 N=2.12 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 18.4
+.ends 1N4747A
+
+* 1N4748: 22V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4748>
+.subckt 1N4748 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=3.11E-12 N=1.27 RS=11.7 CJ0=5.82E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=21.87
++IBV=0.0115 AF=1 KF=0)
+.ends 1N4748
+
+* 1N4749: 24V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4749>
+.subckt 1N4749 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=5.71E-12 N=1.27 RS=12.5 CJ0=5.46E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=23.88
++IBV=0.0105 AF=1 KF=0)
+.ends 1N4749
+
+* 1N4750: 27V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4750>
+.subckt 1N4750 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.22E-10 N=1.27 RS=17.2 CJ0=5.02E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=26.84
++IBV=0.0095 AF=1 KF=0)
+.ends 1N4750
+
+* 1N4751: 30V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4751>
+.subckt 1N4751 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=21.9 CJ0=4.66E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=29.82
++IBV=0.0085 AF=1 KF=0)
+.ends 1N4751
+
+* 1N4752: 33V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4752>
+.subckt 1N4752 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=26.5 CJ0=4.38E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=32.81
++IBV=0.0075 AF=1 KF=0)
+.ends 1N4752
+
+* 1N4753: 36V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4753>
+.subckt 1N4753 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=31.3 CJ0=4.14E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=35.79
++IBV=0.007 AF=1 KF=0)
+.ends 1N4753
+
+* 1N4754: 39V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4754>
+.subckt 1N4754 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=36 CJ0=3.93E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=38.78
++IBV=0.0065 AF=1 KF=0)
+.ends 1N4754
+
+* 1N4755: 43V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4755>
+.subckt 1N4755 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=40.7 CJ0=3.71E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=42.77
++IBV=0.006 AF=1 KF=0)
+.ends 1N4755
+
+* 1N4756: 47V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4756>
+.subckt 1N4756 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=50.3 CJ0=3.52E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=46.74
++IBV=0.0055 AF=1 KF=0)
+.ends 1N4756
+
+* 1N4757: 51V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4757>
+.subckt 1N4757 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=59.8 CJ0=3.36E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=50.72
++IBV=0.005 AF=1 KF=0)
+.ends 1N4757
+
+* 1N4757A: 51.0V 1.00W (available voltages > 50V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component 1N4757A>
+.subckt 1N4757A A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=8.08e-12 RS=0.62 N=1.1 CJ0=33.6e-12 VJ=1 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=1.62e-15 RS=12.4 N=3 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 48.7
+.ends 1N4757A
+
+* 1N4758: 56V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4758>
+.subckt 1N4758 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=69.2 CJ0=3.19E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=55.71
++IBV=0.0045 AF=1 KF=0)
+.ends 1N4758
+
+* 1N4759: 62V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4759>
+.subckt 1N4759 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=78.5 CJ0=3.03E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=61.71
++IBV=0.004 AF=1 KF=0)
+.ends 1N4759
+
+* 1N4760: 68V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4760>
+.subckt 1N4760 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=93 CJ0=2.89E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=67.68
++IBV=0.0037 AF=1 KF=0)
+.ends 1N4760
+
+* 1N4761: 75V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4761>
+.subckt 1N4761 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=117 CJ0=2.76E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=74.65
++IBV=0.0033 AF=1 KF=0)
+.ends 1N4761
+
+* 1N4762: 82V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4762>
+.subckt 1N4762 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=141 CJ0=2.65E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=81.61
++IBV=0.003 AF=1 KF=0)
+.ends 1N4762
+
+* 1N4763: 91V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4763>
+.subckt 1N4763 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=190 CJ0=2.54E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=90.51
++IBV=0.0028 AF=1 KF=0)
+.ends 1N4763
+
+* 1N4764: 100V, 1W Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N4764>
+.subckt 1N4764 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=2.67E-9 N=1.27 RS=289 CJ0=2.45E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=99.32
++IBV=0.0025 AF=1 KF=0)
+.ends 1N4764
+
+* 1N5342B: 6.8V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5342B>
+.subckt 1N5342B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=7.56E-18 N=1.27 RS=0.859 CJ0=6.15E-10 VJ=0.75 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8
++BV=6.645 IBV=0.183 AF=1 KF=0)
+.ends 1N5342B
+
+* 1N5344B: 8.2V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5344B>
+.subckt 1N5344B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=4.65E-17 N=1.27 RS=1.33 CJ0=4.64E-10 VJ=0.75 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8
++BV=8.001 IBV=0.152 AF=1 KF=0)
+.ends 1N5344B
+
+* 1N5346B: 9.1V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5346B>
+.subckt 1N5346B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=3.17E-16 N=1.27 RS=1.82 CJ0=3.97E-10 VJ=0.75 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8
++BV=8.83 IBV=0.15 AF=1 KF=0)
+.ends 1N5346B
+
+* 1N5348B: 11V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5348B>
+.subckt 1N5348B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.91E-15 N=1.27 RS=2.29 CJ0=4.47E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=10.71
++IBV=0.125 AF=1 KF=0)
+.ends 1N5348B
+
+* 1N5350B: 13V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5350B>
+.subckt 1N5350B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.5E-15 N=1.27 RS=2.23 CJ0=3.8E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=12.79
++IBV=0.0962 AF=1 KF=0)
+.ends 1N5350B
+
+* 1N5351B: 14V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5351B>
+.subckt 1N5351B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.39E-15 N=1.27 RS=2.21 CJ0=3.54E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=13.8
++IBV=0.0893 AF=1 KF=0)
+.ends 1N5351B
+
+* 1N5353B: 16V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5353B>
+.subckt 1N5353B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.18E-15 N=1.27 RS=2.16 CJ0=3.12E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=15.83
++IBV=0.0781 AF=1 KF=0)
+.ends 1N5353B
+
+* 1N5355B: 18V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5355B>
+.subckt 1N5355B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=9.15E-16 N=1.27 RS=2.1 CJ0=2.79E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=17.87
++IBV=0.065 AF=1 KF=0)
+.ends 1N5355B
+
+* 1N5357B: 20V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5357B>
+.subckt 1N5357B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=6.3E-15 N=1.27 RS=2.6 CJ0=2.52E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=19.84
++IBV=0.065 AF=1 KF=0)
+.ends 1N5357B
+
+* 1N5359B: 24V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5359B>
+.subckt 1N5359B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=5.09E-14 N=1.27 RS=3.14 CJ0=2.13E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=23.85
++IBV=0.05 AF=1 KF=0)
+.ends 1N5359B
+
+* 1N5361B: 27V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5361B>
+.subckt 1N5361B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=8.95E-12 N=1.27 RS=4.48 CJ0=1.91E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=26.78
++IBV=0.05 AF=1 KF=0)
+.ends 1N5361B
+
+* 1N5363B: 30V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5363B>
+.subckt 1N5363B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=7.38 CJ0=1.73E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=29.7
++IBV=0.0416 AF=1 KF=0)
+.ends 1N5363B
+
+* 1N5365B: 36V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5365B>
+.subckt 1N5365B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=10.1 CJ0=1.47E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=35.71
++IBV=0.03 AF=1 KF=0)
+.ends 1N5365B
+
+* 1N5367B: 43V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5367B>
+.subckt 1N5367B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=19.1 CJ0=1.25E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=42.46
++IBV=0.029 AF=1 KF=0)
+.ends 1N5367B
+
+* 1N5369B: 51V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5369B>
+.subckt 1N5369B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=25.9 CJ0=1.08E-10 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=50.37
++IBV=0.025 AF=1 KF=0)
+.ends 1N5369B
+
+* 1N5371B: 60V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5371B>
+.subckt 1N5371B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=38.7 CJ0=9.42E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=59.25
++IBV=0.02 AF=1 KF=0)
+.ends 1N5371B
+
+* 1N5373B: 68V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5373B>
+.subckt 1N5373B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=42.7 CJ0=8.48E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=67.17
++IBV=0.02 AF=1 KF=0)
+.ends 1N5373B
+
+* 1N5375B: 82V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5375B>
+.subckt 1N5375B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=63.3 CJ0=7.29E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=81.09
++IBV=0.015 AF=1 KF=0)
+.ends 1N5375B
+
+* 1N5377B: 91V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5377B>
+.subckt 1N5377B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=73.3 CJ0=6.72E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=89.94
++IBV=0.015 AF=1 KF=0)
+.ends 1N5377B
+
+* 1N5379B: 110V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5379B>
+.subckt 1N5379B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=122 CJ0=5.82E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=108.5
++IBV=0.012 AF=1 KF=0)
+.ends 1N5379B
+
+* 1N5381B: 130V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5381B>
+.subckt 1N5381B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=187 CJ0=5.15E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=128.1
++IBV=0.01 AF=1 KF=0)
+.ends 1N5381B
+
+* 1N5383B: 150V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5383B>
+.subckt 1N5383B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=327 CJ0=4.66E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=147.3
++IBV=0.00833 AF=1 KF=0)
+.ends 1N5383B
+
+* 1N5385B: 170V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5385B>
+.subckt 1N5385B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=376 CJ0=4.29E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=167.3
++IBV=0.00735 AF=1 KF=0)
+.ends 1N5385B
+
+* 1N5387B: 190V, 5W Silicon Diodes Incorporated Catalog, 1994 added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N5387B>
+.subckt 1N5387B A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1.65E-10 N=1.27 RS=445 CJ0=4E-11 VJ=0.75 M=0.33 FC=0.5 TT=5.01E-8 BV=187.8
++IBV=0.005 AF=1 KF=0)
+.ends 1N5387B
+
+* 1N5400: universal silicon rectifier diode 50V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5400>
+.model 1N5400 D(IS=63e-9 N=1.7 CJ0=125e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=50 IBV=10e-6)
+
+* 1N5401: universal silicon rectifier diode 100V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5401>
+.model 1N5401 D(IS=63e-9 N=1.7 CJ0=125e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=100 IBV=10e-6)
+
+* 1N5402: universal silicon rectifier diode 200V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5402>
+.model 1N5402 D(IS=63e-9 N=1.7 CJ0=125e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=200 IBV=10e-6)
+
+* 1N5404: universal silicon rectifier diode 400V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5404>
+.model 1N5404 D(IS=63e-9 N=1.7 CJ0=125e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=10e-6)
+
+* 1N5406: universal silicon rectifier diode 600V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5406>
+.model 1N5406 D(IS=63e-9 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=600 IBV=10e-6)
+
+* 1N5407: universal silicon rectifier diode 800V, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5407>
+.model 1N5407 D(IS=63e-9 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=800 IBV=10e-6)
+
+* 1N5408: universal silicon rectifier diode 1kV, 3.0A, 3.0us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component 1N5408>
+.model 1N5408 D(IS=63e-9 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=14.1e-3 TT=4.32e-6 KF=0 AF=1
++BV=1e3 IBV=10e-6)
+
+* 1N5711: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component 1N5711>
+.model 1N5711 D(IS=315e-9 N=2.03 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1 BV=70
++IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 1N5711W: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component 1N5711W>
+.model 1N5711W D(IS=315e-9 N=2.03 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1 BV=70
++IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 1N5711WS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component 1N5711WS>
+.model 1N5711WS D(IS=315e-9 N=2.03 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1 BV=70
++IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 1N6263W: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component 1N6263W>
+.model 1N6263W D(IS=1.82e-6 N=1.7 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1
++BV=60 IBV=200e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 1N746: 3.3V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N746>
+.subckt 1N746 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=13.65 CJ0=5.826E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=3.027
++IBV=0.01 AF=1 KF=0)
+.ends 1N746
+
+* 1N747: 3.6V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N747>
+.subckt 1N747 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=12.8 CJ0=5.422E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=3.344
++IBV=0.01 AF=1 KF=0)
+.ends 1N747
+
+* 1N748: 3.9V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N748>
+.subckt 1N748 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=11.84 CJ0=5.076E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=3.663
++IBV=0.01 AF=1 KF=0)
+.ends 1N748
+
+* 1N749: 4.3V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N749>
+.subckt 1N749 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=10.47 CJ0=4.683E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=4.091
++IBV=0.01 AF=1 KF=0)
+.ends 1N749
+
+* 1N750: 4.7V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N750>
+.subckt 1N750 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=9.066 CJ0=4.351E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=4.519
++IBV=0.01 AF=1 KF=0)
+.ends 1N750
+
+* 1N751: 5.1V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N751>
+.subckt 1N751 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=7.708 CJ0=4.068E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=4.946
++IBV=0.01 AF=1 KF=0)
+.ends 1N751
+
+* 1N752: 5.6V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N752>
+.subckt 1N752 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=6.168 CJ0=3.766E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=5.477
++IBV=0.01 AF=1 KF=0)
+.ends 1N752
+
+* 1N753: 6.2V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N753>
+.subckt 1N753 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=4.685 CJ0=3.463E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=6.106
++IBV=0.01 AF=1 KF=0)
+.ends 1N753
+
+* 1N754: 6.8V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N754>
+.subckt 1N754 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=3.721 CJ0=3.209E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=6.726
++IBV=0.01 AF=1 KF=0)
+.ends 1N754
+
+* 1N755: 7.5V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N755>
+.subckt 1N755 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=3.359 CJ0=2.959E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=7.433
++IBV=0.01 AF=1 KF=0)
+.ends 1N755
+
+* 1N756: 8.2V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N756>
+.subckt 1N756 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=3.858 CJ0=2.749E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=8.123
++IBV=0.01 AF=1 KF=0)
+.ends 1N756
+
+* 1N757: 9.1V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N757>
+.subckt 1N757 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=5.672 CJ0=2.523E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=8.987
++IBV=0.01 AF=1 KF=0)
+.ends 1N757
+
+* 1N758: 10V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N758>
+.subckt 1N758 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=8.483 CJ0=2.334E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=9.83
++IBV=0.01 AF=1 KF=0)
+.ends 1N758
+
+* 1N759: 12V, 500mW Silicon Manufacturer: Motorola added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Z-Diodes.lib <Component 1N759>
+.subckt 1N759 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=1E-11 N=1.27 RS=14.95 CJ0=2.008E-10 VJ=0.75 M=0.33 FC=0.5 TT=5E-8 BV=11.7
++IBV=0.01 AF=1 KF=0)
+.ends 1N759
+
+* 2D103A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D103A>
+.model 2D103A D(IS=435.9e-12 N=1.676 CJ0=39.43e-12 M=0.3333 VJ=0.75 FC=0.5 ISR=437.4e-12 NR=1.958
++RS=1.634 TT=5.771e-6 IKF=3.808 KF=0 AF=1 BV=100.1 IBV=25.91e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0
++TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D104A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D104A>
+.model 2D104A D(IS=162e-9 N=2.887 CJ0=29.58e-12 M=0.3333 VJ=0.75 FC=0.5 ISR=3.409e-29 NR=5.963
++RS=1.031 TT=5.771e-6 IKF=1.82 KF=0 AF=1 BV=500.2 IBV=0.2589 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0
++TM1=0 TM2=0 TNOM=26.85)
+
+* 2D106A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D106A>
+.model 2D106A D(IS=4.154e-26 N=0.522 CJ0=334.3e-12 M=0.3837 VJ=0.75 FC=0.5 ISR=100e-12 NR=2
++RS=48.22e-3 TT=5e-9 IKF=0.3261 KF=0 AF=1 BV=100 IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0
++TM2=0 TNOM=26.85)
+
+* 2D203A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D203A>
+.model 2D203A D(IS=1.617e-16 N=1 CJ0=500e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=50e-6 KF=0 AF=1 BV=420
++IBV=1.5e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D203B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D203B>
+.model 2D203B D(IS=1.617e-16 N=1 CJ0=500e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=50e-6 KF=0 AF=1 BV=560
++IBV=1.5e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D203D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D203D>
+.model 2D203D D(IS=1.617e-16 N=1 CJ0=500e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=50e-6 KF=0 AF=1 BV=700
++IBV=1.5e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D203G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D203G>
+.model 2D203G D(IS=1.617e-16 N=1 CJ0=500e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=50e-6 KF=0 AF=1 BV=700
++IBV=1.5e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D203V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D203V>
+.model 2D203V D(IS=1.617e-16 N=1 CJ0=500e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=50e-6 KF=0 AF=1 BV=560
++IBV=1.5e-3 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D212A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D212A>
+.model 2D212A D(IS=36.89e-15 N=1 CJ0=21e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=150e-9 KF=0 AF=1 BV=200
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D212B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D212B>
+.model 2D212B D(IS=36.89e-15 N=1 CJ0=21e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=150e-9 KF=0 AF=1 BV=200
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D212G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D212G>
+.model 2D212G D(IS=36.89e-15 N=1 CJ0=20e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=150e-9 KF=0 AF=1 BV=100
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D212V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D212V>
+.model 2D212V D(IS=36.89e-15 N=1 CJ0=20e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=150e-9 KF=0 AF=1 BV=100
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D213A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D213A>
+.model 2D213A D(IS=3.503e-16 N=1 CJ0=61e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=90e-9 KF=0 AF=1 BV=200
++IBV=100e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D213B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D213B>
+.model 2D213B D(IS=3.503e-16 N=1 CJ0=61e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=90e-9 KF=0 AF=1 BV=200
++IBV=100e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D213G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D213G>
+.model 2D213G D(IS=3.503e-16 N=1 CJ0=61e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=90e-9 KF=0 AF=1 BV=100
++IBV=50e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D213V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D213V>
+.model 2D213V D(IS=3.503e-16 N=1 CJ0=61e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=90e-9 KF=0 AF=1 BV=100
++IBV=50e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220A>
+.model 2D220A D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=400e-9 KF=0 AF=1 BV=400
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220B>
+.model 2D220B D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=400e-9 KF=0 AF=1 BV=600
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220D>
+.model 2D220D D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=700e-9 KF=0 AF=1 BV=400
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220E: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220E>
+.model 2D220E D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=700e-9 KF=0 AF=1 BV=600
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220G>
+.model 2D220G D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=400e-9 KF=0 AF=1 BV=1000
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220I: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220I>
+.model 2D220I D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=700e-9 KF=0 AF=1 BV=1000
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220J: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220J>
+.model 2D220J D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=700e-9 KF=0 AF=1 BV=800
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D220V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D220V>
+.model 2D220V D(IS=3.385e-19 N=1 CJ0=100e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=400e-9 KF=0 AF=1 BV=800
++IBV=45e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D419A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D419A>
+.model 2D419A D(IS=583.7e-9 N=1.499 CJ0=810.5e-15 M=0.5736 VJ=1.553 FC=0.5 ISR=2.423e-6 NR=2 RS=6.944
++TT=144.3e-12 IKF=44.68 KF=0 AF=1 BV=30.16 IBV=0.6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0
++TM2=0 TNOM=26.85)
+
+* 2D419B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D419B>
+.model 2D419B D(IS=583.7e-9 N=1.499 CJ0=810.5e-15 M=0.5736 VJ=1.553 FC=0.5 ISR=1.674e-6 NR=2 RS=6.944
++TT=144.3e-12 IKF=44.68 KF=0 AF=1 BV=60.16 IBV=0.6007 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0
++TM2=0 TNOM=26.85)
+
+* 2D419V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D419V>
+.model 2D419V D(IS=583.7e-9 N=1.499 CJ0=810.5e-15 M=0.5736 VJ=1.553 FC=0.5 ISR=1.263e-6 NR=2 RS=6.944
++TT=144.3e-12 IKF=44.68 KF=0 AF=1 BV=100.1 IBV=0.2779 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0
++TM2=0 TNOM=26.85)
+
+* 2D420A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D420A>
+.model 2D420A D(IS=17.75e-12 N=1.678 CJ0=807.9e-15 M=0.1321 VJ=0.7477 FC=0.5 ISR=27.93e-9 NR=41.85
++RS=0.1305 TT=72.13e-9 IKF=4.539 KF=0 AF=1 BV=35.17 IBV=0.6487 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0
++TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D503B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D503B>
+.model 2D503B D(IS=7.9e-13 N=1 CJ0=1.86e-12 M=0.27 VJ=0.77 FC=0.5 RS=2.3 TT=7.19e-9 KF=0 AF=1 BV=50
++IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D510A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D510A>
+.model 2D510A D(IS=6.467e-19 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=4e-12 KF=0 AF=1 BV=15
++IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D521A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D521A>
+.model 2D521A D(IS=1.15e-13 N=1 CJ0=2.25e-12 M=0.26 VJ=0.68 FC=0.5 RS=3.21 TT=3.12e-9 KF=0 AF=1 BV=75
++IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D522A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D522A>
+.model 2D522A D(IS=2.27e-13 N=1 CJ0=2.42e-12 M=0.25 VJ=0.68 FC=0.5 RS=1.17 TT=2.38e-9 KF=0 AF=1 BV=50
++IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2D522B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2D522B>
+.model 2D522B D(IS=3.385e-20 N=1 CJ0=4e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=4e-12 KF=0 AF=1 BV=50
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S133A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S133A>
+.model 2S133A D(IS=1.934e-13 N=1.85 CJ0=84.51e-12 M=0.38 VJ=0.73 FC=0.5 RS=22 TT=46.61e-9 KF=0 AF=1
++BV=3.3 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S147A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S147A>
+.model 2S147A D(IS=1.236e-12 N=1.87 CJ0=87.6e-12 M=0.3751 VJ=0.73 FC=0.5 RS=20.2 TT=104e-9 KF=0 AF=1
++BV=4.7 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S168A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S168A>
+.model 2S168A D(IS=7.034e-12 N=1.26 CJ0=0.52e-12 M=0.31 VJ=0.75 FC=0.5 RS=5.8 TT=210e-9 KF=0 AF=1
++BV=6.8 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S191G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S191G>
+.model 2S191G D(IS=4.747e-14 N=1.27 CJ0=10.69e-12 M=0.39 VJ=0.79 FC=0.5 RS=9 TT=4.337e-9 KF=0 AF=1
++BV=9.1 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S211G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S211G>
+.model 2S211G D(IS=4.182e-13 N=1.39 CJ0=10.17e-12 M=0.41 VJ=0.69 FC=0.5 RS=9 TT=7.934e-9 KF=0 AF=1
++BV=11 IBV=3e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S522A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S522A>
+.model 2S522A D(IS=4.168e-14 N=1.06 CJ0=57.24e-12 M=0.39 VJ=0.72 FC=0.5 RS=2 TT=32.94e-9 KF=0 AF=1
++BV=22 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 2S527A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 2S527A>
+.model 2S527A D(IS=2.5e-14 N=1.11 CJ0=47.42e-12 M=0.39 VJ=0.68 FC=0.5 RS=4 TT=256.6e-9 KF=0 AF=1
++BV=27 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* 6A01: universal silicon rectifier diode 100V, 6.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A01>
+.model 6A01 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=100
++IBV=10e-6)
+
+* 6A02: universal silicon rectifier diode 200V, 6.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A02>
+.model 6A02 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=200
++IBV=10e-6)
+
+* 6A04: universal silicon rectifier diode 400V, 6.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A04>
+.model 6A04 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=400
++IBV=10e-6)
+
+* 6A05: universal silicon rectifier diode 50V, 6.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro DArchivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A05>
+.model 6A05 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=50
++IBV=10e-6)
+
+* 6A06: universal silicon rectifier diode 600V, 6.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A06>
+.model 6A06 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=600
++IBV=10e-6)
+
+* 6A08: universal silicon rectifier diode 800V, 6.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A08>
+.model 6A08 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=800
++IBV=10e-6)
+
+* 6A10: universal silicon rectifier diode 1KV, 6.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component 6A10>
+.model 6A10 D(IS=52.4e-9 N=1.7 CJ0=60e-12 M=0.333 VJ=0.7 FC=0.5 RS=7e-3 TT=2.88e-6 KF=0 AF=1 BV=1e3
++IBV=10e-6)
+
+* BAL99: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAL99>
+.model BAL99 D(IS=31.2e-9 N=2.35 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.36 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=2.5e-6)
+
+* BAR6303W: Infineon BAR63-03W PIN Diode Rf=1 Ohm @ 10mA Vbr=50 Volts SOD323 Package
+* from Qucs-S library/PIN_Diodes.lib <Component BAR6303W>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BAR6303W A K
+XBAR6303W_q 0 K A PIN_Diodes_BAR6303W
+* Qucs 24.2.1  PIN_Diodes_BAR6303W.sch
+
+.SUBCKT PIN_Diodes_BAR6303W  gnd _net1 _net0
+LAI _net2 _net3  0.76N
+CAC _net2 _net4  120F
+LAO _net0 _net2  0.65N
+LCO _net4 _net1  0.60N
+DBAR63_1 _net3 _net4 DMOD_BAR63_1 AREA=1 Temp=26.85
+.MODEL DMOD_BAR63_1 D(Is=60E-18 N=1.02 Rs=.45 Xti=3 Eg=1.11 Cjo=.19p M=.15 Vj=.25 Fc=.5 Bv=50 Ibv=5u Tt=75n)
+.ENDS
+
+.ends BAR6303W
+
+* BAR6403W: Infineon BAR64-03W PIN Diode Rf=3.1 Ohm @ 10mA Vbr=150 Volts SOD323 Package
+* from Qucs-S library/PIN_Diodes.lib <Component BAR6403W>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BAR6403W A K
+XBAR6403W_q 0 K A PIN_Diodes_BAR6403W
+* Qucs 24.2.1  PIN_Diodes_BAR6403W.sch
+
+.SUBCKT PIN_Diodes_BAR6403W  gnd _net1 _net0
+LAI _net2 _net3  0.76N
+CAC _net2 _net4  120F
+LAO _net0 _net2  0.65N
+LCO _net4 _net1  0.60N
+DBAR64_1 _net3 _net4 DMOD_BAR64_1 AREA=1 Temp=26.85
+.MODEL DMOD_BAR64_1 D(IS=463p N=1.8627  XTI=3  EG=1.11 Cj0=0.4597p M=0.23417 Vj=0.39  FC=0.5  BV=150.0 IBV=5.0e-6 TT=1.6u Rs=0.1866)
+.ENDS
+
+.ends BAR6403W
+
+* BAR6503W: Infineon BAR65-03W PIN Diode Rf=0.56 Ohm @ 10mA Vbr=30 Volts SOD323 Package
+* from Qucs-S library/PIN_Diodes.lib <Component BAR6503W>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BAR6503W A K
+XBAR6503W_q 0 K A PIN_Diodes_BAR6503W
+* Qucs 24.2.1  PIN_Diodes_BAR6503W.sch
+
+.SUBCKT PIN_Diodes_BAR6503W  gnd _net3 _net0
+LAI _net1 _net2  0.76N
+LAO _net0 _net1  0.65N
+LCO _net4 _net3  0.60N
+R1 _net2 _net4  600E9 tc1=0.0 tc2=0.0
+CAC _net1 _net4  120F
+DBAR65_D1_1 _net2 _net4 DMOD_BAR65_D1_1 AREA=1 Temp=26.85
+.MODEL DMOD_BAR65_D1_1 D(IS=4.490e-16 N=1.0856 RS=180.0m XTI=2.5 EG=1.16 CJO=451.35f M=0.103494 VJ=0.224 FC=0.5 TT=45.0n)
+DBAR65_D2_1 _net2 _net4 DMOD_BAR65_D2_1 AREA=1 Temp=26.85
+.MODEL DMOD_BAR65_D2_1 D(IS=57.3327f N=1.5375 RS=100m XTI=3.0 EG=1.05 BV=74.0 IBV=0.2e-9 TT=2.4u)
+.ENDS
+
+.ends BAR6503W
+
+* BAS116: switching diode Si, 60.0V, 0.215A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS116>
+.model BAS116 D(IS=4.53e-6 N=4.07 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.383 TT=4.32e-6 KF=0 AF=1
++BV=60 IBV=5e-9)
+
+* BAS116T: switching diode Si, 85.0V, 0.215A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS116T>
+.model BAS116T D(IS=10.5e-12 N=1.61 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.196 TT=4.32e-6 KF=0 AF=1
++BV=85 IBV=5e-9)
+
+* BAS16T: switching diode Si, 85.0V, 0.155A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS16T>
+.model BAS16T D(IS=2.69e-9 N=1.95 CJ0=1.99e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.271 TT=5.76e-9 KF=0 AF=1
++BV=85 IBV=2e-6)
+
+* BAS16TW: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS16TW>
+.model BAS16TW D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAS16V: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS16V>
+.model BAS16V D(IS=412e-12 N=1.7 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.14 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAS16W: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS16W>
+.model BAS16W D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAS19: switching diode Si, 100V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS19>
+.model BAS19 D(IS=41.7e-9 N=2.35 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.27 TT=72e-9 KF=0 AF=1 BV=100
++IBV=100e-9)
+
+* BAS19W: switching diode Si, 100V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS19W>
+.model BAS19W D(IS=114e-9 N=2.58 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.172 TT=72e-9 KF=0 AF=1
++BV=100 IBV=100e-9)
+
+* BAS20: switching diode Si, 150V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS20>
+.model BAS20 D(IS=41.7e-9 N=2.35 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.27 TT=72e-9 KF=0 AF=1 BV=150
++IBV=100e-9)
+
+* BAS20W: switching diode Si, 150V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS20W>
+.model BAS20W D(IS=114e-9 N=2.58 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.172 TT=72e-9 KF=0 AF=1
++BV=150 IBV=100e-9)
+
+* BAS21: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS21>
+.model BAS21 D(IS=41.7e-9 N=2.35 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.27 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAS21T: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS21T>
+.model BAS21T D(IS=401e-9 N=2.87 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAS21W: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS21W>
+.model BAS21W D(IS=114e-9 N=2.58 CJ0=2.98e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.172 TT=72e-9 KF=0 AF=1
++BV=200 IBV=100e-9)
+
+* BAS40: schottky diode Si, 40.0V, 0.200A, 5.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS40>
+.model BAS40 D(IS=6.12e-6 N=2.61 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=7.2e-9 KF=0 AF=1 BV=40
++IBV=200e-9)
+
+* BAS40_Philips: schottky diode Manufacturer: Philips
+* from Qucs-S library/Diodes.lib <Component BAS40_Philips>
+.model BAS40_Philips D(IS=1.419e-08 N=1.025 CJ0=4.046e-12 M=0.4154 VJ=0.323 FC=0.5 RS=4.942 TT=0 KF=0
++AF=1 BV=44 IBV=1.255e-07 XTI=2 EG=0.69 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAS70: schottky diode Si, 70.0V, 70.0mA, 5.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAS70>
+.model BAS70 D(IS=99.5e-12 N=1.7 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.6 TT=7.2e-9 KF=0 AF=1 BV=70
++IBV=10e-6)
+
+* BAS70_Philips: schottky diode Manufacturer: Philips
+* from Qucs-S library/Diodes.lib <Component BAS70_Philips>
+.model BAS70_Philips D(IS=3.22e-09 N=1.018 CJ0=1.655e-12 M=0.3583 VJ=0.349 FC=0.5 RS=20.89 TT=0 KF=0
++AF=1 BV=77 IBV=1.67e-07 XTI=2 EG=0.69 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT42: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT42>
+.model BAT42 D(IS=2.46e-6 N=1.7 CJ0=13.3e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.21 TT=7.2e-9 KF=0 AF=1 BV=30
++IBV=500e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT42WS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT42WS>
+.model BAT42WS D(IS=87.5e-6 N=3.51 CJ0=8.88e-12 M=0.333 VJ=0.7 FC=0.5 RS=18.1e-3 TT=7.2e-9 KF=0 AF=1
++BV=30 IBV=500e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT43WS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT43WS>
+.model BAT43WS D(IS=87.5e-6 N=3.51 CJ0=8.88e-12 M=0.333 VJ=0.7 FC=0.5 RS=18.1e-3 TT=7.2e-9 KF=0 AF=1
++BV=30 IBV=500e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT46: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT46>
+.model BAT46 D(IS=603e-9 N=1.7 CJ0=7.96e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.28 TT=7.2e-9 KF=0 AF=1 BV=100
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT54: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT54>
+.model BAT54 D(IS=34.9e-6 N=2.28 CJ0=13.3e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.21 TT=7.2e-9 KF=0 AF=1 BV=30
++IBV=2e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT54DW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT54DW>
+.model BAT54DW D(IS=235e-9 N=1.28 CJ0=13.3e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.21 TT=7.2e-9 KF=0 AF=1
++BV=30 IBV=2e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAT54WS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component BAT54WS>
+.model BAT54WS D(IS=34.9e-6 N=2.28 CJ0=13.3e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.21 TT=7.2e-9 KF=0 AF=1
++BV=30 IBV=2e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BAV116W: low leakage diode Si, 130V, 0.215A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV116W>
+.model BAV116W D(IS=22.5e-12 N=1.67 CJ0=2.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.282 TT=4.32e-6 KF=0 AF=1
++BV=130 IBV=5e-9)
+
+* BAV16W: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV16W>
+.model BAV16W D(IS=10.4e-9 N=2.07 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=51.5e-3 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAV16WS: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV16WS>
+.model BAV16WS D(IS=10.4e-9 N=2.07 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=51.5e-3 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAV170: switching diode Si, 85.0V, 0.215A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV170>
+.model BAV170 D(IS=31.5e-12 N=1.7 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.195 TT=4.32e-6 KF=0 AF=1 BV=85
++IBV=5e-9)
+
+* BAV170T: switching diode Si, 85.0V, 0.125A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV170T>
+.model BAV170T D(IS=10.5e-12 N=1.61 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.196 TT=4.32e-6 KF=0 AF=1
++BV=85 IBV=5e-9)
+
+* BAV199: switching diode Si, 85.0V, 0.160A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV199>
+.model BAV199 D(IS=59e-12 N=1.78 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.262 TT=4.32e-6 KF=0 AF=1 BV=85
++IBV=5e-9)
+
+* BAV199DW: switching diode one element of BAV199DW array Si, 85.0V, 0.160A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV199DW>
+.model BAV199DW D(IS=59e-12 N=1.78 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.262 TT=4.32e-6 KF=0 AF=1
++BV=85 IBV=5e-9)
+
+* BAV199T: switching diode dual, model for one element Si, 85.0V, 0.125A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV199T>
+.model BAV199T D(IS=10.5e-12 N=1.61 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.196 TT=4.32e-6 KF=0 AF=1
++BV=85 IBV=5e-9)
+
+* BAV19W: switching diode Si, 100V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV19W>
+.model BAV19W D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=100
++IBV=100e-9)
+
+* BAV19WS: switching diode Si, 100V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV19WS>
+.model BAV19WS D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=100
++IBV=100e-9)
+
+* BAV20W: switching diode Si, 150V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV20W>
+.model BAV20W D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=150
++IBV=100e-9)
+
+* BAV20WS: switching diode Si, 150V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV20WS>
+.model BAV20WS D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=150
++IBV=100e-9)
+
+* BAV21W: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV21W>
+.model BAV21W D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAV21WS: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV21WS>
+.model BAV21WS D(IS=1.09e-6 N=3.29 CJ0=5e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.105 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAV23A: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV23A>
+.model BAV23A D(IS=237e-9 N=2.69 CJ0=3.05e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.26 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAV23C: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV23C>
+.model BAV23C D(IS=237e-9 N=2.69 CJ0=3.05e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.26 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAV23S: switching diode Si, 200V, 0.400A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV23S>
+.model BAV23S D(IS=237e-9 N=2.69 CJ0=3.05e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.26 TT=72e-9 KF=0 AF=1 BV=200
++IBV=100e-9)
+
+* BAV3004W: switching diode Si, 350V, 0.225A, 50.0ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV3004W>
+.model BAV3004W D(IS=58.9e-9 N=2.37 CJ0=1.17e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.412 TT=72e-9 KF=0 AF=1
++BV=350 IBV=100e-9)
+
+* BAV70: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV70>
+.model BAV70 D(IS=308e-12 N=1.7 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.329 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=2.5e-6)
+
+* BAV70T: switching diode one element of device Si, 85.0V, 0.155A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV70T>
+.model BAV70T D(IS=2.69e-9 N=1.95 CJ0=1.99e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.271 TT=5.76e-9 KF=0 AF=1
++BV=85 IBV=2e-6)
+
+* BAV70W: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV70W>
+.model BAV70W D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAV756DW: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV756DW>
+.model BAV756DW D(IS=49.2e-9 N=2.45 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.141 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=2.5e-6)
+
+* BAV99: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV99>
+.model BAV99 D(IS=261e-12 N=1.7 CJ0=1.19e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.14 TT=5.76e-9 KF=0 AF=1 BV=75
++IBV=2.5e-6)
+
+* BAV99BRW: switching diode quad, model for one element Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV99BRW>
+.model BAV99BRW D(IS=412e-12 N=1.7 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.14 TT=5.76e-9 KF=0 AF=1 BV=75
++IBV=2.5e-6)
+
+* BAV99DW: switching diode quad, model for one element Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV99DW>
+.model BAV99DW D(IS=412e-12 N=1.7 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.14 TT=5.76e-9 KF=0 AF=1 BV=75
++IBV=2.5e-6)
+
+* BAV99T: switching diode one element of device Si, 85.0V, 0.155A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV99T>
+.model BAV99T D(IS=2.69e-9 N=1.95 CJ0=1.99e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.271 TT=5.76e-9 KF=0 AF=1
++BV=85 IBV=2e-6)
+
+* BAV99W: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAV99W>
+.model BAV99W D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAW156: switching diode Si, 85.0V, 0.160A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW156>
+.model BAW156 D(IS=59e-12 N=1.78 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.262 TT=4.32e-6 KF=0 AF=1 BV=85
++IBV=5e-9)
+
+* BAW156T: switching diode dual, model for one element Si, 85.0V, 0.125A, 3.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW156T>
+.model BAW156T D(IS=10.5e-12 N=1.61 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.196 TT=4.32e-6 KF=0 AF=1
++BV=85 IBV=5e-9)
+
+* BAW56: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW56>
+.model BAW56 D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAW567DW: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW567DW>
+.model BAW567DW D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAW56DW: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW56DW>
+.model BAW56DW D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BAW56T: switching diode one element of device Si, 85.0V, 0.155A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW56T>
+.model BAW56T D(IS=2.69e-9 N=1.95 CJ0=1.99e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.271 TT=5.76e-9 KF=0 AF=1
++BV=85 IBV=2e-6)
+
+* BAW56W: switching diode Si, 75.0V, 0.300A, 4.00ns Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component BAW56W>
+.model BAW56W D(IS=68.6e-9 N=2.34 CJ0=1.72e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.377 TT=5.76e-9 KF=0 AF=1
++BV=75 IBV=1e-6)
+
+* BB112: Siemens BB112 Varactor Ct=470pF @ Vr=1Volt TO-92 Package
+* from Qucs-S library/Varactor.lib <Component BB112>
+.model BB112 D(IS=1e-14 N=1 CJ0=2.324e-9 M=0.9 VJ=0.75 FC=0.5 RS=1.4 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB119: Philips BB119 Varactor Ct=22pF @ Vr=4Volt DO-35 Package
+* from Qucs-S library/Varactor.lib <Component BB119>
+.model BB119 D(IS=1.122e-17 N=1 CJ0=4.163e-11 M=0.3333 VJ=0.75 FC=0.5 RS=1 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB130: Philips BB130 Varactor Ct=500pF @ Vr=1Volt TO-92 Package
+* from Qucs-S library/Varactor.lib <Component BB130>
+.model BB130 D(IS=1e-14 N=1 CJ0=5.563e-11 M=0.3333 VJ=0.75 FC=0.5 RS=2 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB204B: Philips BB204B Dual Varactor Ct=40pF @ Vr=3Volt TO-92 Package
+* from Qucs-S library/Varactor.lib <Component BB204B>
+.model BB204B D(IS=1e-14 N=1 CJ0=7.783e-11 M=0.4705 VJ=0.75 FC=0.5 RS=0.25 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB204G: Philips BB204B Dual Varactor Ct=36pF @ Vr=3Volt TO-92 Package
+* from Qucs-S library/Varactor.lib <Component BB204G>
+.model BB204G D(IS=1e-14 N=1 CJ0=8.431e-11 M=0.4711 VJ=0.75 FC=0.5 RS=0.25 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB212: Philips BB212 Dual Varactor Ct=450pF @ Vr=1Volt TO-92 Package
+* from Qucs-S library/Varactor.lib <Component BB212>
+.model BB212 D(IS=1e-14 N=1 CJ0=7.202e-10 M=0.9 VJ=0.1 FC=0.5 RS=2.5 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB215: Philips BB215 Varactor Ct=17pF @ Vr=1Volt SOD-80 Package
+* from Qucs-S library/Varactor.lib <Component BB215>
+.model BB215 D(IS=1e-14 N=1 CJ0=3.249e-11 M=0.7646 VJ=0.75 FC=0.5 RS=0.75 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB219: Philips BB219 Varactor Ct=31pF @ Vr=1Volt SOD-80 Package
+* from Qucs-S library/Varactor.lib <Component BB219>
+.model BB219 D(IS=1e-14 N=1 CJ0=6.351e-11 M=0.8465 VJ=0.75 FC=0.5 RS=0.7 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB240: Philips BB240 Varactor Ct=xxpF @ Vr=1Volt SOD-80 Package
+* from Qucs-S library/Varactor.lib <Component BB240>
+.model BB240 D(IS=1e-14 N=1 CJ0=2.479e-08 M=0.77 VJ=0.75 FC=0.5 RS=0.5 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB241: Philips BB241 Varactor Ct=xxpF @ Vr=1Volt SOD-80 Package
+* from Qucs-S library/Varactor.lib <Component BB241>
+.model BB241 D(IS=1e-14 N=1 CJ0=1.049e-10 M=0.9987 VJ=0.75 FC=0.5 RS=0.5 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB249: Philips BB249 Varactor Ct=40pF @ Vr=1Volt SOD-80 Package
+* from Qucs-S library/Varactor.lib <Component BB249>
+.model BB249 D(IS=1e-14 N=1 CJ0=8.387e-11 M=0.8022 VJ=0.75 FC=0.5 RS=0.6 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB405B: Philips BB405B Varactor Ct=18pF @ Vr=1Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB405B>
+.model BB405B D(IS=1e-14 N=1 CJ0=2.673e-11 M=0.9446 VJ=1.922 FC=0.5 RS=0.75 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB417: Philips BB417 Varactor Ct=10pF @ Vr=4Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB417>
+.model BB417 D(IS=1e-14 N=1 CJ0=5.329e-11 M=0.9343 VJ=0.75 FC=0.5 RS=0.75 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB439: Infineon BB439 Varactor Ct=43pF @ Vr=1Volt SOD323 Package
+* from Qucs-S library/Varactor_RF.lib <Component BB439>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BB439 A K
+XBB439_q 0 K A Varactor_RF_BB439
+* Qucs 24.2.1  Varactor_RF_BB439.sch
+
+.SUBCKT Varactor_RF_BB439  gnd _net4 _net0
+LAI _net1 _net2  0.55N
+LAO _net0 _net1  0.67N
+LCO _net3 _net4  0.55N
+CAC _net1 _net3  110F
+DBB439_1 _net2 _net3 DMOD_BB439_1 AREA=1 Temp=26.85
+.MODEL DMOD_BB439_1 D(IS=2.9f N=1.0462 RS=113.0m XTI=4.0 EG=1.16 CJO=56.0p M=1.267 VJ=3.826 FC=0.5 TT=120.0n BV=40.6 IBV=0.3n)
+.ENDS
+
+.ends BB439
+
+* BB515: Siemens BB515 Varactor Ct=19pF @ Vr=1Volt SOD-123 Package
+* from Qucs-S library/Varactor.lib <Component BB515>
+.model BB515 D(IS=1e-14 N=1 CJ0=3.412e-11 M=0.7712 VJ=0.75 FC=0.5 RS=0.5 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB535: Infineon BB535 Varactor Ct=19pF @ Vr=1Volt SOD323 Package
+* from Qucs-S library/Varactor.lib <Component BB535>
+.model BB535 D(IS=1.75e-15 N=1.043 CJ0=2.531e-11 M=1.064 VJ=3.022 FC=0.5 RS=0.58 TT=1.2e-07 KF=0 AF=1
++BV=32 IBV=1e-07 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB545: Infineon BB535 Varactor Ct=20pF @ Vr=1Volt SOD323 Package
+* from Qucs-S library/Varactor.lib <Component BB545>
+.model BB545 D(IS=1.1011e-13 N=1.2034 CJ0=38.264e-12 M=0.87698 VJ=0.91294 FC=0 RS=0.6 TT=80e-9 KF=0
++AF=1 BV=30 IBV=5e-06 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB619: Siemens BB619 Varactor Ct=38pF @ Vr=1Volt SOD-123 Package
+* from Qucs-S library/Varactor.lib <Component BB619>
+.model BB619 D(IS=1e-14 N=1 CJ0=8.244e-11 M=0.9376 VJ=0.75 FC=0.5 RS=0.6 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB620: Siemens BB620 Varactor Ct=65pF @ Vr=1Volt SOD-123 Package
+* from Qucs-S library/Varactor.lib <Component BB620>
+.model BB620 D(IS=1e-14 N=1 CJ0=1.756e-10 M=0.9 VJ=0.75 FC=0.5 RS=1.3 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB639: Infineon BB639 Varactor Ct=38pF @ Vr=1Volt SOD323 Package
+* from Qucs-S library/Varactor.lib <Component BB639>
+.model BB639 D(IS=4e-15 N=1.035 CJ0=5.588e-11 M=1.286 VJ=2.922 FC=0.5 RS=0.12 TT=1.6e-07 KF=0 AF=1
++BV=32 IBV=1e-07 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB804: Infineon BB804 Dual Varactor Ct=45pF @ Vr=2Volt SOT-23 Package
+* from Qucs-S library/Varactor.lib <Component BB804>
+.model BB804 D(IS=1e-14 N=1 CJ0=6.9e-11 M=0.3333 VJ=0.75 FC=0.5 RS=0.18 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB809: Philips BB809 Varactor Ct=42pF @ Vr=1Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB809>
+.model BB809 D(IS=1e-14 N=1 CJ0=8.387e-11 M=0.8022 VJ=0.75 FC=0.5 RS=0.6 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB811: Siemens BB811 Varactor Ct=9pF @ Vr=1Volt SOD-123 Package
+* from Qucs-S library/Varactor.lib <Component BB811>
+.model BB811 D(IS=1e-14 N=1 CJ0=1.687e-11 M=0.7681 VJ=0.75 FC=0.5 RS=1 TT=5e-9 KF=0 AF=1 BV=30.36
++IBV=10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB814: Infineon BB814 Dual Varactor Ct=45pF @ Vr=2Volt SOT-23 Package
+* from Qucs-S library/Varactor.lib <Component BB814>
+.model BB814 D(IS=7e-15 N=1.012 CJ0=83.9e-12 M=0.775 VJ=1.6 FC=0.5 RS=0.18 TT=137e-9 KF=0 AF=1 BV=20
++IBV=100e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB833: Infineon BB833 Varactor Ct=9pF @ Vr=1Volt SOD323 Package
+* from Qucs-S library/Varactor.lib <Component BB833>
+.model BB833 D(IS=4.2156e-14 N=1.1718 CJ0=2.9033e-11 M=0.90022 VJ=0.39089 FC=0.5 RS=1.8 TT=1.2e-07
++KF=0 AF=1 BV=32 IBV=5e-06 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BB909A: Philips BB909A Varactor Ct=31pF @ Vr=1Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB909A>
+.model BB909A D(IS=1e-14 N=1 CJ0=3.725e-11 M=0.9 VJ=10 FC=0.5 RS=0.9 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB909B: Philips BB909B Varactor Ct=33.5pF @ Vr=1Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB909B>
+.model BB909B D(IS=1e-14 N=1 CJ0=4.028e-11 M=0.9 VJ=10 FC=0.5 RS=0.9 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB910: Philips BB910 Varactor Ct=38pF @ Vr=1Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB910>
+.model BB910 D(IS=1e-14 N=1 CJ0=5.92e-11 M=0.8679 VJ=0.75 FC=0.5 RS=1 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB911: Philips BB911 Varactor Ct=65pF @ Vr=0.5Volt DO-34 Package
+* from Qucs-S library/Varactor.lib <Component BB911>
+.model BB911 D(IS=1e-14 N=1 CJ0=1.049e-10 M=0.9987 VJ=0.75 FC=0.5 RS=2 TT=5e-9 KF=0 AF=1 BV=100
++IBV=0.0001 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=27)
+
+* BB914: Infineon BB914 Dual Varactor Ct=44pF @ Vr=2Volt SOT-23 Package
+* from Qucs-S library/Varactor.lib <Component BB914>
+.model BB914 D(IS=1e-14 N=1.02 CJ0=7.554e-11 M=1.161 VJ=3.445 FC=0.5 ISR=1e-10 NR=2 RS=0.28
++TT=1.37e-07 KF=0 AF=1 BV=20 IBV=1e-07 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* BBY53: Infineon BB53-02V Varactor Ct=5pF @ Vr=1Volt SC79 Package
+* from Qucs-S library/Varactor_RF.lib <Component BBY53>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BBY53 A K
+XBBY53_q 0 K A Varactor_RF_BBY53
+* Qucs 24.2.1  Varactor_RF_BBY53.sch
+
+.SUBCKT Varactor_RF_BBY53  gnd _net1 _net0
+LAI _net2 _net3  0.45N
+CAC _net2 _net4  90F
+LAO _net0 _net2  0.15N
+LCO _net4 _net1  0.1N
+DBBY53_1 _net3 _net4 DMOD_BBY53_1 AREA=1 Temp=26.85
+.MODEL DMOD_BBY53_1 D(IS=0.6f N=1.065 RS=470m XTI=3.0 EG=1.16 CJO=8.65p M=0.838 VJ=1.025 FC=0.5 TT=290.0n BV=16.5 IBV=10.0n)
+.ENDS
+
+.ends BBY53
+
+* BBY66: Infineon BB66-02V Varactor Ct=69pF @ Vr=1Volt SC79 Package
+* from Qucs-S library/Varactor_RF.lib <Component BBY66>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt BBY66 A K
+XBBY66_q 0 K A Varactor_RF_BBY66
+* Qucs 24.2.1  Varactor_RF_BBY66.sch
+
+.SUBCKT Varactor_RF_BBY66  gnd _net1 _net0
+LAI _net2 _net3  0.45N
+CAC _net2 _net4  90F
+LAO _net0 _net2  0.15N
+LCO _net4 _net1  0.1N
+DBBY66_1 _net3 _net4 DMOD_BBY66_1 AREA=1 Temp=26.85
+.MODEL DMOD_BBY66_1 D(Is=67.148E-16 N=1.1 Rs=0.25 Xti=3 Eg=1.11 Cjo=146.2p M=3.1 Vj=3.5V Fc=0.5 Bv=15V Ibv=5u Tt=88n)
+.ENDS
+
+.ends BBY66
+
+* blue: classical blue light emitting diode 3.3V @ 20mA, U_rev_break = 5V
+* from Qucs-S library/LEDs.lib <Component blue>
+.subckt blue A K
+DD_blue A K DMOD_D_blue
+.model DMOD_D_blue D(IS=1e-10 N=6.68 CJ0=3e-12 M=0.5 VJ=0.7 FC=0.5 RS=0.1 TT=4e-6 KF=0.0 AF=1.0 BV=5
++IBV=10e-6 XTI=3.0 EG=1.11 TNOM=26.85)
+RRleak A K 50e6
+.ends blue
+
+* BZT52C10: 10.0V, 0.500W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component BZT52C10>
+.subckt BZT52C10 A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=20.6e-12 RS=1.22 N=1.1 CJ0=45.6e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=4.12e-15 RS=4.6 N=2.97 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 7.84
+.ends BZT52C10
+
+* BZT52C10S: 10.0V, 0.200W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component BZT52C10S>
+.subckt BZT52C10S A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=8.24e-12 RS=30.4 N=1.1 CJ0=47.6e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=1.65e-15 RS=4.6 N=2.97 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 7.76
+.ends BZT52C10S
+
+* BZT52C10T: 10.0V, 0.500W (available voltages <= 10V) Manufacturer: Diodes Inc.
+* from Qucs-S library/Z-Diodes.lib <Component BZT52C10T>
+.subckt BZT52C10T A K
+DD1 A K DMOD_D1
+.model DMOD_D1 D(IS=20.6e-12 RS=1.22 N=1.1 CJ0=45.6e-12 VJ=0.75 M=0.33 TT=50.1e-9)
+DDZ K _net3 DMOD_DZ
+.model DMOD_DZ D(IS=4.12e-15 RS=4.6 N=2.97 M=0.5 CJ0=1e-14 VJ=0.7)
+VVZ _net3 A DC 7.84
+.ends BZT52C10T
+
+* D237A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 237A>
+.model D237A D(IS=4.85e-18 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=1e-3 KF=0 AF=1 BV=200
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D237B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 237B>
+.model D237B D(IS=4.85e-18 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=1e-3 KF=0 AF=1 BV=400
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D237E: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 237E>
+.model D237E D(IS=4.85e-18 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=1e-3 KF=0 AF=1 BV=400
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D237G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 237G>
+.model D237G D(IS=1.85e-18 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=1e-3 KF=0 AF=1 BV=200
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D237V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 237V>
+.model D237V D(IS=1.617e-18 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=1e-3 KF=0 AF=1 BV=600
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D814A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 814A>
+.model D814A D(IS=3.92e-13 N=1.19 CJ0=41.15e-12 M=0.41 VJ=0.73 FC=0.5 RS=1.25 TT=49.11e-9 KF=0 AF=1
++BV=8 IBV=0.5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D814B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 814B>
+.model D814B D(IS=3.92e-13 N=1.19 CJ0=38.39e-12 M=0.45 VJ=0.76 FC=0.5 RS=1.54 TT=58.13e-9 KF=0 AF=1
++BV=9 IBV=0.5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D814D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 814D>
+.model D814D D(IS=5.235e-13 N=1.17 CJ0=29.15e-12 M=0.41 VJ=0.71 FC=0.5 RS=3.8 TT=59.96e-9 KF=0 AF=1
++BV=13 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D814G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 814G>
+.model D814G D(IS=1.067e-13 N=1.12 CJ0=28.08e-12 M=0.43 VJ=0.75 FC=0.5 RS=3.4 TT=68.87e-9 KF=0 AF=1
++BV=11 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D814V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 814V>
+.model D814V D(IS=5.232e-13 N=1.26 CJ0=37.56e-12 M=0.43 VJ=0.76 FC=0.5 RS=2.5 TT=58.34e-9 KF=0 AF=1
++BV=10 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815A>
+.model D815A D(IS=1.221e-12 N=1.67 CJ0=73.15e-12 M=0.37 VJ=0.78 FC=0.5 RS=0.24 TT=389.8e-9 KF=0 AF=1
++BV=5.6 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815B>
+.model D815B D(IS=4.173e-13 N=1.22 CJ0=88.12e-12 M=0.36 VJ=0.78 FC=0.5 RS=0.27 TT=236.4e-9 KF=0 AF=1
++BV=6.8 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815D>
+.model D815D D(IS=5.227e-11 N=1.46 CJ0=73.31e-12 M=0.39 VJ=0.74 FC=0.5 RS=0.7 TT=217.3e-9 KF=0 AF=1
++BV=12 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815E: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815E>
+.model D815E D(IS=4.646e-11 N=1.39 CJ0=72.86e-12 M=0.39 VJ=0.78 FC=0.5 RS=0.9 TT=118.9e-9 KF=0 AF=1
++BV=15 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815G>
+.model D815G D(IS=9.373e-11 N=1.55 CJ0=63.6e-12 M=0.38 VJ=0.71 FC=0.5 RS=0.6 TT=250.97e-9 KF=0 AF=1
++BV=10 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815J: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815J>
+.model D815J D(IS=1.996e-11 N=1.32 CJ0=82.14e-12 M=0.42 VJ=0.75 FC=0.5 RS=1.1 TT=222.9e-9 KF=0 AF=1
++BV=18 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D815V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 815V>
+.model D815V D(IS=5.225e-11 N=1.84 CJ0=76.32e-12 M=0.31 VJ=0.73 FC=0.5 RS=0.35 TT=245.24e-9 KF=0 AF=1
++BV=8.2 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D816A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 816A>
+.model D816A D(IS=4.599e-12 N=1.25 CJ0=105.9e-12 M=0.41 VJ=0.71 FC=0.5 RS=2.4 TT=213.6e-9 KF=0 AF=1
++BV=22 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D816B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 816B>
+.model D816B D(IS=4.279e-13 N=1.14 CJ0=133.2e-12 M=0.41 VJ=0.73 FC=0.5 RS=2.8 TT=220.4 KF=0 AF=1
++BV=27 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D816D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 816D>
+.model D816D D(IS=1.471e-12 N=1.18 CJ0=82.24e-12 M=0.4 VJ=0.7 FC=0.5 RS=5.6 TT=207.4e-9 KF=0 AF=1
++BV=47 IBV=15e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D816G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 816G>
+.model D816G D(IS=3.337e-12 N=1.23 CJ0=103.5e-12 M=0.39 VJ=0.71 FC=0.5 RS=4.6 TT=203.5e-9 KF=0 AF=1
++BV=39 IBV=15e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D817A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 817A>
+.model D817A D(IS=1.01e-11 N=1.47 CJ0=57e-12 M=0.34 VJ=0.8 FC=0.5 RS=12 TT=500e-9 KF=0 AF=1 BV=56
++IBV=20e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D817B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 817B>
+.model D817B D(IS=1.2e-11 N=1.43 CJ0=68e-12 M=0.35 VJ=0.8 FC=0.5 RS=14 TT=500e-9 KF=0 AF=1 BV=68
++IBV=20e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D817G: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 817G>
+.model D817G D(IS=2.934e-11 N=1.27 CJ0=82e-12 M=0.38 VJ=0.8 FC=0.5 RS=18 TT=500e-9 KF=0 AF=1 BV=100
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* D817V: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component 817V>
+.model D817V D(IS=1.222e-11 N=1.28 CJ0=54.48e-12 M=0.43 VJ=0.78 FC=0.5 RS=16 TT=414.1e-9 KF=0 AF=1
++BV=82 IBV=30e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* DFLR1200: universal silicon rectifier diode 200V, 1.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component DFLR1200>
+.model DFLR1200 D(IS=5.9e-9 N=1.88 CJ0=18.5e-12 M=0.333 VJ=0.7 FC=0.5 RS=44.7e-3 TT=4.32e-6 KF=0 AF=1
++BV=200 IBV=3e-6)
+
+* DLFR1400: universal silicon rectifier diode 400V, 1.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component DLFR1400>
+.model DLFR1400 D(IS=5.9e-9 N=1.88 CJ0=18.5e-12 M=0.333 VJ=0.7 FC=0.5 RS=44.7e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=3e-6)
+
+* green: classical green light emitting diode 2.7V @ 20mA, U_rev_break = 5V
+* from Qucs-S library/LEDs.lib <Component green>
+.subckt green A K
+DD_green A K DMOD_D_green
+.model DMOD_D_green D(IS=1e-10 N=5.45 CJ0=3e-12 M=0.5 VJ=0.7 FC=0.5 RS=0.1 TT=4e-6 KF=0.0 AF=1.0 BV=5
++IBV=10e-6 XTI=3.0 EG=1.11 TNOM=26.85)
+RRleak A K 50e6
+.ends green
+
+* infrared: classical infra-red light emitting diode 1.7V @ 20mA, U_rev_break = 5V
+* from Qucs-S library/LEDs.lib <Component infrared>
+.subckt infrared A K
+DD_IR A K DMOD_D_IR
+.model DMOD_D_IR D(IS=1e-10 N=3.45 CJ0=3e-12 M=0.5 VJ=0.7 FC=0.5 RS=0.1 TT=4e-6 KF=0.0 AF=1.0 BV=5
++IBV=10e-6 XTI=3.0 EG=1.11 TNOM=26.85)
+RRleak A K 50e6
+.ends infrared
+
+* KD102A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD102A>
+.model KD102A D(IS=2.166e-11 N=1.28 CJ0=3.27e-12 M=0.32 VJ=0.71 FC=0.5 RS=1.79 TT=6.12e-09 KF=0 AF=1
++BV=250 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD105B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD105B>
+.model KD105B D(IS=8.426e-11 N=1.11 CJ0=120e-12 M=0.33 VJ=0.71 FC=0.5 RS=0.12 TT=1.08e-08 KF=0 AF=1
++BV=400 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD202D: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD202D>
+.model KD202D D(IS=4.012e-9 N=1.56 CJ0=82e-12 M=0.28 VJ=0.73 FC=0.5 ISR=100e-12 NR=2 RS=47e-3
++TT=319e-9 KF=0 AF=1 BV=600 IBV=100e-12 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0
++TNOM=26.85)
+
+* KD203A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD203A>
+.model KD203A D(IS=2.98e-09 N=1.52 CJ0=21.2e-12 M=0.28 VJ=0.73 FC=0.5 RS=0.0093 TT=9.09e-07 KF=0 AF=1
++BV=600 IBV=1e-10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD204A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD204A>
+.model KD204A D(IS=4.11e-09 N=1.52 CJ0=31.5e-12 M=0.35 VJ=0.68 FC=0.5 RS=0.075 TT=1.16e-07 KF=0 AF=1
++BV=400 IBV=1e-10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD208A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD208A>
+.model KD208A D(IS=1.81e-10 N=1.31 CJ0=96.3e-12 M=0.38 VJ=0.68 FC=0.5 RS=0.12 TT=2.23e-07 KF=0 AF=1
++BV=100 IBV=1e-10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD209A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD209A>
+.model KD209A D(IS=6.22e-11 N=1.23 CJ0=16.2 M=0.35 VJ=0.68 FC=0.5 RS=0.17 TT=7.21e-07 KF=0 AF=1
++BV=600 IBV=1e-10 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD212A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD212A>
+.model KD212A D(IS=36.89e-15 N=1 CJ0=21e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=150e-9 KF=0 AF=1 BV=200
++IBV=50e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD213A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD213A>
+.model KD213A D(IS=3.503e-16 N=1 CJ0=61e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=90e-9 KF=0 AF=1 BV=200
++IBV=100e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD213B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD213B>
+.model KD213B D(IS=68.84e-12 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=43.52e-3 TT=50.04e-9 KF=0 AF=1
++BV=280 IBV=258.6e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD219A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD219A>
+.model KD219A D(IS=5.76e-08 N=1.12 CJ0=63.1e-12 M=0.33 VJ=0.54 FC=0.5 RS=0.003 TT=1.23e-09 KF=0 AF=1
++BV=15 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD220A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD220A>
+.model KD220A D(IS=1.12e-11 N=1.25 CJ0=164.5e-12 M=0.33 VJ=0.65 FC=0.5 RS=0.071 TT=1.23e-09 KF=0 AF=1
++BV=400 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD2997A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD2997A>
+.model KD2997A D(IS=412.8e-12 N=1 CJ0=1e-12 M=0.3333 VJ=0.75 FC=0.5 RS=6.772e-3 TT=100.1e-9 KF=0 AF=1
++BV=280.4 IBV=0.2586 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD503A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD503A>
+.model KD503A D(IS=7.92e-13 N=1.11 CJ0=1.45e-12 M=0.27 VJ=0.71 FC=0.5 RS=2.3 TT=2.19e-9 KF=0 AF=1
++BV=30 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD509A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD509A>
+.model KD509A D(IS=1.14e-12 N=1.12 CJ0=2.15e-12 M=0.33 VJ=0.71 FC=0.5 RS=2.1 TT=3.25e-9 KF=0 AF=1
++BV=50 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD512A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD512A>
+.model KD512A D(IS=2.12e-15 N=1 CJ0=1.16e-12 M=0.25 VJ=0.69 FC=0.5 RS=9.2 TT=0.961e-9 KF=0 AF=1 BV=15
++IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD513A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD513A>
+.model KD513A D(IS=5.68e-13 N=1.11 CJ0=1.81e-12 M=0.31 VJ=0.69 FC=0.5 RS=1.6 TT=0.85e-9 KF=0 AF=1
++BV=50 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD520A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD520A>
+.model KD520A D(IS=6.18e-13 N=1.12 CJ0=2.35e-12 M=0.33 VJ=0.68 FC=0.5 RS=6.3 TT=1.44e-9 KF=0 AF=1
++BV=15 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD521A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD521A>
+.model KD521A D(IS=115e-15 N=1 CJ0=2.25e-12 M=0.26 VJ=0.68 FC=0.5 ISR=100e-12 NR=2 RS=3.21 TT=3.12e-9
++KF=0 AF=1 BV=75 IBV=10e-12 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD522A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD522A>
+.model KD522A D(IS=2.27e-13 N=1.1 CJ0=1.83e-12 M=0.25 VJ=0.68 FC=0.5 RS=1.17 TT=2.38e-9 KF=0 AF=1
++BV=50 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KD522B: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KD522B>
+.model KD522B D(IS=3.385e-20 N=1 CJ0=4e-12 M=0.3333 VJ=0.75 FC=0.5 RS=0 TT=4e-12 KF=0 AF=1 BV=30
++IBV=2e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KS133A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KS133A>
+.model KS133A D(IS=8.9e-14 N=1.16 CJ0=72e-12 M=0.47 VJ=0.8 FC=0.5 RS=25 TT=57e-9 KF=0 AF=1 BV=3.3
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KS139A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KS139A>
+.model KS139A D(IS=4e-13 N=1.35 CJ0=85e-12 M=0.45 VJ=0.8 FC=0.5 RS=30 TT=72e-9 KF=0 AF=1 BV=3.9
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KS147A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KS147A>
+.model KS147A D(IS=5e-13 N=1.35 CJ0=85e-12 M=0.45 VJ=0.8 FC=0.5 RS=22 TT=75e-9 KF=0 AF=1 BV=4.7
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KS156A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KS156A>
+.model KS156A D(IS=3.6e-12 N=1.52 CJ0=94e-12 M=0.41 VJ=0.8 FC=0.5 RS=13 TT=160e-9 KF=0 AF=1 BV=5.6
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* KS168A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component KS168A>
+.model KS168A D(IS=7.3e-12 N=1.35 CJ0=62e-12 M=0.5 VJ=0.8 FC=0.5 RS=5.8 TT=250e-9 KF=0 AF=1 BV=6.8
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* LL4148: fast switching diode Si, 75.0V, 0.300A, 4.00us Manufacturer: Diodes Inc.
+* from Qucs-S library/Diodes.lib <Component LL4148>
+.model LL4148 D(IS=1.06e-9 N=1.87 CJ0=3e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.316 TT=5.76e-6 KF=0 AF=1 BV=75
++IBV=5e-6)
+
+* OA1154Q: Tungsram Point Contact Germanium Diode 50V/30mA Author: Zabb Csaba
+* from Qucs-S library/GeDiodes.lib <Component OA1154Q>
+.model OA1154Q D(IS=15e-6 N=2.7 CJ0=1.3e-12 M=0.333 VJ=0.75 FC=0.5 RS=66 TT=15e-9 KF=0 AF=1 BV=50
++IBV=300e-6 XTI=3 EG=0.67 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* OA1160: Tungsram Point Contact Germanium Diode 15V/5mA (Ip=25ma) Author: Zabb Csaba
+* from Qucs-S library/GeDiodes.lib <Component OA1160>
+.model OA1160 D(IS=2.5e-6 N=1.5 CJ0=0.8e-12 M=0.333 VJ=0.4 FC=0.5 RS=68 TT=5e-9 KF=0 AF=1 BV=15
++IBV=100e-6 XTI=3 EG=0.67 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* OA1172: Tungsram Point Contact Germanium Diode 30V/10mA Author: Zabb Csaba
+* from Qucs-S library/GeDiodes.lib <Component OA1172>
+.model OA1172 D(IS=9.3e-6 N=2.35 CJ0=1.3e-12 M=0.333 VJ=0.75 FC=0.5 RS=45 TT=12e-9 KF=0 AF=1 BV=30
++IBV=100e-6 XTI=3 EG=0.67 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* OA1180A: Tungsram Gold Bond Germanium Diode 30V/120ma (Ip=400mA) Author: Zabb Csabai
+* from Qucs-S library/GeDiodes.lib <Component OA1180A>
+.model OA1180A D(IS=4.7e-6 N=1.75 CJ0=8e-12 M=0.333 VJ=0.8 FC=0.5 RS=0.9 TT=70e-9 KF=0 AF=1 BV=30
++IBV=100e-6 XTI=3 EG=0.67 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* Q2D103A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component Q2D103A>
+.model Q2D103A D(IS=6.71e-13 N=1 CJ0=8.58e-12 M=0.29 VJ=0.72 FC=0.5 RS=3.43 TT=4.15e-9 KF=0 AF=1
++BV=75 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* Q2D503A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component Q2D503A>
+.model Q2D503A D(IS=7.9e-13 N=1 CJ0=1.86e-12 M=0.27 VJ=0.77 FC=0.5 RS=2.3 TT=7.19e-9 KF=0 AF=1 BV=50
++IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* Q2D521A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component Q2D521A>
+.model Q2D521A D(IS=1.15e-13 N=1 CJ0=2.25e-12 M=0.26 VJ=0.68 FC=0.5 RS=3.21 TT=3.12e-9 KF=0 AF=1
++BV=75 IBV=1e-11 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* Q2D522A: (no description)
+* from Qucs-S library/Diodes_Extended.lib <Component Q2D522A>
+.model Q2D522A D(IS=2.27e-13 N=1 CJ0=2.42e-12 M=0.25 VJ=0.68 FC=0.5 RS=1.17 TT=2.38e-9 KF=0 AF=1
++BV=50 IBV=1e-11 XTI=1 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* red: classical red light emitting diode 2.0V @ 20mA, U_rev_break = 5V
+* from Qucs-S library/LEDs.lib <Component red>
+.subckt red A K
+DD_red A K DMOD_D_red
+.model DMOD_D_red D(IS=1e-10 N=4.09 CJ0=3e-12 M=0.5 VJ=0.7 FC=0.5 RS=0.1 TT=4e-6 KF=0.0 AF=1.0 BV=5
++IBV=10e-6 XTI=3.0 EG=1.11 TNOM=26.85)
+RRleak A K 50e6
+.ends red
+
+* S1A: universal silicon rectifier diode 50V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1A>
+.model S1A D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=50 IBV=5e-6)
+
+* S1AB: universal silicon rectifier diode 50V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1AB>
+.model S1AB D(IS=7.31e-18 N=0.775 CJ0=42.4 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1 BV=50
++IBV=5e-6)
+
+* S1B: universal silicon rectifier diode 100V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1B>
+.model S1B D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=100 IBV=5e-6)
+
+* S1BB: universal silicon rectifier diode 100V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1BB>
+.model S1BB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=100 IBV=5e-6)
+
+* S1D: universal silicon rectifier diode 200V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1D>
+.model S1D D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=200 IBV=5e-6)
+
+* S1DB: universal silicon rectifier diode 200V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1DB>
+.model S1DB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=200 IBV=5e-6)
+
+* S1G: universal silicon rectifier diode 400V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1G>
+.model S1G D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=5e-6)
+
+* S1GB: universal silicon rectifier diode 400V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1GB>
+.model S1GB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=400 IBV=5e-6)
+
+* S1J: universal silicon rectifier diode 600V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1J>
+.model S1J D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=600 IBV=5e-6)
+
+* S1JB: universal silicon rectifier diode 600V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1JB>
+.model S1JB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=600 IBV=5e-6)
+
+* S1K: universal silicon rectifier diode 800V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1K>
+.model S1K D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=800 IBV=5e-6)
+
+* S1KB: universal silicon rectifier diode 800V, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1KB>
+.model S1KB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=800 IBV=5e-6)
+
+* S1M: universal silicon rectifier diode 1kV, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1M>
+.model S1M D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=1e3 IBV=5e-6)
+
+* S1MB: universal silicon rectifier diode 1kV, 1.0A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S1MB>
+.model S1MB D(IS=7.31e-18 N=0.775 CJ0=42.4e-12 M=0.333 VJ=0.7 FC=0.5 RS=42e-3 TT=4.32e-6 KF=0 AF=1
++BV=1e3 IBV=5e-6)
+
+* S2A: universal silicon rectifier diode 50V, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2A>
+.model S2A D(IS=1.3e-6 N=2.58 CJ0=37e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=50
++IBV=5e-6)
+
+* S2B: universal silicon rectifier diode 100V, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2B>
+.model S2B D(IS=1.3e-6 N=2.58 CJ0=37e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=100
++IBV=5e-6)
+
+* S2D: universal silicon rectifier diode 200V, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2D>
+.model S2D D(IS=1.3e-6 N=2.58 CJ0=37 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=200
++IBV=5e-6)
+
+* S2G: universal silicon rectifier diode 400V, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2G>
+.model S2G D(IS=1.3e-6 N=2.58 CJ0=37e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=400
++IBV=5e-6)
+
+* S2J: universal silicon rectifier diode 600V, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2J>
+.model S2J D(IS=1.3e-6 N=2.58 CJ0=37e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=600
++IBV=5e-6)
+
+* S2M: universal silicon rectifier diode 1kV, 1.5A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S2M>
+.model S2M D(IS=1.3e-6 N=2.58 CJ0=37e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.92e-3 TT=4.32e-6 KF=0 AF=1 BV=1e3
++IBV=5e-6)
+
+* S3A: universal silicon rectifier diode 50V, 3A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3A>
+.model S3A D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=50
++IBV=10e-6)
+
+* S3BB: universal silicon rectifier diode 100V, 3A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3BB>
+.model S3BB D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=100
++IBV=10e-6)
+
+* S3D: universal silicon rectifier diode 200V, 3A, 3us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3D>
+.model S3D D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=200
++IBV=10e-6)
+
+* S3GB: universal silicon rectifier diode 400V, 3.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3GB>
+.model S3GB D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=400
++IBV=10e-6)
+
+* S3K: universal silicon rectifier diode 800V, 3.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3K>
+.model S3K D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=800
++IBV=10e-6)
+
+* S3M: universal silicon rectifier diode 1kV, 3.0A, 3.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S3M>
+.model S3M D(IS=1.37e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=14e-3 TT=4.32e-6 KF=0 AF=1 BV=1e3
++IBV=10e-6)
+
+* S5AC: universal silicon rectifier diode 50V, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5AC>
+.model S5AC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=50
++IBV=10e-6)
+
+* S5BC: universal silicon rectifier diode 100V, 5.0A, 2.0us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5BC>
+.model S5BC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=100
++IBV=10e-6)
+
+* S5DC: universal silicon rectifier diode 200V, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5DC>
+.model S5DC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=200
++IBV=10e-6)
+
+* S5GC: universal silicon rectifier diode 400V, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5GC>
+.model S5GC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=400
++IBV=10e-6)
+
+* S5JC: universal silicon rectifier diode 600V, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5JC>
+.model S5JC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=600
++IBV=10e-6)
+
+* S5KC: universal silicon rectifier diode 800V, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5KC>
+.model S5KC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=800
++IBV=10e-6)
+
+* S5MC: universal silicon rectifier diode 1kV, 5.0A, 2us Manufacturer: Diodes Inc. added by Leandro D'Archivio <morti667@hotmail.com>
+* from Qucs-S library/Diodes.lib <Component S5MC>
+.model S5MC D(IS=2.28e-9 N=1.7 CJ0=74e-12 M=0.333 VJ=0.7 FC=0.5 RS=8.4e-3 TT=2.88e-6 KF=0 AF=1 BV=1e3
++IBV=10e-6)
+
+* SBMG0340L: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SBMG0340L>
+.model SBMG0340L D(IS=13.9e-6 N=2.82 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.57 TT=1.44e-9 KF=0 AF=1
++BV=40 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SBMG0340LA: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SBMG0340LA>
+.model SBMG0340LA D(IS=13.9e-6 N=2.82 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.57 TT=1.44e-9 KF=0 AF=1
++BV=40 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SBMG0340LC: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SBMG0340LC>
+.model SBMG0340LC D(IS=13.9e-6 N=2.82 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.57 TT=1.44e-9 KF=0 AF=1
++BV=40 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SBMG0340LS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SBMG0340LS>
+.model SBMG0340LS D(IS=13.9e-6 N=2.82 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.57 TT=1.44e-9 KF=0 AF=1
++BV=40 IBV=10e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD101AW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD101AW>
+.model SD101AW D(IS=1.82e-6 N=1.7 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1
++BV=60 IBV=200e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD101AWS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD101AWS>
+.model SD101AWS D(IS=230e-9 N=1.96 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.13 TT=1.44e-9 KF=0 AF=1 BV=60
++IBV=200e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD101BW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD101BW>
+.model SD101BW D(IS=1.82e-6 N=1.7 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1
++BV=50 IBV=200e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD101CW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD101CW>
+.model SD101CW D(IS=1.82e-6 N=1.7 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.8 TT=1.44e-9 KF=0 AF=1
++BV=40 IBV=200e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103ASDM: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103ASDM>
+.model SD103ASDM D(IS=646e-9 N=1.28 CJ0=29.2 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1 BV=40
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103ATW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103ATW>
+.model SD103ATW D(IS=646e-9 N=1.28 CJ0=29.2 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1 BV=40
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103AW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103AW>
+.model SD103AW D(IS=8.65e-6 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1 BV=40
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103AWS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103AWS>
+.model SD103AWS D(IS=8.65e-6 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1
++BV=40 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103BWS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103BWS>
+.model SD103BWS D(IS=8.65e-6 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1
++BV=30 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103CW: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103CW>
+.model SD103CW D(IS=8.65e-6 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1 BV=20
++IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SD103CWS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SD103CWS>
+.model SD103CWS D(IS=8.65e-6 N=1.7 CJ0=53e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.12 TT=14.4e-9 KF=0 AF=1
++BV=20 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM03MT40: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM03MT40>
+.model SDM03MT40 D(IS=12.5e-6 N=2.79 CJ0=2e-12 M=0.333 VJ=0.7 FC=0.5 RS=1.41 TT=4.32e-6 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM03U40: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM03U40>
+.model SDM03U40 D(IS=16.5e-6 N=2.92 CJ0=2.59e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.2 TT=1.44e-9 KF=0 AF=1
++BV=30 IBV=500e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM10M45SD: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM10M45SD>
+.model SDM10M45SD D(IS=553e-9 N=1.36 CJ0=10.6e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.42 TT=4.32e-6 KF=0 AF=1
++BV=45 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM10P45: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM10P45>
+.model SDM10P45 D(IS=745e-9 N=1.39 CJ0=11.2e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.792 TT=7.2e-9 KF=0 AF=1
++BV=45 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM10U45: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM10U45>
+.model SDM10U45 D(IS=26.8e-6 N=2.45 CJ0=10.6e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.14 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM20E40C: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM20E40C>
+.model SDM20E40C D(IS=3.15e-6 N=1.16 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.165 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=70e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM20U30: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM20U30>
+.model SDM20U30 D(IS=59.4e-9 N=0.7 CJ0=19.9e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.21 TT=7.2e-9 KF=0 AF=1
++BV=30 IBV=150e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM20U40: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM20U40>
+.model SDM20U40 D(IS=4.32e-6 N=1.7 CJ0=39.8e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.168 TT=14.4e-9 KF=0 AF=1
++BV=40 IBV=5e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDM40E20LS: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDM40E20LS>
+.model SDM40E20LS D(IS=54.8e-6 N=1.34 CJ0=199e-12 M=0.333 VJ=0.7 FC=0.5 RS=0.132 TT=7.2e-9 KF=0 AF=1
++BV=20 IBV=250e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDMK0340L: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDMK0340L>
+.model SDMK0340L D(IS=11.2e-6 N=2.69 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=3.64 TT=4.32e-6 KF=0 AF=1
++BV=40 IBV=500e-9 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDMP0340LAT: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDMP0340LAT>
+.model SDMP0340LAT D(IS=16.5e-6 N=2.92 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.2 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDMP0340LCT: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDMP0340LCT>
+.model SDMP0340LCT D(IS=16.5e-6 N=2.92 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.2 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDMP0340LST: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDMP0340LST>
+.model SDMP0340LST D(IS=16.5e-6 N=2.92 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.2 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SDMP0340LT: (no description)
+* from Qucs-S library/DiodesSchottky.lib <Component SDMP0340LT>
+.model SDMP0340LT D(IS=16.5e-6 N=2.92 CJ0=2.65e-12 M=0.333 VJ=0.7 FC=0.5 RS=2.2 TT=7.2e-9 KF=0 AF=1
++BV=40 IBV=1e-6 XTI=3 EG=1.11 TCV=0 TRS=0 TTT1=0 TTT2=0 TM1=0 TM2=0 TNOM=26.85)
+
+* SMV1405: Skyworks SMV1405-079 Varactor Ct=1.8pF @ Vr=1Volt SC79 Package
+* from Qucs-S library/Varactor_RF.lib <Component SMV1405>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt SMV1405 A K
+XSMV1405_q 0 A K Varactor_RF_SMV1405
+* Qucs 24.2.1  Varactor_RF_SMV1405.sch
+
+.SUBCKT Varactor_RF_SMV1405  gnd _net0 _net2
+LS _net0 _net1  0.7N
+CP _net1 _net2  0.29P
+RS _net1 _net3  0.8 tc1=0.0 tc2=0.0
+DSMV1405_1 _net3 _net2 DMOD_SMV1405_1 AREA=1 Temp=26.85
+.MODEL DMOD_SMV1405_1 D(IS=1e-14 RS=0 N=1 TT=0 CJO=2.37p M=0.5 VJ=0.77 EG=1.11 KF=0 AF=1 FC=0.5 BV=30 IBV=1e-3 ISR=0 NR=2 NBV=1 TNOM=27)
+.ENDS
+
+.ends SMV1405
+
+* yellow: classical yellow light emitting diode 2.2V @ 20mA, U_rev_break = 5V
+* from Qucs-S library/LEDs.lib <Component yellow>
+.subckt yellow A K
+DD_yellow A K DMOD_D_yellow
+.model DMOD_D_yellow D(IS=1e-10 N=4.45 CJ0=3e-12 M=0.5 VJ=0.7 FC=0.5 RS=0.1 TT=4e-6 KF=0.0 AF=1.0
++BV=5 IBV=10e-6 XTI=3.0 EG=1.11 TNOM=26.85)
+RRleak A K 50e6
+.ends yellow

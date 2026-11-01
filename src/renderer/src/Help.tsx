@@ -1,6 +1,7 @@
-// Help › Keyboard Shortcuts and About / Tools › Simulation Engine: in-app modals (AnalysisDialog's look).
+// Help › Keyboard Shortcuts, About, Third-party Licences / Tools › Simulation Engine: in-app modals (AnalysisDialog's look).
 import { useEffect, useRef, useState } from 'react'
 import { useCommands } from './commands'
+import { loadPacks, type PackInfo } from './library/sources'
 import './sim/AnalysisDialog.css'
 import './help.css'
 
@@ -22,7 +23,47 @@ const SHORTCUTS: [string, [string, string][]][] = [
 
 type Info = Awaited<ReturnType<typeof window.api.menu.info>> & { engine: Awaited<ReturnType<typeof window.api.engine>> }
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+// what the app itself is built from (its JS ships inside the app; their licences ask for this credit)
+const CREDITS: [string, string, string][] = [
+  ['Electron (Chromium, Node.js)', 'MIT; Chromium: BSD-3-Clause and others', 'https://github.com/electron/electron/blob/main/LICENSE'],
+  ['React, React DOM', 'MIT', 'https://github.com/facebook/react/blob/main/LICENSE'],
+  ['CodeMirror 6', 'MIT', 'https://github.com/codemirror/dev/blob/main/LICENSE'],
+  ['uPlot', 'MIT', 'https://github.com/leeoniya/uPlot/blob/master/LICENSE']
+]
+type Lic = Awaited<ReturnType<typeof window.api.menu.licenses>> & { packs: PackInfo[] }
+
+export const isUrl = (s?: string) => !!s && /^https?:\/\//i.test(s)
+const link = (url: string, text = url) => <a href={url} target="_blank" rel="noreferrer">{text}</a>
+
+// one library pack's licence, source, provenance and notice text (also the Library page's "Licence / notice")
+export function PackLicence({ pack: p }: { pack: PackInfo }) {
+  return (
+    <div className="help-pack">
+      {p.description && <p className="adlg-msg">{p.description}</p>}
+      <dl>
+        <dt>Licence</dt><dd>{p.license || 'not stated'}</dd>
+        {p.version && <><dt>Version</dt><dd>{p.version}</dd></>}
+        {p.source && <><dt>Source</dt><dd>{isUrl(p.source) ? link(p.source) : p.source}</dd></>}
+        <dt>Parts</dt><dd>{p.libs.reduce((n, l) => n + l.entries.length, 0).toLocaleString()} in {p.libs.length} file{p.libs.length === 1 ? '' : 's'}</dd>
+      </dl>
+      {!!p.provenance?.length && (
+        <table className="help-prov">
+          <thead><tr><th>File</th><th>From</th><th>Retrieved</th><th>SHA-256</th></tr></thead>
+          <tbody>{p.provenance.map((x, i) => (
+            <tr key={i}>
+              <td><code>{x.file}</code></td><td>{isUrl(x.url) ? link(x.url, x.url.replace(/^https?:\/\/(www\.)?/, '')) : x.url}</td><td>{x.retrieved}</td>
+              <td><code title={x.sha256}>{x.sha256.slice(0, 12)}{x.sha256.length > 12 ? '…' : ''}</code></td>
+            </tr>
+          ))}</tbody>
+        </table>
+      )}
+      {p.noticeText != null ? <pre className="help-text" tabIndex={0}>{p.noticeText}</pre>
+        : <p className="adlg-msg">{p.notice ? `Notice file ${p.notice} is missing from the pack.` : 'This pack has no separate notice file.'}</p>}
+    </div>
+  )
+}
+
+export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   const close = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
@@ -34,7 +75,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   }, [])
   return (
     <div className="adlg-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="adlg help-dlg" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}>
+      <div className={`adlg help-dlg${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}>
         <div className="adlg-head">
           <h2>{title}</h2>
           <button ref={close} type="button" className="adlg-x" aria-label="Close" onClick={onClose}>×</button>
@@ -46,8 +87,13 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 export function Help() {
-  const [open, setOpen] = useState<'shortcuts' | 'about' | null>(null)
+  const [open, setOpen] = useState<'shortcuts' | 'about' | 'licenses' | null>(null)
   const [info, setInfo] = useState<Info | null>(null)
+  const [lic, setLic] = useState<Lic | null>(null)
+  const licenses = () => {
+    setOpen('licenses')
+    Promise.all([window.api.menu.licenses(), loadPacks().catch(() => [])]).then(([l, packs]) => setLic({ ...l, packs }), () => setLic({ dir: '', files: [], packs: [] }))
+  }
   const about = () => {
     setOpen('about')
     Promise.all([window.api.menu.info(), window.api.engine()]).then(([a, engine]) => setInfo({ ...a, engine }))
@@ -55,6 +101,7 @@ export function Help() {
   useCommands([
     { id: 'help.shortcuts', keys: 'Mod+/', run: () => setOpen('shortcuts') },
     { id: 'help.about', run: about },
+    { id: 'help.licenses', run: licenses },
     { id: 'tools.engineInfo', run: about }
   ])
   if (open === 'shortcuts')
@@ -90,7 +137,39 @@ export function Help() {
                 <dt>Platform</dt>
                 <dd>{info.platform}</dd>
               </dl>
-              <p className="adlg-msg">ngspice is BSD-3-Clause with third-party parts: Help › Third-party Licences opens the notices shipped with the bundled engine.</p>
+              <p className="adlg-msg">ngspice is BSD-3-Clause with third-party parts: <button className="help-link" onClick={licenses}>Third-party licences</button> lists them, the library packs' notices and the app's own components.</p>
+            </>
+          )}
+        </div>
+      </Modal>
+    )
+  if (open === 'licenses')
+    return (
+      <Modal title="Third-party licences" onClose={() => setOpen(null)} wide>
+        <div className="help-lic">
+          {!lic ? <p className="adlg-msg">Loading…</p> : (
+            <>
+              <section>
+                <h3>ngspice simulation engine</h3>
+                <p className="adlg-msg">An unmodified ngspice build, run as a separate program: modified BSD (3-clause), with the third-party parts listed in the notices. {link('https://ngspice.sourceforge.io/', 'ngspice.sourceforge.io')}</p>
+                {lic.files.length ? lic.files.map((f) => (
+                  <details key={f.name} open={f.name.startsWith('THIRD')}><summary>{f.name}</summary><pre className="help-text" tabIndex={0}>{f.text}</pre></details>
+                )) : <p className="adlg-msg bad">No bundled engine in <code>{lic.dir || '(unknown)'}</code> (development build: run <code>npm run ngspice:build</code>). A system ngspice carries its own COPYING.</p>}
+              </section>
+              <section>
+                <h3>Component library packs</h3>
+                {!lic.packs.length && <p className="adlg-msg">No library packs installed.</p>}
+                {lic.packs.map((p) => (
+                  <details key={p.id}><summary>{p.name} <span className="help-badge">{p.license || 'licence not stated'}</span></summary><PackLicence pack={p} /></details>
+                ))}
+              </section>
+              <section>
+                <h3>Application components</h3>
+                <table className="help-prov">
+                  <thead><tr><th>Component</th><th>Licence</th><th>Text</th></tr></thead>
+                  <tbody>{CREDITS.map(([n, l, u]) => <tr key={n}><td>{n}</td><td>{l}</td><td>{link(u, 'LICENSE')}</td></tr>)}</tbody>
+                </table>
+              </section>
             </>
           )}
         </div>

@@ -1,0 +1,7858 @@
+{
+ "id": "vendor-zetex",
+ "name": "Zetex discretes (Diodes Inc.)",
+ "description": "Zetex SPICE models of BJTs, MOSFETs, diodes, Schottky and varactor diodes, from the Zetex PLC model pages (now Diodes Incorporated). Shipped unmodified with their notices.",
+ "license": "Zetex model notice: supplied free for research and design; may be used or copied intact (including the notice) for that purpose only.",
+ "source": "Zetex PLC (zetex.com/3.0/spice, archived), now Diodes Incorporated",
+ "version": "1",
+ "notice": "NOTICE.txt",
+ "provenance": [
+  {
+   "file": "2n6715.mod",
+   "url": "https://web.archive.org/web/20080325131409id_/http://www.zetex.com:80/3.0/spice/2n6715.mod",
+   "sha256": "77ff3dba183968d3ed06ca5378c28a7adde79624f1374d029d3edaa2a733187e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "2n6727.mod",
+   "url": "https://web.archive.org/web/20080325131414id_/http://www.zetex.com:80/3.0/spice/2n6727.mod",
+   "sha256": "d297ccd3a62cd495690844412e3ddd5cadb83f4257560640db4252234f66cf44",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "2n7000.mod",
+   "url": "https://web.archive.org/web/20041210023910id_/http://www.zetex.com:80/3.0/spice/2n7000.mod",
+   "sha256": "aa4354a2a3da2fae2f68e97e52fb3adb5e74dbd43d1ee9d71fee477e4d06c78a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "2n7000p.mod",
+   "url": "https://web.archive.org/web/20041210020230id_/http://www.zetex.com:80/3.0/spice/2n7000p.mod",
+   "sha256": "f9d4ff37686212b0c5c7c0597f76f22be9f380b9462d15a52118bf00759ba940",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "2n7002.mod",
+   "url": "https://web.archive.org/web/20041021134833id_/http://www.zetex.com:80/3.0/spice/2n7002.mod",
+   "sha256": "ef98350c05915346f696432728bf2f5a3ff3501828c7c53e53100574de4480c6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bal74.mod",
+   "url": "https://web.archive.org/web/20041212114241id_/http://www.zetex.com:80/3.0/spice/bal74.mod",
+   "sha256": "b97951e38f30fb979bf5cc16ed63ff6c6e47fc1bd9caa6219904791d3c0cee22",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bal99.mod",
+   "url": "https://web.archive.org/web/20041212115327id_/http://www.zetex.com:80/3.0/spice/bal99.mod",
+   "sha256": "3e656d0112135111fc77d54cd7841f5dceb9ee64511fc5684950cd354b855680",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bar74.mod",
+   "url": "https://web.archive.org/web/20041212042104id_/http://www.zetex.com:80/3.0/spice/bar74.mod",
+   "sha256": "d46abe677d08e58f4bd0597d59af037de5077e85bf0d68be67d3ff43825d7994",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bar99.mod",
+   "url": "https://web.archive.org/web/20041212042818id_/http://www.zetex.com:80/3.0/spice/bar99.mod",
+   "sha256": "aa60edcf3305c5547a6fd289749bdb3723a46e4a7812c7f5c25450e02b9fa32c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bas16.mod",
+   "url": "https://web.archive.org/web/20041205003810id_/http://www.zetex.com:80/3.0/spice/bas16.mod",
+   "sha256": "d8f791e86a7a4e0f85e447a6697c12bd0137a80910ddd483fbeae86f18d42df5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bas19.mod",
+   "url": "https://web.archive.org/web/20041205200321id_/http://www.zetex.com:80/3.0/spice/bas19.mod",
+   "sha256": "d75851d120ee84e58ead66898f9a901db2a5bf747d1c182aef73ff5c332b4a39",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bas20.mod",
+   "url": "https://web.archive.org/web/20041206002635id_/http://www.zetex.com:80/3.0/spice/bas20.mod",
+   "sha256": "751e0f7d90f881da2cc7baa54b7b516c34e4705b43f5b0eaa83b89ad23d1f59c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bas21.mod",
+   "url": "https://web.archive.org/web/20041206003506id_/http://www.zetex.com:80/3.0/spice/bas21.mod",
+   "sha256": "9bf352917573154f3399f328f4f8f2481cea4aff3ddc97671c6adb87f1e7ab2f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bat54.mod",
+   "url": "https://web.archive.org/web/20071027022908id_/http://www.zetex.com/3.0/spice/bat54.mod",
+   "sha256": "4526514f0a7b4c5709d54e54d093a51726d67f576dae0d655701521a55f3ed8b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bav70.mod",
+   "url": "https://web.archive.org/web/20041212022835id_/http://www.zetex.com:80/3.0/spice/bav70.mod",
+   "sha256": "17865cdbd5cb27668fb806d1e1ff4a81c321984f66a23dea51e014cdc583bc72",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bav74.mod",
+   "url": "https://web.archive.org/web/20041212024555id_/http://www.zetex.com:80/3.0/spice/bav74.mod",
+   "sha256": "2ce84d16f4e14239b976a5319bd91415b4855f3b97f0fa9d130aadd6396c031a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bav99.mod",
+   "url": "https://web.archive.org/web/20041212025355id_/http://www.zetex.com:80/3.0/spice/bav99.mod",
+   "sha256": "dc20c38183285a5daebd71603c6b25619f7c4ef7dfd25d4e32aafc28dfd4bf16",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "baw56.mod",
+   "url": "https://web.archive.org/web/20071027024145id_/http://www.zetex.com/3.0/spice/baw56.mod",
+   "sha256": "9bf5cc101ada13054e789045390e637dcdfb368bc3be9c29352dd697a40dff29",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bby31.mod",
+   "url": "https://web.archive.org/web/20041212040300id_/http://www.zetex.com:80/3.0/spice/bby31.mod",
+   "sha256": "359edd97ef6f54ecb1538eb459517613cf85fb6071db83c800d17f3c9df85d13",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bby40.mod",
+   "url": "https://web.archive.org/web/20041212041004id_/http://www.zetex.com:80/3.0/spice/bby40.mod",
+   "sha256": "5741c79911491d403e21b116d3faaa4614e29806e08a3b9fd526f7ac09349c5e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc337ap.mod",
+   "url": "https://web.archive.org/web/20041212041617id_/http://www.zetex.com:80/3.0/spice/bc337ap.mod",
+   "sha256": "65f3dbb32c339a4b1298543f12514a2c284170739c32f6e6f2e22a859cfa44f8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc338ap.mod",
+   "url": "https://web.archive.org/web/20041212042331id_/http://www.zetex.com:80/3.0/spice/bc338ap.mod",
+   "sha256": "c97bc200a4c83ef596e42effc5a4bc5111d1b8d83b2e664423f78e1c69003011",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc413bp.mod",
+   "url": "https://web.archive.org/web/20041210023827id_/http://www.zetex.com:80/3.0/spice/bc413bp.mod",
+   "sha256": "398c766f696dd9035c8e932f500504d98d45a84d32b9d6a4269d8fb255c55ea0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc639.mod",
+   "url": "https://web.archive.org/web/20071026175301id_/http://www.zetex.com/3.0/spice/bc639.mod",
+   "sha256": "12f5d576ff9c3d7bbb7527d9da71d191eb0aa19972ca0414daa4eed5b56ab278",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc80716.mod",
+   "url": "https://web.archive.org/web/20041212052425id_/http://www.zetex.com:80/3.0/spice/bc80716.mod",
+   "sha256": "bac3cf9d21a622a1df5387316524980e3f885d4ff8ff5861e96b89d1f3ca8ed7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc80816.mod",
+   "url": "https://web.archive.org/web/20041212053451id_/http://www.zetex.com:80/3.0/spice/bc80816.mod",
+   "sha256": "5c8978d08e893fea3d7efbf35ed1427cbb57d03f01c6e08277190b86c1b0fa33",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc846b.mod",
+   "url": "https://web.archive.org/web/20041212044320id_/http://www.zetex.com:80/3.0/spice/bc846b.mod",
+   "sha256": "539c28faa8c9cf76a360247e900c72ef7e45e747e25f214f5931764ebeb85965",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc847b.mod",
+   "url": "https://web.archive.org/web/20041212044848id_/http://www.zetex.com:80/3.0/spice/bc847b.mod",
+   "sha256": "f2d6402d7690fea3092461aeefee5baf2a086349dd21c361fea313e87d803aa6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc848b.mod",
+   "url": "https://web.archive.org/web/20041212045736id_/http://www.zetex.com:80/3.0/spice/bc848b.mod",
+   "sha256": "efbb8e72523638874caf04bbd2ce419113035cf5004dcd061fbf229f0a0d444f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc849b.mod",
+   "url": "https://web.archive.org/web/20041212050512id_/http://www.zetex.com:80/3.0/spice/bc849b.mod",
+   "sha256": "f5dbd9df28d187a1164c23046d3476b882d810d90018179da1e00eacaeaa433d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc850b.mod",
+   "url": "https://web.archive.org/web/20041212051443id_/http://www.zetex.com:80/3.0/spice/bc850b.mod",
+   "sha256": "5c75b56f69e4fd7af326684a8ca91d2b73862a58b1b267b4960dda9dbab9f117",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc856a.mod",
+   "url": "https://web.archive.org/web/20041212051855id_/http://www.zetex.com:80/3.0/spice/bc856a.mod",
+   "sha256": "49c5819a84c21de5769e439031032bfabf94ae4966356034ade0ebc3ac7b89dd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc857a.mod",
+   "url": "https://web.archive.org/web/20041212052421id_/http://www.zetex.com:80/3.0/spice/bc857a.mod",
+   "sha256": "8fc0f85a519421cd404deed25a54f72fd8ba2c95b0cc5ad773659d56f93ea350",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc858a.mod",
+   "url": "https://web.archive.org/web/20041212053044id_/http://www.zetex.com:80/3.0/spice/bc858a.mod",
+   "sha256": "82c2e5e788a7480d733c0be742b327d296908fa05b84cb9f19cab5abd6e55c4d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc859a.mod",
+   "url": "https://web.archive.org/web/20041212043723id_/http://www.zetex.com:80/3.0/spice/bc859a.mod",
+   "sha256": "5aa2fa722876213194860f3ae663de2cbaf27aa9066b2b9ea89e86c7db068c6a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bc860a.mod",
+   "url": "https://web.archive.org/web/20041212044717id_/http://www.zetex.com:80/3.0/spice/bc860a.mod",
+   "sha256": "107ce7f43ea933fd8df0bfcc529e9c59def0884ab69055f85a48deea2bceca34",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcp5610.mod",
+   "url": "https://web.archive.org/web/20041208145106id_/http://www.zetex.com:80/3.0/spice/bcp5610.mod",
+   "sha256": "9da59930a614927517d08a908455c2a634c3be33d24d8bc9321c766e95c72b89",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcp5616.mod",
+   "url": "https://web.archive.org/web/20041208155136id_/http://www.zetex.com:80/3.0/spice/bcp5616.mod",
+   "sha256": "d5f28479f78d9607559b97b2ae004d913b0595cd9902b6d56879864d7ae870b7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcv72.mod",
+   "url": "https://web.archive.org/web/20041212043030id_/http://www.zetex.com:80/3.0/spice/bcv72.mod",
+   "sha256": "653587b78b4b9547138e8b1816f1fb3b142aefdc0ea0c6afe531cdc2b65106b7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw29.mod",
+   "url": "https://web.archive.org/web/20041212023226id_/http://www.zetex.com:80/3.0/spice/bcw29.mod",
+   "sha256": "bbfb1740f9a293ab8348a5013aba742693e5a02ee6966521b0cbbc4c8300f2c9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw32.mod",
+   "url": "https://web.archive.org/web/20041212023933id_/http://www.zetex.com:80/3.0/spice/bcw32.mod",
+   "sha256": "a1b60ed7778df63550cfb1f6a6d0a1fcecd7f9750ec01ee0d6aed7163caaa745",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw60c.mod",
+   "url": "https://web.archive.org/web/20041212024857id_/http://www.zetex.com:80/3.0/spice/bcw60c.mod",
+   "sha256": "03d97c66868f81f7c318aceff577c15f011c9bb5ca1c660b9437162be22c170e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw61a.mod",
+   "url": "https://web.archive.org/web/20041212040336id_/http://www.zetex.com:80/3.0/spice/bcw61a.mod",
+   "sha256": "4433c2f42e3dcf5cde42e4924f41d221f36d153d53dfb5bbd92b052207803f26",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw65a.mod",
+   "url": "https://web.archive.org/web/20041212040828id_/http://www.zetex.com:80/3.0/spice/bcw65a.mod",
+   "sha256": "4dcb902d40fe3e13be56b242ce5b4b8e086c4b6da6651f4a5dd59f363c5f6162",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw67a.mod",
+   "url": "https://web.archive.org/web/20041212041726id_/http://www.zetex.com:80/3.0/spice/bcw67a.mod",
+   "sha256": "1177db8a7dc33b70d081297014576203c86242721bfa4979a7e92c097d48f68d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw68f.mod",
+   "url": "https://web.archive.org/web/20041212042144id_/http://www.zetex.com:80/3.0/spice/bcw68f.mod",
+   "sha256": "44afae7dfb4dc0b48eb6e62a370dd2a63a04b9fc8b1962fe9a2cdbf3ac87ed7d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw69.mod",
+   "url": "https://web.archive.org/web/20041212043205id_/http://www.zetex.com:80/3.0/spice/bcw69.mod",
+   "sha256": "aff6820e3810ec53640e37a98f932ba87134cbcac6203287b11115a7af4fd0a4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw72.mod",
+   "url": "https://web.archive.org/web/20041212023346id_/http://www.zetex.com:80/3.0/spice/bcw72.mod",
+   "sha256": "6bdadb8ded16cb3dbd894bed745df127721f38a9268c3fb0c515482f8a7a826d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcw89.mod",
+   "url": "https://web.archive.org/web/20041212024355id_/http://www.zetex.com:80/3.0/spice/bcw89.mod",
+   "sha256": "578d41a80adc62b837d81899600aa4dec181f2bf046e714eef8d18209500379f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx17.mod",
+   "url": "https://web.archive.org/web/20071025143846id_/http://www.zetex.com/3.0/spice/bcx17.mod",
+   "sha256": "4976e9806ebb9cd56d3e678028490dee5c4cc72a812250193d0dd0f76c6df517",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx56.mod",
+   "url": "https://web.archive.org/web/20071025145014id_/http://www.zetex.com/3.0/spice/bcx56.mod",
+   "sha256": "72d31c7cfa73afabcad6a82f7516dbba6974207d130f9f8262962e3a132b47ac",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx5610.mod",
+   "url": "https://web.archive.org/web/20071025144809id_/http://www.zetex.com/3.0/spice/bcx5610.mod",
+   "sha256": "d3907fc4e06c5f91bc55516a1dc01b485e99b8a363d71be854e632ab0e3bbe03",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx5616.mod",
+   "url": "https://web.archive.org/web/20071025144610id_/http://www.zetex.com/3.0/spice/bcx5616.mod",
+   "sha256": "4bb3b2ab44f1883bc378156ebe8fcdcf7aeb6992b4f1ce6f7f3bdf17dd4ba776",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx6825.mod",
+   "url": "https://web.archive.org/web/20071025144304id_/http://www.zetex.com/3.0/spice/bcx6825.mod",
+   "sha256": "edc0a0b860ee8aa01bffe5ceaed40c894149a8f49a1edec35690d1d8bc7598fe",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx70j.mod",
+   "url": "https://web.archive.org/web/20041209204037id_/http://www.zetex.com:80/3.0/spice/bcx70j.mod",
+   "sha256": "fa1cd16f3400c7c01e516e9c3b3fcaa0048d999e6a1814a91afb7f7ea5b02f59",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bcx71g.mod",
+   "url": "https://web.archive.org/web/20041209205240id_/http://www.zetex.com:80/3.0/spice/bcx71g.mod",
+   "sha256": "cfbf41fc3fa49999387ca68742e783d074986dee50fffae1e18a9ad891d1e1f5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bfn17.mod",
+   "url": "https://web.archive.org/web/20071027021855id_/http://www.zetex.com/3.0/spice/bfn17.mod",
+   "sha256": "5e7d2a5a2fa0d8e48140d9d00e657adac9857dd8a2a5790cea0996f72b573723",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bfn19.mod",
+   "url": "https://web.archive.org/web/20071027021838id_/http://www.zetex.com/3.0/spice/bfn19.mod",
+   "sha256": "25b303fb0099f646bf4190721db847f1bf66efd744da89bc2e7c35db3d562e50",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bfq31.mod",
+   "url": "https://web.archive.org/web/20071025143354id_/http://www.zetex.com/3.0/spice/bfq31.mod",
+   "sha256": "2d5bcb3a8261713fbc52902f7a5126181ae95bb534a11b2da3f26d5b47d62d98",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bfs17.mod",
+   "url": "https://web.archive.org/web/20041209202618id_/http://www.zetex.com:80/3.0/spice/bfs17.mod",
+   "sha256": "c1267c29233b5c48e265662e7baa18baffd3456f38bfbddb62713db391f1f830",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bs250p.mod",
+   "url": "https://web.archive.org/web/20080609010201id_/http://www.zetex.com:80/3.0/spice/bs250p.mod",
+   "sha256": "847c2a38260ea8d046d9f9b21a2ca108e4a626819cd900bbf05985c631b76077",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bss123.mod",
+   "url": "https://web.archive.org/web/20071025143046id_/http://www.zetex.com/3.0/spice/bss123.mod",
+   "sha256": "54d509a2aea005c49e02f3919fc95f7348573fb2c9575c7d4c063b612aed18ca",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "BSS123A.mod",
+   "url": "https://web.archive.org/web/20071025143028id_/http://www.zetex.com/3.0/spice/BSS123A.mod",
+   "sha256": "ae9b3d7d6329fb11bc3fd963396483b6e8526ab8cdce5ac5618eea44f4792a5d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bss65.mod",
+   "url": "https://web.archive.org/web/20071025062111id_/http://www.zetex.com/3.0/spice/bss65.mod",
+   "sha256": "0879e55825d14e44811f546d13a8e37ee0808d046583c3146d65362dca839356",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "bss84.mod",
+   "url": "https://web.archive.org/web/20071025062013id_/http://www.zetex.com/3.0/spice/bss84.mod",
+   "sha256": "0307f638f80039cb98af96f66feb7768dce1dc1ada767cbe53e38902215d195a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "BST52.mod",
+   "url": "https://web.archive.org/web/20041212023925id_/http://www.zetex.com:80/3.0/spice/BST52.mod",
+   "sha256": "7cf9aa457f30e996b8e5d62d6f661791b8a1f684bb484ebfc3ba948c456294b8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1047a.mod",
+   "url": "https://web.archive.org/web/20071027111015id_/http://www.zetex.com/3.0/spice/fcx1047a.mod",
+   "sha256": "8ef53a33eeb1444c355d827030857ee186afab1fca0cad8f81f1311a837f360e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1051a.mod",
+   "url": "https://web.archive.org/web/20071027110616id_/http://www.zetex.com/3.0/spice/fcx1051a.mod",
+   "sha256": "1487362a45fd483f9f7b364a19fb6e07ca4fb1bf57daa9e147ec9292e581f372",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1053a.mod",
+   "url": "https://web.archive.org/web/20071027024849id_/http://www.zetex.com/3.0/spice/fcx1053a.mod",
+   "sha256": "cfbd57446ed2ff0fb710a81e19b9006932ffd79bb9a0f66996b912fcf0d5acbd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1147a.mod",
+   "url": "https://web.archive.org/web/20071027111500id_/http://www.zetex.com/3.0/spice/fcx1147a.mod",
+   "sha256": "5ca0462539d96b5dc20de88d309769fb76cf7ae5eaa1cd5e2b501f04d68e246d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1149a.mod",
+   "url": "https://web.archive.org/web/20071027110857id_/http://www.zetex.com/3.0/spice/fcx1149a.mod",
+   "sha256": "4d72503109757967dabe0d57af7eef18fb21b88fb7515605e4d6b43c3e47867e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx1151a.mod",
+   "url": "https://web.archive.org/web/20071027024658id_/http://www.zetex.com/3.0/spice/fcx1151a.mod",
+   "sha256": "ed9dfa400c359839eb6ce05f50492b1a3bf7cd3df85ec4a7b69186dca0fbadf6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FCX458.mod",
+   "url": "https://web.archive.org/web/20071027024730id_/http://www.zetex.com/3.0/spice/FCX458.mod",
+   "sha256": "2ebf43948dd8c77a2c62a66dac681700c3672bf91440d93d091562f115e812a3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx491.mod",
+   "url": "https://web.archive.org/web/20071027111556id_/http://www.zetex.com/3.0/spice/fcx491.mod",
+   "sha256": "23621a2d6f2b8243a3eff59980d11d018123472e7b76edbe5c4dc49f82dc49a3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx491a.mod",
+   "url": "https://web.archive.org/web/20071027024747id_/http://www.zetex.com/3.0/spice/fcx491a.mod",
+   "sha256": "98d94f78eaa856d5b804169640ab341a94a6372ccb1d111e377706d83675dea4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx493.mod",
+   "url": "https://web.archive.org/web/20071027111333id_/http://www.zetex.com/3.0/spice/fcx493.mod",
+   "sha256": "4a9379fd143f1048de9ad9745ae6418b6f804bb89923ccb128fc243c0aa466b8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FCX558.mod",
+   "url": "https://web.archive.org/web/20071027024644id_/http://www.zetex.com/3.0/spice/FCX558.mod",
+   "sha256": "e1d774956fce1bf2f9c34e3b6e3aca9765a00e47f995da34b5e1bb3d039b6184",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx589.mod",
+   "url": "https://web.archive.org/web/20071027111320id_/http://www.zetex.com/3.0/spice/fcx589.mod",
+   "sha256": "6c6ccda983fd92fd665f4c4503ef2291b7937e833b6466427c258ec45f21f4e9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx591.mod",
+   "url": "https://web.archive.org/web/20071027024835id_/http://www.zetex.com/3.0/spice/fcx591.mod",
+   "sha256": "fea51abb35e7e1c61e2067c45602d741b7119f9eaa680f18ac12e186485b0804",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx591a.mod",
+   "url": "https://web.archive.org/web/20071027024214id_/http://www.zetex.com/3.0/spice/fcx591a.mod",
+   "sha256": "ed9df2d3e3d2d5bfe6142a39bc90f0ef31517fca49e3d0d25498c2125df312e0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx596.mod",
+   "url": "https://web.archive.org/web/20071027024402id_/http://www.zetex.com/3.0/spice/fcx596.mod",
+   "sha256": "b80beff5745775da9e7d7e03d873cd21aa187a5af7e1653e2daa99af4b3c7bd9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FCX605.mod",
+   "url": "https://web.archive.org/web/20071027110345id_/http://www.zetex.com/3.0/spice/FCX605.mod",
+   "sha256": "f83548f328aa854df38c8f957da1576eab8e5ce28878d6bbf285f3bb5c4d1cc4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx617.mod",
+   "url": "https://web.archive.org/web/20071027110424id_/http://www.zetex.com/3.0/spice/fcx617.mod",
+   "sha256": "b2d389418b0b64efe73277590b4ff1064c81bc436ced8b6c74e156724c1e05a0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx619.mod",
+   "url": "https://web.archive.org/web/20071027111122id_/http://www.zetex.com/3.0/spice/fcx619.mod",
+   "sha256": "8d159a361438f62f4ddc9019cc5d333be3ea32d6c8d3489a85efb3e12ab6149f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx658a.mod",
+   "url": "https://web.archive.org/web/20071027111148id_/http://www.zetex.com/3.0/spice/fcx658a.mod",
+   "sha256": "af7f9841fd1cc771cb4e3b574c1218edfe3549e31d27d84dac8c0f61c0be09cb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx688b.mod",
+   "url": "https://web.archive.org/web/20071027024628id_/http://www.zetex.com/3.0/spice/fcx688b.mod",
+   "sha256": "a2aa41a9b43dd81db2008cde5b3f5e20138cc278bad9c53d8354a7c1b4e3900d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx690b.mod",
+   "url": "https://web.archive.org/web/20071027111425id_/http://www.zetex.com/3.0/spice/fcx690b.mod",
+   "sha256": "969bdd3af69114028e235af5f619e4e560aa65c92cc5dc3d95f915bb68efc6e1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx717.mod",
+   "url": "https://web.archive.org/web/20071027024930id_/http://www.zetex.com/3.0/spice/fcx717.mod",
+   "sha256": "a9f69ef06c36bcbc71ea0180f3ac8476262620553d1c70f33a156daf881bf019",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx718.mod",
+   "url": "https://web.archive.org/web/20071027111411id_/http://www.zetex.com/3.0/spice/fcx718.mod",
+   "sha256": "b5c543044aa87698d64b036512a63832f9eac9cd43dd78c1cfa3805d8c70a544",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx789a.mod",
+   "url": "https://web.archive.org/web/20071027111240id_/http://www.zetex.com/3.0/spice/fcx789a.mod",
+   "sha256": "2b1a106c4ad5eb8b95724900f5b285322398324ecd1630f36d1c770f108fd1d4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fcx790a.mod",
+   "url": "https://web.archive.org/web/20071027110458id_/http://www.zetex.com/3.0/spice/fcx790a.mod",
+   "sha256": "1b233325dbeaf92cce82581d43825059f1525761ce7a860ed2793473b759f9e8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "flld258.mod",
+   "url": "https://web.archive.org/web/20041209202710id_/http://www.zetex.com:80/3.0/spice/flld258.mod",
+   "sha256": "4d025a3bf302510acca6b5b923399695afe43db5b492d7c2cdff59aad15eff0a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "flld261.mod",
+   "url": "https://web.archive.org/web/20041209204011id_/http://www.zetex.com:80/3.0/spice/flld261.mod",
+   "sha256": "ec841c3518357606a0536af99b90df65cdbc5c137ac810ba3dccc06fcd35f162",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "flld263.mod",
+   "url": "https://web.archive.org/web/20041209204211id_/http://www.zetex.com:80/3.0/spice/flld263.mod",
+   "sha256": "5431d0d211dec38073333e938d716d6d2c5046b6d5c3c5857cfc42ce32a3e368",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd2835.mod",
+   "url": "https://web.archive.org/web/20041209205030id_/http://www.zetex.com:80/3.0/spice/fmmd2835.mod",
+   "sha256": "dd85a8424cbfa68d34e637b33367b2c8e147c4c52dd5f5ed07c89fc2d1fe981a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd2836.mod",
+   "url": "https://web.archive.org/web/20041209205530id_/http://www.zetex.com:80/3.0/spice/fmmd2836.mod",
+   "sha256": "f67c8bfec1f5e5a6c1a16e911bcf48a047e8e233d3dffeb26cde23f532bfbcbf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd2837.mod",
+   "url": "https://web.archive.org/web/20041209205941id_/http://www.zetex.com:80/3.0/spice/fmmd2837.mod",
+   "sha256": "d3ed2cce6aa1b1eb383ca92313ec9bfd0e9eb1fef9d53ff4af36de598df09dde",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd2838.mod",
+   "url": "https://web.archive.org/web/20041209210636id_/http://www.zetex.com:80/3.0/spice/fmmd2838.mod",
+   "sha256": "7c430e48bbf42685ad5a354a948a7b824450dbe0c43acee4c7fd7ecce5b91b1c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd6050.mod",
+   "url": "https://web.archive.org/web/20041209202600id_/http://www.zetex.com:80/3.0/spice/fmmd6050.mod",
+   "sha256": "2c4f802762dd2e461b18d5168c680c4736636f493ed78d161d8e795a64c5a9dc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd6100.mod",
+   "url": "https://web.archive.org/web/20041209203459id_/http://www.zetex.com:80/3.0/spice/fmmd6100.mod",
+   "sha256": "0539ee56b396478aa17f7194bc70975b2c4dbb87b97b54d5128707d0f91005b7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd7000.mod",
+   "url": "https://web.archive.org/web/20041209204629id_/http://www.zetex.com:80/3.0/spice/fmmd7000.mod",
+   "sha256": "50c0ccad6fadb280e9e62ee40d49ac8fc9eaec902678296771fab555c96f882e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmd914.mod",
+   "url": "https://web.archive.org/web/20041209204950id_/http://www.zetex.com:80/3.0/spice/fmmd914.mod",
+   "sha256": "e70074592bede99c4779e27f4b765288898f61048e259f1f08d821cbc87fbddf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt38c.mod",
+   "url": "https://web.archive.org/web/20041209205639id_/http://www.zetex.com:80/3.0/spice/fmmt38c.mod",
+   "sha256": "11a92c2c143fe73962b0edc4f5f4fcc09f1ee9ebc2c130dac783a1c4d43deced",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt455.mod",
+   "url": "https://web.archive.org/web/20040628194623id_/http://www.zetex.com:80/3.0/spice/fmmt455.mod",
+   "sha256": "9b8095cc6c8cb9b7625ca9e96da3446960c78d6d4099f1bd46c32e2d923b19e5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt458.mod",
+   "url": "https://web.archive.org/web/20040628192321id_/http://www.zetex.com:80/3.0/spice/fmmt458.mod",
+   "sha256": "af49d797bd960b00afe12a8ea449e1c161a6a07314fd21d1ba75dc1261221921",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt459.mod",
+   "url": "https://web.archive.org/web/20041209211043id_/http://www.zetex.com:80/3.0/spice/fmmt459.mod",
+   "sha256": "e0fcc5e1b1621e4b84f568d6cf91def59f593b4b95d0923736fc71451fd3f35b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt489.mod",
+   "url": "https://web.archive.org/web/20041209202622id_/http://www.zetex.com:80/3.0/spice/fmmt489.mod",
+   "sha256": "d0217da3583c1e68f19d6bcaa586ad7c854d918e67fb8d3fd8750a62e7833c34",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt491a.mod",
+   "url": "https://web.archive.org/web/20041209203949id_/http://www.zetex.com:80/3.0/spice/fmmt491a.mod",
+   "sha256": "66da9287ee91a0f27328482a98ef2fd14020341daa15fb5b1d056e025f146acb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt493.mod",
+   "url": "https://web.archive.org/web/20041209204446id_/http://www.zetex.com:80/3.0/spice/fmmt493.mod",
+   "sha256": "21cb9c115ccdc73315d369f84eaa69b2c5d3fbbff5d53d684bf10bc47f3fbd93",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt497.mod",
+   "url": "https://web.archive.org/web/20041209204933id_/http://www.zetex.com:80/3.0/spice/fmmt497.mod",
+   "sha256": "4249c06c4ce8077102d7ca06bc43146b87a50d38196148be4cb39f3d25df5208",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt5179.mod",
+   "url": "https://web.archive.org/web/20041209205425id_/http://www.zetex.com:80/3.0/spice/fmmt5179.mod",
+   "sha256": "0d0238e4a6ef2f59d45f1e51cd8c4dc8dd6fe506138eef7be6b40cd8d239c98f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt549.mod",
+   "url": "https://web.archive.org/web/20041209210210id_/http://www.zetex.com:80/3.0/spice/fmmt549.mod",
+   "sha256": "2fcb8af81f01eb9fe1363399260ff646edbfa791771977dafe50f4d0be2f055c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt558.mod",
+   "url": "https://web.archive.org/web/20040628193107id_/http://www.zetex.com:80/3.0/spice/fmmt558.mod",
+   "sha256": "d5426ebb487b650991c92955c19b0cf0b18f815f073a551886056947efbd4490",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt560.mod",
+   "url": "https://web.archive.org/web/20041209202644id_/http://www.zetex.com:80/3.0/spice/fmmt560.mod",
+   "sha256": "075891fb54553b908d9aedbbb75f4ec7af3bc25828d60a35254cd0cceb7018f5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt589.mod",
+   "url": "https://web.archive.org/web/20041209203612id_/http://www.zetex.com:80/3.0/spice/fmmt589.mod",
+   "sha256": "a61d3e3fbe689cac458f8e8d1d8c64cb681386e464e4de82ebc730c4e514f4b1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt591a.mod",
+   "url": "https://web.archive.org/web/20041209204135id_/http://www.zetex.com:80/3.0/spice/fmmt591a.mod",
+   "sha256": "9f1957cd700b2a0917d366b3c50833956b25fd2119bfa51a5636e15ce2a62cec",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt593.mod",
+   "url": "https://web.archive.org/web/20041209204902id_/http://www.zetex.com:80/3.0/spice/fmmt593.mod",
+   "sha256": "ac7e87950209bd19dbd47a0a64cecb65f94f2ff617e3e874876ca9761fceea2e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt597.mod",
+   "url": "https://web.archive.org/web/20040630213144id_/http://www.zetex.com:80/3.0/spice/fmmt597.mod",
+   "sha256": "b7359472fcb6bee71877d75c27146758b14e49aa05dfdacbe4e697c4a6bcb30e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FMMT614.mod",
+   "url": "https://web.archive.org/web/20041204210516id_/http://www.zetex.com:80/3.0/spice/FMMT614.mod",
+   "sha256": "0a4146a9f1258ab2018fb39d04f12b4f8c5f81d7ba93cbee038e8f4941f8bd8c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt617.mod",
+   "url": "https://web.archive.org/web/20071020143458id_/http://www.zetex.com/3.0/spice/fmmt617.mod",
+   "sha256": "5f081d8ef7b25d43b832b950f98be10cab805ee30eb8854f9747d0d60ff716d6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt618.mod",
+   "url": "https://web.archive.org/web/20081018113321id_/http://www.zetex.com:80/3.0/spice/fmmt618.mod",
+   "sha256": "06159e6917a60be3bc71657bba17f76d44d4561406c40e885d516c90e9cc253a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt619.mod",
+   "url": "https://web.archive.org/web/20041209203202id_/http://www.zetex.com:80/3.0/spice/fmmt619.mod",
+   "sha256": "2dbe46274668ea61abf6d58bcc276566067d0bb4808b16c4c1cc1049a73ad52e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt620.mod",
+   "url": "https://web.archive.org/web/20041209203428id_/http://www.zetex.com:80/3.0/spice/fmmt620.mod",
+   "sha256": "a22fa5ade065b3cf967a2fafa1c6955a038889e39f8d172b821952c6f9f8ddcc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt624.mod",
+   "url": "https://web.archive.org/web/20041209204306id_/http://www.zetex.com:80/3.0/spice/fmmt624.mod",
+   "sha256": "828dbf0d0036b1abbff92c7bfc2d333f1d791645bc2b3b94a08b57423eada090",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt625.mod",
+   "url": "https://web.archive.org/web/20041209204753id_/http://www.zetex.com:80/3.0/spice/fmmt625.mod",
+   "sha256": "2ccd4108e160435eb508fdc4c1b1fc362be6ce2809cb411ac5ddc25f7bb982b0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt634.mod",
+   "url": "https://web.archive.org/web/20041209205538id_/http://www.zetex.com:80/3.0/spice/fmmt634.mod",
+   "sha256": "60da105fbe05c69936a1b6390159c8bcd5af6c9f56abaaaeb525820e226e4013",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt717.mod",
+   "url": "https://web.archive.org/web/20041209210957id_/http://www.zetex.com:80/3.0/spice/fmmt717.mod",
+   "sha256": "ed49071409a215f6fdda7cfb2e97581e5aa7152b3d0b571c4edd154975b60536",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt718.mod",
+   "url": "https://web.archive.org/web/20041209202900id_/http://www.zetex.com:80/3.0/spice/fmmt718.mod",
+   "sha256": "5dda543366dac9560226867640c8ac37c1694cbd1a077a497ef92cb1c2d8e500",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt720.mod",
+   "url": "https://web.archive.org/web/20041209203836id_/http://www.zetex.com:80/3.0/spice/fmmt720.mod",
+   "sha256": "9d6a22d4011eebfb9d79f342cc1fd09d23248fd7203ae06a4edce845e6d43ed9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt722.mod",
+   "url": "https://web.archive.org/web/20041209204604id_/http://www.zetex.com:80/3.0/spice/fmmt722.mod",
+   "sha256": "4190fa99f9b38ebb71fc799ddc52ba2ee5a2449a84cfd15aea4a653873d29450",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmt918.mod",
+   "url": "https://web.archive.org/web/20041209205321id_/http://www.zetex.com:80/3.0/spice/fmmt918.mod",
+   "sha256": "e82c72455d9800446335ec6fe4027912b99f71e0e7b0e120264b66112ce53cb2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta12.mod",
+   "url": "https://web.archive.org/web/20041209205602id_/http://www.zetex.com:80/3.0/spice/fmmta12.mod",
+   "sha256": "22ced5c3b8c36cbe337f1535085267685a683db731347bdc7a3ad8ed1e2577c7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta13.mod",
+   "url": "https://web.archive.org/web/20041209210023id_/http://www.zetex.com:80/3.0/spice/fmmta13.mod",
+   "sha256": "abf7442ceb352ff45d488ff38caa376c80fcd4ace21ebed0a6331549a221566c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta14.mod",
+   "url": "https://web.archive.org/web/20041209210859id_/http://www.zetex.com:80/3.0/spice/fmmta14.mod",
+   "sha256": "b3df9ea8cef9fc765eca5b8ea30ee1d09c16aa1f03f19319ceaa545cf8d24ab6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta20.mod",
+   "url": "https://web.archive.org/web/20041209203233id_/http://www.zetex.com:80/3.0/spice/fmmta20.mod",
+   "sha256": "9130e85984516dd009b66f576c85bcd23c8c88484531575ba9be63d366430321",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta63.mod",
+   "url": "https://web.archive.org/web/20041209204835id_/http://www.zetex.com:80/3.0/spice/fmmta63.mod",
+   "sha256": "a91cb7527269c4d25a6bb5c6b0a2cf9a6ff2716b35cad5756bcaca56da1995bb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmta70.mod",
+   "url": "https://web.archive.org/web/20041209205334id_/http://www.zetex.com:80/3.0/spice/fmmta70.mod",
+   "sha256": "41358d176978a7fcf39c117132be7a3bc0884cbe1508fdee1833e5c90892ab2c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmth10.mod",
+   "url": "https://web.archive.org/web/20041209202850id_/http://www.zetex.com:80/3.0/spice/fmmth10.mod",
+   "sha256": "00759c704f382850de96e6b03e0dc3cc97309626e4d9b2388c244be758ae14b2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmtl618.mod",
+   "url": "https://web.archive.org/web/20041209203436id_/http://www.zetex.com:80/3.0/spice/fmmtl618.mod",
+   "sha256": "88aac46dc7de795acdc9ddc5f40bbf7d9bd08dee6d922a7a4d799a4ea3016d37",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmtl718.mod",
+   "url": "https://web.archive.org/web/20041209204656id_/http://www.zetex.com:80/3.0/spice/fmmtl718.mod",
+   "sha256": "f751e8b488f49d4a93ed7d67499f8b6fb76c2400c7d4aa5322108a004646c653",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv105g.mod",
+   "url": "https://web.archive.org/web/20041209205515id_/http://www.zetex.com:80/3.0/spice/fmmv105g.mod",
+   "sha256": "9b1ef6d02600dbfdc8855b7d4150eca3254202cefe80ea328a0db6878c2945b1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv109.mod",
+   "url": "https://web.archive.org/web/20041209210226id_/http://www.zetex.com:80/3.0/spice/fmmv109.mod",
+   "sha256": "d46ef6283aa73921104be9df9e91b37828231c9e4998512252ff8d5b02bd6872",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2102.mod",
+   "url": "https://web.archive.org/web/20041209210524id_/http://www.zetex.com:80/3.0/spice/fmmv2102.mod",
+   "sha256": "bb6b97e3ef40ab17e12b39b27dc252bc58305f8c1ad84485cd28d16151055e09",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2103.mod",
+   "url": "https://web.archive.org/web/20041209203153id_/http://www.zetex.com:80/3.0/spice/fmmv2103.mod",
+   "sha256": "6d18cd363a94ed24bbefe60cf2871f3e33bd2b46f897033e0c732d3f06940e75",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2104.mod",
+   "url": "https://web.archive.org/web/20041209203631id_/http://www.zetex.com:80/3.0/spice/fmmv2104.mod",
+   "sha256": "937d7566a2c2af0ad1205a676002463ad04a80959504d1a0eb403a5e38827987",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2105.mod",
+   "url": "https://web.archive.org/web/20041209204617id_/http://www.zetex.com:80/3.0/spice/fmmv2105.mod",
+   "sha256": "f98d7edfd9151c2af6e8f570293353ceaad174cf08161796d020de4e81c58279",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2106.mod",
+   "url": "https://web.archive.org/web/20041209204946id_/http://www.zetex.com:80/3.0/spice/fmmv2106.mod",
+   "sha256": "6eab34181b3f22ef3be703ce177d7c50229bd26d5f4407093e25a15835553e69",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2107.mod",
+   "url": "https://web.archive.org/web/20041209205358id_/http://www.zetex.com:80/3.0/spice/fmmv2107.mod",
+   "sha256": "147d9dd8d65686ead34ed83c8faec680f8574eaacc246b6457bc9419dd04df9c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2108.mod",
+   "url": "https://web.archive.org/web/20041209210042id_/http://www.zetex.com:80/3.0/spice/fmmv2108.mod",
+   "sha256": "5cecf3c26f8a2d767fd19dcda4470bd2473df8d70fd6ae61764fbce655f775be",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv2109.mod",
+   "url": "https://web.archive.org/web/20041209210535id_/http://www.zetex.com:80/3.0/spice/fmmv2109.mod",
+   "sha256": "51a7c1042cc2a88905c5dcd01b7e48d568beb36d4ca18664f696dfeb7c323484",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fmmv3102.mod",
+   "url": "https://web.archive.org/web/20041209202929id_/http://www.zetex.com:80/3.0/spice/fmmv3102.mod",
+   "sha256": "a6ea710fa0cc21adfb991573b4acbc6b9698e13b89c16fcedd9b7d2a5ff8fe9e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FSD273.mod",
+   "url": "https://web.archive.org/web/20041212051544id_/http://www.zetex.com:80/3.0/spice/FSD273.mod",
+   "sha256": "180ffd7af7f4fe13a58ee7a709f92b9330154ee5cc8ebc249dbc24dc819fda75",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fxt618.mod",
+   "url": "https://web.archive.org/web/20041212041221id_/http://www.zetex.com:80/3.0/spice/fxt618.mod",
+   "sha256": "a4451d743a0354d9cf3bf229c29b7904632029771a9123598081bf058d072408",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1047a.mod",
+   "url": "https://web.archive.org/web/20041209203511id_/http://www.zetex.com:80/3.0/spice/fzt1047a.mod",
+   "sha256": "a59017c98456249067f88a4001c315e696a3187e836b09af1de43445a3225767",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1048a.mod",
+   "url": "https://web.archive.org/web/20041209204533id_/http://www.zetex.com:80/3.0/spice/fzt1048a.mod",
+   "sha256": "1af7063daebe3b5c6e6db2b3b18d747fa66fb18df10a18d367b4bf29cdc0671b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1049a.mod",
+   "url": "https://web.archive.org/web/20041209205006id_/http://www.zetex.com:80/3.0/spice/fzt1049a.mod",
+   "sha256": "29ebb3b00bd243f0af53fd267b62e6a0b5bff317f2a65f7ad0bfb22328647eb1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1051a.mod",
+   "url": "https://web.archive.org/web/20041209205830id_/http://www.zetex.com:80/3.0/spice/fzt1051a.mod",
+   "sha256": "0a3d185497a560976d79ad8c471b031257572f9b56dd366fa7474e36eca36f73",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1053a.mod",
+   "url": "https://web.archive.org/web/20041209210015id_/http://www.zetex.com:80/3.0/spice/fzt1053a.mod",
+   "sha256": "d672fb8aa74698ea09666b052aad592cacdb8e621e78caa679993b27ee89906e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1147a.mod",
+   "url": "https://web.archive.org/web/20041209210917id_/http://www.zetex.com:80/3.0/spice/fzt1147a.mod",
+   "sha256": "e4ee9bf52312eaf227e3bf20a2752f5efb8a6e30b0894e45e7f9717fc31f8545",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1149a.mod",
+   "url": "https://web.archive.org/web/20041209203237id_/http://www.zetex.com:80/3.0/spice/fzt1149a.mod",
+   "sha256": "0fb80c548472ddee0217948ea7a6889d1bb416af8994e7aecd5f768fa77c14d5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt1151a.mod",
+   "url": "https://web.archive.org/web/20041209203413id_/http://www.zetex.com:80/3.0/spice/fzt1151a.mod",
+   "sha256": "deefef83f82c0bee13904db0eaa13409e0b6141481a4fddb9a23cf041f30cab9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt491.mod",
+   "url": "https://web.archive.org/web/20041209204530id_/http://www.zetex.com:80/3.0/spice/fzt491.mod",
+   "sha256": "33fe79395559de57eacd8283cf041050899d74c78cb72cbe5306b834e6b4f91d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt560.mod",
+   "url": "https://web.archive.org/web/20041209205816id_/http://www.zetex.com:80/3.0/spice/fzt560.mod",
+   "sha256": "e0756e37553ff14469062b36199b54ea8ca72335b301ca6ab9da4c0e00eb016d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt604.mod",
+   "url": "https://web.archive.org/web/20041209210411id_/http://www.zetex.com:80/3.0/spice/fzt604.mod",
+   "sha256": "442d3f6907a0a45535366ed8429e89aa9ad7f44ef4c075cb02cac01ee5f7604a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt605.mod",
+   "url": "https://web.archive.org/web/20041209211102id_/http://www.zetex.com:80/3.0/spice/fzt605.mod",
+   "sha256": "933bac885475e12df55863f1797c635bea923cfa03e8f0b0491da6fb8bffd254",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt649.mod",
+   "url": "https://web.archive.org/web/20041209202846id_/http://www.zetex.com:80/3.0/spice/fzt649.mod",
+   "sha256": "b7975578fb8304ab0dbc0c9f0b68c1076967a1adcd76e0b673e21034ea0553d1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt651.mod",
+   "url": "https://web.archive.org/web/20041209203615id_/http://www.zetex.com:80/3.0/spice/fzt651.mod",
+   "sha256": "eb55c9da575ecbf507a4480cc0fa6a61b02c3043a0651ec0937cae7b6c6b3935",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt653.mod",
+   "url": "https://web.archive.org/web/20041209204301id_/http://www.zetex.com:80/3.0/spice/fzt653.mod",
+   "sha256": "4d1889bf1d4ef073901a6429342dd1c9f1e22896025b36b3b6e3702af5957f69",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt657.mod",
+   "url": "https://web.archive.org/web/20040630213538id_/http://www.zetex.com:80/3.0/spice/fzt657.mod",
+   "sha256": "7db8e85bb8dde8d8b2c8d53435beebcd94b6297406fa505c4bf394281a774dab",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt658.mod",
+   "url": "https://web.archive.org/web/20040630212908id_/http://www.zetex.com:80/3.0/spice/fzt658.mod",
+   "sha256": "9dc4009ec8d8b21dcd1caa58bf1fec0a2e43ec0428334304d22c2530a3ac578d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt688b.mod",
+   "url": "https://web.archive.org/web/20041209205018id_/http://www.zetex.com:80/3.0/spice/fzt688b.mod",
+   "sha256": "bbfad71832de7535df623a66949d2763172dd8e2bea7c0bd6959619ba79d6fd7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt689b.mod",
+   "url": "https://web.archive.org/web/20041209205857id_/http://www.zetex.com:80/3.0/spice/fzt689b.mod",
+   "sha256": "229b6335624c8cbf8dc21dc57844e3536c1724a985224781809f2faab3d9f1f9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt690b.mod",
+   "url": "https://web.archive.org/web/20041209210158id_/http://www.zetex.com:80/3.0/spice/fzt690b.mod",
+   "sha256": "50cd02360e6ac35d51bfabd3c689acdc2ea831d761818587557caa08fd4ae809",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt692b.mod",
+   "url": "https://web.archive.org/web/20041209210925id_/http://www.zetex.com:80/3.0/spice/fzt692b.mod",
+   "sha256": "699d2f226b941ddd48ca52b55e542a4570c03b201f4fbc8f46a842a23716f0ca",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt694b.mod",
+   "url": "https://web.archive.org/web/20041209203144id_/http://www.zetex.com:80/3.0/spice/fzt694b.mod",
+   "sha256": "327cd8e346b5ca0f45420d43cce05c27932343102e3f09e8fffcc9ae2868b38a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt696b.mod",
+   "url": "https://web.archive.org/web/20041209203559id_/http://www.zetex.com:80/3.0/spice/fzt696b.mod",
+   "sha256": "6cb487f46d2deb2728647ecb90514e5f6c22603a2b01a18b9b2162dc5f79d2f3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt705.mod",
+   "url": "https://web.archive.org/web/20090202185131id_/http://www.zetex.com:80/3.0/spice/fzt705.mod",
+   "sha256": "9342eab97bbaeb5ca9d35306cd8c9fc447829922ff096c73997f7ed4db80f735",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt717.mod",
+   "url": "https://web.archive.org/web/20041209205237id_/http://www.zetex.com:80/3.0/spice/fzt717.mod",
+   "sha256": "7379771e42d529b1185962930b1615a8267b3cde9d5461c54ce6527fd2ef27c4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt749.mod",
+   "url": "https://web.archive.org/web/20041209205554id_/http://www.zetex.com:80/3.0/spice/fzt749.mod",
+   "sha256": "e53314f76ab3c9a30399b4f880250f0d84fa767b4710269291d3e164464c6653",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt751.mod",
+   "url": "https://web.archive.org/web/20041209210331id_/http://www.zetex.com:80/3.0/spice/fzt751.mod",
+   "sha256": "e8fb7e796a77a3069573d27e9164208e398453ae4279382cac537b24ef0afacc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt753.mod",
+   "url": "https://web.archive.org/web/20041209210751id_/http://www.zetex.com:80/3.0/spice/fzt753.mod",
+   "sha256": "29609365c5dd183175b34ac59869d9ee9ca481e7257e91b8fcecdb2a8bc822b4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt757.mod",
+   "url": "https://web.archive.org/web/20041209203112id_/http://www.zetex.com:80/3.0/spice/fzt757.mod",
+   "sha256": "fd81bc0ea3fe6ff18a1bbce016e8924ddc16cac133dc40be0416a87913118a53",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "FZT758.mod",
+   "url": "https://web.archive.org/web/20041204211007id_/http://www.zetex.com:80/3.0/spice/FZT758.mod",
+   "sha256": "3449b9e11e6d857b08e0746b684d177f53304d70a7ff7a132428d1ccb2b281ef",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt788a.mod",
+   "url": "https://web.archive.org/web/20041209203742id_/http://www.zetex.com:80/3.0/spice/fzt788a.mod",
+   "sha256": "f10dc03a502f69fe46bfe2c6d2e179c6fd95f9dab2b06ba5d7a44814c0428fa7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt788b.mod",
+   "url": "https://web.archive.org/web/20041209204202id_/http://www.zetex.com:80/3.0/spice/fzt788b.mod",
+   "sha256": "c09c76ff86e4bb868d04983ee92828648fb67fe9df246a337844556d60ad8a51",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt789a.mod",
+   "url": "https://web.archive.org/web/20051125054434id_/http://www.zetex.com:80/3.0/spice/fzt789a.mod",
+   "sha256": "d7c211b2818eb61044632509805433dbb20f93dfe93a4028b017c458bb87e221",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt790a.mod",
+   "url": "https://web.archive.org/web/20041209205606id_/http://www.zetex.com:80/3.0/spice/fzt790a.mod",
+   "sha256": "37f5e409f20c0cb2416a33b2796ddd9605e7d8074aa67ef3fa66f2909b93b4b5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt792a.mod",
+   "url": "https://web.archive.org/web/20041209210222id_/http://www.zetex.com:80/3.0/spice/fzt792a.mod",
+   "sha256": "979752fb9d3b428c1231427900377655283f87172a7f546d2f487abd907d06fa",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt795a.mod",
+   "url": "https://web.archive.org/web/20040630213955id_/http://www.zetex.com:80/3.0/spice/fzt795a.mod",
+   "sha256": "aa0f65610248289c2232ab57c247bd6ddd3076b99877ab9386c3df8c7a27ff3c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt796a.mod",
+   "url": "https://web.archive.org/web/20040630213104id_/http://www.zetex.com:80/3.0/spice/fzt796a.mod",
+   "sha256": "5e3f5d7acdef1bd455574c6b08599b7c6743aa4d2ec97c31351116e7b8ea00cc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt849.mod",
+   "url": "https://web.archive.org/web/20041209210715id_/http://www.zetex.com:80/3.0/spice/fzt849.mod",
+   "sha256": "1ba23c3ff4d88ea44f41b2802b01a6ce9cac0abcf2c1e94257765572204de862",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt851.mod",
+   "url": "https://web.archive.org/web/20041209203127id_/http://www.zetex.com:80/3.0/spice/fzt851.mod",
+   "sha256": "00b0240e61ceb46a2fe0408a0a85c2ddefd18b3e9cc27d42a4abe5c4e7da6932",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt853.mod",
+   "url": "https://web.archive.org/web/20041209203734id_/http://www.zetex.com:80/3.0/spice/fzt853.mod",
+   "sha256": "ffb55180c6864756948d7b25a09ab7cc8e089da3daa8ab1c31d405ee00489c73",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt855.mod",
+   "url": "https://web.archive.org/web/20041209204402id_/http://www.zetex.com:80/3.0/spice/fzt855.mod",
+   "sha256": "628a79b4eeac1d9a74a22755887fbdcae546dfb559ac2834910931bd35880642",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt857.mod",
+   "url": "https://web.archive.org/web/20040630213710id_/http://www.zetex.com:80/3.0/spice/fzt857.mod",
+   "sha256": "68b461023ae410cfe5e547677282a473b5569b2ca9f6e83c14dce8c77ec04f72",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt869.mod",
+   "url": "https://web.archive.org/web/20041209204912id_/http://www.zetex.com:80/3.0/spice/fzt869.mod",
+   "sha256": "36829403be1c635c906e9e666557e12cbd5af4f068e7ae3fd4271a2dbd768da0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt948.mod",
+   "url": "https://web.archive.org/web/20041209205734id_/http://www.zetex.com:80/3.0/spice/fzt948.mod",
+   "sha256": "a3afb4fd35d30bdf21132abe0faed3e73b97c5ac0f2a000acc1ec3b8f64f8035",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt949.mod",
+   "url": "https://web.archive.org/web/20041209210234id_/http://www.zetex.com:80/3.0/spice/fzt949.mod",
+   "sha256": "82c99b706b0927fc6990a7fead14c28c00eb607b460e76996e174bbaf4f8b408",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt951.mod",
+   "url": "https://web.archive.org/web/20041209210527id_/http://www.zetex.com:80/3.0/spice/fzt951.mod",
+   "sha256": "ed82b8014c40001844246150723e8615b415160321f3e62dc4a2ee89ac6bbbb9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt953.mod",
+   "url": "https://web.archive.org/web/20041209203221id_/http://www.zetex.com:80/3.0/spice/fzt953.mod",
+   "sha256": "a6fb8ce97852e4f5b56563606c81a405263d7b5e922ea107bc820738c06524fb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt955.mod",
+   "url": "https://web.archive.org/web/20041209203409id_/http://www.zetex.com:80/3.0/spice/fzt955.mod",
+   "sha256": "e9153f63afb549fb0a0919a55ee8758397f1ce0a28c2ab0f8f7e6ea22cd0f9c3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt956.mod",
+   "url": "https://web.archive.org/web/20040630213120id_/http://www.zetex.com:80/3.0/spice/fzt956.mod",
+   "sha256": "e2497dc603f10704cb0b214ab5c1597e474d7d4156e28af3c53aaafec332158d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt957.mod",
+   "url": "https://web.archive.org/web/20040630213442id_/http://www.zetex.com:80/3.0/spice/fzt957.mod",
+   "sha256": "06bf40fc00f3e51043448306ebd6f03e3196500e3fe143591b8bde137de9f2c7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt958.mod",
+   "url": "https://web.archive.org/web/20040630212947id_/http://www.zetex.com:80/3.0/spice/fzt958.mod",
+   "sha256": "002a19d20b6f9a5f051cdfe01dda745dd7074c8f08088c105b40672b085db6ff",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "fzt968.mod",
+   "url": "https://web.archive.org/web/20041209204059id_/http://www.zetex.com:80/3.0/spice/fzt968.mod",
+   "sha256": "70e6b2a5fddf03393804fca73b9c78674684d39ee0bf8b23e13976787380a149",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "hd2a.mod",
+   "url": "https://web.archive.org/web/20071027022134id_/http://www.zetex.com/3.0/spice/hd2a.mod",
+   "sha256": "85ce39284cbc37a3cfe3c23adea86d816936a4517d581e7c83665f50e1efbca8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "hd3a.mod",
+   "url": "https://web.archive.org/web/20071026175012id_/http://www.zetex.com/3.0/spice/hd3a.mod",
+   "sha256": "b4d51d72a80d5e90bbbc98c6847ee84cdab8fa3bca64310f392e0c8a013656eb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "hd4a.mod",
+   "url": "https://web.archive.org/web/20071025235510id_/http://www.zetex.com/3.0/spice/hd4a.mod",
+   "sha256": "1ed778fc03016075e32f9821e7108b56182ddcca01669b02eaa54bb0357ff156",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "mps5179.mod",
+   "url": "https://web.archive.org/web/20041210022633id_/http://www.zetex.com:80/3.0/spice/mps5179.mod",
+   "sha256": "1f52f7d600ef89c1735bd7afca6b2ba0c89fd37d210c5a1dad0ee71ce49ce098",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "mpsa20.mod",
+   "url": "https://web.archive.org/web/20041210023218id_/http://www.zetex.com:80/3.0/spice/mpsa20.mod",
+   "sha256": "a506f7910fdd11f2580706553872bcab99b3b3f071645fac4a7505c8fda1e93c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "mpsa77.mod",
+   "url": "https://web.archive.org/web/20041210023543id_/http://www.zetex.com:80/3.0/spice/mpsa77.mod",
+   "sha256": "00b352a26d6d26104ff22e5a33b8be796be15411c97fe7050580a1ce9c63a9da",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "mpsh10.mod",
+   "url": "https://web.archive.org/web/20041210024023id_/http://www.zetex.com:80/3.0/spice/mpsh10.mod",
+   "sha256": "dd7b7e8fe658e6ed33c01d7decb457bffbd02376a3abf7b695835bef2a1541b9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc2800.mod",
+   "url": "https://web.archive.org/web/20041212140127id_/http://www.zetex.com:80/3.0/spice/zc2800.mod",
+   "sha256": "0d666ba45cef022f5bc6bae0473ae6583a220c140ad6175c57093d3e4b1abc58",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc2800e.mod",
+   "url": "https://web.archive.org/web/20041212141114id_/http://www.zetex.com:80/3.0/spice/zc2800e.mod",
+   "sha256": "a9b480494ccb64c358b13307b1d2e5f0e7d9f16aa6af40337c84cb919828c96e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc2811.mod",
+   "url": "https://web.archive.org/web/20041212142215id_/http://www.zetex.com:80/3.0/spice/zc2811.mod",
+   "sha256": "631ce71c98724643c80d445a4ad5f191e8bb1259979e12d113c6a7a61025eb50",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc2811e.mod",
+   "url": "https://web.archive.org/web/20041212123705id_/http://www.zetex.com:80/3.0/spice/zc2811e.mod",
+   "sha256": "47194eee0680ad5f7e25c5f4128dcae487c27938886fadb8322d898393fd672e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc5800.mod",
+   "url": "https://web.archive.org/web/20041209211054id_/http://www.zetex.com:80/3.0/spice/zc5800.mod",
+   "sha256": "7ed3eb1bcdf78d41ef6eb35416c4eb27180abc70af99e8f5018226d0493271f2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc5800e.mod",
+   "url": "https://web.archive.org/web/20041209202731id_/http://www.zetex.com:80/3.0/spice/zc5800e.mod",
+   "sha256": "b5f938f41c967d0689259d852e481aaa6e36a9850f8c3535d3a6bc0ec7f4ea6a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc820a.mod",
+   "url": "https://web.archive.org/web/20041209203325id_/http://www.zetex.com:80/3.0/spice/zc820a.mod",
+   "sha256": "c22a01c0339e653bbb319e9a330ac8edce9b31ca736f20c5baa19763e7ced12d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc821a.mod",
+   "url": "https://web.archive.org/web/20041209204051id_/http://www.zetex.com:80/3.0/spice/zc821a.mod",
+   "sha256": "e74aed5e40f43a569efaf549d9ae6881a835e1c4c2175d864bd54e56582312f7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc822a.mod",
+   "url": "https://web.archive.org/web/20041209205247id_/http://www.zetex.com:80/3.0/spice/zc822a.mod",
+   "sha256": "724f774f637ef522a6a2131d67b91b3848729745a76d959b4477891e12258b43",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc823a.mod",
+   "url": "https://web.archive.org/web/20041209205446id_/http://www.zetex.com:80/3.0/spice/zc823a.mod",
+   "sha256": "a561ee74ccc39ca06bf93bc25d302330bac798a3fab98571bc65171995e6c147",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc824a.mod",
+   "url": "https://web.archive.org/web/20041209210335id_/http://www.zetex.com:80/3.0/spice/zc824a.mod",
+   "sha256": "fc7b842a25f84048f54c4b03acd21e5ef5e4c5e7bacfc519437f9726d0f5b34e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc825a.mod",
+   "url": "https://web.archive.org/web/20041209211006id_/http://www.zetex.com:80/3.0/spice/zc825a.mod",
+   "sha256": "fe71bbb71d75460d493cf61b9c9e979fe8b983b8b6d6044fcb4eb27233122cdd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc826a.mod",
+   "url": "https://web.archive.org/web/20041209203225id_/http://www.zetex.com:80/3.0/spice/zc826a.mod",
+   "sha256": "0870737059907765cefb0c057d8c2d000781c69137f2b6f057cc6f9ff7160d97",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc830a.mod",
+   "url": "https://web.archive.org/web/20041209203619id_/http://www.zetex.com:80/3.0/spice/zc830a.mod",
+   "sha256": "befae8df785895a61283a79694b36adb0d188db5fcda45f1bc413712f8ee8f49",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc831a.mod",
+   "url": "https://web.archive.org/web/20041209204552id_/http://www.zetex.com:80/3.0/spice/zc831a.mod",
+   "sha256": "891000a2c2e4ec1253f9382736155ce105a58a0087f263fc38e5714d333d2850",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc832a.mod",
+   "url": "https://web.archive.org/web/20041209205317id_/http://www.zetex.com:80/3.0/spice/zc832a.mod",
+   "sha256": "43620969b487d12641ed31e3edb91a28e6e3f58776b883f8b64abbe0d4d741f0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc833a.mod",
+   "url": "https://web.archive.org/web/20041209205850id_/http://www.zetex.com:80/3.0/spice/zc833a.mod",
+   "sha256": "1500cb7106a4ecce85191c843f6cbec504dd2147750397ea01cf1283f4aacf06",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc834a.mod",
+   "url": "https://web.archive.org/web/20041209210115id_/http://www.zetex.com:80/3.0/spice/zc834a.mod",
+   "sha256": "f44b69249e9828008174f8251d903f04a5b09ec77bf98a965c1cf1214d43f714",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc835a.mod",
+   "url": "https://web.archive.org/web/20041209210856id_/http://www.zetex.com:80/3.0/spice/zc835a.mod",
+   "sha256": "8cfefc53ce797374069be9ed3f4e155492132ba77a8aeed6a0f8687de391f747",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc836a.mod",
+   "url": "https://web.archive.org/web/20041209203214id_/http://www.zetex.com:80/3.0/spice/zc836a.mod",
+   "sha256": "a79698db0eab0417b3ecba7cdb919a6b98d1f513d707d23b814275b207d5c0e3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc930a.mod",
+   "url": "https://web.archive.org/web/20041212115751id_/http://www.zetex.com:80/3.0/spice/zc930a.mod",
+   "sha256": "1fdcff8206d87cbab472753ceecb6eda0cb6dd57a346d8358556464ac62cf5ed",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zc933.mod",
+   "url": "https://web.archive.org/web/20041212120702id_/http://www.zetex.com:80/3.0/spice/zc933.mod",
+   "sha256": "e6d91148aae122ca8c61c0fe0b2f6d4475a58b16c2f85be820503b78d115acdf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs1000.mod",
+   "url": "https://web.archive.org/web/20041212041931id_/http://www.zetex.com:80/3.0/spice/zhcs1000.mod",
+   "sha256": "06b01bc0ad7bebbbea7dc7086bd4e16811db38781a7629b0fac41438218d4720",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs1006.mod",
+   "url": "https://web.archive.org/web/20041212042602id_/http://www.zetex.com:80/3.0/spice/zhcs1006.mod",
+   "sha256": "711106e758226a7b6c1fbf8282a3ac490b045388cb670f6d04243c19c99e61c1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs2000.mod",
+   "url": "https://web.archive.org/web/20041212043157id_/http://www.zetex.com:80/3.0/spice/zhcs2000.mod",
+   "sha256": "f99ee34be91d3e67a8a96d8fd32ed532e10b6b85574aab96d146b24ead413057",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs400.mod",
+   "url": "https://web.archive.org/web/20041212023701id_/http://www.zetex.com:80/3.0/spice/zhcs400.mod",
+   "sha256": "2c9dec086f22c31bbecd5ce787f13bed0665f8497aac27e0deb881ee98cbff7c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs500.mod",
+   "url": "https://web.archive.org/web/20041212024136id_/http://www.zetex.com:80/3.0/spice/zhcs500.mod",
+   "sha256": "3e44d89fb2a2357ea8865328d9ab73827a04f1d8eade77b807f293c7b24d7f8b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zhcs750.mod",
+   "url": "https://web.archive.org/web/20041212024919id_/http://www.zetex.com:80/3.0/spice/zhcs750.mod",
+   "sha256": "fdcfbc6c141f70338649aa1ca900ce4e2e6899082d998c9bc93433037f5c3cce",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZLLS1000.mod",
+   "url": "https://web.archive.org/web/20071027023405id_/http://www.zetex.com/3.0/spice/ZLLS1000.mod",
+   "sha256": "e1e8f06f3a96b2b8fbfa504479d5817be1526cf8405fabee7cce2f596a16fff2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZLLS350.mod",
+   "url": "https://web.archive.org/web/20071027023254id_/http://www.zetex.com/3.0/spice/ZLLS350.mod",
+   "sha256": "73d933d4450c5649bfc5564a4b8beae919dbc5f52906549fefbdf3fc22dedae2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZLLS400.mod",
+   "url": "https://web.archive.org/web/20071027023352id_/http://www.zetex.com/3.0/spice/ZLLS400.mod",
+   "sha256": "9ab2e5ea6f6532aaf9d6dfa0747a63a0f24f2964f98f2e3fbaaf2e25dfa125e8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZLLS410.mod",
+   "url": "https://web.archive.org/web/20071027023225id_/http://www.zetex.com/3.0/spice/ZLLS410.mod",
+   "sha256": "817fc8a5401995c9167289a1320e6781e100ab9280e072f368d8188abc73f81f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZLLS500.mod",
+   "url": "https://web.archive.org/web/20071027023213id_/http://www.zetex.com/3.0/spice/ZLLS500.mod",
+   "sha256": "bc48218a788770a029d236c22c86a1d6ec91e3a82380afeb3dde56775b7df5d8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmdc953.mod",
+   "url": "https://web.archive.org/web/20041210020224id_/http://www.zetex.com:80/3.0/spice/zmdc953.mod",
+   "sha256": "d425259cc232819589d1f5a1efa5047489932ad6e7beb5f06c425cee07d5243e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zms2800.mod",
+   "url": "https://web.archive.org/web/20041209203330id_/http://www.zetex.com:80/3.0/spice/zms2800.mod",
+   "sha256": "2a942d11760973e6078d93794c3b352cf050f423c81545200248c79c738f8d84",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zms2811.mod",
+   "url": "https://web.archive.org/web/20041209204523id_/http://www.zetex.com:80/3.0/spice/zms2811.mod",
+   "sha256": "e39c7c705715fa0b69c81804b0e0799cad495fc7c3b779cfda9efefd44f4d38b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zms5800.mod",
+   "url": "https://web.archive.org/web/20041209205022id_/http://www.zetex.com:80/3.0/spice/zms5800.mod",
+   "sha256": "2548e1580938814b361a29204832be16f70c6199af2206506c91c301ca604006",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmv930.mod",
+   "url": "https://web.archive.org/web/20071027112017id_/http://www.zetex.com/3.0/spice/zmv930.mod",
+   "sha256": "d29d6040b30db8c9451f1bd831abaf652761e8c816ad5f344036285312764c2c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmv930a.mod",
+   "url": "https://web.archive.org/web/20041209205338id_/http://www.zetex.com:80/3.0/spice/zmv930a.mod",
+   "sha256": "c4c4050f3751843123e7e8a25693ce516ec5dd258afd5684e20c291e67935ed2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmv933.mod",
+   "url": "https://web.archive.org/web/20071027112600id_/http://www.zetex.com/3.0/spice/zmv933.mod",
+   "sha256": "96c877b456453727b096436ebff0027055fcd6b64517bced68db98aa7d0060f8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmv934.mod",
+   "url": "https://web.archive.org/web/20071027111942id_/http://www.zetex.com/3.0/spice/zmv934.mod",
+   "sha256": "bc7ce59deecea9dd71d9c7e75ac48cc351b401b5580cd1080d696944e24af9c8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zmv934a.mod",
+   "url": "https://web.archive.org/web/20071027111802id_/http://www.zetex.com/3.0/spice/zmv934a.mod",
+   "sha256": "26b36d912a602587adb67e565497c7ba13915235520c751e0c10dc28c3e25a64",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZR431.mod",
+   "url": "https://web.archive.org/web/20071026000231id_/http://www.zetex.com/3.0/spice/ZR431.mod",
+   "sha256": "221094ce76175945714d349e9186f2c664d4ae84dbcd039d97132b6c85dad561",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZR431L.mod",
+   "url": "https://web.archive.org/web/20071026000008id_/http://www.zetex.com/3.0/spice/ZR431L.mod",
+   "sha256": "4434bbc8319ac0060b60c2683752e7e2fa93ea86220ca8e2fc1c5ccc1b6b72cd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1047a.mod",
+   "url": "https://web.archive.org/web/20041209210353id_/http://www.zetex.com:80/3.0/spice/ztx1047a.mod",
+   "sha256": "008e9327f514b95fb19eeeceb8b52facc70fb731c0a46f8a4164c45ff34a62c1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1048a.mod",
+   "url": "https://web.archive.org/web/20041209210605id_/http://www.zetex.com:80/3.0/spice/ztx1048a.mod",
+   "sha256": "a61a89a93d2cd32bc5da768240e42b25e230d83e3dd66ad311ab79da4d129545",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1049a.mod",
+   "url": "https://web.archive.org/web/20041209203107id_/http://www.zetex.com:80/3.0/spice/ztx1049a.mod",
+   "sha256": "461a267867edb3e9a5a2151e1ea2dd4f7178b3034713974bfdfb066399403994",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1051a.mod",
+   "url": "https://web.archive.org/web/20041209203502id_/http://www.zetex.com:80/3.0/spice/ztx1051a.mod",
+   "sha256": "277450bd6a1794c3b36375fa9b4ff5240f0c424e5738cc9bb2a113f248fbcd30",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1053a.mod",
+   "url": "https://web.archive.org/web/20041209204422id_/http://www.zetex.com:80/3.0/spice/ztx1053a.mod",
+   "sha256": "43f2d16ddbab70090f5f393259a453bdd89433d9c21c67ac9b2d5b1fb4a1fcf7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1055a.mod",
+   "url": "https://web.archive.org/web/20040630214248id_/http://www.zetex.com:80/3.0/spice/ztx1055a.mod",
+   "sha256": "14819c6d0fd2f1a71d32f748447ece2647be69f59cd7711f8f1a459937655eb1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1056a.mod",
+   "url": "https://web.archive.org/web/20040630212855id_/http://www.zetex.com:80/3.0/spice/ztx1056a.mod",
+   "sha256": "88ca2ad02694dab8f72a7493f91f3c379f31330b5c7afd4ff4d14539b20f1e63",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx109b.mod",
+   "url": "https://web.archive.org/web/20041209204710id_/http://www.zetex.com:80/3.0/spice/ztx109b.mod",
+   "sha256": "59a981398890cabcb4ac59751d9b545ccaeb6c0e6e0bcee71854b748fd609d4a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1147a.mod",
+   "url": "https://web.archive.org/web/20041209205614id_/http://www.zetex.com:80/3.0/spice/ztx1147a.mod",
+   "sha256": "1bc74a1f10fa6521f877f5ad3973a8ff7943c96080a61277f20e2af3bc0dacc2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1149a.mod",
+   "url": "https://web.archive.org/web/20041209210349id_/http://www.zetex.com:80/3.0/spice/ztx1149a.mod",
+   "sha256": "19c13d0489c23acc34c389afd21847b6c7d906bebd18ebc1ce5c4dbee6b0fa2a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx1151a.mod",
+   "url": "https://web.archive.org/web/20041209210731id_/http://www.zetex.com:80/3.0/spice/ztx1151a.mod",
+   "sha256": "9b91cb97d0644d4512ea4177a186ddf7c03409bf51eaf0e9c50ed1d5f9accc3a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx213a.mod",
+   "url": "https://web.archive.org/web/20041209203044id_/http://www.zetex.com:80/3.0/spice/ztx213a.mod",
+   "sha256": "be533dce5c1b4043286af9a698c95559585ba66e1fcb02b416f1ed3b45d481b6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx237b.mod",
+   "url": "https://web.archive.org/web/20041209203432id_/http://www.zetex.com:80/3.0/spice/ztx237b.mod",
+   "sha256": "2d26865fea7a4fc61db8db5da7ecca77803bc0631c5f2d534d2b19e3dfde42e0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx238b.mod",
+   "url": "https://web.archive.org/web/20041209204556id_/http://www.zetex.com:80/3.0/spice/ztx238b.mod",
+   "sha256": "a83775d3b92ca8c258352920d9b2d05338a16275b253bfb527fc481b65d9a371",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx239b.mod",
+   "url": "https://web.archive.org/web/20041209204813id_/http://www.zetex.com:80/3.0/spice/ztx239b.mod",
+   "sha256": "48c2f239923e2ef4daf99f502f19d50a58e4b687f8801c883709ba8baa7ef5dc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx320.mod",
+   "url": "https://web.archive.org/web/20041209205702id_/http://www.zetex.com:80/3.0/spice/ztx320.mod",
+   "sha256": "f1db38fc31df3d114cbefb4b3117b773286402bf64f6a7c59f378aa4a49bbb8f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx321.mod",
+   "url": "https://web.archive.org/web/20041209210256id_/http://www.zetex.com:80/3.0/spice/ztx321.mod",
+   "sha256": "dcc590a9018200c433ad1567c2c49887a135297ca6a3b74c93697bf5639cc1ea",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx325.mod",
+   "url": "https://web.archive.org/web/20041209210719id_/http://www.zetex.com:80/3.0/spice/ztx325.mod",
+   "sha256": "516c76770a3418e1f61b48799f4b85a8df07849f07193e2736a4417766c8a7df",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx327.mod",
+   "url": "https://web.archive.org/web/20041209202939id_/http://www.zetex.com:80/3.0/spice/ztx327.mod",
+   "sha256": "ed5f8faebc0655c8d4526e93d6248022ab392ec6575fd98832397c2edaf34dad",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx337a.mod",
+   "url": "https://web.archive.org/web/20041209203654id_/http://www.zetex.com:80/3.0/spice/ztx337a.mod",
+   "sha256": "d5abb9d856ad9f2ea84ec2ec580b234c473adf22285016a6be838e2f1a836502",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx338a.mod",
+   "url": "https://web.archive.org/web/20041209204338id_/http://www.zetex.com:80/3.0/spice/ztx338a.mod",
+   "sha256": "f5b55affa3e0b58fd3fde287ecb06737f2780017e63c0c279394ffdfce5e8802",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx360.mod",
+   "url": "https://web.archive.org/web/20041209204817id_/http://www.zetex.com:80/3.0/spice/ztx360.mod",
+   "sha256": "2cc555279988204e16506c0abb4e2b3532b617096c1813e68be88f9e9814da99",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx450.mod",
+   "url": "https://web.archive.org/web/20041209210008id_/http://www.zetex.com:80/3.0/spice/ztx450.mod",
+   "sha256": "135c15600ec6be5f111d67862e8ad89e39b7cbb9123c9b6311c796f4ca55433c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx454.mod",
+   "url": "https://web.archive.org/web/20041209211050id_/http://www.zetex.com:80/3.0/spice/ztx454.mod",
+   "sha256": "fefbfdc82b11996cec19cb17ddda11f864da0663656079fcb778dfdd8de4fee8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx455.mod",
+   "url": "https://web.archive.org/web/20040630213550id_/http://www.zetex.com:80/3.0/spice/ztx455.mod",
+   "sha256": "38750dd1a8c1ccce4c0cfce0aebed1a1d34461b9119f50184fd6cb22d5cb42fa",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx457.mod",
+   "url": "https://web.archive.org/web/20041209203229id_/http://www.zetex.com:80/3.0/spice/ztx457.mod",
+   "sha256": "4cbb52955417d6bc33b4997062a27793d0ac38089a713ea6a67a28b4b2fc0cc6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx458.mod",
+   "url": "https://web.archive.org/web/20080329095023id_/http://www.zetex.com:80/3.0/spice/ztx458.mod",
+   "sha256": "33e79168be5b520c76853a5aced62cdc11c07a0494d8c9d3ae2787f009292108",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx510.mod",
+   "url": "https://web.archive.org/web/20041209203822id_/http://www.zetex.com:80/3.0/spice/ztx510.mod",
+   "sha256": "25f2b414bf5d2bb2b0bf1ae9e75e54dfcb9e7d11550ec4a5ca805411e4af994c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx549.mod",
+   "url": "https://web.archive.org/web/20041209204215id_/http://www.zetex.com:80/3.0/spice/ztx549.mod",
+   "sha256": "6e88c9d2c8b0b0c443cce93fe0285aeb3c3524424555fc38ce8c3072da0588c8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx550.mod",
+   "url": "https://web.archive.org/web/20041209204706id_/http://www.zetex.com:80/3.0/spice/ztx550.mod",
+   "sha256": "c69e077e8491cc4f32de63f62c06be7960eba796f3c37b2c975d858816ba7372",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx551.mod",
+   "url": "https://web.archive.org/web/20041209205610id_/http://www.zetex.com:80/3.0/spice/ztx551.mod",
+   "sha256": "9e81e5504bf1d48ab5960eaa158f1c80d6cfb0a31efe243b7bc71ed9e03b86f2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx558.mod",
+   "url": "https://web.archive.org/web/20040630213506id_/http://www.zetex.com:80/3.0/spice/ztx558.mod",
+   "sha256": "607caf127657532c39278865339ffec65e6f13676de5bc7acbc1fa90ec740643",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx560.mod",
+   "url": "https://web.archive.org/web/20041209202551id_/http://www.zetex.com:80/3.0/spice/ztx560.mod",
+   "sha256": "2765d5d5c24f937124d4c806b6d8d2d2eefb4f6e55ffad301a39953d0e3abec9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx604.mod",
+   "url": "https://web.archive.org/web/20041209203738id_/http://www.zetex.com:80/3.0/spice/ztx604.mod",
+   "sha256": "952f37c1ff4c81d8b697b9d20992abf5b7b040124b393ef7152e5d497f05796e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx605.mod",
+   "url": "https://web.archive.org/web/20041209204042id_/http://www.zetex.com:80/3.0/spice/ztx605.mod",
+   "sha256": "1338396c3a0febb1d97265aa8c3e61044986951773220a6607da1fa3f2adcdad",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx614.mod",
+   "url": "https://web.archive.org/web/20041209204828id_/http://www.zetex.com:80/3.0/spice/ztx614.mod",
+   "sha256": "4ed23ab1c927769b87d11619494824cb346053a0ed10ed760ef6ea4d22d83716",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx617.mod",
+   "url": "https://web.archive.org/web/20041209205809id_/http://www.zetex.com:80/3.0/spice/ztx617.mod",
+   "sha256": "6379d6baa9f9060957a40d5b0c1f4bb944797d3afe41f8be71f46fa232e99e19",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx618.mod",
+   "url": "https://web.archive.org/web/20041209210444id_/http://www.zetex.com:80/3.0/spice/ztx618.mod",
+   "sha256": "73a3eed8abf7d3327c5250ec567795714bbcb666d9cdd8a7fca714e5b204d5d2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx649.mod",
+   "url": "https://web.archive.org/web/20041209210735id_/http://www.zetex.com:80/3.0/spice/ztx649.mod",
+   "sha256": "49d2afe72d45f6cd5c1853b5696cb308ff7cabf8d36a79c8451d2109e72b11a5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx650.mod",
+   "url": "https://web.archive.org/web/20041209203103id_/http://www.zetex.com:80/3.0/spice/ztx650.mod",
+   "sha256": "418e3b481adb07a3dafee8dcf417d94904dcb5ce483a666d31b1daa8b98ed98a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx651.mod",
+   "url": "https://web.archive.org/web/20041209203623id_/http://www.zetex.com:80/3.0/spice/ztx651.mod",
+   "sha256": "9f34ed5c9296393b8e2ff523d1e23c955c046b0acb415629c78fe5a9b59f6d03",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx652.mod",
+   "url": "https://web.archive.org/web/20041209204442id_/http://www.zetex.com:80/3.0/spice/ztx652.mod",
+   "sha256": "7f3e346750d5406d71f78a639db5083ff7d59b4c8ed76e7599f54b9cd8df4a2d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx657.mod",
+   "url": "https://web.archive.org/web/20040630213056id_/http://www.zetex.com:80/3.0/spice/ztx657.mod",
+   "sha256": "8ccd7710ac338004a26d53e8e7385e7cf624e67b7d67ecd970e32e072ec0a997",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx658.mod",
+   "url": "https://web.archive.org/web/20040630213838id_/http://www.zetex.com:80/3.0/spice/ztx658.mod",
+   "sha256": "5aa25dd059dad7b477499f92f09909d3770579760f045a35eae4ce1043ab8806",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx688b.mod",
+   "url": "https://web.archive.org/web/20041209205313id_/http://www.zetex.com:80/3.0/spice/ztx688b.mod",
+   "sha256": "0c4de9b7e9f4e88bc4010db594eece5eb6b4a4ab314c8dae08da8f17ed6ed658",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx689b.mod",
+   "url": "https://web.archive.org/web/20041209205410id_/http://www.zetex.com:80/3.0/spice/ztx689b.mod",
+   "sha256": "594d901e214b99fe39f8115fe940667132f04f101522601f2040e4f325dc464c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx690b.mod",
+   "url": "https://web.archive.org/web/20041209210436id_/http://www.zetex.com:80/3.0/spice/ztx690b.mod",
+   "sha256": "b16b6e815886ede97c47b283b6714c2e08cda8bea050cdf6b387ecf1875f4617",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx692b.mod",
+   "url": "https://web.archive.org/web/20090101192436id_/http://www.zetex.com:80/3.0/spice/ztx692b.mod",
+   "sha256": "06edbe99666a4fbcad544c7d13deb9d87c10285ff8bef98d7c810c663e0e9282",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx694b.mod",
+   "url": "https://web.archive.org/web/20041209202942id_/http://www.zetex.com:80/3.0/spice/ztx694b.mod",
+   "sha256": "83cbf6f9ea3ab91b13ca6652ef57dcf1490b2c7670cc04c5ea927dc66f20866c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx696b.mod",
+   "url": "https://web.archive.org/web/20041209203526id_/http://www.zetex.com:80/3.0/spice/ztx696b.mod",
+   "sha256": "20f3103e8c5920e8c13577d2171652cbb08750b05e9780e8b06978d858aad4f6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx704.mod",
+   "url": "https://web.archive.org/web/20041209204406id_/http://www.zetex.com:80/3.0/spice/ztx704.mod",
+   "sha256": "db3b1fe2fbceeae7a50e8056c046c23bd7c545aebdd15ed285fab5cd16bbc71e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx705.mod",
+   "url": "https://web.archive.org/web/20041209204943id_/http://www.zetex.com:80/3.0/spice/ztx705.mod",
+   "sha256": "35302eb9052de5173660e77b9773b76e937f253cecb9585b1509fa20dc7ecc53",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx717.mod",
+   "url": "https://web.archive.org/web/20041209205725id_/http://www.zetex.com:80/3.0/spice/ztx717.mod",
+   "sha256": "1746421a9194b326edeaeb04a2df73b4b2467baf329a9bc37d980f212531c53f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx718.mod",
+   "url": "https://web.archive.org/web/20041209210323id_/http://www.zetex.com:80/3.0/spice/ztx718.mod",
+   "sha256": "d32eaafc651cec0fe2fd21d2aceab0e60c5b847277d14329ea56e346ad59e963",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx749.mod",
+   "url": "https://web.archive.org/web/20041209210723id_/http://www.zetex.com:80/3.0/spice/ztx749.mod",
+   "sha256": "d24fc962d3c9a4e57f583f99db6893de73b5ff1c722bef222c003ac7f0aba507",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx750.mod",
+   "url": "https://web.archive.org/web/20041209202827id_/http://www.zetex.com:80/3.0/spice/ztx750.mod",
+   "sha256": "85618d80bb2d6c6abc255c076be7253946222227b3f1c884061b855b9d8a3078",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx751.mod",
+   "url": "https://web.archive.org/web/20041209203815id_/http://www.zetex.com:80/3.0/spice/ztx751.mod",
+   "sha256": "0fefb0203ea0d481a7623cf6ca2baee55887e912fb1f4c305b04acae49bb13f7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx752.mod",
+   "url": "https://web.archive.org/web/20041209204452id_/http://www.zetex.com:80/3.0/spice/ztx752.mod",
+   "sha256": "71f316aac8d2b4c47b4c4ba2dcea0fb801a9522cb381c483c592ac1ee238b821",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx753.mod",
+   "url": "https://web.archive.org/web/20041209205043id_/http://www.zetex.com:80/3.0/spice/ztx753.mod",
+   "sha256": "5c226be7481ef46e44d200a4d04342bd56ea26139c48aa7ee4938e7e8e0766f4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx757.mod",
+   "url": "https://web.archive.org/web/20041209205542id_/http://www.zetex.com:80/3.0/spice/ztx757.mod",
+   "sha256": "44c1769cddb7d8d0cd5f9e6f23456780cd2d9bbac09fc9d44795e0f404609331",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZTX758.mod",
+   "url": "https://web.archive.org/web/20041204211800id_/http://www.zetex.com:80/3.0/spice/ZTX758.mod",
+   "sha256": "bfc327a59b5aeae949facde0d5242fff3a8bc35c548c3a6f60d5845bfafd2d8d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx788a.mod",
+   "url": "https://web.archive.org/web/20041209210455id_/http://www.zetex.com:80/3.0/spice/ztx788a.mod",
+   "sha256": "d508f783afaa25735234f1170f59c48491dbf980cb312a10b2962c9e9594265e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx789a.mod",
+   "url": "https://web.archive.org/web/20041209210930id_/http://www.zetex.com:80/3.0/spice/ztx789a.mod",
+   "sha256": "1eb2537723fb1fc1deef5ea752b4e52923b62eb507d551cb049f09d3bdc0da85",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx790a.mod",
+   "url": "https://web.archive.org/web/20041209203123id_/http://www.zetex.com:80/3.0/spice/ztx790a.mod",
+   "sha256": "b5ce29a436eb5ec9002dbad42dd0455649d62a4932f4eac73bfc8aaa3b893d17",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx792a.mod",
+   "url": "https://web.archive.org/web/20041209203826id_/http://www.zetex.com:80/3.0/spice/ztx792a.mod",
+   "sha256": "befbf90c9329d8c4b362e50656f3ddc099abc31bc04bc22f23b6a8a145a904c8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx795a.mod",
+   "url": "https://web.archive.org/web/20040630214040id_/http://www.zetex.com:80/3.0/spice/ztx795a.mod",
+   "sha256": "06ae29e5d83b94f969d97e4c8b5084334c5501d3cf75d753eb16c489ed7a40ab",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx796a.mod",
+   "url": "https://web.archive.org/web/20040630213409id_/http://www.zetex.com:80/3.0/spice/ztx796a.mod",
+   "sha256": "674eb6fdc66d903a1ecc554b98d9a879e9e069a366ccc49c73d0fdf0696ebcb1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx849.mod",
+   "url": "https://web.archive.org/web/20041209204600id_/http://www.zetex.com:80/3.0/spice/ztx849.mod",
+   "sha256": "458df21fae67e2c0b7644f36a2296520419d68b23ecf391848c6182cb8c39c48",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx851.mod",
+   "url": "https://web.archive.org/web/20041209204728id_/http://www.zetex.com:80/3.0/spice/ztx851.mod",
+   "sha256": "579cda6d3f2ec575430a7ee29474e3a6b308b327b43482e6876e491e4f9fa2c2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx853.mod",
+   "url": "https://web.archive.org/web/20041209205526id_/http://www.zetex.com:80/3.0/spice/ztx853.mod",
+   "sha256": "64fe55da29189c24eda99feb67f3a16124a09ef41a9cd8507db59d029a5edf2a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx855.mod",
+   "url": "https://web.archive.org/web/20080331123124id_/http://www.zetex.com:80/3.0/spice/ztx855.mod",
+   "sha256": "c8347e746ef78eb5eadb351611ce76a17580eeb9db4718841d594d2b012137a7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx857.mod",
+   "url": "https://web.archive.org/web/20040630213826id_/http://www.zetex.com:80/3.0/spice/ztx857.mod",
+   "sha256": "8334cae86e74eec78470b43b44dd9ed04434b64007d8bafd1430f6f57c0b3d3e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx869.mod",
+   "url": "https://web.archive.org/web/20041209210727id_/http://www.zetex.com:80/3.0/spice/ztx869.mod",
+   "sha256": "97cf95907bcafabf60c7df15451a0ec67bd7cd887827c0ffcd2f832b1f98e314",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx948.mod",
+   "url": "https://web.archive.org/web/20041209202546id_/http://www.zetex.com:80/3.0/spice/ztx948.mod",
+   "sha256": "5f44448d530732b7f417809e8c28196c31530b536337599693a7d94063c927ba",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx949.mod",
+   "url": "https://web.archive.org/web/20041209203920id_/http://www.zetex.com:80/3.0/spice/ztx949.mod",
+   "sha256": "7dcfab8301d685052df646779966b95a27ac3528de27eb33efa77e6e6856e7c4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx951.mod",
+   "url": "https://web.archive.org/web/20041209204105id_/http://www.zetex.com:80/3.0/spice/ztx951.mod",
+   "sha256": "8cb99c0734064ec9114dc5ec97954839679b8cd8312f75ff398be57419a58cdc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx953.mod",
+   "url": "https://web.archive.org/web/20041209205002id_/http://www.zetex.com:80/3.0/spice/ztx953.mod",
+   "sha256": "f0040f71afc1d4fb5c5b88f6fa3e1443309f79cf35548f638b67dcefa4b3e699",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx955.mod",
+   "url": "https://web.archive.org/web/20041209205546id_/http://www.zetex.com:80/3.0/spice/ztx955.mod",
+   "sha256": "350936107b9ac76d126c04a6e6122bf1dc6c893b51232019cd61f99bc5c35333",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx956.mod",
+   "url": "https://web.archive.org/web/20040630213304id_/http://www.zetex.com:80/3.0/spice/ztx956.mod",
+   "sha256": "5b2e51be952a89c1f0772a7ef0f85375b7489ef8e8c5e5054fafb4fecfc23661",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx957.mod",
+   "url": "https://web.archive.org/web/20040630213606id_/http://www.zetex.com:80/3.0/spice/ztx957.mod",
+   "sha256": "67420816760a2f99c98a6b3157abafb919a31ae0740bbeae0bfee5f721cb2118",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx958.mod",
+   "url": "https://web.archive.org/web/20040630213052id_/http://www.zetex.com:80/3.0/spice/ztx958.mod",
+   "sha256": "227c1b1a8ae6a2f48d06e4c44c5959e0dd5bfda833cce3cb28e6a021a32fcdc0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ztx968.mod",
+   "url": "https://web.archive.org/web/20041209210019id_/http://www.zetex.com:80/3.0/spice/ztx968.mod",
+   "sha256": "d16c907a3221bedce410e36352b3d193979e4fe4d9937ac2f708ee4fe7e5debf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zumt717.mod",
+   "url": "https://web.archive.org/web/20041212040941id_/http://www.zetex.com:80/3.0/spice/zumt717.mod",
+   "sha256": "0d289f3216485654fb641b3b5489d68ae37d8e60ef77e462c2ea9c62266e999a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zumt720.mod",
+   "url": "https://web.archive.org/web/20041212041253id_/http://www.zetex.com:80/3.0/spice/zumt720.mod",
+   "sha256": "be0d1d4fa5f27c01104ca1fa7fadf9d6c210bc5758d1dff2c76d7890a3312b9a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zv950v2.mod",
+   "url": "https://web.archive.org/web/20041212042533id_/http://www.zetex.com:80/3.0/spice/zv950v2.mod",
+   "sha256": "ad0d6d17af51705170348f50da2bef8d0be467e44acb386ec51af52cfc482ef4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zv952v2.mod",
+   "url": "https://web.archive.org/web/20041212043136id_/http://www.zetex.com:80/3.0/spice/zv952v2.mod",
+   "sha256": "fe3c205bfa8d8d551b46fd93385d578f7b73d8405d9a1be9ff2d354b18be30ea",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zv953v2.mod",
+   "url": "https://web.archive.org/web/20041212023032id_/http://www.zetex.com:80/3.0/spice/zv953v2.mod",
+   "sha256": "49768f3d4ddb537697b55ce9d7c1fdad36f1d66908c7c33651c966263342c07d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn0124a.mod",
+   "url": "https://web.archive.org/web/20071026084102id_/http://www.zetex.com/3.0/spice/zvn0124a.mod",
+   "sha256": "6cdaac182b5b773b0d1bc9f44590d918c7dd5d109b901c3ffedb97fa24e90aa6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVN0540A.mod",
+   "url": "https://web.archive.org/web/20071026172144id_/http://www.zetex.com/3.0/spice/ZVN0540A.mod",
+   "sha256": "79448d2df19ee659350ed4eb159e07e35a03a46be761110b1d0cbf739868cf3a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVN0545A.mod",
+   "url": "https://web.archive.org/web/20071026173840id_/http://www.zetex.com/3.0/spice/ZVN0545A.mod",
+   "sha256": "7246d12b40f7ed51caec0833d21b79e625d0d39ecbf7752e4fdd6989ce68bf0c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn0545g.mod",
+   "url": "https://web.archive.org/web/20071026172158id_/http://www.zetex.com/3.0/spice/zvn0545g.mod",
+   "sha256": "3ac4d252b58bef2bc9a8409d5f88ed40a969c3c6505d69bfba500bd86d992a1f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn2110a.mod",
+   "url": "https://web.archive.org/web/20080329095611id_/http://www.zetex.com:80/3.0/spice/zvn2110a.mod",
+   "sha256": "4108ef731972351da91bad09e737613a34abeb7f202203bb2bb01d630743464c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn2110c.mod",
+   "url": "https://web.archive.org/web/20071026174056id_/http://www.zetex.com/3.0/spice/zvn2110c.mod",
+   "sha256": "29dd4ddf99a715ca8653bdb78ea38720efb9134e08f2f4534bc767cc23a7f785",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn2110g.mod",
+   "url": "https://web.archive.org/web/20071026172448id_/http://www.zetex.com/3.0/spice/zvn2110g.mod",
+   "sha256": "52d6b76e0a52d162fe2668cef5d50bbf12543f00cb1bbca06cf26bb6cf549acb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn3306a.mod",
+   "url": "https://web.archive.org/web/20071026084124id_/http://www.zetex.com/3.0/spice/zvn3306a.mod",
+   "sha256": "774a4f6ac17720c13d2e744798d328a36936fa1c4de6faeeb00093cdeff807fd",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn3306f.mod",
+   "url": "https://web.archive.org/web/20071026173917id_/http://www.zetex.com/3.0/spice/zvn3306f.mod",
+   "sha256": "271efe4bc42e2aa1b3b48ba27df3d34b3bc1c1089273e8fe9a80480efa4c3cbf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn3310a.mod",
+   "url": "https://web.archive.org/web/20071026085255id_/http://www.zetex.com/3.0/spice/zvn3310a.mod",
+   "sha256": "37640f7f269fdafb2873e216ec834572ea1cd61073bc60da7b6d94d7dd0a8df2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn3310f.mod",
+   "url": "https://web.archive.org/web/20071026084224id_/http://www.zetex.com/3.0/spice/zvn3310f.mod",
+   "sha256": "32e9c824d7a94f6f6ba9aaba76a31e61785d88e80fd06e32cb881568d0544b7b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4106f.mod",
+   "url": "https://web.archive.org/web/20071026173653id_/http://www.zetex.com/3.0/spice/zvn4106f.mod",
+   "sha256": "8c9cd052706ac4ac42b9086988069164721a826d34ec5666b79bdf0901e9f9c2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4210a.mod",
+   "url": "https://web.archive.org/web/20071026173546id_/http://www.zetex.com/3.0/spice/zvn4210a.mod",
+   "sha256": "eff39d2cccc5e758ab2680724e273964a5838a9d3d8802bf6208ab2dce651767",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4210g.mod",
+   "url": "https://web.archive.org/web/20071026172304id_/http://www.zetex.com/3.0/spice/zvn4210g.mod",
+   "sha256": "36d98c759407d4948670b9fb0e9436e252df24d60426ed8c108eff9e65446616",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4306a.mod",
+   "url": "https://web.archive.org/web/20071026174045id_/http://www.zetex.com/3.0/spice/zvn4306a.mod",
+   "sha256": "3dcb212d8e6be9d63877f386a57d5e593c32a63118547fd15f15c11c5ad1f42b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4306av.mod",
+   "url": "https://web.archive.org/web/20071026173635id_/http://www.zetex.com/3.0/spice/zvn4306av.mod",
+   "sha256": "e4038ce0368dde5d39f89c7c6e90dc0d492897157e5416ca5a4dd4f908296e12",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4306g.mod",
+   "url": "https://web.archive.org/web/20071026172502id_/http://www.zetex.com/3.0/spice/zvn4306g.mod",
+   "sha256": "5b23674132bc1485d5db814a4e8d82a71ce0baf30d6178ec7c19427336541eae",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4306gv.mod",
+   "url": "https://web.archive.org/web/20071026085010id_/http://www.zetex.com/3.0/spice/zvn4306gv.mod",
+   "sha256": "90b107aaa5bcd3ded91a5b44477080b54f261e429baec2220a6d44397688174d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4310a.mod",
+   "url": "https://web.archive.org/web/20071026085036id_/http://www.zetex.com/3.0/spice/zvn4310a.mod",
+   "sha256": "83530289c14cf3dd95e567bb868a0ef3df5ef82a94832eb373d2dc8b5222e51a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvn4310g.mod",
+   "url": "https://web.archive.org/web/20071026084753id_/http://www.zetex.com/3.0/spice/zvn4310g.mod",
+   "sha256": "99219c8d890198c854c5b1fe8e3e4099ec14a0f12ba18a7ad29a4c927ad172cf",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvnl110a.mod",
+   "url": "https://web.archive.org/web/20071026173828id_/http://www.zetex.com/3.0/spice/zvnl110a.mod",
+   "sha256": "6a16a2e50e3371c023a0c1216fd382ab8adab5052c5312bd34631278924819f8",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvnl110g.mod",
+   "url": "https://web.archive.org/web/20071026173613id_/http://www.zetex.com/3.0/spice/zvnl110g.mod",
+   "sha256": "0e92efc61ff4984edcf3bff5aa9692df32464c5b6fd1c60025662edceb854569",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvnl120a.mod",
+   "url": "https://web.archive.org/web/20071026085351id_/http://www.zetex.com/3.0/spice/zvnl120a.mod",
+   "sha256": "64b18a72dba8bf20e16afebb75a62c55f896c1d0fe78bfc97adaab333dc88180",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvnl120g.mod",
+   "url": "https://web.archive.org/web/20071026083539id_/http://www.zetex.com/3.0/spice/zvnl120g.mod",
+   "sha256": "f077c44c316893d72a635a8c955201b79ca04276fab8131783799623417815a1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVP0545A.mod",
+   "url": "https://web.archive.org/web/20071026002308id_/http://www.zetex.com/3.0/spice/ZVP0545A.mod",
+   "sha256": "5f278892826a9e9b2007415a94a3b74b01611473dca3ee0a2c8f9e95ab3055c7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp0545g.mod",
+   "url": "https://web.archive.org/web/20071026082520id_/http://www.zetex.com/3.0/spice/zvp0545g.mod",
+   "sha256": "a4fc4369ec2c03ed2e85a844817a3fd5834e3341105343b04025044955a3ccea",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp1320a.mod",
+   "url": "https://web.archive.org/web/20071026082707id_/http://www.zetex.com/3.0/spice/zvp1320a.mod",
+   "sha256": "415187e0a883a0807f385cddedd4d1c71f548ee4925f8fdb822bc6e830ff17fb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp1320f.mod",
+   "url": "https://web.archive.org/web/20071026000432id_/http://www.zetex.com/3.0/spice/zvp1320f.mod",
+   "sha256": "0a2f665b2169433d96ec7daf3f5b87440e16f3215f5aa75821f743717b759bed",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp2106a.mod",
+   "url": "https://web.archive.org/web/20081004044245id_/http://www.zetex.com:80/3.0/spice/zvp2106a.mod",
+   "sha256": "da11c90c153c85ffaa250d0026de44e708a64a0993045a9e8d45cfe23d187deb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp2106g.mod",
+   "url": "https://web.archive.org/web/20071026002037id_/http://www.zetex.com/3.0/spice/zvp2106g.mod",
+   "sha256": "9b36b10e688b54f0eb82a3a7d3bb38955d3089d815587a88caa5969615b9fbec",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp2110a.mod",
+   "url": "https://web.archive.org/web/20081004044250id_/http://www.zetex.com:80/3.0/spice/zvp2110a.mod",
+   "sha256": "61419c029673cd9678fa8e6cafc9482c121f71a7dc549f8b0946cb4cdac5ddfc",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVP2110G.mod",
+   "url": "https://web.archive.org/web/20071026082645id_/http://www.zetex.com/3.0/spice/ZVP2110G.mod",
+   "sha256": "85c122156cd6be15cf66131b14d49d674bf8ce8110893060ccf275c41ccad0c4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp3306a.mod",
+   "url": "https://web.archive.org/web/20071026001748id_/http://www.zetex.com/3.0/spice/zvp3306a.mod",
+   "sha256": "1c787065a230b0a2f3589d5a144ab9ac54ea0c8cca5b7a2879877272588a40e0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zvp3306f.mod",
+   "url": "https://web.archive.org/web/20071026001918id_/http://www.zetex.com/3.0/spice/zvp3306f.mod",
+   "sha256": "89e42d7760bd7fd676085e4dcf36d1280407ee21a0d76b1ca1c0d9ba4b6485ee",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVP3310A.mod",
+   "url": "https://web.archive.org/web/20071026082230id_/http://www.zetex.com/3.0/spice/ZVP3310A.mod",
+   "sha256": "2fd9d4a34509464ae9dcf01972ae2ef0653ae4e73fd4e214cf5bc712a0bc701b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVP3310F.mod",
+   "url": "https://web.archive.org/web/20071026000807id_/http://www.zetex.com/3.0/spice/ZVP3310F.mod",
+   "sha256": "c56e4a514c7c4aeddc9dd8680a6727d9a704656bc8cbbf2eb199ede352667376",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZVP4105A.mod",
+   "url": "https://web.archive.org/web/20081004044240id_/http://www.zetex.com:80/3.0/spice/ZVP4105A.mod",
+   "sha256": "77a135108838a46f0028774f55867e82ad3ff319346d3f1016b5fa9d36a67c3e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZX5T3Z.mod",
+   "url": "https://web.archive.org/web/20041205002238id_/http://www.zetex.com:80/3.0/spice/ZX5T3Z.mod",
+   "sha256": "3b9e8c17e08f92776d6bdd6b77cd200bb89ff2574d8d1572ca795427235ed45e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZX5T851G.mod",
+   "url": "https://web.archive.org/web/20041205003302id_/http://www.zetex.com:80/3.0/spice/ZX5T851G.mod",
+   "sha256": "ca5adc0c8ded14db6037e23beea3fcd566c4738fb925fcaefd35360a696e7190",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmd63p02x.mod",
+   "url": "https://web.archive.org/web/20071028043323id_/http://www.zetex.com/3.0/spice/zxmd63p02x.mod",
+   "sha256": "87f5decb26db8deb47eb6841d9bdcc10706b1190ff93c51c8b1071c92b3881fb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmd63p03x.mod",
+   "url": "https://web.archive.org/web/20071028044303id_/http://www.zetex.com/3.0/spice/zxmd63p03x.mod",
+   "sha256": "f6e8b96c6adb5e89f2e2edbe8e85975f81ec88a576c24ba92d249f7d949b157c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN10A07F.mod",
+   "url": "https://web.archive.org/web/20071020224909id_/http://www.zetex.com/3.0/spice/ZXMN10A07F.mod",
+   "sha256": "cc5c4f433fd6ac64c8e51f3a3283871ae6c18a388536392d54d69c89a5d09f68",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN10A07Z.mod",
+   "url": "https://web.archive.org/web/20071020224946id_/http://www.zetex.com/3.0/spice/ZXMN10A07Z.mod",
+   "sha256": "fb8d60d2874a07af27512c53e962559fc0b0e321ee7fe4d796c7279ee203850f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN10A08E6.mod",
+   "url": "https://web.archive.org/web/20071021072254id_/http://www.zetex.com/3.0/spice/ZXMN10A08E6.mod",
+   "sha256": "7885d2be1355547913623e191a7e79bfde620cae3f347125d7b43fcfbc3a76ef",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN10A11G.mod",
+   "url": "https://web.archive.org/web/20071021071652id_/http://www.zetex.com/3.0/spice/ZXMN10A11G.mod",
+   "sha256": "16886d6137043a6f1fb5183d9adf7aeafb34cdae6d47f4e6bfd13d23552d7e66",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN10A11K.mod",
+   "url": "https://web.archive.org/web/20071027200259id_/http://www.zetex.com/3.0/spice/ZXMN10A11K.mod",
+   "sha256": "2230f749ebb91641438151b99d289391bd1465b8abb5a7728f80c979634b5f7d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN2A01E6.mod",
+   "url": "https://web.archive.org/web/20071021072038id_/http://www.zetex.com/3.0/spice/ZXMN2A01E6.mod",
+   "sha256": "1cf01c593887e962a72768c4e528ffef6f369be2e61be19f8f8cbb4af18461c1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN2A01F.mod",
+   "url": "https://web.archive.org/web/20071021072458id_/http://www.zetex.com/3.0/spice/ZXMN2A01F.mod",
+   "sha256": "95e19b803ed9610eb245d9b4febd1061ad67dbe48f6fc2b837c035b9aa839ff1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN2A02N8.mod",
+   "url": "https://web.archive.org/web/20071028044030id_/http://www.zetex.com/3.0/spice/ZXMN2A02N8.mod",
+   "sha256": "a9e06b0d7173fed4622bf3c1a4d001a766e4de8fe7401f1b9502d8c13d623482",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN2A02X8.mod",
+   "url": "https://web.archive.org/web/20071021071340id_/http://www.zetex.com/3.0/spice/ZXMN2A02X8.mod",
+   "sha256": "cbcafbddd57184c9330078eeb7c6943bf7eec7892fa8d8e15e5fd02ff1d096c5",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn2a03e6.mod",
+   "url": "https://web.archive.org/web/20071020144021id_/http://www.zetex.com/3.0/spice/zxmn2a03e6.mod",
+   "sha256": "88b7c905384e8caab0d3541c06a16bb990a2d25b7e17c7ef4fc8e225acac388d",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN2A14F.mod",
+   "url": "https://web.archive.org/web/20071027194719id_/http://www.zetex.com/3.0/spice/ZXMN2A14F.mod",
+   "sha256": "e132d6b66de8be524221aca12d3917f6c30152759af2a656e69c2c975c01e765",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN3A01E6.mod",
+   "url": "https://web.archive.org/web/20071020224337id_/http://www.zetex.com/3.0/spice/ZXMN3A01E6.mod",
+   "sha256": "d6efe87042bac9ee0b21603f4ae861e45d83fea794d9d0570a5c4399beb3edc3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN3A01F.mod",
+   "url": "https://web.archive.org/web/20071020143735id_/http://www.zetex.com/3.0/spice/ZXMN3A01F.mod",
+   "sha256": "dc7461a70e0660585fee11738cd7f84685630f110820e7f31917a1aa3ccc4dc9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN3A02N8.mod",
+   "url": "https://web.archive.org/web/20071027194737id_/http://www.zetex.com/3.0/spice/ZXMN3A02N8.mod",
+   "sha256": "be9920183159577a59583fc18dc0cd6292bc78d8885b4ab7cd8b424bc41161e0",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN3A02X8.mod",
+   "url": "https://web.archive.org/web/20071021071640id_/http://www.zetex.com/3.0/spice/ZXMN3A02X8.mod",
+   "sha256": "99a6ec84aa1a6c3a691b62e4f4adb059e85120277ac942aec3e8cf826ad74608",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn3a04dn8.mod",
+   "url": "https://web.archive.org/web/20071020224926id_/http://www.zetex.com/3.0/spice/zxmn3a04dn8.mod",
+   "sha256": "ea328cda21239caab1bd59cc884117dfd115f486f9fcb01b43de42dca5b030f7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn3a06dn8.mod",
+   "url": "https://web.archive.org/web/20071021071624id_/http://www.zetex.com/3.0/spice/zxmn3a06dn8.mod",
+   "sha256": "6502717282fa0d04094faa75c758c94745b15ae5200659ad0fe2aa8650bfb434",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn3b04n8.mod",
+   "url": "https://web.archive.org/web/20071020144130id_/http://www.zetex.com/3.0/spice/zxmn3b04n8.mod",
+   "sha256": "a0eb7bfe4c45d1342de6b64ae9961738598b557f3257d16a76e9d34c6ff5aaa2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN3B14F.mod",
+   "url": "https://web.archive.org/web/20071027195253id_/http://www.zetex.com/3.0/spice/ZXMN3B14F.mod",
+   "sha256": "01895a324b49cefe1f1f7f1b2f1c7ddb8e3c94264701996c09dad1a15de538a3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn4a06g.mod",
+   "url": "https://web.archive.org/web/20071028044621id_/http://www.zetex.com/3.0/spice/zxmn4a06g.mod",
+   "sha256": "a6a996be54ab77c2b3182ce9fad38f89b51c5aa9beca18afe96ba1f35705a1b9",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmn4a06k.mod",
+   "url": "https://web.archive.org/web/20071028044319id_/http://www.zetex.com/3.0/spice/zxmn4a06k.mod",
+   "sha256": "369b010df38e9a9a650683e5c263781ae7bdc51923f023d8b9955ee3edfbb3f1",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN6A07F.mod",
+   "url": "https://web.archive.org/web/20071021072236id_/http://www.zetex.com/3.0/spice/ZXMN6A07F.mod",
+   "sha256": "d380b7de34c67386de11b8d2639e34230f4ea867021fffaa66d0e468665aff38",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN6A07Z.mod",
+   "url": "https://web.archive.org/web/20071021072018id_/http://www.zetex.com/3.0/spice/ZXMN6A07Z.mod",
+   "sha256": "52a2fbd1244490a7c276d125f68d7b72cdd7f76e8f7de97015751c7813277d11",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMN6A08E6.mod",
+   "url": "https://web.archive.org/web/20071021071329id_/http://www.zetex.com/3.0/spice/ZXMN6A08E6.mod",
+   "sha256": "da8832270d21a992ed41f713467a6b14a4d780016c2e5a43b8e5eb91beb05fb4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A13F.mod",
+   "url": "https://web.archive.org/web/20071028042654id_/http://www.zetex.com/3.0/spice/ZXMP3A13F.mod",
+   "sha256": "f00c1cb7512d047a1a3784fbd344df86fbf7a6d8ca5852500b6ab5e564795651",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A13G.mod",
+   "url": "https://web.archive.org/web/20041210023251id_/http://www.zetex.com:80/3.0/spice/ZXMP3A13G.mod",
+   "sha256": "a055362b2e674e570dd3e5011f3b20a485bae75e2933e50805c914e1be3b80e3",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A16DN8.mod",
+   "url": "https://web.archive.org/web/20071028044228id_/http://www.zetex.com/3.0/spice/ZXMP3A16DN8.mod",
+   "sha256": "8d81ba757f7402c385a503a19da8ec5ae68d287aec96ca57fa6398b95cde7d11",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A16G.mod",
+   "url": "https://web.archive.org/web/20041210024254id_/http://www.zetex.com:80/3.0/spice/ZXMP3A16G.mod",
+   "sha256": "c1dbd4a7cd5c5c09e4c713437883d2e40fde0bda068426f93672f891b83cb335",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A16N8.mod",
+   "url": "https://web.archive.org/web/20071028042527id_/http://www.zetex.com/3.0/spice/ZXMP3A16N8.mod",
+   "sha256": "ce91b69f6d58c8ae3eb3a9cd092ffa1407d3680f022d6a1470e0d1823f24c563",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A17DN8.mod",
+   "url": "https://web.archive.org/web/20071027193529id_/http://www.zetex.com/3.0/spice/ZXMP3A17DN8.mod",
+   "sha256": "cce5dc77018520e11f529bbbcf818d0ee755b0cdc169fe8c276e03d6bbe686d7",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A17E6.mod",
+   "url": "https://web.archive.org/web/20071028042954id_/http://www.zetex.com/3.0/spice/ZXMP3A17E6.mod",
+   "sha256": "c42d3238053bb513a25163056349cc3f40553541e4c0235993dd188b09844a65",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP3A17G.mod",
+   "url": "https://web.archive.org/web/20040916101340id_/http://www.zetex.com:80/3.0/spice/ZXMP3A17G.mod",
+   "sha256": "e9fcd369661bd95b138154053253e218afb656a6360c0f72e25ad9b13c0e062b",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxmp4a16k.mod",
+   "url": "https://web.archive.org/web/20071028043009id_/http://www.zetex.com/3.0/spice/zxmp4a16k.mod",
+   "sha256": "3081d19e6943b4a10fb97b438ed5ab13163c1d91056644e6a1fcdd93ad768cae",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP6A16DN8.mod",
+   "url": "https://web.archive.org/web/20071028044705id_/http://www.zetex.com/3.0/spice/ZXMP6A16DN8.mod",
+   "sha256": "e32ace8ab8bd6991032dd59accc22375c6f3523a873042ea13a92b6b9f8b814a",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP6A16K.mod",
+   "url": "https://web.archive.org/web/20071027193558id_/http://www.zetex.com/3.0/spice/ZXMP6A16K.mod",
+   "sha256": "e1938c3433117b195d8a5f49f038bcb14e607afb9abe2eabce9cbb4a8a5bd8eb",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP6A18DN8.mod",
+   "url": "https://web.archive.org/web/20071027193653id_/http://www.zetex.com/3.0/spice/ZXMP6A18DN8.mod",
+   "sha256": "cdae9cae585fc39f3c517d8d3d83e080546c75a47607cab236c6083865478db4",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP6A18G.mod",
+   "url": "https://web.archive.org/web/20041210022203id_/http://www.zetex.com:80/3.0/spice/ZXMP6A18G.mod",
+   "sha256": "2e78d04fcd95a9af984f48bc09a63c11f45d37134e14d263264c7958863d808c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXMP7A17K.mod",
+   "url": "https://web.archive.org/web/20071028042736id_/http://www.zetex.com/3.0/spice/ZXMP7A17K.mod",
+   "sha256": "c2aa31aa8fce0df807e67afc63f5056dcc442f20b3af297263298f2e0ee57c99",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10n15de6.mod",
+   "url": "https://web.archive.org/web/20041210020847id_/http://www.zetex.com:80/3.0/spice/zxt10n15de6.mod",
+   "sha256": "f553062664ce055baa75cefd6e81d1e2d9c57b4d9eae8ff104ed0753d98a05ac",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10n20de6.mod",
+   "url": "https://web.archive.org/web/20041210021153id_/http://www.zetex.com:80/3.0/spice/zxt10n20de6.mod",
+   "sha256": "0ce8cf50b83c7d4959299cd406a322375406552d4b2f43be4bb556317f966a24",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10n50de6.mod",
+   "url": "https://web.archive.org/web/20041210022110id_/http://www.zetex.com:80/3.0/spice/zxt10n50de6.mod",
+   "sha256": "1aeb0cc3b98247eefb7ca7128379e3c0ae5e01954f8110f715e47451c566a927",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10p12de6.mod",
+   "url": "https://web.archive.org/web/20041210022556id_/http://www.zetex.com:80/3.0/spice/zxt10p12de6.mod",
+   "sha256": "75553ddfb66613a69e8d5ba22ba7b2e8187bc91b0fa5f17858553bb8538418f6",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10p20de6.mod",
+   "url": "https://web.archive.org/web/20041212014834id_/http://www.zetex.com:80/3.0/spice/zxt10p20de6.mod",
+   "sha256": "9803bb6b6fa8f612e6cf9a28df1a79eac1ec71ab51490264bc4661936dacdf92",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt10p40de6.mod",
+   "url": "https://web.archive.org/web/20041212015451id_/http://www.zetex.com:80/3.0/spice/zxt10p40de6.mod",
+   "sha256": "0234189448c45419f5bc2356bd25cd25d9d0b894e5b6cf0fb6f55c38a1ee70df",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt13p12de6.mod",
+   "url": "https://web.archive.org/web/20041212014149id_/http://www.zetex.com:80/3.0/spice/zxt13p12de6.mod",
+   "sha256": "4e2d33be5f5fe030465fd43f3c5b4b43ef4631c69151e0cffeaac3f24e138987",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt1m322.mod",
+   "url": "https://web.archive.org/web/20041212014930id_/http://www.zetex.com:80/3.0/spice/zxt1m322.mod",
+   "sha256": "dc640069c1cbb3ed075f8154b9bb5c4ef7d9cc67966c46c326706cbe0c56535c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt2m322.mod",
+   "url": "https://web.archive.org/web/20041212015213id_/http://www.zetex.com:80/3.0/spice/zxt2m322.mod",
+   "sha256": "e45c33e58f32fad93b15d5e09a2477fb0b479b637ff4004e88e5e30f1e41ed0e",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxt3m322.mod",
+   "url": "https://web.archive.org/web/20041212014419id_/http://www.zetex.com:80/3.0/spice/zxt3m322.mod",
+   "sha256": "f59116d3ddc10f7b01300135b8184aadec15e21f8c3effe61a8edddea6e6bdce",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXT4M322.mod",
+   "url": "https://web.archive.org/web/20041210022259id_/http://www.zetex.com:80/3.0/spice/ZXT4M322.mod",
+   "sha256": "28eebaf7828594a040e830d57a08f7d355a1bf46f4a257fa1c169253ae73ca02",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxtam322.mod",
+   "url": "https://web.archive.org/web/20041212014810id_/http://www.zetex.com:80/3.0/spice/zxtam322.mod",
+   "sha256": "40f37767ad784b80837c5ed12c8019b3453d26cacaac9e42db65669c9aa8695f",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxtbm322.mod",
+   "url": "https://web.archive.org/web/20041212015314id_/http://www.zetex.com:80/3.0/spice/zxtbm322.mod",
+   "sha256": "c5b840f05a3222f85c2b4104b9edee7fc00d51a8d12cb0c4b6ceab27e596b45c",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "zxtcm322.mod",
+   "url": "https://web.archive.org/web/20041212014012id_/http://www.zetex.com:80/3.0/spice/zxtcm322.mod",
+   "sha256": "5efb18159aee0ad91cf5bc8dce729aedc6c3cf199bde45671a6e86903dade3c2",
+   "retrieved": "2026-11-01"
+  },
+  {
+   "file": "ZXTEM322.mod",
+   "url": "https://web.archive.org/web/20041210022848id_/http://www.zetex.com:80/3.0/spice/ZXTEM322.mod",
+   "sha256": "2eddec00ce7db1096400cffeac497b748ba1ea8e16921135f9bd5357b689a1a9",
+   "retrieved": "2026-11-01"
+  }
+ ],
+ "libs": [
+  {
+   "file": "2n6715.mod",
+   "entries": [
+    {
+     "name": "2N6715",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "2n6727.mod",
+   "entries": [
+    {
+     "name": "2N6727",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "2n7000.mod",
+   "entries": [
+    {
+     "name": "2N7000",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "2n7000p.mod",
+   "entries": [
+    {
+     "name": "2N7000P",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "2n7002.mod",
+   "entries": [
+    {
+     "name": "2N7002",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "bal74.mod",
+   "entries": [
+    {
+     "name": "BAL74",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bal99.mod",
+   "entries": [
+    {
+     "name": "BAL99",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bar74.mod",
+   "entries": [
+    {
+     "name": "BAR74",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bar99.mod",
+   "entries": [
+    {
+     "name": "BAR99",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bas16.mod",
+   "entries": [
+    {
+     "name": "BAS16",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bas19.mod",
+   "entries": [
+    {
+     "name": "BAS19",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bas20.mod",
+   "entries": [
+    {
+     "name": "BAS20",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bas21.mod",
+   "entries": [
+    {
+     "name": "BAS21",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bat54.mod",
+   "entries": [
+    {
+     "name": "BAT54",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bav70.mod",
+   "entries": [
+    {
+     "name": "BAV70",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bav74.mod",
+   "entries": [
+    {
+     "name": "BAV74",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bav99.mod",
+   "entries": [
+    {
+     "name": "BAV99",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "baw56.mod",
+   "entries": [
+    {
+     "name": "BAW56",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bby31.mod",
+   "entries": [
+    {
+     "name": "BBY31",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bby40.mod",
+   "entries": [
+    {
+     "name": "BBY40",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc337ap.mod",
+   "entries": [
+    {
+     "name": "BC337AP",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc338ap.mod",
+   "entries": [
+    {
+     "name": "BC338AP",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc413bp.mod",
+   "entries": [
+    {
+     "name": "BC413BP",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc639.mod",
+   "entries": [
+    {
+     "name": "BC639",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc80716.mod",
+   "entries": [
+    {
+     "name": "BC80716",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc80816.mod",
+   "entries": [
+    {
+     "name": "BC80816",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc846b.mod",
+   "entries": [
+    {
+     "name": "BC846B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc847b.mod",
+   "entries": [
+    {
+     "name": "BC847B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc848b.mod",
+   "entries": [
+    {
+     "name": "BC848B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc849b.mod",
+   "entries": [
+    {
+     "name": "BC849B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc850b.mod",
+   "entries": [
+    {
+     "name": "BC850B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc856a.mod",
+   "entries": [
+    {
+     "name": "BC856A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc857a.mod",
+   "entries": [
+    {
+     "name": "BC857A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc858a.mod",
+   "entries": [
+    {
+     "name": "BC858A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc859a.mod",
+   "entries": [
+    {
+     "name": "BC859A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bc860a.mod",
+   "entries": [
+    {
+     "name": "BC860A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcp5610.mod",
+   "entries": [
+    {
+     "name": "BCP5610",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcp5616.mod",
+   "entries": [
+    {
+     "name": "BCP5616",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcv72.mod",
+   "entries": [
+    {
+     "name": "BCV72",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw29.mod",
+   "entries": [
+    {
+     "name": "BCW29",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw32.mod",
+   "entries": [
+    {
+     "name": "BCW32",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw60c.mod",
+   "entries": [
+    {
+     "name": "BCW60C",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw61a.mod",
+   "entries": [
+    {
+     "name": "BCW61A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw65a.mod",
+   "entries": [
+    {
+     "name": "BCW65A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw67a.mod",
+   "entries": [
+    {
+     "name": "BCW67A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw68f.mod",
+   "entries": [
+    {
+     "name": "BCW68F",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw69.mod",
+   "entries": [
+    {
+     "name": "BCW69",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw72.mod",
+   "entries": [
+    {
+     "name": "BCW72",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcw89.mod",
+   "entries": [
+    {
+     "name": "BCW89",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx17.mod",
+   "entries": [
+    {
+     "name": "BCX17",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx56.mod",
+   "entries": [
+    {
+     "name": "BCX56",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx5610.mod",
+   "entries": [
+    {
+     "name": "BCX5610",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx5616.mod",
+   "entries": [
+    {
+     "name": "BCX5616",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx6825.mod",
+   "entries": [
+    {
+     "name": "BCX6825",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx70j.mod",
+   "entries": [
+    {
+     "name": "BCX70J",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bcx71g.mod",
+   "entries": [
+    {
+     "name": "BCX71G",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bfn17.mod",
+   "entries": [
+    {
+     "name": "BFN17",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bfn19.mod",
+   "entries": [
+    {
+     "name": "BFN19",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bfq31.mod",
+   "entries": [
+    {
+     "name": "BFQ31",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bfs17.mod",
+   "entries": [
+    {
+     "name": "BFS17",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bs250p.mod",
+   "entries": [
+    {
+     "name": "BS250P",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "bss123.mod",
+   "entries": [
+    {
+     "name": "BSS123",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "BSS123A.mod",
+   "entries": [
+    {
+     "name": "BSS123A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "bss65.mod",
+   "entries": [
+    {
+     "name": "BSS65",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "bss84.mod",
+   "entries": [
+    {
+     "name": "BSS84",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "BST52.mod",
+   "entries": [
+    {
+     "name": "BST52",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fcx1047a.mod",
+   "entries": [
+    {
+     "name": "FCX1047A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx1051a.mod",
+   "entries": [
+    {
+     "name": "FCX1051A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx1053a.mod",
+   "entries": [
+    {
+     "name": "FCX1053A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx1147a.mod",
+   "entries": [
+    {
+     "name": "FCX1147A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx1149a.mod",
+   "entries": [
+    {
+     "name": "FCX1149A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx1151a.mod",
+   "entries": [
+    {
+     "name": "FCX1151A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FCX458.mod",
+   "entries": [
+    {
+     "name": "FCX458",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx491.mod",
+   "entries": [
+    {
+     "name": "FCX491",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx491a.mod",
+   "entries": [
+    {
+     "name": "FCX491A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx493.mod",
+   "entries": [
+    {
+     "name": "FCX493",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FCX558.mod",
+   "entries": [
+    {
+     "name": "FCX558",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx589.mod",
+   "entries": [
+    {
+     "name": "FCX589",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx591.mod",
+   "entries": [
+    {
+     "name": "FCX591",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx591a.mod",
+   "entries": [
+    {
+     "name": "FCX591A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx596.mod",
+   "entries": [
+    {
+     "name": "FCX596",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FCX605.mod",
+   "entries": [
+    {
+     "name": "FCX605",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fcx617.mod",
+   "entries": [
+    {
+     "name": "FCX617",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx619.mod",
+   "entries": [
+    {
+     "name": "FCX619",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx658a.mod",
+   "entries": [
+    {
+     "name": "FCX658A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx688b.mod",
+   "entries": [
+    {
+     "name": "FCX688B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx690b.mod",
+   "entries": [
+    {
+     "name": "FCX690B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx717.mod",
+   "entries": [
+    {
+     "name": "FCX717",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx718.mod",
+   "entries": [
+    {
+     "name": "FCX718",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx789a.mod",
+   "entries": [
+    {
+     "name": "FCX789A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fcx790a.mod",
+   "entries": [
+    {
+     "name": "FCX790A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "flld258.mod",
+   "entries": [
+    {
+     "name": "FLLD258",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "flld261.mod",
+   "entries": [
+    {
+     "name": "FLLD261",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "flld263.mod",
+   "entries": [
+    {
+     "name": "FLLD263",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd2835.mod",
+   "entries": [
+    {
+     "name": "FMMD2835",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd2836.mod",
+   "entries": [
+    {
+     "name": "FMMD2836",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd2837.mod",
+   "entries": [
+    {
+     "name": "FMMD2837",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd2838.mod",
+   "entries": [
+    {
+     "name": "FMMD2838",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd6050.mod",
+   "entries": [
+    {
+     "name": "FMMD6050",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd6100.mod",
+   "entries": [
+    {
+     "name": "FMMD6100",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd7000.mod",
+   "entries": [
+    {
+     "name": "FMMD7000",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmd914.mod",
+   "entries": [
+    {
+     "name": "FMMD914",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt38c.mod",
+   "entries": [
+    {
+     "name": "FMMT38C",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmt455.mod",
+   "entries": [
+    {
+     "name": "FMMT455",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt458.mod",
+   "entries": [
+    {
+     "name": "FMMT458",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt459.mod",
+   "entries": [
+    {
+     "name": "FMMT459",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt489.mod",
+   "entries": [
+    {
+     "name": "FMMT489",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt491a.mod",
+   "entries": [
+    {
+     "name": "FMMT491A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt493.mod",
+   "entries": [
+    {
+     "name": "FMMT493",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt497.mod",
+   "entries": [
+    {
+     "name": "FMMT497",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt5179.mod",
+   "entries": [
+    {
+     "name": "FMMT5179",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt549.mod",
+   "entries": [
+    {
+     "name": "FMMT549",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt558.mod",
+   "entries": [
+    {
+     "name": "FMMT558",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt560.mod",
+   "entries": [
+    {
+     "name": "FMMT560",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt589.mod",
+   "entries": [
+    {
+     "name": "FMMT589",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt591a.mod",
+   "entries": [
+    {
+     "name": "FMMT591A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt593.mod",
+   "entries": [
+    {
+     "name": "FMMT593",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt597.mod",
+   "entries": [
+    {
+     "name": "FMMT597",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FMMT614.mod",
+   "entries": [
+    {
+     "name": "FMMT614",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmt617.mod",
+   "entries": [
+    {
+     "name": "FMMT617",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt618.mod",
+   "entries": [
+    {
+     "name": "FMMT618",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt619.mod",
+   "entries": [
+    {
+     "name": "FMMT619",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt620.mod",
+   "entries": [
+    {
+     "name": "FMMT620",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt624.mod",
+   "entries": [
+    {
+     "name": "FMMT624",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt625.mod",
+   "entries": [
+    {
+     "name": "FMMT625",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt634.mod",
+   "entries": [
+    {
+     "name": "FMMT634",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmt717.mod",
+   "entries": [
+    {
+     "name": "FMMT717",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt718.mod",
+   "entries": [
+    {
+     "name": "FMMT718",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt720.mod",
+   "entries": [
+    {
+     "name": "FMMT720",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt722.mod",
+   "entries": [
+    {
+     "name": "FMMT722",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmt918.mod",
+   "entries": [
+    {
+     "name": "FMMT918",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmta12.mod",
+   "entries": [
+    {
+     "name": "FMMTA12",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmta13.mod",
+   "entries": [
+    {
+     "name": "FMMTA13",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmta14.mod",
+   "entries": [
+    {
+     "name": "FMMTA14",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmta20.mod",
+   "entries": [
+    {
+     "name": "FMMTA20",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmta63.mod",
+   "entries": [
+    {
+     "name": "FMMTA63",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fmmta70.mod",
+   "entries": [
+    {
+     "name": "FMMTA70",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmth10.mod",
+   "entries": [
+    {
+     "name": "FMMTH10",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmtl618.mod",
+   "entries": [
+    {
+     "name": "FMMTL618",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmtl718.mod",
+   "entries": [
+    {
+     "name": "FMMTL718",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv105g.mod",
+   "entries": [
+    {
+     "name": "FMMV105G",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv109.mod",
+   "entries": [
+    {
+     "name": "FMMV109",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2102.mod",
+   "entries": [
+    {
+     "name": "FMMV2102",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2103.mod",
+   "entries": [
+    {
+     "name": "FMMV2103",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2104.mod",
+   "entries": [
+    {
+     "name": "FMMV2104",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2105.mod",
+   "entries": [
+    {
+     "name": "FMMV2105",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2106.mod",
+   "entries": [
+    {
+     "name": "FMMV2106",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2107.mod",
+   "entries": [
+    {
+     "name": "FMMV2107",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2108.mod",
+   "entries": [
+    {
+     "name": "FMMV2108",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv2109.mod",
+   "entries": [
+    {
+     "name": "FMMV2109",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fmmv3102.mod",
+   "entries": [
+    {
+     "name": "FMMV3102",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FSD273.mod",
+   "entries": [
+    {
+     "name": "FSD273",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fxt618.mod",
+   "entries": [
+    {
+     "name": "FXT618",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1047a.mod",
+   "entries": [
+    {
+     "name": "FZT1047A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1048a.mod",
+   "entries": [
+    {
+     "name": "FZT1048A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1049a.mod",
+   "entries": [
+    {
+     "name": "FZT1049A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1051a.mod",
+   "entries": [
+    {
+     "name": "FZT1051A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1053a.mod",
+   "entries": [
+    {
+     "name": "FZT1053A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1147a.mod",
+   "entries": [
+    {
+     "name": "FZT1147A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1149a.mod",
+   "entries": [
+    {
+     "name": "FZT1149A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt1151a.mod",
+   "entries": [
+    {
+     "name": "FZT1151A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt491.mod",
+   "entries": [
+    {
+     "name": "FZT491",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt560.mod",
+   "entries": [
+    {
+     "name": "FZT560",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt604.mod",
+   "entries": [
+    {
+     "name": "FZT604",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fzt605.mod",
+   "entries": [
+    {
+     "name": "FZT605",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fzt649.mod",
+   "entries": [
+    {
+     "name": "FZT649",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt651.mod",
+   "entries": [
+    {
+     "name": "FZT651",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt653.mod",
+   "entries": [
+    {
+     "name": "FZT653",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt657.mod",
+   "entries": [
+    {
+     "name": "FZT657",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt658.mod",
+   "entries": [
+    {
+     "name": "FZT658",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt688b.mod",
+   "entries": [
+    {
+     "name": "FZT688B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt689b.mod",
+   "entries": [
+    {
+     "name": "FZT689B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt690b.mod",
+   "entries": [
+    {
+     "name": "FZT690B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt692b.mod",
+   "entries": [
+    {
+     "name": "FZT692B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt694b.mod",
+   "entries": [
+    {
+     "name": "FZT694B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt696b.mod",
+   "entries": [
+    {
+     "name": "FZT696B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt705.mod",
+   "entries": [
+    {
+     "name": "FZT705",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "fzt717.mod",
+   "entries": [
+    {
+     "name": "FZT717",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt749.mod",
+   "entries": [
+    {
+     "name": "FZT749",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt751.mod",
+   "entries": [
+    {
+     "name": "FZT751",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt753.mod",
+   "entries": [
+    {
+     "name": "FZT753",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt757.mod",
+   "entries": [
+    {
+     "name": "FZT757",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "FZT758.mod",
+   "entries": [
+    {
+     "name": "FZT758",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt788a.mod",
+   "entries": [
+    {
+     "name": "FZT788A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt788b.mod",
+   "entries": [
+    {
+     "name": "FZT788B",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt789a.mod",
+   "entries": [
+    {
+     "name": "FZT789A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt790a.mod",
+   "entries": [
+    {
+     "name": "FZT790A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt792a.mod",
+   "entries": [
+    {
+     "name": "FZT792A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt795a.mod",
+   "entries": [
+    {
+     "name": "FZT795A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt796a.mod",
+   "entries": [
+    {
+     "name": "FZT796A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt849.mod",
+   "entries": [
+    {
+     "name": "FZT849",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt851.mod",
+   "entries": [
+    {
+     "name": "FZT851",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt853.mod",
+   "entries": [
+    {
+     "name": "FZT853",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt855.mod",
+   "entries": [
+    {
+     "name": "FZT855",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt857.mod",
+   "entries": [
+    {
+     "name": "FZT857",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt869.mod",
+   "entries": [
+    {
+     "name": "FZT869",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt948.mod",
+   "entries": [
+    {
+     "name": "FZT948",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt949.mod",
+   "entries": [
+    {
+     "name": "FZT949",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt951.mod",
+   "entries": [
+    {
+     "name": "FZT951",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt953.mod",
+   "entries": [
+    {
+     "name": "FZT953",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt955.mod",
+   "entries": [
+    {
+     "name": "FZT955",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt956.mod",
+   "entries": [
+    {
+     "name": "FZT956",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt957.mod",
+   "entries": [
+    {
+     "name": "FZT957",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt958.mod",
+   "entries": [
+    {
+     "name": "FZT958",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "fzt968.mod",
+   "entries": [
+    {
+     "name": "FZT968",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "hd2a.mod",
+   "entries": [
+    {
+     "name": "HD2A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "hd3a.mod",
+   "entries": [
+    {
+     "name": "HD3A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "hd4a.mod",
+   "entries": [
+    {
+     "name": "HD4A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "mps5179.mod",
+   "entries": [
+    {
+     "name": "MPS5179",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "mpsa20.mod",
+   "entries": [
+    {
+     "name": "MPSA20",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "mpsa77.mod",
+   "entries": [
+    {
+     "name": "MPSA77",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "mpsh10.mod",
+   "entries": [
+    {
+     "name": "MPSH10",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc2800.mod",
+   "entries": [
+    {
+     "name": "ZC2800",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc2800e.mod",
+   "entries": [
+    {
+     "name": "ZC2800E",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc2811.mod",
+   "entries": [
+    {
+     "name": "ZC2811",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc2811e.mod",
+   "entries": [
+    {
+     "name": "ZC2811E",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc5800.mod",
+   "entries": [
+    {
+     "name": "ZC5800",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc5800e.mod",
+   "entries": [
+    {
+     "name": "ZC5800E",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc820a.mod",
+   "entries": [
+    {
+     "name": "ZC820A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc821a.mod",
+   "entries": [
+    {
+     "name": "ZC821A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc822a.mod",
+   "entries": [
+    {
+     "name": "ZC822A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc823a.mod",
+   "entries": [
+    {
+     "name": "ZC823A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc824a.mod",
+   "entries": [
+    {
+     "name": "ZC824A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc825a.mod",
+   "entries": [
+    {
+     "name": "ZC825A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc826a.mod",
+   "entries": [
+    {
+     "name": "ZC826A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc830a.mod",
+   "entries": [
+    {
+     "name": "ZC830A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc831a.mod",
+   "entries": [
+    {
+     "name": "ZC831A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc832a.mod",
+   "entries": [
+    {
+     "name": "ZC832A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc833a.mod",
+   "entries": [
+    {
+     "name": "ZC833A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc834a.mod",
+   "entries": [
+    {
+     "name": "ZC834A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc835a.mod",
+   "entries": [
+    {
+     "name": "ZC835A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc836a.mod",
+   "entries": [
+    {
+     "name": "ZC836A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc930a.mod",
+   "entries": [
+    {
+     "name": "ZC930A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zc933.mod",
+   "entries": [
+    {
+     "name": "ZC933",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs1000.mod",
+   "entries": [
+    {
+     "name": "ZHCS1000",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs1006.mod",
+   "entries": [
+    {
+     "name": "ZHCS1006",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs2000.mod",
+   "entries": [
+    {
+     "name": "ZHCS2000",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs400.mod",
+   "entries": [
+    {
+     "name": "ZHCS400",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs500.mod",
+   "entries": [
+    {
+     "name": "ZHCS500",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zhcs750.mod",
+   "entries": [
+    {
+     "name": "ZHCS750",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZLLS1000.mod",
+   "entries": [
+    {
+     "name": "ZLLS1000",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZLLS350.mod",
+   "entries": [
+    {
+     "name": "ZLLS350",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZLLS400.mod",
+   "entries": [
+    {
+     "name": "ZLLS400",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZLLS410.mod",
+   "entries": [
+    {
+     "name": "ZLLS410",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZLLS500.mod",
+   "entries": [
+    {
+     "name": "ZLLS500",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmdc953.mod",
+   "entries": [
+    {
+     "name": "ZMDC953",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zms2800.mod",
+   "entries": [
+    {
+     "name": "ZMS2800",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zms2811.mod",
+   "entries": [
+    {
+     "name": "ZMS2811",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zms5800.mod",
+   "entries": [
+    {
+     "name": "ZMS5800",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmv930.mod",
+   "entries": [
+    {
+     "name": "ZMV930",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmv930a.mod",
+   "entries": [
+    {
+     "name": "ZMV930A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmv933.mod",
+   "entries": [
+    {
+     "name": "ZMV933",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmv934.mod",
+   "entries": [
+    {
+     "name": "ZMV934",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zmv934a.mod",
+   "entries": [
+    {
+     "name": "ZMV934A",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZR431.mod",
+   "entries": [
+    {
+     "name": "ZR431",
+     "kind": "block",
+     "category": "References",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZR431L.mod",
+   "entries": [
+    {
+     "name": "ZR431L",
+     "kind": "block",
+     "category": "References",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx1047a.mod",
+   "entries": [
+    {
+     "name": "ZTX1047A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1048a.mod",
+   "entries": [
+    {
+     "name": "ZTX1048A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1049a.mod",
+   "entries": [
+    {
+     "name": "ZTX1049A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1051a.mod",
+   "entries": [
+    {
+     "name": "ZTX1051A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1053a.mod",
+   "entries": [
+    {
+     "name": "ZTX1053A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1055a.mod",
+   "entries": [
+    {
+     "name": "ZTX1055A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1056a.mod",
+   "entries": [
+    {
+     "name": "ZTX1056A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx109b.mod",
+   "entries": [
+    {
+     "name": "ZTX109B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1147a.mod",
+   "entries": [
+    {
+     "name": "ZTX1147A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1149a.mod",
+   "entries": [
+    {
+     "name": "ZTX1149A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx1151a.mod",
+   "entries": [
+    {
+     "name": "ZTX1151A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx213a.mod",
+   "entries": [
+    {
+     "name": "ZTX213A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx237b.mod",
+   "entries": [
+    {
+     "name": "ZTX237B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx238b.mod",
+   "entries": [
+    {
+     "name": "ZTX238B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx239b.mod",
+   "entries": [
+    {
+     "name": "ZTX239B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx320.mod",
+   "entries": [
+    {
+     "name": "ZTX320",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx321.mod",
+   "entries": [
+    {
+     "name": "ZTX321",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx325.mod",
+   "entries": [
+    {
+     "name": "ZTX325",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx327.mod",
+   "entries": [
+    {
+     "name": "ZTX327",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx337a.mod",
+   "entries": [
+    {
+     "name": "ZTX337A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx338a.mod",
+   "entries": [
+    {
+     "name": "ZTX338A",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx360.mod",
+   "entries": [
+    {
+     "name": "ZTX360",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx450.mod",
+   "entries": [
+    {
+     "name": "ZTX450",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx454.mod",
+   "entries": [
+    {
+     "name": "ZTX454",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx455.mod",
+   "entries": [
+    {
+     "name": "ZTX455",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx457.mod",
+   "entries": [
+    {
+     "name": "ZTX457",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx458.mod",
+   "entries": [
+    {
+     "name": "ZTX458",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx510.mod",
+   "entries": [
+    {
+     "name": "ZTX510",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx549.mod",
+   "entries": [
+    {
+     "name": "ZTX549",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx550.mod",
+   "entries": [
+    {
+     "name": "ZTX550",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx551.mod",
+   "entries": [
+    {
+     "name": "ZTX551",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx558.mod",
+   "entries": [
+    {
+     "name": "ZTX558",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx560.mod",
+   "entries": [
+    {
+     "name": "ZTX560",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx604.mod",
+   "entries": [
+    {
+     "name": "ZTX604",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx605.mod",
+   "entries": [
+    {
+     "name": "ZTX605",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx614.mod",
+   "entries": [
+    {
+     "name": "ZTX614",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx617.mod",
+   "entries": [
+    {
+     "name": "ZTX617",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx618.mod",
+   "entries": [
+    {
+     "name": "ZTX618",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx649.mod",
+   "entries": [
+    {
+     "name": "ZTX649",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx650.mod",
+   "entries": [
+    {
+     "name": "ZTX650",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx651.mod",
+   "entries": [
+    {
+     "name": "ZTX651",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx652.mod",
+   "entries": [
+    {
+     "name": "ZTX652",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx657.mod",
+   "entries": [
+    {
+     "name": "ZTX657",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx658.mod",
+   "entries": [
+    {
+     "name": "ZTX658",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx688b.mod",
+   "entries": [
+    {
+     "name": "ZTX688B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx689b.mod",
+   "entries": [
+    {
+     "name": "ZTX689B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx690b.mod",
+   "entries": [
+    {
+     "name": "ZTX690B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx692b.mod",
+   "entries": [
+    {
+     "name": "ZTX692B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx694b.mod",
+   "entries": [
+    {
+     "name": "ZTX694B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx696b.mod",
+   "entries": [
+    {
+     "name": "ZTX696B",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx704.mod",
+   "entries": [
+    {
+     "name": "ZTX704",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx705.mod",
+   "entries": [
+    {
+     "name": "ZTX705",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ztx717.mod",
+   "entries": [
+    {
+     "name": "ZTX717",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx718.mod",
+   "entries": [
+    {
+     "name": "ZTX718",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx749.mod",
+   "entries": [
+    {
+     "name": "ZTX749",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx750.mod",
+   "entries": [
+    {
+     "name": "ZTX750",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx751.mod",
+   "entries": [
+    {
+     "name": "ZTX751",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx752.mod",
+   "entries": [
+    {
+     "name": "ZTX752",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx753.mod",
+   "entries": [
+    {
+     "name": "ZTX753",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx757.mod",
+   "entries": [
+    {
+     "name": "ZTX757",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZTX758.mod",
+   "entries": [
+    {
+     "name": "ZTX758",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx788a.mod",
+   "entries": [
+    {
+     "name": "ZTX788A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx789a.mod",
+   "entries": [
+    {
+     "name": "ZTX789A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx790a.mod",
+   "entries": [
+    {
+     "name": "ZTX790A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx792a.mod",
+   "entries": [
+    {
+     "name": "ZTX792A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx795a.mod",
+   "entries": [
+    {
+     "name": "ZTX795A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx796a.mod",
+   "entries": [
+    {
+     "name": "ZTX796A",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx849.mod",
+   "entries": [
+    {
+     "name": "ZTX849",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx851.mod",
+   "entries": [
+    {
+     "name": "ZTX851",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx853.mod",
+   "entries": [
+    {
+     "name": "ZTX853",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx855.mod",
+   "entries": [
+    {
+     "name": "ZTX855",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx857.mod",
+   "entries": [
+    {
+     "name": "ZTX857",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx869.mod",
+   "entries": [
+    {
+     "name": "ZTX869",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx948.mod",
+   "entries": [
+    {
+     "name": "ZTX948",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx949.mod",
+   "entries": [
+    {
+     "name": "ZTX949",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx951.mod",
+   "entries": [
+    {
+     "name": "ZTX951",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx953.mod",
+   "entries": [
+    {
+     "name": "ZTX953",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx955.mod",
+   "entries": [
+    {
+     "name": "ZTX955",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx956.mod",
+   "entries": [
+    {
+     "name": "ZTX956",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx957.mod",
+   "entries": [
+    {
+     "name": "ZTX957",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx958.mod",
+   "entries": [
+    {
+     "name": "ZTX958",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ztx968.mod",
+   "entries": [
+    {
+     "name": "ZTX968",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zumt717.mod",
+   "entries": [
+    {
+     "name": "ZUMT717",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zumt720.mod",
+   "entries": [
+    {
+     "name": "ZUMT720",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zv950v2.mod",
+   "entries": [
+    {
+     "name": "ZV950V2",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zv952v2.mod",
+   "entries": [
+    {
+     "name": "ZV952V2",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zv953v2.mod",
+   "entries": [
+    {
+     "name": "ZV953V2",
+     "kind": "diode",
+     "category": "Diodes",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zvn0124a.mod",
+   "entries": [
+    {
+     "name": "ZVN0124A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVN0540A.mod",
+   "entries": [
+    {
+     "name": "ZVN0540A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVN0545A.mod",
+   "entries": [
+    {
+     "name": "ZVN0545A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn0545g.mod",
+   "entries": [
+    {
+     "name": "ZVN0545G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn2110a.mod",
+   "entries": [
+    {
+     "name": "ZVN2110A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn2110c.mod",
+   "entries": [
+    {
+     "name": "ZVN2110C",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn2110g.mod",
+   "entries": [
+    {
+     "name": "ZVN2110G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn3306a.mod",
+   "entries": [
+    {
+     "name": "ZVN3306A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn3306f.mod",
+   "entries": [
+    {
+     "name": "ZVN3306F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn3310a.mod",
+   "entries": [
+    {
+     "name": "ZVN3310A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn3310f.mod",
+   "entries": [
+    {
+     "name": "ZVN3310F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4106f.mod",
+   "entries": [
+    {
+     "name": "ZVN4106F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4210a.mod",
+   "entries": [
+    {
+     "name": "ZVN4210A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4210g.mod",
+   "entries": [
+    {
+     "name": "ZVN4210G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4306a.mod",
+   "entries": [
+    {
+     "name": "ZVN4306A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4306av.mod",
+   "entries": [
+    {
+     "name": "ZVN4306AV",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4306g.mod",
+   "entries": [
+    {
+     "name": "ZVN4306G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4306gv.mod",
+   "entries": [
+    {
+     "name": "ZVN4306GV",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4310a.mod",
+   "entries": [
+    {
+     "name": "ZVN4310A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvn4310g.mod",
+   "entries": [
+    {
+     "name": "ZVN4310G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvnl110a.mod",
+   "entries": [
+    {
+     "name": "ZVNL110A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvnl110g.mod",
+   "entries": [
+    {
+     "name": "ZVNL110G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvnl120a.mod",
+   "entries": [
+    {
+     "name": "ZVNL120A",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvnl120g.mod",
+   "entries": [
+    {
+     "name": "ZVNL120G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVP0545A.mod",
+   "entries": [
+    {
+     "name": "ZVP0545A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp0545g.mod",
+   "entries": [
+    {
+     "name": "ZVP0545G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp1320a.mod",
+   "entries": [
+    {
+     "name": "ZVP1320A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp1320f.mod",
+   "entries": [
+    {
+     "name": "ZVP1320F",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp2106a.mod",
+   "entries": [
+    {
+     "name": "ZVP2106A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp2106g.mod",
+   "entries": [
+    {
+     "name": "ZVP2106G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp2110a.mod",
+   "entries": [
+    {
+     "name": "ZVP2110A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVP2110G.mod",
+   "entries": [
+    {
+     "name": "ZVP2110G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp3306a.mod",
+   "entries": [
+    {
+     "name": "ZVP3306A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zvp3306f.mod",
+   "entries": [
+    {
+     "name": "ZVP3306F",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVP3310A.mod",
+   "entries": [
+    {
+     "name": "ZVP3310A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVP3310F.mod",
+   "entries": [
+    {
+     "name": "ZVP3310F",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZVP4105A.mod",
+   "entries": [
+    {
+     "name": "ZVP4105A",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZX5T3Z.mod",
+   "entries": [
+    {
+     "name": "ZX5T3",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZX5T851G.mod",
+   "entries": [
+    {
+     "name": "ZX5T851",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxmd63p02x.mod",
+   "entries": [
+    {
+     "name": "ZXMD63P02X",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmd63p03x.mod",
+   "entries": [
+    {
+     "name": "ZXMD63P03X",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN10A07F.mod",
+   "entries": [
+    {
+     "name": "ZXMN10A07F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN10A07Z.mod",
+   "entries": [
+    {
+     "name": "ZXMN10A07Z",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN10A08E6.mod",
+   "entries": [
+    {
+     "name": "ZXMN10A08E6",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN10A11G.mod",
+   "entries": [
+    {
+     "name": "ZXMN10A11G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN10A11K.mod",
+   "entries": [
+    {
+     "name": "ZXMN10A11K",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN2A01E6.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A01E6",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN2A01F.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A01F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN2A02N8.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A02N8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN2A02X8.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A02X8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn2a03e6.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A03E6",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN2A14F.mod",
+   "entries": [
+    {
+     "name": "ZXMN2A14F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN3A01E6.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A01E6",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN3A01F.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A01F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN3A02N8.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A02N8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN3A02X8.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A02X8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn3a04dn8.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A04DN8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn3a06dn8.mod",
+   "entries": [
+    {
+     "name": "ZXMN3A06DN8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn3b04n8.mod",
+   "entries": [
+    {
+     "name": "ZXMN3B04N8",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN3B14F.mod",
+   "entries": [
+    {
+     "name": "ZXMN3B14F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn4a06g.mod",
+   "entries": [
+    {
+     "name": "ZXMN4A06G",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmn4a06k.mod",
+   "entries": [
+    {
+     "name": "ZXMN4A06K",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN6A07F.mod",
+   "entries": [
+    {
+     "name": "ZXMN6A07F",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN6A07Z.mod",
+   "entries": [
+    {
+     "name": "ZXMN6A07Z",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMN6A08E6.mod",
+   "entries": [
+    {
+     "name": "ZXMN6A08E6",
+     "kind": "nmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A13F.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A13F",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A13G.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A13G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A16DN8.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A16DN8",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A16G.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A16G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A16N8.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A16N8",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A17DN8.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A17DN8",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A17E6.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A17E6",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP3A17G.mod",
+   "entries": [
+    {
+     "name": "ZXMP3A17G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxmp4a16k.mod",
+   "entries": [
+    {
+     "name": "ZXMP4A16K",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP6A16DN8.mod",
+   "entries": [
+    {
+     "name": "ZXMP6A16DN8",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP6A16K.mod",
+   "entries": [
+    {
+     "name": "ZXMP6A16K",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP6A18DN8.mod",
+   "entries": [
+    {
+     "name": "ZXMP6A18DN8",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP6A18G.mod",
+   "entries": [
+    {
+     "name": "ZXMP6A18G",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "ZXMP7A17K.mod",
+   "entries": [
+    {
+     "name": "ZXMP7A17K",
+     "kind": "pmos",
+     "category": "MOSFETs",
+     "pinMap": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "file": "zxt10n15de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10N15DE6",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt10n20de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10N20DE6",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt10n50de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10N50DE6",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt10p12de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10P12DE6",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt10p20de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10P20DE6",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt10p40de6.mod",
+   "entries": [
+    {
+     "name": "ZXT10P40DE6",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt13p12de6.mod",
+   "entries": [
+    {
+     "name": "ZXT13P12DE6",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt1m322.mod",
+   "entries": [
+    {
+     "name": "ZXT1M322",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt2m322.mod",
+   "entries": [
+    {
+     "name": "ZXT2M322",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxt3m322.mod",
+   "entries": [
+    {
+     "name": "ZXT3M322",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZXT4M322.mod",
+   "entries": [
+    {
+     "name": "ZXT4M322",
+     "kind": "pnp",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxtam322.mod",
+   "entries": [
+    {
+     "name": "ZXTAM322",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxtbm322.mod",
+   "entries": [
+    {
+     "name": "ZXTBM322",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "zxtcm322.mod",
+   "entries": [
+    {
+     "name": "ZXTCM322",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  },
+  {
+   "file": "ZXTEM322.mod",
+   "entries": [
+    {
+     "name": "ZXTEM322",
+     "kind": "npn",
+     "category": "BJTs",
+     "pinMap": []
+    }
+   ]
+  }
+ ]
+}

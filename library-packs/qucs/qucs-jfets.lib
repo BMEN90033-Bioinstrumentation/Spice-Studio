@@ -1,0 +1,733 @@
+* Qucs-S community parts: JFETs, 146 parts
+* Converted from https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library by scripts/packs/qucs.ts (ngspice Studio).
+* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.
+
+* 2N2608: p-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N2608>
+.model 2N2608 PJF(VT0=-2.45 BETA=423.6e-6 LAMBDA=15e-3 RD=1 RS=1 IS=222.4e-15 N=1 CGS=8.37e-12
++CGD=6.7e-12 PB=1 FC=0.5 M=0.4822 KF=2.864e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N2609: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N2609>
+.model 2N2609 PJF(VT0=-1.408 BETA=3.2e-3 LAMBDA=18.5e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=2.062e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3370: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3370>
+.model 2N3370 NJF(VT0=-0.65 BETA=766.8e-6 LAMBDA=9e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.863e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3458: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3458>
+.model 2N3458 NJF(VT0=-3.05 BETA=700e-6 LAMBDA=6e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.59e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3459: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3459>
+.model 2N3459 NJF(VT0=-1.4 BETA=1.265e-3 LAMBDA=4e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=4.791e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3684: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3684>
+.model 2N3684 NJF(VT0=-3.18 BETA=348.1e-6 LAMBDA=11.67e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.083e-12
++CGD=2e-12 PB=0.5 FC=0.5 M=0.2271 KF=1.259e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3685: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3685>
+.model 2N3685 NJF(VT0=-1.691 BETA=543.4e-6 LAMBDA=5.833e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.083e-12
++CGD=2e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.004e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3686: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3686>
+.model 2N3686 NJF(VT0=-0.957 BETA=723.7e-6 LAMBDA=2.333e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.083e-12
++CGD=2e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.697e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3687: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3687>
+.model 2N3687 NJF(VT0=-0.5102 BETA=840e-6 LAMBDA=1.167e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.083e-12
++CGD=2e-12 PB=0.5 FC=0.5 M=0.2271 KF=3.146e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3821: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3821>
+.model 2N3821 NJF(VT0=-0.8467 BETA=1.517e-3 LAMBDA=2.045e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=1.43e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3822: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3822>
+.model 2N3822 NJF(VT0=-1.962 BETA=1.1e-3 LAMBDA=4.09e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=1.02e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3823: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3823>
+.model 2N3823 NJF(VT0=-3.3 BETA=1.17e-3 LAMBDA=4e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=8.841e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3824: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3824>
+.model 2N3824 NJF(VT0=-2.139 BETA=436.4e-6 LAMBDA=5.333e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=3.783e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3921: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3921>
+.model 2N3921 NJF(VT0=-1.799 BETA=1.57e-3 LAMBDA=4e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=4.4e-12
++CGD=8.8e-12 PB=1 FC=0.5 M=0.5 KF=3.392e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3922: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3922>
+.model 2N3922 NJF(VT0=-1.799 BETA=1.57e-3 LAMBDA=4e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=4.4e-12
++CGD=8.8e-12 PB=1 FC=0.5 M=0.5 KF=3.392e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3954: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3954>
+.model 2N3954 NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3954A: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3954A>
+.model 2N3954A NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3955: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3955>
+.model 2N3955 NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3955A: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3955A>
+.model 2N3955A NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3956: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3956>
+.model 2N3956 NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3957: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3957>
+.model 2N3957 NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3958: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N3958>
+.model 2N3958 NJF(VT0=-2.033 BETA=768.3e-6 LAMBDA=4.25e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=2.636e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3966: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3966>
+.model 2N3966 NJF(VT0=-4.876 BETA=650e-6 LAMBDA=15e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=7.589e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3967: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N3967>
+.model 2N3967 NJF(VT0=-2.49 BETA=754.7e-6 LAMBDA=3.667e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=3.742e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=6.839e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3970: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3970>
+.model 2N3970 NJF(VT0=-4.514 BETA=4.032e-3 LAMBDA=23e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=9.31e-12
++CGD=10.48e-12 PB=1 FC=0.5 M=0.4069 KF=5.318e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3971: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3971>
+.model 2N3971 NJF(VT0=-2.598 BETA=6.313e-3 LAMBDA=13e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=9.31e-12
++CGD=10.48e-12 PB=1 FC=0.5 M=0.4069 KF=8.447e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N3972: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N3972>
+.model 2N3972 NJF(VT0=-1.403 BETA=9.109e-3 LAMBDA=6e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=9.31e-12
++CGD=10.48e-12 PB=1 FC=0.5 M=0.4069 KF=1.23e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4084: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N4084>
+.model 2N4084 NJF(VT0=-1.799 BETA=1.57e-3 LAMBDA=4e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=4.4e-12
++CGD=8.8e-12 PB=1 FC=0.5 M=0.5 KF=3.392e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4091: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4091>
+.model 2N4091 NJF(VT0=-5.743 BETA=2.658e-3 LAMBDA=11e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=7.06e-12
++CGD=7.94e-12 PB=1 FC=0.5 M=0.4069 KF=3.443e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4092: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4092>
+.model 2N4092 NJF(VT0=-2.933 BETA=4.032e-3 LAMBDA=10e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=7.06e-12
++CGD=7.94e-12 PB=1 FC=0.5 M=0.4069 KF=5.318e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4093: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4093>
+.model 2N4093 NJF(VT0=-1.989 BETA=5.695e-3 LAMBDA=8e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=7.06e-12
++CGD=7.94e-12 PB=1 FC=0.5 M=0.4069 KF=7.598e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4117: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4117>
+.model 2N4117 NJF(VT0=-1.2 BETA=33.07e-6 LAMBDA=13e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=4.561e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4117A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4117A>
+.model 2N4117A NJF(VT0=-1.1 BETA=49.01e-6 LAMBDA=13e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=7.097e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4118: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4118>
+.model 2N4118 NJF(VT0=-1.732 BETA=52.58e-6 LAMBDA=15e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=7.67e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4118A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4118A>
+.model 2N4118A NJF(VT0=-1.732 BETA=52.58e-6 LAMBDA=15e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=7.67e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4119: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4119>
+.model 2N4119 NJF(VT0=-2.536 BETA=68.08e-6 LAMBDA=19e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=1.018e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4119A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4119A>
+.model 2N4119A NJF(VT0=-2.536 BETA=68.08e-6 LAMBDA=19e-3 RD=1 RS=1 IS=5.261e-15 N=1 CGS=4.93e-12
++CGD=3.94e-12 PB=1 FC=0.5 M=0.4335 KF=1.018e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4220: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4220>
+.model 2N4220 NJF(VT0=-1.195 BETA=819.8e-6 LAMBDA=3.266e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=7.47e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4220A: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4220A>
+.model 2N4220A NJF(VT0=-1.195 BETA=819.8e-6 LAMBDA=3.266e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=7.47e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4221: n-channel silicon field-effect transistor
+* from Qucs-S library/JFETs.lib <Component 2N4221>
+.model 2N4221 NJF(VT0=-3 BETA=600e-6 LAMBDA=2e-3 RD=1 RS=1 IS=2e-12 N=1 CGS=3.3e-12 CGD=3e-12 PB=1
++FC=0.5 M=0.3333 KF=0 AF=1)
+
+* 2N4221A: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4221A>
+.model 2N4221A NJF(VT0=-2.139 BETA=726.3e-6 LAMBDA=4.15e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=6.564e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4222: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4222>
+.model 2N4222 NJF(VT0=-4.1 BETA=436.4e-6 LAMBDA=5.333e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=3.783e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4222A: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4222A>
+.model 2N4222A NJF(VT0=-4.1 BETA=436.4e-6 LAMBDA=5.333e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=3.783e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4223: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4223>
+.model 2N4223 NJF(VT0=-3.05 BETA=1.04e-3 LAMBDA=5.5e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=7.839e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4338: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4338>
+.model 2N4338 NJF(VT0=-0.6606 BETA=781e-6 LAMBDA=1.167e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.918e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4339: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4339>
+.model 2N4339 NJF(VT0=-1.218 BETA=555.8e-6 LAMBDA=3.5e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.052e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4340: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4340>
+.model 2N4340 NJF(VT0=-2.001 BETA=471e-6 LAMBDA=7e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=1.727e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4341: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4341>
+.model 2N4341 NJF(VT0=-3.336 BETA=387.1e-6 LAMBDA=14e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.916e-12
++CGD=2.8e-12 PB=0.5 FC=0.5 M=0.2271 KF=1.407e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4381: p-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4381>
+.model 2N4381 PJF(VT0=-1.8 BETA=2.658e-3 LAMBDA=15e-3 RD=1 RS=1 IS=222.4e-15 N=1 CGS=8.26e-12
++CGD=6.61e-12 PB=1 FC=0.5 M=0.4822 KF=1.17e-15 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4391: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4391>
+.model 2N4391 NJF(VT0=-5.803 BETA=2.658e-3 LAMBDA=13e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.76e-12
++CGD=5.35e-12 PB=1 FC=0.5 M=0.4069 KF=3.443e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4392: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4392>
+.model 2N4392 NJF(VT0=-3.018 BETA=5.108e-3 LAMBDA=10e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.29e-12
++CGD=4.83e-12 PB=1 FC=0.5 M=0.4069 KF=6.793e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4393: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4393>
+.model 2N4393 NJF(VT0=-1.422 BETA=9.109e-3 LAMBDA=6e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.06e-12
++CGD=4.57e-12 PB=1 FC=0.5 M=0.4069 KF=1.23e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4416: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4416>
+.model 2N4416 NJF(VT0=-3.06 BETA=989.4e-6 LAMBDA=5.5e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=7.445e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4416A: n-channel field-effect transistor Bvmin: 35 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N4416A>
+.model 2N4416A NJF(VT0=-3.06 BETA=989.4e-6 LAMBDA=5.5e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=7.445e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4856: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4856>
+.model 2N4856 NJF(VT0=-5.517 BETA=3.084e-3 LAMBDA=11e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=4.023e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4856A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4856A>
+.model 2N4856A NJF(VT0=-5.517 BETA=3.084e-3 LAMBDA=11e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=5.07e-12
++CGD=5.71e-12 PB=1 FC=0.5 M=0.4069 KF=4.023e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4857: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4857>
+.model 2N4857 NJF(VT0=-3.05 BETA=6.313e-3 LAMBDA=9.5e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=8.447e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4857A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4857A>
+.model 2N4857A NJF(VT0=-3.05 BETA=6.313e-3 LAMBDA=9.5e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.74e-12
++CGD=5.34e-12 PB=1 FC=0.5 M=0.4069 KF=8.447e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4858: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4858>
+.model 2N4858 NJF(VT0=-2.387 BETA=7.646e-3 LAMBDA=8e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=1.028e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4858A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4858A>
+.model 2N4858A NJF(VT0=-2.387 BETA=7.646e-3 LAMBDA=8e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.74e-12
++CGD=5.34e-12 PB=1 FC=0.5 M=0.4069 KF=1.028e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4859: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4859>
+.model 2N4859 NJF(VT0=-5.431 BETA=3.084e-3 LAMBDA=12e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=4.023e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4859A: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4859A>
+.model 2N4859A NJF(VT0=-5.431 BETA=3.084e-3 LAMBDA=12e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=5.07e-12
++CGD=5.71e-12 PB=1 FC=0.5 M=0.4069 KF=4.023e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4860: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4860>
+.model 2N4860 NJF(VT0=-2.998 BETA=6.313e-3 LAMBDA=10e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=8.447e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4860A: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4860A>
+.model 2N4860A NJF(VT0=-2.998 BETA=6.313e-3 LAMBDA=10e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.74e-12
++CGD=5.34e-12 PB=1 FC=0.5 M=0.4069 KF=8.447e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4861: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4861>
+.model 2N4861 NJF(VT0=-2.308 BETA=8.362e-3 LAMBDA=8e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=14.16e-12
++CGD=15.92e-12 PB=1 FC=0.5 M=0.4069 KF=1.127e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N4861A: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N4861A>
+.model 2N4861A NJF(VT0=-2.308 BETA=8.362e-3 LAMBDA=8e-3 RD=1 RS=1 IS=205.2e-15 N=1 CGS=4.74e-12
++CGD=5.34e-12 PB=1 FC=0.5 M=0.4069 KF=1.127e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5018: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5018>
+.model 2N5018 PJF(VT0=-4.15 BETA=772.5e-6 LAMBDA=40e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=4.993e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5019: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5019>
+.model 2N5019 PJF(VT0=-2.229 BETA=1.775e-3 LAMBDA=24e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=1.145e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5020: p-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5020>
+.model 2N5020 PJF(VT0=-0.8406 BETA=1.004e-3 LAMBDA=10e-3 RD=1 RS=1 IS=222.4e-15 N=1 CGS=10.68e-12
++CGD=8.55e-12 PB=1 FC=0.5 M=0.4822 KF=5.567e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5021: p-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5021>
+.model 2N5021 PJF(VT0=-0.9996 BETA=2.658e-3 LAMBDA=12e-3 RD=1 RS=1 IS=222.4e-15 N=1 CGS=10.68e-12
++CGD=8.55e-12 PB=1 FC=0.5 M=0.4822 KF=1.544e-15 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5045: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5045>
+.model 2N5045 NJF(VT0=-1.95 BETA=1.271e-3 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=2.85e-12
++CGD=5.71e-12 PB=1 FC=0.5 M=0.5 KF=4.518e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5046: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5046>
+.model 2N5046 NJF(VT0=-1.95 BETA=1.271e-3 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=2.85e-12
++CGD=5.71e-12 PB=1 FC=0.5 M=0.5 KF=4.518e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5047: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5047>
+.model 2N5047 NJF(VT0=-1.95 BETA=1.271e-3 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=2.85e-12
++CGD=5.71e-12 PB=1 FC=0.5 M=0.5 KF=4.518e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5078: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5078>
+.model 2N5078 NJF(VT0=-3.97 BETA=850.8e-6 LAMBDA=6.75e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=6.375e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5103: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5103>
+.model 2N5103 NJF(VT0=-1.85 BETA=1.426e-3 LAMBDA=3.167e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=1.082e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5105: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5105>
+.model 2N5105 NJF(VT0=-2.5 BETA=1.464e-3 LAMBDA=3.167e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=1.111e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5114: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5114>
+.model 2N5114 PJF(VT0=-8.095 BETA=510.2e-6 LAMBDA=40e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=3.296e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5115: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5115>
+.model 2N5115 PJF(VT0=-4.896 BETA=1.031e-3 LAMBDA=32e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=6.661e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5116: p-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO18
+* from Qucs-S library/JFETs.lib <Component 2N5116>
+.model 2N5116 PJF(VT0=-2.373 BETA=1.71e-3 LAMBDA=25e-3 RD=1 RS=1 IS=461.5e-15 N=1 CGS=9e-12
++CGD=6.5e-12 PB=1 FC=0.5 M=0.2789 KF=1.104e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5196: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5196>
+.model 2N5196 NJF(VT0=-2.257 BETA=812.9e-6 LAMBDA=5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1.64e-12
++CGD=3.28e-12 PB=1 FC=0.5 M=0.5 KF=3.664e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5197: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5197>
+.model 2N5197 NJF(VT0=-2.257 BETA=812.9e-6 LAMBDA=5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1.64e-12
++CGD=3.28e-12 PB=1 FC=0.5 M=0.5 KF=3.664e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5199: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5199>
+.model 2N5199 NJF(VT0=-2.257 BETA=812.9e-6 LAMBDA=5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1.64e-12
++CGD=3.28e-12 PB=1 FC=0.5 M=0.5 KF=3.664e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5358: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5358>
+.model 2N5358 NJF(VT0=-0.8005 BETA=1.064e-3 LAMBDA=2.571e-3 RD=1 RS=1 IS=181.3e-15 N=1 CGS=4.627e-12
++CGD=4e-12 PB=0.5 FC=0.5 M=0.3114 KF=9.852e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5397: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5397>
+.model 2N5397 NJF(VT0=-3.679 BETA=1.242e-3 LAMBDA=8e-3 RD=1 RS=1 IS=101.9e-15 N=1 CGS=3.598e-12
++CGD=2.6e-12 PB=1 FC=0.5 M=0.3448 KF=1.952e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5398: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5398>
+.model 2N5398 NJF(VT0=-3.323 BETA=1.242e-3 LAMBDA=8e-3 RD=1 RS=1 IS=101.9e-15 N=1 CGS=3.383e-12
++CGD=3e-12 PB=1 FC=0.5 M=0.3448 KF=1.952e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5432: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component 2N5432>
+.model 2N5432 NJF(VT0=-5.397 BETA=9.109e-3 LAMBDA=50e-3 RD=1 RS=1 IS=533.7e-15 N=1 CGS=35.6e-12
++CGD=35.6e-12 PB=1 FC=0.5 M=0.4283 KF=1.243e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5433: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component 2N5433>
+.model 2N5433 NJF(VT0=-4.16 BETA=12.42e-3 LAMBDA=40e-3 RD=1 RS=1 IS=533.7e-15 N=1 CGS=35.6e-12
++CGD=35.6e-12 PB=1 FC=0.5 M=0.4283 KF=1.699e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5434: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component 2N5434>
+.model 2N5434 NJF(VT0=-1.906 BETA=18.37e-3 LAMBDA=25e-3 RD=1 RS=1 IS=533.7e-15 N=1 CGS=35.6e-12
++CGD=35.6e-12 PB=1 FC=0.5 M=0.4283 KF=2.517e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5452: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5452>
+.model 2N5452 NJF(VT0=-2.017 BETA=768.3e-6 LAMBDA=2.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=3.664e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5454: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5454>
+.model 2N5454 NJF(VT0=-2.017 BETA=768.3e-6 LAMBDA=2.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=0.86e-12
++CGD=1.71e-12 PB=1 FC=0.5 M=0.5 KF=3.664e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5460: p-channel silicon field-effect transistor
+* from Qucs-S library/JFETs.lib <Component 2N5460>
+.model 2N5460 PJF(VT0=-3 BETA=500e-6 LAMBDA=10e-3 RD=1 RS=1 IS=90e-12 N=1 CGS=4e-12 CGD=2.5e-12 PB=1
++FC=0.5 M=0.3333 KF=0 AF=1)
+
+* 2N5485: n-channel silicon field-effect transistor
+* from Qucs-S library/JFETs.lib <Component 2N5485>
+.model 2N5485 NJF(VT0=-2.25 BETA=1.2e-3 LAMBDA=8e-3 RD=1 RS=1 IS=20e-12 N=1 CGS=4e-12 CGD=2.5e-12
++PB=1 FC=0.5 M=0.3333 KF=0 AF=1)
+
+* 2N5515: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5515>
+.model 2N5515 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=1.72e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5516: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5516>
+.model 2N5516 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=1.72e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5517: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5517>
+.model 2N5517 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=1.72e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5518: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5518>
+.model 2N5518 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=1.72e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5519: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5519>
+.model 2N5519 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=1.72e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5520: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5520>
+.model 2N5520 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5521: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5521>
+.model 2N5521 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5522: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5522>
+.model 2N5522 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5523: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5523>
+.model 2N5523 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5524: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5524>
+.model 2N5524 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5545: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5545>
+.model 2N5545 NJF(VT0=-2 BETA=1.271e-3 LAMBDA=4e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1.64e-12
++CGD=3.28e-12 PB=1 FC=0.5 M=0.5 KF=5.584e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5556: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5556>
+.model 2N5556 NJF(VT0=-0.875 BETA=2.194e-3 LAMBDA=3.8e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=1.7e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5557: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5557>
+.model 2N5557 NJF(VT0=-1.805 BETA=1.307e-3 LAMBDA=4e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=1.003e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5558: n-channel field-effect transistor Bvmin: 30 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component 2N5558>
+.model 2N5558 NJF(VT0=-2.91 BETA=864e-6 LAMBDA=6.75e-3 RD=1 RS=1 IS=33.57e-15 N=1 CGS=2.414e-12
++CGD=1.6e-12 PB=1 FC=0.5 M=0.3622 KF=6.718e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5565: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5565>
+.model 2N5565 NJF(VT0=-1.447 BETA=9.109e-3 LAMBDA=7.5e-3 RD=1 RS=1 IS=94.42e-15 N=1 CGS=9.76e-12
++CGD=8.67e-12 PB=1 FC=0.5 M=0.4742 KF=6.786e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5566: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N5566>
+.model 2N5566 NJF(VT0=-1.447 BETA=9.109e-3 LAMBDA=7.5e-3 RD=1 RS=1 IS=94.42e-15 N=1 CGS=9.76e-12
++CGD=8.67e-12 PB=1 FC=0.5 M=0.4742 KF=6.786e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5902: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5902>
+.model 2N5902 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=900e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5904: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5904>
+.model 2N5904 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=900e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5905: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5905>
+.model 2N5905 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=700e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5906: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5906>
+.model 2N5906 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=900e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5907: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5907>
+.model 2N5907 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=900e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5909: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5909>
+.model 2N5909 NJF(VT0=-1.652 BETA=120e-6 LAMBDA=900e-6 RD=1 RS=1 IS=16.33e-15 N=1 CGS=1.23e-12
++CGD=1.23e-12 PB=1 FC=0.5 M=0.333 KF=3.047e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5911: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5911>
+.model 2N5911 NJF(VT0=-2.694 BETA=2.203e-3 LAMBDA=12e-3 RD=1 RS=1 IS=94.35e-15 N=1 CGS=3.65e-12
++CGD=2.822e-12 PB=1 FC=0.5 M=0.3744 KF=3.64e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N5912: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component 2N5912>
+.model 2N5912 NJF(VT0=-2.694 BETA=2.203e-3 LAMBDA=12e-3 RD=1 RS=1 IS=94.35e-15 N=1 CGS=3.65e-12
++CGD=2.822e-12 PB=1 FC=0.5 M=0.3744 KF=3.64e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N6483: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N6483>
+.model 2N6483 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N6484: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N6484>
+.model 2N6484 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* 2N6485: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component 2N6485>
+.model 2N6485 NJF(VT0=-2.5 BETA=518.5e-6 LAMBDA=300e-6 RD=1 RS=1 IS=52.8e-15 N=1 CGS=14.64e-12
++CGD=8e-12 PB=0.5 FC=0.5 M=0.4893 KF=3.9e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* BF245A: n-channel silicon field-effect transistor 30V, 6.5mA, 300mW, 6mS Manufacturer: Philips Semiconductors
+* from Qucs-S library/JFETs.lib <Component BF245A>
+.model BF245A NJF(VT0=-1.7372 BETA=0.00116621 LAMBDA=0.0177211 RD=9.01678 RS=9.01678 IS=2.91797e-16
++N=1 CGS=2.2e-12 CGD=2.2e-12 PB=0.780988 FC=0.5 M=0.5 KF=0 AF=1)
+
+* BF245B: n-channel silicon field-effect transistor 30V, 15mA, 300mW, 6mS Manufacturer: Philips Semiconductors
+* from Qucs-S library/JFETs.lib <Component BF245B>
+.model BF245B NJF(VT0=-2.3085 BETA=0.00109045 LAMBDA=0.0231754 RD=7.77648 RS=7.77648 IS=2.59121e-16
++N=1 CGS=2e-12 CGD=2.2e-12 PB=0.991494 FC=0.5 M=0.5 KF=0 AF=1)
+
+* BF245C: n-channel silicon field-effect transistor 30V, 25mA, 300mW, 6mS Manufacturer: Philips Semiconductors
+* from Qucs-S library/JFETs.lib <Component BF245C>
+.model BF245C NJF(VT0=-5.0014 BETA=0.000543157 LAMBDA=0.0271505 RD=12.0869 RS=12.0869 IS=3.64346e-16
++N=1 CGS=2e-12 CGD=2e-12 PB=1.24659 FC=0.5 M=0.5 KF=0 AF=1)
+
+* BF511: (no description)
+* from Qucs-S library/BJT_Extended.lib <Component BF511>
+.model BF511 NJF(VT0=-2.288 BETA=900e-6 LAMBDA=10e-3 RD=1 RS=1 IS=100e-15 N=1 CGS=2.5e-12 CGD=2.5e-12
++PB=1 FC=0.5 M=0.3333 KF=1e-18 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J201: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: TO92
+* from Qucs-S library/JFETs.lib <Component 201>
+.model J201 NJF(VT0=-0.6 BETA=1.621e-3 LAMBDA=2.236e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.992e-12
++CGD=4.667e-12 PB=0.5 FC=0.5 M=0.2271 KF=6.042e-016 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J401: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 401>
+.model J401 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J402: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 402>
+.model J402 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J403: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 403>
+.model J403 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J404: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 404>
+.model J404 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J405: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 405>
+.model J405 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J406: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 406>
+.model J406 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J410: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 410>
+.model J410 NJF(VT0=-2 BETA=858.8e-6 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1e-12 CGD=2e-12
++PB=1 FC=0.5 M=0.5 KF=8.821e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J411: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 411>
+.model J411 NJF(VT0=-2 BETA=858.8e-6 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1e-12 CGD=2e-12
++PB=1 FC=0.5 M=0.5 KF=8.821e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* J412: n-channel field-effect transistor Bvmin: 40 Manufacturer: Fairchild case: 8-Pin DIP
+* from Qucs-S library/JFETs.lib <Component 412>
+.model J412 NJF(VT0=-2 BETA=858.8e-6 LAMBDA=3.5e-3 RD=1 RS=1 IS=24.55e-15 N=1 CGS=1e-12 CGD=2e-12
++PB=1 FC=0.5 M=0.5 KF=8.821e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* PN3686: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO72
+* from Qucs-S library/JFETs.lib <Component PN3686>
+.model PN3686 NJF(VT0=-0.957 BETA=723.7e-6 LAMBDA=2.333e-3 RD=1 RS=1 IS=114.5e-15 N=1 CGS=2.083e-12
++CGD=2e-12 PB=0.5 FC=0.5 M=0.2271 KF=2.697e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U257: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO78
+* from Qucs-S library/JFETs.lib <Component U257>
+.model U257 NJF(VT0=-2.475 BETA=2.203e-3 LAMBDA=12e-3 RD=1 RS=1 IS=94.35e-15 N=1 CGS=3.65e-12
++CGD=2.822e-12 PB=1 FC=0.5 M=0.3744 KF=8.6e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U308: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component U308>
+.model U308 NJF(VT0=-2.852 BETA=4.337e-3 LAMBDA=16e-3 RD=1 RS=1 IS=193.9e-15 N=1 CGS=5e-12 CGD=5e-12
++PB=1 FC=0.5 M=0.4647 KF=5.94e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U309: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component U309>
+.model U309 NJF(VT0=-2.026 BETA=5.04e-3 LAMBDA=14e-3 RD=1 RS=1 IS=193.9e-15 N=1 CGS=5e-12 CGD=5e-12
++PB=1 FC=0.5 M=0.4647 KF=6.901e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U310: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO52
+* from Qucs-S library/JFETs.lib <Component U310>
+.model U310 NJF(VT0=-3.324 BETA=3.688e-3 LAMBDA=17e-3 RD=1 RS=1 IS=193.9e-15 N=1 CGS=7.4e-12
++CGD=7.4e-12 PB=1 FC=0.5 M=0.4647 KF=5.051e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U401: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U401>
+.model U401 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U402: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U402>
+.model U402 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U403: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U403>
+.model U403 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U404: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U404>
+.model U404 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U405: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U405>
+.model U405 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U406: n-channel field-effect transistor Bvmin: 50 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U406>
+.model U406 NJF(VT0=-1.316 BETA=1.577e-3 LAMBDA=10e-3 RD=1 RS=1 IS=19.73e-15 N=1 CGS=6.044e-12
++CGD=5.6e-12 PB=0.5 FC=0.5 M=0.3916 KF=4.592e-018 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U440: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U440>
+.model U440 NJF(VT0=-2.839 BETA=1.978e-3 LAMBDA=30e-3 RD=1 RS=1 IS=36.18e-15 N=1 CGS=2.47e-12
++CGD=2.11e-12 PB=1 FC=0.5 M=0.333 KF=2.788e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)
+
+* U441: n-channel field-effect transistor Bvmin: 25 Manufacturer: Fairchild case: TO71
+* from Qucs-S library/JFETs.lib <Component U441>
+.model U441 NJF(VT0=-2.839 BETA=1.978e-3 LAMBDA=30e-3 RD=1 RS=1 IS=36.18e-15 N=1 CGS=2.47e-12
++CGD=2.11e-12 PB=1 FC=0.5 M=0.333 KF=2.788e-017 AF=1 XTI=3 TCV=0 BETATCE=-0.5 TNOM=26.85)

@@ -1,0 +1,24 @@
+*
+*Zetex FZT789A Spice Model v1.0 Last Revised 3/1/92
+*
+.MODEL FZT789A PNP IS=8.5083E-13 NF=1.007 BF=540 IKF=3.4 VAF=15.5
++ISE=1.60716E-13 NE=1.5059 NR=1.0025 BR=180 IKR=0.3 VAR=9 ISC=7.382E-14
++NC=1.2275 RB=0.05 RE=0.32 RC=0.052 CJC=140E-12 MJC=0.335 VJC=0.26
++CJE=300E-12 TF=0.73E-9 TR=4.2E-9
+*
+*$
+*
+*                (c)  2005 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc (" Zetex ").  They  are  supplied
+*   free of charge by Zetex for the purpose of research and design
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL

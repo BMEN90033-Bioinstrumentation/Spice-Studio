@@ -1,0 +1,26 @@
+National Semiconductor SPICE models: notice text
+Each model file in this pack is an unmodified copy of a file from National Semiconductor's spice44.zip (SPICE op-amp
+macromodels v4.4), as published at http://www.national.com/models/spice/analog/spice44.zip (retrieved from the
+Internet Archive; National Semiconductor is now part of Texas Instruments).
+Every file carries one of the notices below, quoted exactly from the first file listed (the others in a group
+differ at most in spacing or line breaks).
+
+---- Notice 1 of 2 (133 files: LF155.MOD, LF156.MOD, LF157.MOD, LF255.MOD, LF256.MOD, LF257.MOD, …)
+* (C) National Semiconductor, Inc.
+* Models developed and under copyright by:
+* National Semiconductor, Inc.  
+
+*/////////////////////////////////////////////////////////////////////
+* Legal Notice: This material is intended for free software support.
+* The file may be copied, and distributed; however, reselling the 
+*  material is illegal
+
+---- Notice 2 of 2 (1 file: LM111.MOD)
+* (C) National Semiconductor, Inc.
+* Models developed and under copyright by:
+* National Semiconductor, Inc.  
+
+*/////////////////////////////////////////////////////////////////////
+* Legal Notice: This material is intended for free software support.
+* The file may be copied, and distributed; however, reselling the 
+*  material is illegal* ///////////////////////////////////////////////////////////////////

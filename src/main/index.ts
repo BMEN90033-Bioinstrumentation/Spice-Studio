@@ -261,15 +261,18 @@ function guardClose(w: BrowserWindow) {
   })
 }
 
-// window.open: only the results pop-out (renderer layout/PopOut.tsx) gets a window; http(s) links go to the browser.
-// The pop-out closes with the main window.
+// window.open: only the results pop-out and Manage Libraries (renderer layout/PopOut.tsx) get a window; http(s) links,
+// from any window, go to the browser. The pop-outs close with the main window.
+const WINDOWS: Record<string, Electron.BrowserWindowConstructorOptions> = {
+  'ngspice-plots': { width: 1000, height: 700, minWidth: 480, minHeight: 320, title: 'Plots' },
+  'ngspice-libraries': { width: 760, height: 560, minWidth: 520, minHeight: 360, title: 'Manage Libraries' }
+}
+const external = ({ url }: { url: string }) => (/^https?:\/\//i.test(url) && void shell.openExternal(url), { action: 'deny' as const })
 function popouts(w: BrowserWindow) {
-  w.webContents.setWindowOpenHandler(({ frameName, url }) => {
-    if (frameName === 'ngspice-plots')
-      return { action: 'allow', overrideBrowserWindowOptions: { width: 1000, height: 700, minWidth: 480, minHeight: 320, backgroundColor: '#16181d', autoHideMenuBar: true, title: 'Plots' } }
-    if (/^https?:\/\//i.test(url)) void shell.openExternal(url)
-    return { action: 'deny' }
-  })
+  w.webContents.setWindowOpenHandler((d) => WINDOWS[d.frameName]
+    ? { action: 'allow', overrideBrowserWindowOptions: { ...WINDOWS[d.frameName], backgroundColor: '#16181d', autoHideMenuBar: true } }
+    : external(d))
+  w.webContents.on('did-create-window', (c) => c.webContents.setWindowOpenHandler(external))
   w.on('closed', () => BrowserWindow.getAllWindows().forEach((x) => x.destroy()))
 }
 

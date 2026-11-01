@@ -1,0 +1,33 @@
+*
+*Zetex BSS84 Spice Model v1.1 Last Revised 3/5/00
+*              
+.SUBCKT BSS84 3 4 5
+* NODES: DRAIN GATE SOURCE
+M1 3 2 5 5 MOD1
+RG 4 2 167
+RL 3 5 50E6
+C1 2 5 26P
+C2 3 2 4P 
+D1 3 5 DIODE1
+*
+.MODEL MOD1 PMOS VTO=-1.709 RS=3.091 RD=0.979 IS=1E-15 KP=0.146
++CBD=12P PB=1
+.MODEL DIODE1 D IS=1.072E-13 RS=0.527 N=1.077
+.ENDS BSS84
+*
+*$
+*
+*                (c)  2005 Zetex Semiconductors plc
+*
+*   The copyright in these models  and  the designs embodied belong
+*   to Zetex Semiconductors plc (" Zetex ").  They  are  supplied
+*   free of charge by Zetex for the purpose of research and design
+*   and may be used or copied intact  (including this notice)  for
+*   that purpose only.  All other rights are reserved. The models
+*   are believed accurate but  no condition  or warranty  as to their
+*   merchantability or fitness for purpose is given and no liability
+*   in respect of any use is accepted by Zetex PLC, its distributors
+*   or agents.
+*
+*   Zetex Semiconductors plc, Zetex Technology Park, Chadderton,
+*   Oldham, United Kingdom, OL9 9LL

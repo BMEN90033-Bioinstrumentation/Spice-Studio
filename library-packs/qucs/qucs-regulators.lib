@@ -1,0 +1,141 @@
+* Qucs-S community parts: Regulators, 2 parts
+* Converted from https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library by scripts/packs/qucs.ts (ngspice Studio).
+* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.
+
+* LM340_05: 5V 1.5A positive voltage regulator
+* from Qucs-S library/VoltageRegulators.lib <Component LM340_05>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt LM340_05 in gnd out
+XLM340_05_q 0 in gnd out VoltageRegulators_LM340_05
+* Qucs 24.1.0  VoltageRegulators_LM340_05.sch
+
+* Developer: ETech (eetech00@yahoo.com)
+* Created: Oct 03 2018
+* 5V Positive Voltage Regulator
+*
+.SUBCKT LM340_05_sub IN VGND OUT
+Q13 15 18 VGND 0 NP 0.1
+Q1A 15 10 IN 0 PN 0.1
+Q11B 16 10 IN 0 PN 0.1
+Q11C 10 10 IN 0 PN 0.1
+Q12 IN 16 31 0 NP 0.1
+D1 VGND 16 DZ1
+R11 31 18 3.4k
+R12 18 VGND 200
+Q14 15 22 OUT 0 NP 0.1
+D2 22 21 DZ2
+R13 IN 21 10k
+R10 15 30 1k
+R14 25 22 230
+Q15 IN 15 29 0 NP 0.1
+Q16 IN 29 25 0 NP 2.5
+R15 29 25 2k
+R16 25 OUT 0.31
+R17 OUT 11 740
+Q6 OUT 11 19 0 NP 0.1
+Q1 10 11 12 0 NP 0.1
+R1 10 12 30k
+R2 12 13 1.9k
+R3 13 17 26
+Q2 12 13 14 0 NP 0.1
+Q3 17 14 VGND 0 NP 0.1
+Q4 19 17 20 0 NP 0.1
+Q5 23 20 24 0 NP 0.1
+R7 19 23 17k
+Q7 26 23 27 0 NP 0.1
+C1 26 23 20p
+Q8 26 27 VGND 0 NP 0.1
+R8 27 28 4k
+Q9 28 28 VGND 0 NP 0.1
+Q10 VGND 26 30 0 PN 0.1
+R9 30 26 4k
+R18 11 VGND 2.6k
+R6 24 VGND 1k
+R5 20 VGND 12.1k
+R4 14 VGND 1.2k
+*
+.MODEL DZ1 D(BV=6.3)
+.MODEL DZ2 D(BV=6.0)
+.MODEL NP NPN(EG=1.22 BF=350 RB=100 CCS=2PF TF=.3NS TR=6NS CJE=3PF CJC=2PF VAF=100 IS=1.81110E-15 RC=1 RE=1)
+.MODEL PN PNP(BF=175 RB=20 TF=1NS TR=20NS CJE=6PF CJC=4PF VAF=100 IS=1.81110E-15 RC=1 RE=1)
+.ENDS LM340_05_sub
+
+.SUBCKT VoltageRegulators_LM340_05  gnd _net0 _net2 _net1
+X1 _net0 _net2 _net1 LM340_05_sub
+.ENDS
+
+.ends LM340_05
+
+* LM7805: 5V 1.5A positive voltage regulator
+* from Qucs-S library/VoltageRegulators.lib <Component LM7805>
+* <Spice> section as shipped by Qucs-S, nested; its ground pin is tied to node 0
+.subckt LM7805 in gnd out
+XLM7805_q 0 in gnd out VoltageRegulators_LM7805
+* Qucs 24.1.0  VoltageRegulators_LM7805.sch
+
+* LM7805 model.
+*
+*                   In   GND  Out
+.SUBCKT LM7805_sub  1    2    3
+*
+QT6   23  10  2   Q_NPN 0.1
+QT7   5   4   10  Q_NPN 0.1
+QT5   7   6   5   Q_NPN 0.1
+QT1   1   9   8   Q_NPN 0.1
+QT3   11  8   7   Q_NPN 0.1
+QT2   11  13  12  Q_NPN 0.1
+QT17  1   15  14  Q_NPN 10
+C2    10  23      4P
+R16   12  5       500
+R12   16  2       12.1K
+QT18  17  23  16  Q_NPN 0.1
+D1    18  19  	 D_D
+R11   20  21      850
+R5    22  3       100
+QT14  24  18  2   Q_NPN 0.1
+R21   6   2       2.67K
+R20   3   6       640
+DZ2   25  26      D_5V1
+R19   1   26      16K
+R18   14  3       250M
+R17   25  14      380
+R15   25  15      1.62K
+QT16  1   20  15  Q_NPN 1
+QT15  2   24  21  Q_PNP 0.1
+*OFF
+R14   21  24      4K
+C1    27  24      20P
+R13   19  2       4K
+QT13  24  27  18  Q_NPN 0.1
+QT12  20  25  22  Q_NPN 1
+*OFF
+QT11  20  28  2   Q_NPN 0.1
+*OFF
+QT10  20  11  1   Q_PNP 0.1
+R10   17  27      16.5K
+R9    5   4       1.9K
+R8    4   23      26
+R7    10  2       1.2K
+R6    29  2       1K
+QT9   11  11  1   Q_PNP 0.1
+QT8   27  16  29  Q_NPN 0.1
+QT4   15  6   17  Q_NPN 0.1
+DZ1   2   9       D_5V6
+R4    1   9       80K
+R3    28  2       830
+R2    13  28      4.97K
+R1    8   13      7K
+*
+.MODEL D_5V1 D( IS=10F N=1.16 BV=5.1 IBV=0.5M CJ0 = 1P TT = 10p )
+.MODEL D_5V6 D( IS=10F N=1.16 BV=5.6 IBV=5U CJ0 = 1P TT = 10p )
+.MODEL Q_NPN NPN( IS=10F NF=1.16 NR=1.16 BF=80 CJC=1P CJE=2P TF=10P TR=1N )
+.MODEL Q_PNP PNP( IS=10F NF=1.16 NR=1.16 BF=80 CJC=1P CJE=2P TF=10P TR=1N )
+.MODEL D_D D( IS=1F N=1.16 CJ0 = 1P TT = 10p )
+*
+.ENDS LM7805_sub
+
+.SUBCKT VoltageRegulators_LM7805  gnd _net0 _net2 _net1
+X1 _net0 _net2 _net1 LM7805_sub
+.ENDS
+
+.ends LM7805

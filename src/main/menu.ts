@@ -2,9 +2,10 @@
 // 'menu:command', and enabled/checked follow the renderer's 'menu:state' pushes. Shortcuts the renderer handles are
 // shown but not registered (registerAccelerator: false), so a key never fires twice. Only the text-editing items
 // (undo/redo/cut/copy/paste/select all) register theirs: macOS text fields need the menu for ⌘C/⌘V.
-import { app, BrowserWindow, ipcMain, Menu, shell, type MenuItemConstructorOptions as Item } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, type MenuItemConstructorOptions as Item } from 'electron'
 import { existsSync } from 'node:fs'
-import { basename } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { basename, join } from 'node:path'
 
 type State = Record<string, { enabled: boolean; checked?: boolean }>
 type Recent = { name: string; file: string }
@@ -107,12 +108,12 @@ function template(recents: Recent[]): Item[] {
     sep,
     cmd('sim.viewNetlist', 'View Generated Netlist')
   ]
-  const tools: Item[] = [cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
+  const tools: Item[] = [cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
   const help: Item[] = [
     cmd('help.shortcuts', 'Keyboard Shortcuts', 'CmdOrCtrl+/'),
     ...(mac ? [] : [cmd('help.about', 'About ngspice Studio')]),
     sep,
-    { id: 'help.licenses', label: 'Third-party Licences', click: licenses }
+    cmd('help.licenses', 'Third-party Licences…')
   ]
   return [
     ...(mac
@@ -132,11 +133,6 @@ function template(recents: Recent[]): Item[] {
   ]
 }
 
-// bundled ngspice's COPYING + THIRD_PARTY_NOTICES.md live in its root folder
-async function licenses() {
-  const err = existsSync(opts.engineDir) ? await shell.openPath(opts.engineDir) : `No bundled ngspice in ${opts.engineDir}`
-  if (err) send('help.about') // ponytail: the About dialog says where the engine comes from
-}
 
 // ids the renderer hasn't registered (e.g. Place on the home page) are disabled
 function apply() {
@@ -169,6 +165,12 @@ export function installMenu(o: typeof opts) {
     const ops = ['undo', 'redo', 'cut', 'copy', 'paste', 'selectAll', 'delete'] as const
     if (ops.includes(op as (typeof ops)[number])) e.sender[op as (typeof ops)[number]]()
   })
+  // Help › Third-party Licences: the bundled ngspice's COPYING + THIRD_PARTY_NOTICES.md (none in dev before ngspice:build)
+  ipcMain.handle('app:licenses', async () => ({
+    dir: opts.engineDir,
+    files: (await Promise.all(['THIRD_PARTY_NOTICES.md', 'COPYING'].map((name) => readFile(join(opts.engineDir, name), 'utf8').then((text) => ({ name, text }), () => null))))
+      .filter((f) => f !== null)
+  }))
   ipcMain.handle('app:info', () => ({ name: app.name, version: app.getVersion(), electron: process.versions.electron, chrome: process.versions.chrome, node: process.versions.node, platform: `${process.platform}-${process.arch}` }))
   return refreshMenu()
 }

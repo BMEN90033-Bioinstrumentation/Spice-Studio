@@ -1,19 +1,22 @@
 // Renders its children into a separate window (same renderer process, so state is shared and live).
-// main/index.ts setWindowOpenHandler only allows this frame name and sets the BrowserWindow options.
+// main/index.ts setWindowOpenHandler only allows these frame names and sets the BrowserWindow options.
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 export const POPOUT = 'ngspice-plots'
-let child: Window | null = null
-export const focusPopout = () => child?.focus()
+export const LIBWIN = 'ngspice-libraries'
+const kids = new Map<string, Window>() // frame name -> open window
+export const focusPopout = (name = POPOUT) => kids.get(name)?.focus()
 
-export function PopOut({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function PopOut({ title, onClose, children, name = POPOUT, size = 'width=1000,height=700' }: {
+  title: string; onClose: () => void; children: ReactNode; name?: string; size?: string
+}) {
   const [host, setHost] = useState<HTMLElement | null>(null)
   const closed = useRef(onClose)
   closed.current = onClose
 
   useEffect(() => {
-    const w = window.open('', POPOUT, 'width=1000,height=700')
+    const w = window.open('', name, size)
     if (!w) return void closed.current() // blocked: stay docked
     const d = w.document
     // stylesheets: copies of the opener's (dev: vite <style> tags; build: <link>, made absolute for about:blank)
@@ -41,17 +44,17 @@ export function PopOut({ title, onClose, children }: { title: string; onClose: (
     w.addEventListener('keydown', key)
     w.addEventListener('pagehide', gone)
     window.addEventListener('pagehide', bye)
-    child = w
+    kids.set(name, w)
     setHost(root)
     return () => {
       w.removeEventListener('pagehide', gone)
       w.removeEventListener('keydown', key)
       window.removeEventListener('pagehide', bye)
-      child = null
+      kids.delete(name)
       w.close()
     }
   }, [])
-  useEffect(() => { if (child) child.document.title = title }, [title, host])
+  useEffect(() => { if (host) host.ownerDocument.title = title }, [title, host])
 
   return host && createPortal(children, host)
 }
