@@ -430,7 +430,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'sim.options', run: () => setDlg('options') },
     { id: 'file.export.schSvg', run: () => void window.api.exportSave(name + '.svg', exportSvg(), [{ name: 'SVG', extensions: ['svg'] }]) },
     { id: 'file.export.schPdf', run: () => void window.api.exportPdf(exportSvg(), name + '.pdf') },
-    { id: 'file.export.print', run: () => void window.api.exportPdf(exportSvg(), '', 'print') },
+    { id: 'file.export.print', keys: 'Mod+P', run: () => void window.api.exportPdf(exportSvg(), '', 'print') },
     { id: 'sim.probe', run: () => use('probe') }
   ] : [])
 

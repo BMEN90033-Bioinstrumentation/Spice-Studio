@@ -1,0 +1,304 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uz01k",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 12"
+  },
+  {
+   "id": "mvxf7uz01l",
+   "kind": "power",
+   "x": 0,
+   "y": -30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxf7uz01m",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz01n",
+   "kind": "vsrc",
+   "x": 120,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "V2",
+   "value": "DC 0 AC 1 SIN(0 10m 1k)"
+  },
+  {
+   "id": "mvxf7uz01o",
+   "kind": "label",
+   "x": 120,
+   "y": 0,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxf7uz01t",
+   "kind": "cap",
+   "x": 180,
+   "y": 0,
+   "rot": 3,
+   "mirror": false,
+   "name": "C1",
+   "value": "10u"
+  },
+  {
+   "id": "mvxf7uz01y",
+   "kind": "res",
+   "x": 240,
+   "y": -60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "56k"
+  },
+  {
+   "id": "mvxf7uz01z",
+   "kind": "res",
+   "x": 240,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R2",
+   "value": "10k"
+  },
+  {
+   "id": "mvxf7uz024",
+   "kind": "power",
+   "x": 240,
+   "y": -90,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxf7uz027",
+   "kind": "res",
+   "x": 320,
+   "y": -60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R3",
+   "value": "4.7k"
+  },
+  {
+   "id": "mvxf7uz028",
+   "kind": "npn",
+   "x": 300,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "Q1",
+   "value": "2N3904",
+   "lib": "std:2N3904"
+  },
+  {
+   "id": "mvxf7uz02b",
+   "kind": "label",
+   "x": 380,
+   "y": -30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  },
+  {
+   "id": "mvxf7uz02c",
+   "kind": "res",
+   "x": 320,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R4",
+   "value": "1k"
+  },
+  {
+   "id": "mvxf7uz02d",
+   "kind": "cap",
+   "x": 380,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "C2",
+   "value": "100u"
+  },
+  {
+   "id": "mvxf7uz02m",
+   "kind": "gnd",
+   "x": 320,
+   "y": 90,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uz01p",
+   "a": {
+    "x": 120,
+    "y": 30
+   },
+   "b": {
+    "x": 120,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxf7uz01r",
+   "a": {
+    "x": 120,
+    "y": 0
+   },
+   "b": {
+    "x": 150,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxf7uz01u",
+   "a": {
+    "x": 210,
+    "y": 0
+   },
+   "b": {
+    "x": 240,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxf7uz01w",
+   "a": {
+    "x": 240,
+    "y": 0
+   },
+   "b": {
+    "x": 280,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxf7uz020",
+   "a": {
+    "x": 240,
+    "y": -30
+   },
+   "b": {
+    "x": 240,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxf7uz022",
+   "a": {
+    "x": 240,
+    "y": 0
+   },
+   "b": {
+    "x": 240,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxf7uz025",
+   "a": {
+    "x": 240,
+    "y": -90
+   },
+   "b": {
+    "x": 320,
+    "y": -90
+   }
+  },
+  {
+   "id": "mvxf7uz029",
+   "a": {
+    "x": 320,
+    "y": -30
+   },
+   "b": {
+    "x": 380,
+    "y": -30
+   }
+  },
+  {
+   "id": "mvxf7uz02e",
+   "a": {
+    "x": 320,
+    "y": 30
+   },
+   "b": {
+    "x": 380,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxf7uz02g",
+   "a": {
+    "x": 120,
+    "y": 90
+   },
+   "b": {
+    "x": 240,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxf7uz02i",
+   "a": {
+    "x": 240,
+    "y": 90
+   },
+   "b": {
+    "x": 320,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxf7uz02k",
+   "a": {
+    "x": 320,
+    "y": 90
+   },
+   "b": {
+    "x": 380,
+    "y": 90
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uz02n",
+   "x": 0,
+   "y": 130,
+   "text": ".op\n.tran 10u 5m\n.ac dec 20 10 10meg"
+  },
+  {
+   "id": "mvxf7uz02o",
+   "x": 0,
+   "y": 190,
+   "text": ".meas tran vpp PP v(out) from=2m to=5m"
+  }
+ ]
+}

@@ -1,0 +1,141 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uz04q",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 0"
+  },
+  {
+   "id": "mvxf7uz04r",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz04s",
+   "kind": "label",
+   "x": 0,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxf7uz04x",
+   "kind": "res",
+   "x": 60,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "1k"
+  },
+  {
+   "id": "mvxf7uz054",
+   "kind": "diode",
+   "x": 150,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "D1",
+   "value": "1N4148",
+   "lib": "std:1N4148"
+  },
+  {
+   "id": "mvxf7uz055",
+   "kind": "gnd",
+   "x": 150,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz056",
+   "kind": "label",
+   "x": 190,
+   "y": -60,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "a"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uz04t",
+   "a": {
+    "x": 0,
+    "y": -30
+   },
+   "b": {
+    "x": 0,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz04v",
+   "a": {
+    "x": 0,
+    "y": -60
+   },
+   "b": {
+    "x": 30,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz04y",
+   "a": {
+    "x": 90,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz050",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 190,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz052",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uz057",
+   "x": -10,
+   "y": 70,
+   "text": ".step temp list -40 25 85\n.dc V1 0 5 0.05"
+  }
+ ]
+}

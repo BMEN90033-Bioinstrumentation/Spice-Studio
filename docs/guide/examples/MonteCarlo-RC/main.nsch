@@ -1,0 +1,146 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uyz11",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 0 PULSE(0 1 0 1u 1u 5m 10m)"
+  },
+  {
+   "id": "mvxf7uyz12",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uyz13",
+   "kind": "label",
+   "x": 0,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxf7uyz18",
+   "kind": "res",
+   "x": 60,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "{R}"
+  },
+  {
+   "id": "mvxf7uyz1f",
+   "kind": "cap",
+   "x": 150,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "1u"
+  },
+  {
+   "id": "mvxf7uyz1g",
+   "kind": "gnd",
+   "x": 150,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uyz1h",
+   "kind": "label",
+   "x": 190,
+   "y": -60,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uyz14",
+   "a": {
+    "x": 0,
+    "y": -30
+   },
+   "b": {
+    "x": 0,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyz16",
+   "a": {
+    "x": 0,
+    "y": -60
+   },
+   "b": {
+    "x": 30,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyz19",
+   "a": {
+    "x": 90,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyz1b",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 190,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyz1d",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uyz1i",
+   "x": -10,
+   "y": 70,
+   "text": "* R1 = 1k ±5 % (3 sigma), relative\n.param R={gauss(1k,0.05,3)}"
+  },
+  {
+   "id": "mvxf7uyz1j",
+   "x": -10,
+   "y": 120,
+   "text": ".mc 20\n.tran 10u 3m\n.meas tran t50 WHEN v(out)=0.5 RISE=1"
+  }
+ ]
+}

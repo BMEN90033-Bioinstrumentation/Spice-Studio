@@ -23,6 +23,7 @@
   <a href="#features">Features</a> ·
   <a href="#a-closer-look">Screenshots</a> ·
   <a href="#getting-started">Getting started</a> ·
+  <a href="docs/guide/README.md">User guide</a> ·
   <a href="#keyboard-shortcuts">Shortcuts</a> ·
   <a href="#component-libraries">Libraries</a> ·
   <a href="#how-it-works">How it works</a> ·
@@ -115,6 +116,8 @@
 </table>
 
 ## Getting started
+
+New to Spice Studio? The **[user guide](docs/guide/README.md)** walks through drawing, simulating, sweeps, libraries and exporting step by step, with example projects you can open.
 
 ### Run it from source
 

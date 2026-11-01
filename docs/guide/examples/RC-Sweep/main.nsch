@@ -1,0 +1,146 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uyzi",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 0 AC 1 PULSE(0 1 0 1u 1u 5m 10m)"
+  },
+  {
+   "id": "mvxf7uyzj",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uyzk",
+   "kind": "label",
+   "x": 0,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxf7uyzp",
+   "kind": "res",
+   "x": 60,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "{R}"
+  },
+  {
+   "id": "mvxf7uyzw",
+   "kind": "cap",
+   "x": 150,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "1u"
+  },
+  {
+   "id": "mvxf7uyzx",
+   "kind": "gnd",
+   "x": 150,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uyzy",
+   "kind": "label",
+   "x": 190,
+   "y": -60,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uyzl",
+   "a": {
+    "x": 0,
+    "y": -30
+   },
+   "b": {
+    "x": 0,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyzn",
+   "a": {
+    "x": 0,
+    "y": -60
+   },
+   "b": {
+    "x": 30,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyzq",
+   "a": {
+    "x": 90,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyzs",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 190,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uyzu",
+   "a": {
+    "x": 150,
+    "y": -60
+   },
+   "b": {
+    "x": 150,
+    "y": -30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uyzz",
+   "x": -10,
+   "y": 70,
+   "text": ".param R=1k\n.step param R list 500 1k 2k"
+  },
+  {
+   "id": "mvxf7uyz10",
+   "x": -10,
+   "y": 120,
+   "text": ".ac dec 50 1 100k\n.tran 10u 10m"
+  }
+ ]
+}

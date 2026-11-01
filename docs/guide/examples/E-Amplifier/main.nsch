@@ -1,0 +1,204 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uz02p",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 0 SIN(0 0.1 1k)"
+  },
+  {
+   "id": "mvxf7uz02q",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz02r",
+   "kind": "label",
+   "x": 0,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxf7uz030",
+   "kind": "vcvs",
+   "x": 190,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "E1",
+   "value": "10"
+  },
+  {
+   "id": "mvxf7uz035",
+   "kind": "gnd",
+   "x": 130,
+   "y": 40,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz036",
+   "kind": "gnd",
+   "x": 190,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz03d",
+   "kind": "label",
+   "x": 270,
+   "y": -60,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  },
+  {
+   "id": "mvxf7uz03e",
+   "kind": "res",
+   "x": 270,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "1k"
+  },
+  {
+   "id": "mvxf7uz03f",
+   "kind": "gnd",
+   "x": 270,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uz02s",
+   "a": {
+    "x": 0,
+    "y": -30
+   },
+   "b": {
+    "x": 0,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz02u",
+   "a": {
+    "x": 0,
+    "y": -60
+   },
+   "b": {
+    "x": 130,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz02w",
+   "a": {
+    "x": 130,
+    "y": -60
+   },
+   "b": {
+    "x": 130,
+    "y": -10
+   }
+  },
+  {
+   "id": "mvxf7uz02y",
+   "a": {
+    "x": 130,
+    "y": -10
+   },
+   "b": {
+    "x": 160,
+    "y": -10
+   }
+  },
+  {
+   "id": "mvxf7uz031",
+   "a": {
+    "x": 160,
+    "y": 10
+   },
+   "b": {
+    "x": 130,
+    "y": 10
+   }
+  },
+  {
+   "id": "mvxf7uz033",
+   "a": {
+    "x": 130,
+    "y": 10
+   },
+   "b": {
+    "x": 130,
+    "y": 40
+   }
+  },
+  {
+   "id": "mvxf7uz037",
+   "a": {
+    "x": 190,
+    "y": -30
+   },
+   "b": {
+    "x": 190,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz039",
+   "a": {
+    "x": 190,
+    "y": -60
+   },
+   "b": {
+    "x": 270,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz03b",
+   "a": {
+    "x": 270,
+    "y": -60
+   },
+   "b": {
+    "x": 270,
+    "y": -30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uz03g",
+   "x": -10,
+   "y": 80,
+   "text": "* E1: out = 10 x (ctrl+ - ctrl-)\n.tran 10u 3m"
+  }
+ ]
+}

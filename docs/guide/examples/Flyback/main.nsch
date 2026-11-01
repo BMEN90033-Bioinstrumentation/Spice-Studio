@@ -1,0 +1,339 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxf7uz03j",
+   "kind": "diode",
+   "x": 220,
+   "y": 20,
+   "rot": 3,
+   "mirror": false,
+   "name": "D1",
+   "value": "1N4148",
+   "lib": "std:1N4148"
+  },
+  {
+   "id": "mvxf7uz03q",
+   "kind": "cap",
+   "x": 290,
+   "y": 50,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "10u"
+  },
+  {
+   "id": "mvxf7uz03r",
+   "kind": "gnd",
+   "x": 290,
+   "y": 80,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz03s",
+   "kind": "res",
+   "x": 350,
+   "y": 50,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "1k"
+  },
+  {
+   "id": "mvxf7uz03t",
+   "kind": "gnd",
+   "x": 350,
+   "y": 80,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz03u",
+   "kind": "label",
+   "x": 380,
+   "y": 20,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  },
+  {
+   "id": "mvxf7uz03v",
+   "kind": "xfmr",
+   "x": 120,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "XF1",
+   "value": "Lp=100u Ls=400u k=0.98"
+  },
+  {
+   "id": "mvxf7uz03y",
+   "kind": "gnd",
+   "x": 170,
+   "y": -20,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz03z",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 12"
+  },
+  {
+   "id": "mvxf7uz040",
+   "kind": "gnd",
+   "x": 0,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz04b",
+   "kind": "label",
+   "x": 60,
+   "y": 90,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "sw"
+  },
+  {
+   "id": "mvxf7uz04e",
+   "kind": "cap",
+   "x": 110,
+   "y": 120,
+   "rot": 0,
+   "mirror": false,
+   "name": "C2",
+   "value": "10n"
+  },
+  {
+   "id": "mvxf7uz04f",
+   "kind": "gnd",
+   "x": 110,
+   "y": 150,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz04g",
+   "kind": "sw",
+   "x": 60,
+   "y": 120,
+   "rot": 0,
+   "mirror": false,
+   "name": "S1",
+   "value": "SW"
+  },
+  {
+   "id": "mvxf7uz04h",
+   "kind": "gnd",
+   "x": 60,
+   "y": 150,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz04i",
+   "kind": "vsrc",
+   "x": -120,
+   "y": 140,
+   "rot": 0,
+   "mirror": false,
+   "name": "V2",
+   "value": "DC 0 PULSE(0 1 0 10n 10n 5u 10u)"
+  },
+  {
+   "id": "mvxf7uz04j",
+   "kind": "gnd",
+   "x": -120,
+   "y": 170,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxf7uz04o",
+   "kind": "gnd",
+   "x": 30,
+   "y": 170,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxf7uz03h",
+   "a": {
+    "x": 150,
+    "y": 20
+   },
+   "b": {
+    "x": 190,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxf7uz03k",
+   "a": {
+    "x": 250,
+    "y": 20
+   },
+   "b": {
+    "x": 290,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxf7uz03m",
+   "a": {
+    "x": 290,
+    "y": 20
+   },
+   "b": {
+    "x": 350,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxf7uz03o",
+   "a": {
+    "x": 350,
+    "y": 20
+   },
+   "b": {
+    "x": 380,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxf7uz03w",
+   "a": {
+    "x": 150,
+    "y": -20
+   },
+   "b": {
+    "x": 170,
+    "y": -20
+   }
+  },
+  {
+   "id": "mvxf7uz041",
+   "a": {
+    "x": 0,
+    "y": -30
+   },
+   "b": {
+    "x": 0,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz043",
+   "a": {
+    "x": 0,
+    "y": -60
+   },
+   "b": {
+    "x": 90,
+    "y": -60
+   }
+  },
+  {
+   "id": "mvxf7uz045",
+   "a": {
+    "x": 90,
+    "y": -60
+   },
+   "b": {
+    "x": 90,
+    "y": -20
+   }
+  },
+  {
+   "id": "mvxf7uz047",
+   "a": {
+    "x": 90,
+    "y": 20
+   },
+   "b": {
+    "x": 60,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxf7uz049",
+   "a": {
+    "x": 60,
+    "y": 20
+   },
+   "b": {
+    "x": 60,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxf7uz04c",
+   "a": {
+    "x": 60,
+    "y": 90
+   },
+   "b": {
+    "x": 110,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxf7uz04k",
+   "a": {
+    "x": -120,
+    "y": 110
+   },
+   "b": {
+    "x": 30,
+    "y": 110
+   }
+  },
+  {
+   "id": "mvxf7uz04m",
+   "a": {
+    "x": 30,
+    "y": 130
+   },
+   "b": {
+    "x": 30,
+    "y": 170
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxf7uz04p",
+   "x": 170,
+   "y": 130,
+   "text": "* 100 kHz, 50 % duty; turns ratio 1:2\n.tran 100n 2m\n.meas tran vout AVG v(out) from=1.5m to=2m"
+  }
+ ]
+}
