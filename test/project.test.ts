@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { resolve } from 'node:path'
 import { inside, safeName } from '../src/main/paths.ts'
 import { newProject, parseProject, refreshBlocks, renameRefs, sheetFile, validName } from '../src/renderer/src/project/project.ts'
 import { blockShape, emptySheet, newPart, pins, sheetPorts, type Sheet } from '../src/renderer/src/schematic/model.ts'
@@ -39,10 +40,11 @@ test('names: sheet files and project names stay one path segment', () => {
 
 test('inside() confines paths to the project folder', () => {
   const d = '/u/me/proj'
-  assert.equal(inside(d, 'main.nsch'), '/u/me/proj/main.nsch')
-  assert.equal(inside(d, 'libs/x.lib'), '/u/me/proj/libs/x.lib')
-  assert.equal(inside(d, './libs/../main.nsch'), '/u/me/proj/main.nsch') // normalises but stays inside
-  assert.equal(inside(d + '/', 'a'), '/u/me/proj/a')
+  const abs = (p: string) => resolve(p) // Windows: '/u/me/proj' resolves onto the current drive
+  assert.equal(inside(d, 'main.nsch'), abs('/u/me/proj/main.nsch'))
+  assert.equal(inside(d, 'libs/x.lib'), abs('/u/me/proj/libs/x.lib'))
+  assert.equal(inside(d, './libs/../main.nsch'), abs('/u/me/proj/main.nsch')) // normalises but stays inside
+  assert.equal(inside(d + '/', 'a'), abs('/u/me/proj/a'))
   for (const rel of ['../x', 'libs/../../x', '/etc/passwd', '..', '.', '', 'C:\\x', 'a\0b', '../proj2/x'])
     assert.throws(() => inside(d, rel), Error, rel)
   assert.throws(() => inside('/u/me/proj', '../projX/a')) // sibling with a common prefix
