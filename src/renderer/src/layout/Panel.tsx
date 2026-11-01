@@ -1,29 +1,43 @@
 // Collapsible workspace panels (sheets sidebar, parts panel, results) with a shared collapsed "rail".
 import { useEffect, useState, type ReactNode } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChartLine, ExternalLink, Layers, type LucideIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tip } from '@/components/ui/tip'
+import { cn } from '@/lib/utils'
 import { useCommands } from '../commands'
-import { Icon, type IconName } from '../icons'
 import { focusPopout, PopOut } from './PopOut'
 
 export type Side = 'left' | 'right' | 'bottom'
-export const RAILW = 28 // keep in sync with .rail in layout.css
+export const RAILW = 28 // keep in sync with the rail's w-7 below and div.sch rules in layout.css
 
 const MAC = /Mac/.test(navigator.platform)
 export const keyLabel = (k: string) => (MAC ? k.replace('Mod+Shift+', '⇧⌘').replace('Mod+', '⌘').replace('Shift+', '⇧') : k.replace('Mod+', 'Ctrl+')) // macOS order: ⇧ before ⌘
-const CHEV: Record<Side, [IconName, IconName]> = { left: ['right', 'left'], right: ['left', 'right'], bottom: ['up', 'down'] } // [show, hide]
+const CHEV: Record<Side, [LucideIcon, LucideIcon]> = { left: [ChevronRight, ChevronLeft], right: [ChevronLeft, ChevronRight], bottom: [ChevronUp, ChevronDown] } // [show, hide]
+const RAIL: Record<Side, string> = { left: 'w-7 flex-col border-r', right: 'w-7 flex-col border-l', bottom: 'h-7 px-2.5 border-t' }
+const TIP: Record<Side, 'right' | 'left' | 'top'> = { left: 'right', right: 'left', bottom: 'top' }
 
-// collapsed panel: an icon strip; the label lives in the tooltip
-export function Rail({ side, label, title, icon, dot, onOpen }: { side: Side; label: string; title: string; icon?: IconName; dot?: boolean; onOpen: () => void }) {
+// collapsed panel: an icon strip; the label lives in the tooltip. `rail rail-<side>`: hooks for layout.css (position, slide-in)
+export function Rail({ side, label, title, icon, dot, onOpen }: { side: Side; label: string; title: string; icon?: LucideIcon; dot?: boolean; onOpen: () => void }) {
+  const I = icon ?? CHEV[side][0]
   return (
-    <button className={`rail rail-${side}`} title={title} aria-label={title + (dot ? ' · new results' : '')} data-label={label} onClick={onOpen}>
-      <Icon name={icon ?? CHEV[side][0]} />
-      {dot && <i className="rail-dot" />}
-    </button>
+    <Tip label={title} side={TIP[side]}>
+      <Button variant="ghost" size={null} aria-label={title + (dot ? ' · new results' : '')} data-label={label} onClick={onOpen}
+        className={cn(`rail rail-${side} shrink-0 justify-start gap-2.5 rounded-none bg-card py-2.5 text-muted-foreground focus-visible:ring-inset`, RAIL[side])}>
+        <I />
+        {dot && <span className="absolute top-1 right-1 size-[7px] rounded-full bg-hl ring-2 ring-card" />}
+      </Button>
+    </Tip>
   )
 }
 
-export const HideBtn = ({ side, title, onClick }: { side: Side; title: string; onClick: () => void }) => (
-  <button className="icon hide" title={title} aria-label={title} onClick={onClick}><Icon name={CHEV[side][1]} /></button>
-)
+export const HideBtn = ({ side, title, onClick }: { side: Side; title: string; onClick: () => void }) => {
+  const I = CHEV[side][1]
+  return (
+    <Tip label={title}>
+      <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label={title} onClick={onClick}><I /></Button>
+    </Tip>
+  )
+}
 
 type State = { sheets: boolean; parts: boolean; plots: boolean; popped: boolean }
 const KEY = 'ngs.layout'
@@ -56,22 +70,24 @@ export function usePanels({ active, hasSheets, isSch, runs, title }: { active: b
     { id: 'view.popoutPlots', run: popout, enabled: () => active, checked: () => s.popped }
   ])
 
-  const sheetsRail = <Rail side="left" label="Sheets" icon="layers" title={`Show sheets (${keyLabel('Mod+1')})`} onOpen={() => set({ sheets: true })} />
+  const sheetsRail = <Rail side="left" label="Sheets" icon={Layers} title={`Show sheets (${keyLabel('Mod+1')})`} onOpen={() => set({ sheets: true })} />
   const sheetsHide = <HideBtn side="left" title={`Hide sheets (${keyLabel('Mod+1')})`} onClick={() => set({ sheets: false })} />
   // docked panel / rail, plus the pop-out window; render(actions) draws the results with header buttons
   const results = (render: (actions: ReactNode) => ReactNode) => (
     <>
       {docked
         ? render(<>
-            <button className="icon" title="Open the results in their own window" aria-label="Pop out results" onClick={popout}><Icon name="popout" /></button>
+            <Tip label="Open the results in their own window">
+              <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label="Pop out results" onClick={popout}><ExternalLink /></Button>
+            </Tip>
             <HideBtn side="right" title={`Hide results (${keyLabel('Mod+3')})`} onClick={togglePlots} />
           </>)
         : s.popped
-          ? <Rail side="right" label="Results" icon="popout" dot={dot} title="Results are in their own window: click to bring it forward" onOpen={() => (setDot(false), focusPopout())} />
-          : <Rail side="right" label="Results" icon="chart" dot={dot} title={`Show results (${keyLabel('Mod+3')})`} onOpen={dock} />}
+          ? <Rail side="right" label="Results" icon={ExternalLink} dot={dot} title="Results are in their own window: click to bring it forward" onOpen={() => (setDot(false), focusPopout())} />
+          : <Rail side="right" label="Results" icon={ChartLine} dot={dot} title={`Show results (${keyLabel('Mod+3')})`} onOpen={dock} />}
       {s.popped && (
         <PopOut title={`Plots — ${title}`} onClose={dock}>
-          {render(<button className="primary" title="Put the results back in the main window" onClick={dock}>Dock</button>)}
+          {render(<Tip label="Put the results back in the main window"><Button size="sm" className="h-7" onClick={dock}>Dock</Button></Tip>)}
         </PopOut>
       )}
     </>

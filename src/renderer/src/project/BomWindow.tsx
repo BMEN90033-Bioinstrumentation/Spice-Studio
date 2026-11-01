@@ -5,9 +5,18 @@ import { useState } from 'react'
 import { PopOut } from '../layout/PopOut'
 import type { BomRow } from './bom'
 import type { PartInfo } from './project'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 export const BOMWIN = 'ngspice-bom' // frame name: main/index.ts WINDOWS allows it
 const stem = (f: string) => f.replace(/\.nsch$/i, '')
+// sticky header: a bottom rule as a shadow, since collapsed borders don't stick
+const TH = 'sticky top-0 z-10 h-auto bg-background px-2.5 pt-2.5 pb-1.5 text-xs text-muted-foreground shadow-[inset_0_-1px_0_var(--border)]'
+const TD = 'px-2.5 py-1 align-top'
 
 const COLS: [keyof PartInfo, string, string][] = [
   ['mfr', 'Manufacturer', 'e.g. Yageo'], ['mpn', 'Part number', 'manufacturer part no.'], ['supplier', 'Supplier', 'e.g. Digi-Key'], ['spn', 'Supplier part no.', '']
@@ -25,53 +34,59 @@ export function BomWindow({ title, sheets, exclude, onExclude, rows, skipped, on
   const parts = rows.reduce((n, r) => n + r.qty, 0), withPn = rows.filter((r) => r.info.mpn).length
   return (
     <PopOut name={BOMWIN} size="width=1240,height=680" title={title} onClose={onClose}>
-      <div className="mlib bomwin" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
-        <div className="bomwin-sheets" role="group" aria-label="Sheets to include">
-          <span className="lbl">Include sheets</span>
+      <div className="flex h-full min-h-0 flex-col bg-background" onKeyDown={(e) => e.key === 'Escape' && onClose()}>
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-b px-4.5 py-3 text-xs" role="group" aria-label="Sheets to include">
+          <span className="font-medium text-muted-foreground">Include sheets</span>
           {sheets.map((f) => (
-            <label key={f}>
-              <input type="checkbox" checked={!exclude.has(f)} onChange={(e) => toggle(f, e.target.checked)} />
+            <Label key={f} className="cursor-pointer text-xs font-normal">
+              <Checkbox checked={!exclude.has(f)} onCheckedChange={(c) => toggle(f, c === true)} />
               {stem(f)}
-            </label>
+            </Label>
           ))}
-          <button className="mlib-rm" onClick={() => onExclude(all ? new Set(sheets) : new Set())}>{all ? 'None' : 'All'}</button>
+          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => onExclude(all ? new Set(sheets) : new Set())}>{all ? 'None' : 'All'}</Button>
         </div>
-        <div className="mlib-body">
+        {/* the table's own container is the scroller, so the sticky header sticks */}
+        <div className="min-h-0 flex-1 px-4.5 [&>[data-slot=table-container]]:h-full">
           {rows.length ? (
-            <table className="bomt">
-              <thead>
-                <tr><th className="n">Qty</th><th>Value</th><th>Type</th>{COLS.map(([f, h]) => <th key={f}>{h}</th>)}<th title="A part inside a block is listed once per use of the block, with the block's name: XINA.R2 is R2 inside block XINA">References</th><th>Sheets</th></tr>
-              </thead>
-              <tbody>
+            <Table className="text-xs">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className={cn(TH, 'w-[3em] text-right')}>Qty</TableHead><TableHead className={TH}>Value</TableHead><TableHead className={TH}>Type</TableHead>
+                  {COLS.map(([f, h]) => <TableHead key={f} className={TH}>{h}</TableHead>)}
+                  <TableHead className={TH} title="A part inside a block is listed once per use of the block, with the block's name: XINA.R2 is R2 inside block XINA">References</TableHead>
+                  <TableHead className={TH}>Sheets</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {rows.map((r) => (
-                  <tr key={r.type + '\0' + r.value + '\0' + r.part}>
-                    <td className="n">{r.qty}</td>
-                    <td className="m">{r.value}</td>
-                    <td title={r.part && `Library part ${r.part}`}>{r.type}</td>
+                  <TableRow key={r.type + '\0' + r.value + '\0' + r.part} className="group">
+                    <TableCell className={cn(TD, 'text-right tabular-nums')}>{r.qty}</TableCell>
+                    <TableCell className={cn(TD, 'font-mono')}>{r.value}</TableCell>
+                    <TableCell className={TD} title={r.part && `Library part ${r.part}`}>{r.type}</TableCell>
                     {COLS.map(([f, h, ph]) => (
-                      <td key={f} className="in">
-                        <input value={r.info[f] ?? ''} placeholder={ph} aria-label={`${h} for ${r.qty}× ${r.value}`} spellCheck={false}
-                          onChange={(e) => onInfo(r.key, f, e.target.value)} />
-                      </td>
+                      <TableCell key={f} className="px-1 py-px align-top">
+                        <Input value={r.info[f] ?? ''} placeholder={ph} aria-label={`${h} for ${r.qty}× ${r.value}`} spellCheck={false} onChange={(e) => onInfo(r.key, f, e.target.value)}
+                          className="h-7 min-w-[90px] rounded-sm border-transparent bg-transparent px-1.5 font-mono text-xs shadow-none group-hover:border-input placeholder:text-transparent focus:placeholder:text-muted-foreground focus-visible:ring-0 md:text-xs dark:bg-transparent dark:focus-visible:bg-background" />
+                      </TableCell>
                     ))}
-                    <td className="m dim">{r.refs.join(', ')}</td>
-                    <td className="dim">{r.sheets.map(stem).join(', ')}</td>
-                  </tr>
+                    <TableCell className={cn(TD, 'font-mono whitespace-normal text-muted-foreground')}>{r.refs.join(', ')}</TableCell>
+                    <TableCell className={cn(TD, 'whitespace-normal text-muted-foreground')}>{r.sheets.map(stem).join(', ')}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           ) : (
-            <p className="adlg-msg">No components on the selected sheets.</p>
+            <p className="py-3.5 text-xs text-muted-foreground">No components on the selected sheets.</p>
           )}
         </div>
-        <div className="adlg-foot mlib-foot">
-          <span className="adlg-hint" role="status">
+        <div className="flex items-center gap-2 border-t px-4 py-3">
+          <span className="mr-auto text-xs text-muted-foreground" role="status">
             {note || `${parts} part${parts === 1 ? '' : 's'} in ${rows.length} line${rows.length === 1 ? '' : 's'} · ${withPn} with a part number` +
               (skipped ? ` · ${skipped} simulation-only element${skipped === 1 ? '' : 's'} (sources) left out` : '')}
           </span>
-          <button disabled={!rows.length} onClick={() => void save('csv')}>Export CSV</button>
-          <button className="primary" disabled={!rows.length} onClick={() => void save('xlsx')}>Export Excel</button>
-          <button onClick={onClose}>Close</button>
+          <Button variant="outline" size="sm" disabled={!rows.length} onClick={() => void save('csv')}>Export CSV</Button>
+          <Button size="sm" disabled={!rows.length} onClick={() => void save('xlsx')}>Export Excel</Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
         </div>
       </div>
     </PopOut>

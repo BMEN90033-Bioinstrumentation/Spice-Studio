@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { SimResult } from '../../main/index'
 import type { OsOpen } from '../../preload/index'
@@ -29,8 +29,19 @@ import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
-import { Icon } from './icons'
+import { ArrowUpToLine, ChevronLeft, House, Pencil, Play, Plus, Square, Trash2, X } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Tip } from '@/components/ui/tip'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import './index.css'
 
 document.documentElement.classList.add('dark') // shadcn dark theme (index.css); the app is dark only
@@ -102,14 +113,30 @@ async function loadProject(o: { dir: string; file: string; text: string }): Prom
   return { kind: 'project', dir: o.dir, file: base(o.file)!, project, sheets, libTexts, warn: missing.length ? `Missing library files: ${missing.join(', ')}` : '' }
 }
 
+// chrome class strings: header buttons, banners, sheets sidebar rows
+const BANNER = 'flex shrink-0 items-center gap-2 border-b py-2 pr-3 pl-4'
+const WARNBAR = cn(BANNER, 'border-warn/25 bg-warn/10')
+const SIDE_H = 'flex items-center justify-between pt-2.5 pr-2 pb-1 pl-3.5 text-xs font-medium text-muted-foreground'
+const row = (on: boolean) => cn('group mx-1.5 flex items-center rounded-md hover:bg-accent/50 focus-within:bg-accent/50', on && 'bg-accent hover:bg-accent focus-within:bg-accent')
+const NM = 'h-7 min-w-0 flex-1 justify-start gap-0 px-2 font-normal hover:bg-transparent dark:hover:bg-transparent'
+const Unsaved = () => <span className="text-warn"> •</span>
+const HomeBtn = ({ label, onClick }: { label: string; onClick: () => void }) => (
+  <Tip label={label}><Button variant="ghost" size="icon-sm" aria-label="Home" onClick={onClick}><House /></Button></Tip>
+)
+// a sidebar row's hover-revealed icon button
+const Op = ({ label, aria, onClick, children }: { label: string; aria: string; onClick: () => void; children: ReactNode }) => (
+  <Tip label={label}><Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label={aria} onClick={onClick}>{children}</Button></Tip>
+)
+const AUTO = 'auto' // Select item for "no compat mode" (Radix Select can't use '')
+
 function LibraryPage({ title, back, onHome, ...view }: Parameters<typeof LibraryView>[0] & { title: string; back?: () => void; onHome: () => void }) {
   return (
     <div className="app">
       <header>
-        <button className="icon" onClick={onHome} title="Home" aria-label="Home"><Icon name="home" /></button>
-        {back && <button onClick={back}><Icon name="left" />Back to editor</button>}
-        <span className="brand">Component library</span>
-        <span className="file">{title}</span>
+        <HomeBtn label="Home" onClick={onHome} />
+        {back && <Button variant="ghost" size="sm" onClick={back}><ChevronLeft />Back to editor</Button>}
+        <span className="ml-1 font-semibold">Component library</span>
+        <span className="text-muted-foreground">{title}</span>
       </header>
       <div className="libpage"><LibraryView {...view} /></div>
     </div>
@@ -697,8 +724,10 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
 
   const editKeys = (e: { key: string }, commit: () => void) => (e.key === 'Enter' ? commit() : e.key === 'Escape' && setEdit(null))
   const editInput = (commit: () => void) => (
-    <input
+    <Input
       autoFocus
+      className="h-7 px-2 text-[13px] md:text-[13px]"
+      aria-invalid={!!edit!.err}
       value={edit!.value}
       spellCheck={false}
       onChange={(e) => setEdit({ ...edit!, value: e.target.value, err: undefined })}
@@ -712,128 +741,148 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     <>
       <div className="app" hidden={route !== 'editor'}>
         <header>
-          <button className="icon" onClick={() => leave(onClose)} title="Back to the home page" aria-label="Home"><Icon name="home" /></button>
+          <HomeBtn label="Back to the home page" onClick={() => leave(onClose)} />
           {proj ? (
-            <span className="brand">{proj.name}</span>
+            <span className="ml-1 font-semibold">{proj.name}</span>
           ) : (
-            <div className="seg views">
-              <button className={isSch ? 'on' : ''} onClick={() => setView(LOOSE)}>Schematic</button>
-              <button className={isSch ? '' : 'on'} onClick={() => setView('net')}>Netlist</button>
-            </div>
+            <ToggleGroup type="single" variant="outline" size="sm" aria-label="View" value={isSch ? 'sch' : 'net'} onValueChange={(v) => v && setView(v === 'sch' ? LOOSE : 'net')}>
+              <ToggleGroupItem value="sch">Schematic</ToggleGroupItem>
+              <ToggleGroupItem value="net">Netlist</ToggleGroupItem>
+            </ToggleGroup>
           )}
-          <span className="file">{name}{isDirty ? ' •' : ''}</span>
-          <div className="actions">
-            <button onClick={() => (isSch && snap(view), bump(), go('library'))} title="Component library">Library</button>
+          <span className="text-muted-foreground">{name}{isDirty ? ' •' : ''}</span>
+          <div className="ml-auto flex items-center gap-0.5 [-webkit-app-region:no-drag]">
+            <Tip label="Component library"><Button variant="ghost" size="sm" onClick={() => (isSch && snap(view), bump(), go('library'))}>Library</Button></Tip>
             {isSch && (
-              <button onClick={peek} disabled={!canPeek} title={canPeek ? 'Show the generated netlist in the Netlist editor' : 'The Netlist editor has unsaved edits: save them first (⌘S in Netlist view)'}>
-                View netlist
-              </button>
+              <Tip label={canPeek ? 'Show the generated netlist in the Netlist editor' : 'The Netlist editor has unsaved edits: save them first (⌘S in Netlist view)'}>
+                <span className="inline-flex">{/* a disabled button gets no pointer events: the span carries the tooltip */}
+                  <Button variant="ghost" size="sm" onClick={peek} disabled={!canPeek}>View netlist</Button>
+                </span>
+              </Tip>
             )}
-            {!proj && <button onClick={openLoose} title="Open a schematic or netlist here">Open</button>}
-            <button onClick={save} title={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}>Save</button>
-            <span className="sep" />
-            <button onClick={() => setSimEdit(simEdit ? null : sim)} title="Run settings: compatibility mode for vendor models, timeout">Run settings</button>
-            <button className="run" onClick={running ? stop : run} title={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
-              {running ? <><Icon name="stop" />Stop</> : <><Icon name="play" />Run</>}
-            </button>
+            {!proj && <Tip label="Open a schematic or netlist here"><Button variant="ghost" size="sm" onClick={openLoose}>Open</Button></Tip>}
+            <Tip label={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}><Button variant="ghost" size="sm" onClick={save}>Save</Button></Tip>
+            <Separator orientation="vertical" className="mx-1.5 data-[orientation=vertical]:h-[18px]" />
+            <Tip label="Run settings: compatibility mode for vendor models, timeout">
+              <Button variant="ghost" size="sm" aria-expanded={!!simEdit} onClick={() => setSimEdit(simEdit ? null : sim)}>Run settings</Button>
+            </Tip>
+            <Tip label={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
+              <Button size="sm" variant={running ? 'destructive' : 'default'} className="ml-1" onClick={running ? stop : run}>
+                {running ? <><Square className="fill-current" />Stop</> : <><Play className="fill-current" />Run</>}
+              </Button>
+            </Tip>
           </div>
         </header>
 
         {guard && (
-          <div className="banner" role="alertdialog" aria-label="Unsaved changes">
-            <span>
+          <div className={WARNBAR} role="alertdialog" aria-label="Unsaved changes">
+            <span className="mr-auto">
               Unsaved changes{dirty.current.size ? ` in ${[...dirty.current].map(stem).join(', ')}` : ''}
               {netEdited ? `${dirty.current.size ? ' and' : ' in'} the netlist` : ''}.
             </span>
-            <button className="primary" onClick={guardSave} autoFocus>Save</button>
-            <button onClick={() => (guard(), setGuard(null))}>Discard</button>
-            <button onClick={() => setGuard(null)}>Cancel</button>
+            <Button size="sm" onClick={guardSave} autoFocus>Save</Button>
+            <Button size="sm" variant="outline" onClick={() => (guard(), setGuard(null))}>Discard</Button>
+            <Button size="sm" variant="ghost" onClick={() => setGuard(null)}>Cancel</Button>
           </div>
         )}
 
         {simEdit && (
-          <div className="banner" role="dialog" aria-label="Run settings">
-            <span>Run settings{proj ? ' (saved in the project)' : ''}</span>
-            <label>
-              Compatibility{' '}
-              <select value={simEdit.compat ?? ''} onChange={(e) => setSimEdit({ ...simEdit, compat: (e.target.value || undefined) as Compat | undefined })}>
-                <option value="">Auto (from the parts' libraries)</option>
-                {COMPATS.map((c) => <option key={c} value={c}>{COMPAT_NAME[c]}</option>)}
-              </select>
-            </label>
-            <label>
-              Timeout{' '}
-              <input type="number" min={0} step={1} placeholder="none" style={{ width: '5em' }} value={simEdit.timeoutS ?? ''}
-                onChange={(e) => setSimEdit({ ...simEdit, timeoutS: e.target.value ? Number(e.target.value) : undefined })} />{' '}s
-            </label>
-            <button className="primary" onClick={() => saveSim(simEdit)}>Save</button>
-            <button onClick={() => setSimEdit(null)}>Cancel</button>
+          <div className={cn(BANNER, 'gap-3 bg-muted/50')} role="dialog" aria-label="Run settings">
+            <span className="mr-auto">Run settings{proj ? ' (saved in the project)' : ''}</span>
+            <Label className="font-normal">
+              Compatibility
+              <Select value={simEdit.compat ?? AUTO} onValueChange={(v) => setSimEdit({ ...simEdit, compat: v === AUTO ? undefined : (v as Compat) })}>
+                <SelectTrigger size="sm" className="h-7"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={AUTO}>Auto (from the parts' libraries)</SelectItem>
+                  {COMPATS.map((c) => <SelectItem key={c} value={c}>{COMPAT_NAME[c]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Label>
+            <Label className="font-normal">
+              Timeout
+              <InputGroup className="h-7 w-24">
+                <InputGroupInput type="number" min={0} step={1} placeholder="none" value={simEdit.timeoutS ?? ''}
+                  onChange={(e) => setSimEdit({ ...simEdit, timeoutS: e.target.value ? Number(e.target.value) : undefined })} />
+                <InputGroupAddon align="inline-end">s</InputGroupAddon>
+              </InputGroup>
+            </Label>
+            <Button size="sm" onClick={() => saveSim(simEdit)}>Save</Button>
+            <Button size="sm" variant="ghost" onClick={() => setSimEdit(null)}>Cancel</Button>
           </div>
         )}
         {diag.map((d, i) => (
-          <div key={i} className="banner" role="status" aria-label="Convergence help">
-            <span>{d.problem}</span>
+          <div key={i} className={WARNBAR} role="status" aria-label="Convergence help">
+            <span className="mr-auto">{d.problem}</span>
             {d.fixes.map((f) =>
               isSch ? (
-                <button key={f.options} onClick={() => applyFix(f.options)} title={`Adds ${f.options} to ${stem(top)}`}>{f.label}</button>
+                <Tip key={f.options} label={`Adds ${f.options} to ${stem(top)}`}>
+                  <Button size="sm" variant="outline" onClick={() => applyFix(f.options)}>{f.label}</Button>
+                </Tip>
               ) : (
-                <button key={f.options} onClick={() => navigator.clipboard.writeText(f.options).then(() => setStatus(`Copied ${f.options}: paste it into the netlist`))} title="Copy this line">
-                  {f.label}: <code>{f.options}</code>
-                </button>
+                <Tip key={f.options} label="Copy this line">
+                  <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(f.options).then(() => setStatus(`Copied ${f.options}: paste it into the netlist`))}>
+                    {f.label}: <code className="font-mono text-xs">{f.options}</code>
+                  </Button>
+                </Tip>
               )
             )}
-            <button onClick={() => setDiag((x) => x.filter((y) => y !== d))}>Dismiss</button>
+            <Button size="sm" variant="ghost" onClick={() => setDiag((x) => x.filter((y) => y !== d))}>Dismiss</Button>
           </div>
         ))}
 
         <div className="body">
           {proj && !panels.sheets && panels.sheetsRail}
           {proj && panels.sheets && (
-            <aside className="side">
-              <div className="side-h">
+            <aside className="panel-in w-[200px] shrink-0 overflow-y-auto border-r bg-card pt-1.5 pb-3">
+              <div className={SIDE_H}>
                 Sheets
-                <span>
-                  <button className="icon" onClick={() => setEdit({ op: 'add', value: '' })} title="Add sheet" aria-label="Add sheet">＋</button>
+                <span className="flex">
+                  <Op label="Add sheet" aria="Add sheet" onClick={() => setEdit({ op: 'add', value: '' })}><Plus /></Op>
                   {panels.sheetsHide}
                 </span>
               </div>
               {files.map((f) =>
                 edit?.file === f && edit.op === 'rename' ? (
-                  <div key={f} className="sheet editing">{editInput(() => renameSheet(f, edit.value))}{edit.err && <small className="bad">{edit.err}</small>}</div>
+                  <div key={f} className="mx-1.5 flex flex-col gap-0.5 p-0.5">{editInput(() => renameSheet(f, edit.value))}{edit.err && <small className="px-1 text-xs text-destructive">{edit.err}</small>}</div>
                 ) : edit?.file === f && edit.op === 'delete' ? (
-                  <div key={f} className="sheet confirm">
-                    <span>Delete {stem(f)}?</span>
-                    <button className="danger" onClick={() => deleteSheet(f)}>Delete</button>
-                    <button autoFocus onClick={() => setEdit(null)}>Cancel</button>
+                  <div key={f} className="mx-1.5 flex flex-wrap items-center gap-1.5 rounded-md bg-destructive/10 px-2 py-1.5">
+                    <span className="w-full">Delete {stem(f)}?</span>
+                    <Button size="sm" variant="destructive" className="h-7" onClick={() => deleteSheet(f)}>Delete</Button>
+                    <Button size="sm" variant="outline" className="h-7" autoFocus onClick={() => setEdit(null)}>Cancel</Button>
                   </div>
                 ) : (
-                  <div key={f} className={'sheet' + (view === f ? ' on' : '')}>
-                    <button className="nm" onClick={() => switchTo(f)} title={f}>
-                      {stem(f)}
-                      {dirty.current.has(f) && <span className="dot"> •</span>}
-                      {f === top && <span className="badge">top</span>}
-                    </button>
-                    <span className="ops">
-                      <button className="icon" title="Rename" aria-label={`Rename ${stem(f)}`} onClick={() => setEdit({ op: 'rename', file: f, value: stem(f) })}>✎</button>
-                      {f !== top && <button className="icon" title="Set as top sheet" aria-label={`Set ${stem(f)} as top`} onClick={() => setTop(f)}>⤒</button>}
-                      {f !== top && <button className="icon" title="Delete" aria-label={`Delete ${stem(f)}`} onClick={() => setEdit({ op: 'delete', file: f, value: '' })}>×</button>}
+                  <div key={f} className={row(view === f)}>
+                    <Tip label={f} side="right">
+                      <Button variant="ghost" size="sm" className={NM} onClick={() => switchTo(f)}>
+                        <span className="truncate">{stem(f)}</span>
+                        {dirty.current.has(f) && <Unsaved />}
+                        {f === top && <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px] uppercase">top</Badge>}
+                      </Button>
+                    </Tip>
+                    <span className="hidden pr-0.5 group-focus-within:flex group-hover:flex">
+                      <Op label="Rename" aria={`Rename ${stem(f)}`} onClick={() => setEdit({ op: 'rename', file: f, value: stem(f) })}><Pencil /></Op>
+                      {f !== top && <Op label="Set as top sheet" aria={`Set ${stem(f)} as top`} onClick={() => setTop(f)}><ArrowUpToLine /></Op>}
+                      {f !== top && <Op label="Delete" aria={`Delete ${stem(f)}`} onClick={() => setEdit({ op: 'delete', file: f, value: '' })}><Trash2 /></Op>}
                     </span>
                   </div>
                 )
               )}
               {edit?.op === 'add' && (
-                <div className="sheet editing">
+                <div className="mx-1.5 flex flex-col gap-0.5 p-0.5">
                   {editInput(() => addSheet(edit.value))}
-                  {edit.err && <small className="bad">{edit.err}</small>}
+                  {edit.err && <small className="px-1 text-xs text-destructive">{edit.err}</small>}
                 </div>
               )}
-              <div className="side-h">Netlist</div>
-              <div className={'sheet' + (view === 'net' ? ' on' : '')}>
-                <button className="nm" onClick={() => switchTo('net')}>Hand-written netlist{netDirty ? <span className="dot"> •</span> : null}</button>
+              <div className={SIDE_H}>Netlist</div>
+              <div className={row(view === 'net')}>
+                <Button variant="ghost" size="sm" className={NM} onClick={() => switchTo('net')}><span className="truncate">Hand-written netlist</span>{netDirty && <Unsaved />}</Button>
               </div>
-              <div className="side-h">BOM</div>
-              <div className="sheet">
-                <button className="nm" onClick={() => (bomOpen ? focusPopout(BOMWIN) : setBomOpen(true))} title="Bill of materials for the whole design, with CSV / Excel export">Bill of materials…</button>
+              <div className={SIDE_H}>BOM</div>
+              <div className={row(false)}>
+                <Tip label="Bill of materials for the whole design, with CSV / Excel export" side="right">
+                  <Button variant="ghost" size="sm" className={NM} onClick={() => (bomOpen ? focusPopout(BOMWIN) : setBomOpen(true))}>Bill of materials…</Button>
+                </Tip>
               </div>
             </aside>
           )}
@@ -841,24 +890,38 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           <main className={(isSch ? 'sch' : 'net') + (panels.docked ? '' : ' solo')}>
             <section className="left">
               {proj && open.length > 0 && isSch && (
-                <nav className="stabs">
+                <nav className="flex shrink-0 gap-0.5 overflow-x-auto border-b bg-card px-1.5 pt-1">
                   {open.map((f) => (
-                    <span key={f} className={'stab' + (view === f ? ' on' : '')}>
-                      <button onClick={() => switchTo(f)}>{stem(f)}{dirty.current.has(f) ? ' •' : ''}</button>
-                      <button className="x" onClick={() => closeTab(f)} aria-label={`Close ${stem(f)}`}>×</button>
+                    <span key={f} className={cn('flex items-center rounded-t-md border border-b-0 border-transparent text-muted-foreground hover:text-foreground', view === f && '-mb-px border-border bg-background text-foreground')}>
+                      <Button variant="ghost" size="xs" aria-pressed={view === f} className="h-7 rounded-none pr-1 pl-3 text-[13px] font-normal text-inherit hover:bg-transparent hover:text-inherit dark:hover:bg-transparent" onClick={() => switchTo(f)}>
+                        {stem(f)}{dirty.current.has(f) ? ' •' : ''}
+                      </Button>
+                      <Button variant="ghost" size="icon-xs" className="mr-1 size-5 opacity-50 hover:opacity-100" onClick={() => closeTab(f)} aria-label={`Close ${stem(f)}`}><X /></Button>
                     </span>
                   ))}
                 </nav>
               )}
               {trail && isSch && (
-                <div className="crumbs">
-                  <button className="icon" onClick={() => (setCrumbs(trail.slice(0, -1)), switchTo(trail.at(-2)!))} title="Back up to the parent sheet" aria-label="Back">‹</button>
-                  {trail.map((f, i) => (
-                    <span key={i}>
-                      {i > 0 && <span className="sep">›</span>}
-                      {i < trail.length - 1 ? <button className="link" onClick={() => (setCrumbs(trail.slice(0, i + 1)), switchTo(f))}>{stem(f)}</button> : <b>{stem(f)}</b>}
-                    </span>
-                  ))}
+                <div className="flex shrink-0 items-center gap-1 px-2 py-1">
+                  <Tip label="Back up to the parent sheet">
+                    <Button variant="ghost" size="icon-xs" className="text-muted-foreground" onClick={() => (setCrumbs(trail.slice(0, -1)), switchTo(trail.at(-2)!))} aria-label="Back"><ChevronLeft /></Button>
+                  </Tip>
+                  <Breadcrumb>
+                    <BreadcrumbList className="gap-1 text-xs sm:gap-1">
+                      {trail.map((f, i) => (
+                        <Fragment key={i}>
+                          {i > 0 && <BreadcrumbSeparator />}
+                          <BreadcrumbItem>
+                            {i < trail.length - 1 ? (
+                              <BreadcrumbLink asChild>
+                                <Button variant="link" size={null} className="p-0 text-xs font-normal text-muted-foreground" onClick={() => (setCrumbs(trail.slice(0, i + 1)), switchTo(f))}>{stem(f)}</Button>
+                              </BreadcrumbLink>
+                            ) : <BreadcrumbPage className="font-semibold">{stem(f)}</BreadcrumbPage>}
+                          </BreadcrumbItem>
+                        </Fragment>
+                      ))}
+                    </BreadcrumbList>
+                  </Breadcrumb>
                 </div>
               )}
               {/* one Schematic per open sheet, all mounted (hidden, not unmounted) so each keeps its undo history */}
@@ -892,7 +955,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           </main>
         </div>
 
-        <footer>
+        <footer className="flex h-6 shrink-0 items-center justify-between border-t bg-card px-3 text-xs text-muted-foreground">
           <span>{status}</span>
           {plot && (
             <span>

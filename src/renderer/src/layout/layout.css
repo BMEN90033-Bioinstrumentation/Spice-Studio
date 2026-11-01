@@ -1,32 +1,17 @@
-/* collapsed panel rail (width = RAILW in Panel.tsx) */
-.rail {
-  flex-shrink: 0; width: 28px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px;
-  padding: 10px 0; border: 0; border-radius: 0; background: var(--s1); color: var(--dim); animation: panel-in 120ms ease-out;
-}
-.rail:hover { background: var(--s3); color: var(--text); }
-.rail:focus-visible { outline-offset: -2px; }
-.rail-left { border-right: 1px solid var(--line); }
-.rail-right { border-left: 1px solid var(--line); }
-.rail-bottom { width: auto; height: 28px; flex-direction: row; padding: 0 10px; border-top: 1px solid var(--line); }
-.rail-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--hl); box-shadow: 0 0 0 2px var(--s1); }
-
-/* panels slide in briefly when opened */
+/* panels slide in briefly when opened (.rail: collapsed panel strip, Panel.tsx; .panel-in: sheets sidebar, parts panel) */
 @keyframes panel-in { from { opacity: 0; transform: translateX(var(--panel-from, -8px)); } }
-.side, .libp { animation: panel-in 120ms ease-out; }
+.rail { position: relative; } /* rail-dot anchor; div.sch > .rail below overrides */
+.rail, .panel-in { animation: panel-in 120ms ease-out; }
 .body > main > .right, .rail-right { --panel-from: 8px; animation: panel-in 120ms ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .rail, .side, .libp, .body > main > .right { animation: none; }
+  .rail, .panel-in, .body > main > .right { animation: none; }
 }
 
-/* sheets sidebar header: add + hide */
-.side-h > span { display: flex; }
-/* results: header actions on the right of the plot tabs; collapsed/popped -> canvas takes the width */
-.tabs-act { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding-left: 8px; }
-.tabs .tabs-act button.primary { padding: 3px 12px; background: var(--brand); border-color: transparent; color: var(--text); }
+/* results collapsed/popped -> canvas takes the width */
 .body > main.solo { grid-template-columns: 1fr auto; }
 .body > main.solo > .left { border-right: 0; }
 
-/* parts panel collapsed to a rail inside the schematic canvas (div: <main> also has class sch) */
+/* parts panel collapsed to a rail inside the schematic canvas (div: <main> also has class sch); 28px = RAILW in Panel.tsx */
 div.sch > .rail { position: absolute; left: 0; top: 0; bottom: 0; z-index: 2; }
 div.sch:not(.lib) > svg { left: 28px; width: calc(100% - 28px); }
 div.sch:not(.lib) .sch-bar { left: 36px; }

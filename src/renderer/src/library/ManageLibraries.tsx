@@ -10,6 +10,17 @@ import { focusPopout, LIBWIN, PopOut } from '../layout/PopOut'
 import { BUNDLED, libOn, parseLibFile, type ImportedLib, type ParsedLib } from './library'
 import { ImportDialog } from './LibraryView'
 import { reloadPacks, setPackEnabled, usePacks, type PackInfo, type Sources } from './sources'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
+import { Tip } from '@/components/ui/tip'
+import { cn } from '@/lib/utils'
 
 export type ProjectLibs = {
   dir: string; libs: ImportedLib[]; texts: Record<string, string>
@@ -27,6 +38,11 @@ const msg = (e: unknown) => String((e as Error)?.message ?? e).replace(/^Error i
 const plural = (n: number, w: string) => `${n.toLocaleString()} ${w}${n === 1 ? '' : 's'}`
 const packParts = (p: PackInfo) => p.libs.reduce((n, l) => n + l.entries.length, 0)
 const MAX_ERRS = 12
+const MUTED = 'text-xs leading-normal text-muted-foreground'
+const H2 = 'mt-2.5 mb-0.5 text-xs font-medium text-muted-foreground'
+const UL = 'grid list-none gap-1.5'
+const LINK = 'h-auto p-0 text-[11px]'
+const ITEM = 'grid gap-px text-xs'
 
 export function ManageLibraries({ sources, project }: { sources: Sources; project: ProjectLibs | null }) {
   const s = useSt()
@@ -53,10 +69,10 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
   const [notice, setNotice] = useState<string | null>(null) // pack id whose licence / notice is expanded
   const [ask, setAsk] = useState<string | null>(null) // row key whose Remove is awaiting confirmation
   const [busy, setBusy] = useState(false)
-  const first = useRef<HTMLButtonElement>(null)
+  const first = useRef<HTMLDivElement>(null)
   const seen = useRef(0) // import requests already handled (a fresh window handles the one that opened it)
   useEffect(() => { if (req > seen.current) (seen.current = req), setMenu(true) }, [req])
-  useEffect(() => { if (menu) first.current?.focus() }, [menu])
+  useEffect(() => { if (menu) first.current?.focus() }, [menu]) // after Radix focuses the menu: start on Library file
   const say = (n: string) => (setErrs(null), setNote(n))
   const fail = (title: string, e: unknown) => (setNote(''), setErrs({ title, list: [msg(e)] }))
 
@@ -102,25 +118,36 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
     k: string; name: string; on: boolean; toggle?: (on: boolean) => void; meta: React.ReactNode; title?: string
     pack?: PackInfo; rm?: { warn: string; run: () => unknown }
   }) => (
-    <li key={o.k} className={o.on ? '' : 'off'}>
-      <div className="packs-row">
-        {o.toggle ? <input type="checkbox" id={'ml-' + o.k} checked={o.on} onChange={(e) => o.toggle!(e.target.checked)} aria-describedby={'mld-' + o.k} />
-          : <input type="checkbox" checked disabled aria-label="Always shown" />}
-        <label htmlFor={'ml-' + o.k} className="packs-name" title={o.title ?? o.name}>{o.name}</label>
-        {o.pack?.license && <span className="libv-lic" title={`Licence: ${o.pack.license}`}>{o.pack.license.length > 28 ? o.pack.license.slice(0, 26) + '…' : o.pack.license}</span>}
-        {o.rm && <button className="mlib-rm" aria-expanded={ask === o.k} onClick={() => setAsk(ask === o.k ? null : o.k)}>Remove</button>}
+    <li key={o.k} className="grid gap-1 rounded-lg border bg-card px-2.5 py-2">
+      <div className="flex items-center gap-2">
+        {o.toggle ? <Checkbox id={'ml-' + o.k} checked={o.on} onCheckedChange={(c) => o.toggle!(c === true)} aria-describedby={'mld-' + o.k} />
+          : <Checkbox checked disabled aria-label="Always shown" />}
+        <Tip label={o.title ?? o.name}>
+          <Label htmlFor={'ml-' + o.k} className={cn('block min-w-0 flex-1 cursor-pointer truncate text-[13px] leading-normal', !o.on && 'opacity-60')}>{o.name}</Label>
+        </Tip>
+        {o.pack?.license && (
+          <Tip label={`Licence: ${o.pack.license}`}>
+            <Badge variant="outline" className="border-ok/35 font-mono text-[10px] font-normal text-ok">{o.pack.license.length > 28 ? o.pack.license.slice(0, 26) + '…' : o.pack.license}</Badge>
+          </Tip>
+        )}
+        {o.rm && (
+          <Button variant="ghost" size="sm" aria-expanded={ask === o.k} onClick={() => setAsk(ask === o.k ? null : o.k)}
+            className="h-6 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive aria-expanded:bg-destructive/10 aria-expanded:text-destructive dark:hover:bg-destructive/20">Remove</Button>
+        )}
       </div>
-      <p className="packs-meta" id={'mld-' + o.k}>
-        {o.meta}
-        {o.pack && <>{' · '}<button className="libv-link" aria-expanded={notice === o.pack.id} onClick={() => setNotice(notice === o.pack!.id ? null : o.pack!.id)}>Notice</button></>}
-      </p>
-      {o.pack && notice === o.pack.id && <PackLicence pack={o.pack} />}
+      <Collapsible className="grid gap-1" open={!!o.pack && notice === o.pack.id} onOpenChange={(v) => setNotice(v ? o.pack!.id : null)}>
+        <p className={cn('ml-6 text-[11px] leading-normal text-muted-foreground', !o.on && 'opacity-60')} id={'mld-' + o.k}>
+          {o.meta}
+          {o.pack && <>{' · '}<CollapsibleTrigger asChild><Button variant="link" className={LINK}>Notice</Button></CollapsibleTrigger></>}
+        </p>
+        {o.pack && <CollapsibleContent className="pt-1.5 pl-6 [&_.help-text]:max-h-[260px]"><PackLicence pack={o.pack} /></CollapsibleContent>}
+      </Collapsible>
       {o.rm && ask === o.k && (
-        <div className="mlib-ask" role="alertdialog" aria-label={`Remove ${o.name}?`}
+        <div className="ml-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-md border border-dashed border-destructive/40 px-2 py-1.5 text-xs" role="alertdialog" aria-label={`Remove ${o.name}?`}
           onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), setAsk(null))}>
-          <span>Remove <b>{o.name}</b>? {o.rm.warn}</span>
-          <button className="mlib-danger" autoFocus onClick={() => remove(o.name, o.rm!.run)}>Remove</button>
-          <button onClick={() => setAsk(null)}>Cancel</button>
+          <span className="flex-[1_1_260px] text-muted-foreground">Remove <b className="font-medium text-foreground">{o.name}</b>? {o.rm.warn}</span>
+          <Button variant="destructive" size="sm" autoFocus onClick={() => remove(o.name, o.rm!.run)}>Remove</Button>
+          <Button variant="outline" size="sm" onClick={() => setAsk(null)}>Cancel</Button>
         </div>
       )}
     </li>
@@ -128,77 +155,83 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
   const KEEP = 'Projects that already use its parts keep their own copy; loose sheets using it will stop netlisting.'
 
   return (
-    <div className="mlib" onKeyDown={(e) => e.key === 'Escape' && !imp && (menu ? setMenu(false) : ask && setAsk(null))}>
-      <div className="mlib-body">
-        <p className="adlg-msg">
+    <div className="flex h-full min-h-0 flex-col bg-background" onKeyDown={(e) => e.key === 'Escape' && !imp && (menu ? setMenu(false) : ask && setAsk(null))}>
+      <div className="grid min-h-0 flex-1 content-start gap-1.5 overflow-auto px-4.5 py-3.5">
+        <p className={MUTED + ' mb-1'}>
           Checked libraries’ parts are listed in the parts lists and found by search. Unchecking only hides a library: circuits that already use its parts keep simulating.
         </p>
-        <h2>Built-in</h2>
-        <ul className="packs-list">
+        <h2 className={H2}>Built-in</h2>
+        <ul className={UL}>
           {row({ k: 'builtin', name: 'Spice Studio parts', on: true, meta: `${plural(BUNDLED.length, 'part')} · bundled with the app · always shown` })}
         </ul>
-        <h2>Library packs</h2>
-        <ul className="packs-list">
+        <h2 className={H2}>Library packs</h2>
+        <ul className={UL}>
           {packs.map((p) => row({
             k: 'pack-' + p.id, name: p.name, title: p.description || p.name, on: p.enabled, toggle: (on) => setPackEnabled(p.id, on), pack: p,
             meta: <>{[p.version && (/^\d/.test(p.version) ? `v${p.version}` : p.version), plural(packParts(p), 'part'), p.origin === 'user' ? 'added by you' : 'bundled'].filter(Boolean).join(' · ')}
-              {p.source && <> · {isUrl(p.source) ? <a href={p.source} target="_blank" rel="noreferrer" title={p.source}>source</a> : p.source}</>}</>,
+              {p.source && <> · {isUrl(p.source) ? <Tip label={p.source}><Button asChild variant="link" className={LINK}><a href={p.source} target="_blank" rel="noreferrer">source</a></Button></Tip> : p.source}</>}</>,
             rm: p.origin === 'user' ? { warn: KEEP, run: () => window.api.packs.remove(p.id).then(reloadPacks) } : undefined
           }))}
-          {!packs.length && <li className="libv-muted">No library packs installed.</li>}
+          {!packs.length && <li className={MUTED}>No library packs installed.</li>}
         </ul>
-        <h2>My libraries</h2>
-        <ul className="packs-list">
+        <h2 className={H2}>My libraries</h2>
+        <ul className={UL}>
           {sources.user.libs.map((l) => row({
             k: 'user-' + l.file, name: l.file, on: libOn(l), toggle: (on) => sources.setEnabled(l.file, on),
             meta: `${plural(l.entries.length, 'part')} · available in every project${sources.user.texts[l.file] == null ? ' · file missing' : ''}`,
             rm: { warn: KEEP, run: () => sources.remove(l.file) }
           }))}
-          {!sources.user.libs.length && <li className="libv-muted">Import a vendor .lib file into My libraries to use it in every project.</li>}
+          {!sources.user.libs.length && <li className={MUTED}>Import a vendor .lib file into My libraries to use it in every project.</li>}
         </ul>
         {project && (
           <>
-            <h2>This project</h2>
-            <ul className="packs-list">
+            <h2 className={H2}>This project</h2>
+            <ul className={UL}>
               {project.libs.map((l) => row({
                 k: 'proj-' + l.file, name: l.file.replace(/^libs\//, ''), title: l.file, on: libOn(l), toggle: (on) => project.onToggle(l.file, on),
                 meta: `${plural(l.entries.length, 'part')} · in this project’s libs/ folder${project.texts[l.file] == null ? ' · file missing' : ''}`,
                 rm: { warn: 'Parts already placed from it will stop netlisting.', run: () => project.onRemove(l.file) }
               }))}
-              {!project.libs.length && <li className="libv-muted">No libraries imported into this project yet.</li>}
+              {!project.libs.length && <li className={MUTED}>No libraries imported into this project yet.</li>}
             </ul>
           </>
         )}
         {errs && (
-          <div className="packs-err" role="alert">
-            <b>{errs.title}</b>
-            <ul>{errs.list.slice(0, MAX_ERRS).map((e, i) => <li key={i}>{e}</li>)}{errs.list.length > MAX_ERRS && <li>… and {errs.list.length - MAX_ERRS} more</li>}</ul>
-          </div>
+          <Alert variant="destructive">
+            <AlertTitle>{errs.title}</AlertTitle>
+            <AlertDescription>
+              <ul className="grid list-disc gap-0.5 pl-4 text-xs">{errs.list.slice(0, MAX_ERRS).map((e, i) => <li key={i}>{e}</li>)}{errs.list.length > MAX_ERRS && <li>… and {errs.list.length - MAX_ERRS} more</li>}</ul>
+            </AlertDescription>
+          </Alert>
         )}
-        {note && <p className="adlg-msg" role="status">{note}</p>}
+        {note && <p className={MUTED} role="status">{note}</p>}
       </div>
-      <div className="adlg-foot mlib-foot">
-        <span className="adlg-hint">Library files: .lib / .mod / .sub with .model or .subckt. A pack is a folder with a <code>pack.json</code>.</span>
-        <div className="mlib-imp">
-          {menu && (
-            <div className="mlib-menu" role="menu" aria-label="Import library">
-              {project && (
-                <div className="libv-to" role="radiogroup" aria-label="Import a library file into">
-                  {(['user', 'project'] as const).map((t) => (
-                    <button key={t} role="radio" aria-checked={target === t} className={target === t ? 'on' : ''} onClick={() => setTo(t)}>{t === 'user' ? 'My libraries' : 'This project'}</button>
-                  ))}
-                </div>
-              )}
-              <button ref={first} role="menuitem" onClick={() => importFile(target)}>
-                <b>Library file (.lib, .mod, .sub…)</b>
-                <small>{target === 'user' ? 'Into My libraries: usable in every project' : 'Copied into this project’s libs/ folder'}</small>
-              </button>
-              <button role="menuitem" onClick={addPack}><b>Library pack folder…</b><small>A folder with pack.json and its library files</small></button>
-            </div>
-          )}
-          <button className="run" aria-haspopup="menu" aria-expanded={menu} disabled={busy} onClick={() => setMenu(!menu)}>{busy ? 'Adding…' : 'Import library…'}</button>
-        </div>
-        <button onClick={onClose}>Done</button>
+      <div className="flex items-center gap-2 border-t px-4 py-3">
+        <span className="mr-auto text-xs text-muted-foreground">Library files: .lib / .mod / .sub with .model or .subckt. A pack is a folder with a <code className="font-mono">pack.json</code>.</span>
+        <DropdownMenu open={menu} onOpenChange={setMenu}>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" disabled={busy}>{busy ? 'Adding…' : 'Import library…'}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" className="w-72" aria-label="Import library">
+            {project && (
+              <>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Import a library file into</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={target} onValueChange={(v) => setTo(v as Target)} aria-label="Import a library file into">
+                  {/* preventDefault: picking the target keeps the menu open */}
+                  <DropdownMenuRadioItem value="user" onSelect={(e) => e.preventDefault()}>My libraries</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="project" onSelect={(e) => e.preventDefault()}>This project</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem ref={first} className={ITEM} onSelect={() => importFile(target)}>
+              <b className="font-medium">Library file (.lib, .mod, .sub…)</b>
+              <small className="text-[11px] text-muted-foreground">{target === 'user' ? 'Into My libraries: usable in every project' : 'Copied into this project’s libs/ folder'}</small>
+            </DropdownMenuItem>
+            <DropdownMenuItem className={ITEM} onSelect={addPack}><b className="font-medium">Library pack folder…</b><small className="text-[11px] text-muted-foreground">A folder with pack.json and its library files</small></DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button variant="outline" size="sm" onClick={onClose}>Done</Button>
       </div>
 
       {imp && (

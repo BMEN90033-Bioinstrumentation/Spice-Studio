@@ -1,5 +1,14 @@
 // Help › Keyboard Shortcuts, About, Third-party Licences / Tools › Simulation Engine: in-app modals (AnalysisDialog's look).
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Kbd } from '@/components/ui/kbd'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tip } from '@/components/ui/tip'
 import { useCommands } from './commands'
 import { loadPacks, type PackInfo } from './library/sources'
 
@@ -31,56 +40,69 @@ const CREDITS: [string, string, string][] = [
 type Lic = Awaited<ReturnType<typeof window.api.menu.licenses>> & { packs: PackInfo[] }
 
 export const isUrl = (s?: string) => !!s && /^https?:\/\//i.test(s)
-const link = (url: string, text = url) => <a href={url} target="_blank" rel="noreferrer">{text}</a>
+const link = (url: string, text = url) => <a href={url} target="_blank" rel="noreferrer" className="text-hl hover:underline">{text}</a>
+const muted = 'text-xs text-muted-foreground'
+const dl = 'm-0 grid grid-cols-[max-content_1fr] gap-x-3.5 gap-y-1.5 text-xs [&_dd]:m-0 [&_dd]:min-w-0 [&_dd]:[overflow-wrap:anywhere] [&_dt]:text-muted-foreground'
+const pre = 'help-text m-0 max-h-[420px] overflow-auto rounded-md border bg-muted/50 px-3 py-2.5 font-mono text-[11px] leading-normal whitespace-pre-wrap [overflow-wrap:anywhere] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50'
+const h3 = 'm-0 text-xs font-medium text-muted-foreground'
 
 // one library pack's licence, source, provenance and notice text (also the Library page's "Licence / notice")
+// own padding, except where a dialog or a Fold already pads it
 export function PackLicence({ pack: p }: { pack: PackInfo }) {
   return (
-    <div className="help-pack">
-      {p.description && <p className="adlg-msg">{p.description}</p>}
-      <dl>
+    <div className="grid min-h-0 min-w-0 content-start gap-2.5 overflow-auto px-4 py-3 [[data-slot=collapsible-content]>&]:p-0 [[data-slot=dialog-content]>&]:p-0">
+      {p.description && <p className={muted}>{p.description}</p>}
+      <dl className={dl}>
         <dt>Licence</dt><dd>{p.license || 'not stated'}</dd>
         {p.version && <><dt>Version</dt><dd>{p.version}</dd></>}
         {p.source && <><dt>Source</dt><dd>{isUrl(p.source) ? link(p.source) : p.source}</dd></>}
         <dt>Parts</dt><dd>{p.libs.reduce((n, l) => n + l.entries.length, 0).toLocaleString()} in {p.libs.length} file{p.libs.length === 1 ? '' : 's'}</dd>
       </dl>
       {!!p.provenance?.length && (
-        <table className="help-prov">
-          <thead><tr><th>File</th><th>From</th><th>Retrieved</th><th>SHA-256</th></tr></thead>
-          <tbody>{p.provenance.map((x, i) => (
-            <tr key={i}>
-              <td><code>{x.file}</code></td><td>{isUrl(x.url) ? link(x.url, x.url.replace(/^https?:\/\/(www\.)?/, '')) : x.url}</td><td>{x.retrieved}</td>
-              <td><code title={x.sha256}>{x.sha256.slice(0, 12)}{x.sha256.length > 12 ? '…' : ''}</code></td>
-            </tr>
-          ))}</tbody>
-        </table>
+        <Table className="text-[11px]">
+          <TableHeader><TableRow><TableHead className={th}>File</TableHead><TableHead className={th}>From</TableHead><TableHead className={th}>Retrieved</TableHead><TableHead className={th}>SHA-256</TableHead></TableRow></TableHeader>
+          <TableBody>{p.provenance.map((x, i) => (
+            <TableRow key={i}>
+              <TableCell className={td}><code className="font-mono">{x.file}</code></TableCell>
+              <TableCell className={td}>{isUrl(x.url) ? link(x.url, x.url.replace(/^https?:\/\/(www\.)?/, '')) : x.url}</TableCell>
+              <TableCell className={td}>{x.retrieved}</TableCell>
+              <TableCell className={td}><Tip label={x.sha256}><code className="font-mono">{x.sha256.slice(0, 12)}{x.sha256.length > 12 ? '…' : ''}</code></Tip></TableCell>
+            </TableRow>
+          ))}</TableBody>
+        </Table>
       )}
-      {p.noticeText != null ? <pre className="help-text" tabIndex={0}>{p.noticeText}</pre>
-        : <p className="adlg-msg">{p.notice ? `Notice file ${p.notice} is missing from the pack.` : 'This pack has no separate notice file.'}</p>}
+      {p.noticeText != null ? <pre className={pre} tabIndex={0}>{p.noticeText}</pre>
+        : <p className={muted}>{p.notice ? `Notice file ${p.notice} is missing from the pack.` : 'This pack has no separate notice file.'}</p>}
     </div>
   )
 }
+const th = 'h-auto py-1 pr-3 pl-0 text-muted-foreground'
+const td = 'py-1 pr-3 pl-0 align-top whitespace-normal [overflow-wrap:anywhere]'
 
+// Esc / backdrop close and focus restore come from Radix; keys stop here so canvas letter shortcuts don't see them
 export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
-  const close = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null
-    close.current?.focus()
-    // capture + stop: canvas letter shortcuts must not see keys while the modal is up
-    const k = (e: KeyboardEvent) => (e.stopPropagation(), e.key === 'Escape' && (e.preventDefault(), onClose()))
-    window.addEventListener('keydown', k, true)
-    return () => (window.removeEventListener('keydown', k, true), prev?.focus?.())
-  }, [])
+  const card = useRef<HTMLDivElement>(null)
   return (
-    <div className="adlg-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`adlg help-dlg${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}>
-        <div className="adlg-head">
-          <h2>{title}</h2>
-          <button ref={close} type="button" className="adlg-x" aria-label="Close" onClick={onClose}>×</button>
-        </div>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent ref={card} aria-describedby={undefined} onKeyDown={(e) => e.stopPropagation()}
+        onOpenAutoFocus={(e) => (e.preventDefault(), card.current?.querySelector<HTMLElement>('[data-slot=dialog-close]')?.focus())}
+        className={cn('flex max-h-[calc(100vh-3rem)] flex-col gap-4 p-5 sm:max-w-[760px]', wide && 'h-[min(760px,calc(100vh-3rem))] sm:max-w-[900px]')}>
+        <DialogHeader><DialogTitle className="text-base">{title}</DialogTitle></DialogHeader>
         {children}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// a bordered disclosure: licence file or library pack
+function Fold({ title, open, children }: { title: React.ReactNode; open?: boolean; children: React.ReactNode }) {
+  return (
+    <Collapsible defaultOpen={open} className="group/fold rounded-md border bg-card">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs font-medium outline-none hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50">
+        <ChevronRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]/fold:rotate-90" />{title}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="border-t p-2.5">{children}</CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -105,12 +127,12 @@ export function Help() {
   if (open === 'shortcuts')
     return (
       <Modal title="Keyboard shortcuts" onClose={() => setOpen(null)}>
-        <div className="help-keys">
+        <div className="grid min-h-0 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-7 gap-y-1 overflow-auto">
           {SHORTCUTS.map(([group, rows]) => (
             <section key={group}>
-              <h3>{group}</h3>
+              <h3 className={cn(h3, 'mt-2.5 mb-1')}>{group}</h3>
               {rows.map(([what, k]) => (
-                <div key={what} className="help-row"><span>{what}</span><kbd>{keyLabel(k)}</kbd></div>
+                <div key={what} className="flex items-center gap-3 border-b py-1 text-xs"><span className="flex-1">{what}</span><Kbd className="font-mono">{keyLabel(k)}</Kbd></div>
               ))}
             </section>
           ))}
@@ -120,22 +142,22 @@ export function Help() {
   if (open === 'about')
     return (
       <Modal title="About Spice Studio" onClose={() => setOpen(null)}>
-        <div className="help-about">
-          {!info ? <p className="adlg-msg">Loading…</p> : (
+        <div className="grid gap-2.5 text-sm">
+          {!info ? <p className={muted}>Loading…</p> : (
             <>
-              <p><b>Spice Studio</b> {info.version}</p>
-              <p className="adlg-msg">Schematic editor and front end for the ngspice circuit simulator.</p>
-              <dl>
+              <p><b className="font-semibold">Spice Studio</b> {info.version}</p>
+              <p className={muted}>Schematic editor and front end for the ngspice circuit simulator.</p>
+              <dl className={dl}>
                 <dt>Engine</dt>
-                <dd className={info.engine.path ? '' : 'bad'}>{info.engine.version}{info.engine.bundled ? ' (bundled)' : ''}</dd>
+                <dd className={info.engine.path ? '' : 'text-err'}>{info.engine.version}{info.engine.bundled ? ' (bundled)' : ''}</dd>
                 <dt>Engine path</dt>
-                <dd><code>{info.engine.path ?? 'not found: npm run ngspice:build, or install ngspice'}</code></dd>
+                <dd><code className="font-mono text-[11px]">{info.engine.path ?? 'not found: npm run ngspice:build, or install ngspice'}</code></dd>
                 <dt>Runtime</dt>
                 <dd>Electron {info.electron} · Chromium {info.chrome} · Node {info.node}</dd>
                 <dt>Platform</dt>
                 <dd>{info.platform}</dd>
               </dl>
-              <p className="adlg-msg">ngspice is BSD-3-Clause with third-party parts: <button className="help-link" onClick={licenses}>Third-party licences</button> lists them, the library packs' notices and the app's own components.</p>
+              <p className={muted}>ngspice is BSD-3-Clause with third-party parts: <Button variant="link" className="h-auto p-0 text-xs text-hl" onClick={licenses}>Third-party licences</Button> lists them, the library packs' notices and the app's own components.</p>
             </>
           )}
         </div>
@@ -144,29 +166,31 @@ export function Help() {
   if (open === 'licenses')
     return (
       <Modal title="Third-party licences" onClose={() => setOpen(null)} wide>
-        <div className="help-lic">
-          {!lic ? <p className="adlg-msg">Loading…</p> : (
+        <div className="-m-1 grid min-h-0 flex-1 content-start gap-5 overflow-auto p-1">
+          {!lic ? <p className={muted}>Loading…</p> : (
             <>
-              <section>
-                <h3>ngspice simulation engine</h3>
-                <p className="adlg-msg">An unmodified ngspice build, run as a separate program: modified BSD (3-clause), with the third-party parts listed in the notices. {link('https://ngspice.sourceforge.io/', 'ngspice.sourceforge.io')}</p>
+              <section className="grid min-w-0 gap-2">
+                <h3 className={h3}>ngspice simulation engine</h3>
+                <p className={muted}>An unmodified ngspice build, run as a separate program: modified BSD (3-clause), with the third-party parts listed in the notices. {link('https://ngspice.sourceforge.io/', 'ngspice.sourceforge.io')}</p>
                 {lic.files.length ? lic.files.map((f) => (
-                  <details key={f.name} open={f.name.startsWith('THIRD')}><summary>{f.name}</summary><pre className="help-text" tabIndex={0}>{f.text}</pre></details>
-                )) : <p className="adlg-msg bad">No bundled engine in <code>{lic.dir || '(unknown)'}</code> (development build: run <code>npm run ngspice:build</code>). A system ngspice carries its own COPYING.</p>}
+                  <Fold key={f.name} title={f.name} open={f.name.startsWith('THIRD')}><pre className={pre} tabIndex={0}>{f.text}</pre></Fold>
+                )) : <p className="text-xs text-warn">No bundled engine in <code className="font-mono">{lic.dir || '(unknown)'}</code> (development build: run <code className="font-mono">npm run ngspice:build</code>). A system ngspice carries its own COPYING.</p>}
               </section>
-              <section>
-                <h3>Component library packs</h3>
-                {!lic.packs.length && <p className="adlg-msg">No library packs installed.</p>}
+              <section className="grid min-w-0 gap-2">
+                <h3 className={h3}>Component library packs</h3>
+                {!lic.packs.length && <p className={muted}>No library packs installed.</p>}
                 {lic.packs.map((p) => (
-                  <details key={p.id}><summary>{p.name} <span className="help-badge">{p.license || 'licence not stated'}</span></summary><PackLicence pack={p} /></details>
+                  <Fold key={p.id} title={<>{p.name} <Badge variant={p.license ? 'outline' : 'secondary'} className="font-mono text-[10px]">{p.license || 'licence not stated'}</Badge></>}>
+                    <PackLicence pack={p} />
+                  </Fold>
                 ))}
               </section>
-              <section>
-                <h3>Application components</h3>
-                <table className="help-prov">
-                  <thead><tr><th>Component</th><th>Licence</th><th>Text</th></tr></thead>
-                  <tbody>{CREDITS.map(([n, l, u]) => <tr key={n}><td>{n}</td><td>{l}</td><td>{link(u, 'LICENSE')}</td></tr>)}</tbody>
-                </table>
+              <section className="grid min-w-0 gap-2">
+                <h3 className={h3}>Application components</h3>
+                <Table className="text-[11px]">
+                  <TableHeader><TableRow><TableHead className={th}>Component</TableHead><TableHead className={th}>Licence</TableHead><TableHead className={th}>Text</TableHead></TableRow></TableHeader>
+                  <TableBody>{CREDITS.map(([n, l, u]) => <TableRow key={n}><TableCell className={td}>{n}</TableCell><TableCell className={td}>{l}</TableCell><TableCell className={td}>{link(u, 'LICENSE')}</TableCell></TableRow>)}</TableBody>
+                </Table>
               </section>
             </>
           )}

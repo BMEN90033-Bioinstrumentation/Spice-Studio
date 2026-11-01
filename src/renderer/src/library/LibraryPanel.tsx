@@ -7,6 +7,11 @@ import { blockShape, sheetPorts, type Sheet } from '../schematic/model'
 import type { Kind } from '../schematic/symbols'
 import { blockPartFields, CATEGORIES, type LibEntry } from './library'
 import { SymbolPreview } from './Symbol'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tip } from '@/components/ui/tip'
+import { cn } from '@/lib/utils'
 
 export type SheetItem = { file: string; sheet: Sheet }
 export type LibPick = LibEntry | SheetItem
@@ -77,6 +82,20 @@ const H = { h: 28, item: 38 }
 const BIG = 60 // categories with more parts than this (library parts merged in) start collapsed
 const rowH = (r: Row) => (r.t === 'h' ? H.h : H.item)
 const rowKey = (r: Row) => (r.t === 'h' ? r.key : r.t === 'e' ? r.e.id : 'sheet:' + r.s.file)
+// row chrome: fills its VList slot (.vrow > * is 100% high), so no size variant
+const CAT = 'w-full justify-start gap-1.5 rounded-sm px-1.5 pt-2 pb-1 text-xs font-medium text-muted-foreground hover:bg-transparent hover:text-foreground dark:hover:bg-transparent [&_svg]:size-3'
+const ITEM = 'w-full justify-start gap-2 overflow-hidden px-1.5 py-1 text-left font-normal [&_.symp]:size-[34px]!'
+const Item = ({ on, tip, onClick, sym, name, sub }: { on: boolean; tip: string; onClick: () => void; sym: ReactNode; name: string; sub: string }) => (
+  <Tip label={tip} side="right">
+    <Button variant="ghost" size={null} data-item className={cn(ITEM, on && 'bg-accent dark:hover:bg-accent')} onClick={onClick}>
+      {sym}
+      <span className="grid min-w-0 flex-1">
+        <b className="truncate text-xs font-medium">{name}</b>
+        <small className="truncate text-[11px] text-muted-foreground">{sub}</small>
+      </span>
+    </Button>
+  </Tip>
+)
 const catRank = (g: string) => { const i = CATEGORIES.indexOf(g as never); return i < 0 ? CATEGORIES.length : i }
 
 export function LibraryPanel({ entries, sheets, onPick, active, search }: {
@@ -122,49 +141,49 @@ export function LibraryPanel({ entries, sheets, onPick, active, search }: {
   const render = (r: Row) => {
     if (r.t === 'h')
       return (
-        <button className="libp-cat" aria-expanded={r.open} onClick={() => toggle(r.key)}>
-          <span className="chev">{r.open ? '▾' : '▸'}</span><span className="lbl">{r.label}</span><span className="cnt">{r.n.toLocaleString()}</span>
-        </button>
+        <Button variant="ghost" size={null} className={CAT} aria-expanded={r.open} onClick={() => toggle(r.key)}>
+          {r.open ? <ChevronDown /> : <ChevronRight />}
+          <span className="min-w-0 truncate">{r.label}</span>
+          <span className="ml-auto font-mono text-[10px] font-normal opacity-70">{r.n.toLocaleString()}</span>
+        </Button>
       )
     if (r.t === 'e') {
       const e = r.e
-      return (
-        <button className={`libp-item${active === e.id ? ' on' : ''}`} title={e.description} onClick={() => onPick(e)}>
-          {mini(e)}
-          <span><b>{e.name}</b><small>{e.description}</small></span>
-        </button>
-      )
+      return <Item on={active === e.id} tip={e.description} onClick={() => onPick(e)} sym={mini(e)} name={e.name} sub={e.description} />
     }
     const s = r.s
     return (
-      <button className={`libp-item${active === 'sheet:' + s.file ? ' on' : ''}`} title={`Place ${s.file} as a block`} onClick={() => onPick(s)}>
-        <SymbolPreview kind="block" part={blockShape(sheetPorts(s.sheet))} size="small" />
-        <span><b>{sheetName(s.file)}</b><small>{sheetPorts(s.sheet).join(', ') || 'no ports'}</small></span>
-      </button>
+      <Item on={active === 'sheet:' + s.file} tip={`Place ${s.file} as a block`} onClick={() => onPick(s)}
+        sym={<SymbolPreview kind="block" part={blockShape(sheetPorts(s.sheet))} size="small" />} name={sheetName(s.file)} sub={sheetPorts(s.sheet).join(', ') || 'no ports'} />
     )
   }
 
   return (
-    <aside className="libp" aria-label="Parts library">
-      <div className="libp-search">
-        <input ref={search} type="search" placeholder="Search parts  ( / )" aria-label="Search parts" value={q} spellCheck={false}
+    // width 240px = LIBW in Schematic.tsx
+    <aside className="panel-in absolute inset-y-0 left-0 z-2 flex w-[240px] flex-col border-r bg-card" aria-label="Parts library">
+      <div className="border-b p-2">
+        <Input ref={search} type="search" className="h-8 text-xs md:text-xs" placeholder="Search parts  ( / )" aria-label="Search parts" value={q} spellCheck={false}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             const f = e.key === 'Enter' ? first() : undefined
             if (f) onPick(f)
             else if (e.key === 'Escape') setQ(''), e.currentTarget.blur()
-            else if (e.key === 'ArrowDown') (e.preventDefault(), e.currentTarget.closest('.libp')?.querySelector<HTMLElement>('.libp-item')?.focus())
+            else if (e.key === 'ArrowDown') (e.preventDefault(), e.currentTarget.closest('aside')?.querySelector<HTMLElement>('[data-item]')?.focus())
           }} />
-        {ql && <small className="libp-count" aria-live="polite">{total ? `${total.toLocaleString()} match${total === 1 ? '' : 'es'} · ↵ places the first` : ''}</small>}
+        {ql && <small className="mt-1 block px-0.5 text-[10px] text-muted-foreground" aria-live="polite">{total ? `${total.toLocaleString()} match${total === 1 ? '' : 'es'} · ↵ places the first` : ''}</small>}
       </div>
-      {rows.length ? <VList className="libp-list" label="Parts" items={rows} height={rowH} keyOf={rowKey} render={render} reset={ql}
+      {rows.length ? <VList className="min-h-0 flex-1 overflow-y-auto px-1.5 pt-1 pb-3" label="Parts" items={rows} height={rowH} keyOf={rowKey} render={render} reset={ql}
         onKeyDown={(e) => {
           if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-          const all = [...e.currentTarget.querySelectorAll<HTMLElement>('.libp-item')], i = all.indexOf(document.activeElement as HTMLElement)
+          const all = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-item]')], i = all.indexOf(document.activeElement as HTMLElement)
           e.preventDefault()
           all[Math.max(0, Math.min(all.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]?.focus()
-        }} /> : <p className="libp-none">No parts match “{q}”</p>}
-      <button className="libp-packs" title="Show, hide or import component libraries" onClick={() => runCommand('tools.manageLibraries')}>Manage libraries…</button>
+        }} /> : <p className="flex-1 p-2 text-xs text-muted-foreground">No parts match “{q}”</p>}
+      <div className="border-t p-2">
+        <Tip label="Show, hide or import component libraries">
+          <Button variant="secondary" size="sm" className="w-full text-xs" onClick={() => runCommand('tools.manageLibraries')}>Manage libraries…</Button>
+        </Tip>
+      </div>
     </aside>
   )
 }

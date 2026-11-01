@@ -3,37 +3,24 @@
   --s0: var(--background);
   --s1: var(--card);
   --s2: var(--secondary);
-  --s3: var(--accent);
   --line: var(--border);
   --line-strong: var(--input);
   --text: var(--foreground);
   --dim: var(--muted-foreground);
-  --faint: oklch(0.5 0 0);
   --hl: #6aa9ff; /* data highlight: OP values, links, focus on the canvas */
   --hl-bg: rgba(106, 169, 255, 0.13);
-  --brand: var(--primary);
-  --brand-hover: color-mix(in oklab, var(--primary) 90%, transparent);
-  --run: var(--primary);
-  --run-hover: color-mix(in oklab, var(--primary) 90%, transparent);
-  --danger: var(--destructive);
-  --danger-hover: color-mix(in oklab, var(--destructive) 90%, transparent);
   --ok: #4cc38a;
   --err: #f0787b;
-  --err-bg: rgba(240, 120, 123, 0.1);
   --warn: #e3b366;
-  --warn-bg: rgba(227, 179, 102, 0.1);
   --sel: #f0b35a;   /* selected schematic items */
   --probe: #f5d061; /* probe cursor, OP tags, sweep band */
   --wire: #6fcf97;
   --sym: #c8cdd5;
   --r: calc(var(--radius) - 2px);
-  --r2: var(--radius);
   --bg: var(--s0);
   --panel: var(--s1);
   --mono: 'SF Mono', Menlo, Consolas, monospace;
 }
-* { box-sizing: border-box; }
-
 .app { display: flex; flex-direction: column; height: 100%; }
 [hidden] { display: none !important; }
 
@@ -43,32 +30,7 @@ header {
   background: var(--panel); border-bottom: 1px solid var(--line); -webkit-app-region: drag;
 }
 .mac header { padding-left: 84px; } /* room for mac traffic lights */
-.brand { font-weight: 600; }
-.file { color: var(--dim); }
-.views { margin: 0; -webkit-app-region: no-drag; }
-.actions { margin-left: auto; display: flex; align-items: center; gap: 2px; -webkit-app-region: no-drag; }
-.actions .sep { width: 1px; height: 18px; margin: 0 6px; background: var(--line-strong); }
-header > button { -webkit-app-region: no-drag; }
-/* chrome buttons (header, results tabs) are quiet until hovered; Run stays filled */
-header button:not(.run):not(.primary), .tabs button { background: transparent; border-color: transparent; color: var(--dim); }
-header button:not(.run):not(.primary):hover:not(:disabled), .tabs button:hover { background: var(--s3); color: var(--text); }
-header .brand { margin-left: 4px; }
-
-/* inline stroke icons (icons.tsx) */
-.i { width: 16px; height: 16px; flex: none; display: block; }
-:where(button:has(> .i)) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-:where(button.icon:has(> .i)) { padding: 3px; }
-button.icon > .i { width: 14px; height: 14px; }
-
-button {
-  font: inherit; color: var(--text); background: var(--s2); border: 1px solid var(--line-strong);
-  border-radius: var(--r); padding: 4px 11px; cursor: pointer; transition: background-color 80ms, color 80ms;
-}
-button:where(:hover:not(:disabled)) { background: var(--s3); } /* :where keeps it as weak as plain button:hover, so .x:hover rules still win */
-button:focus-visible { outline: 2px solid var(--hl); outline-offset: 1px; }
-button.run { background: var(--run); border-color: transparent; font-weight: 500; color: #fff; padding: 4px 12px 4px 10px; }
-button.run:hover:not(:disabled) { background: var(--run-hover); }
-button:disabled { opacity: 0.45; cursor: default; }
+header :is(button, [role=group]) { -webkit-app-region: no-drag; }
 
 .body { flex: 1; min-height: 0; display: flex; }
 main { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(320px, 40%) 1fr; min-height: 0; }
@@ -79,11 +41,6 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 .editor { height: 100%; }
 .right { display: grid; grid-template-rows: 36px 1fr 180px; min-height: 0; min-width: 0; }
 
-.tabs { display: flex; align-items: center; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
-.tabs button { padding: 3px 10px; }
-.tabs button.on, .tabs button.on:hover { background: var(--s3); color: var(--text); }
-.empty { color: var(--dim); padding: 0 6px; }
-
 .plotarea { min-height: 0; position: relative; }
 /* .plot lines: stacked charts, each with its own vector list */
 .plotpanes { position: absolute; inset: 0; display: flex; flex-direction: column; overflow-y: auto; }
@@ -92,52 +49,17 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 .panetitle { margin: 0; padding: 5px 12px 3px; font-size: 12px; font-weight: 600; color: var(--text); }
 .plotpane + .plotpane { border-top: 1px solid var(--line); }
 .plot { position: absolute; inset: 0; display: grid; grid-template-columns: 200px 1fr; grid-template-rows: 1fr auto auto; }
-.vars { grid-row: span 3; overflow-y: auto; padding: 10px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
-.vars label { display: flex; gap: 6px; align-items: center; font-family: var(--mono); font-size: 12px; cursor: pointer; }
-.vars input { accent-color: var(--c); }
-/* segmented control: one track, the active option is a raised pill */
-.seg { display: flex; gap: 2px; padding: 2px; background: var(--s0); border: 1px solid var(--line); border-radius: var(--r); }
-.seg button { flex: 1; padding: 2px 8px; font-size: 12px; background: transparent; border: 0; border-radius: 4px; color: var(--dim); }
-.seg button:hover:not(:disabled) { background: transparent; color: var(--text); }
-.seg button.on, .seg button.on:hover { background: var(--s3); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
-.vars .seg { margin-bottom: 8px; }
-header .seg button.on, header .seg button.on:hover { background: var(--s3); color: var(--text); }
-.chart { min-height: 0; min-width: 0; overflow: hidden; padding: 8px 8px 0; }
-.hint { min-width: 0; color: var(--dim); font-size: 11px; padding: 2px 12px 6px; display: flex; gap: 8px; align-items: center; }
-.hint > span:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hint .exp { display: flex; gap: 2px; }
-.hint .exp button { font-size: 10px; padding: 0 5px; }
+.chart { min-height: 0; min-width: 0; overflow: hidden; padding: 8px 8px 0; } /* = PAD_X / PAD_Y in Plot.tsx */
 .u-legend { color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
 /* many sweep / Monte Carlo runs: the legend scrolls instead of squeezing the chart (Plot sizes the chart from its height) */
 .u-legend.u-inline { max-height: 66px; overflow-y: auto; }
 .u-select { background: rgba(106, 169, 255, 0.12); }
 
-table.op { margin: 16px; border-collapse: collapse; font-family: var(--mono); }
-table.op td { padding: 4px 16px; border-bottom: 1px solid var(--line); }
-table.op td:last-child { text-align: right; color: var(--hl); }
-
-/* plot: cursors, readout, expressions, measurements */
+/* plot cursors (created in Plot.tsx) and trace swatches */
 .pcur { position: absolute; top: 0; bottom: 0; width: 9px; margin-left: -4px; cursor: ew-resize; z-index: 5; }
 .pcur::before { content: ''; position: absolute; left: 4px; top: 0; bottom: 0; border-left: 1px dashed var(--text); }
 .pcur::after { content: attr(data-k); position: absolute; left: 7px; top: 1px; font: 600 10px var(--mono); color: var(--text); }
-.readout { min-width: 0; max-height: 140px; overflow: auto; padding: 0 8px; border-top: 1px solid var(--line); }
-.readout table { border-collapse: collapse; font: 11px/1.5 var(--mono); width: 100%; }
-.readout th { color: var(--dim); font-weight: 500; text-align: right; padding: 1px 8px; position: sticky; top: 0; background: var(--bg); }
-.readout td { text-align: right; padding: 1px 8px; white-space: nowrap; }
-.readout td:first-child, .readout th:first-child { text-align: left; }
-.readout th button.icon { padding: 0 4px; }
 .sw { display: inline-block; width: 10px; height: 2px; margin-right: 6px; vertical-align: middle; background: var(--c); }
-.vars .expr { display: flex; flex-wrap: wrap; align-items: center; font-family: var(--mono); font-size: 12px; }
-.vars .expr code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vars .expr button.icon { padding: 0 4px; }
-.vars .bad { width: 100%; color: var(--err); font: 11px/1.3 -apple-system, system-ui, sans-serif; }
-.vars input.addexpr { font: 12px var(--mono); color: var(--text); background: var(--s0); border: 1px solid var(--line); border-radius: var(--r); padding: 3px 6px; margin-top: 2px; }
-.vars input.addexpr:focus { border-color: var(--hl); outline: none; }
-.meas { position: absolute; inset: 0; z-index: 10; overflow: auto; background: var(--bg); }
-.meas table.op td { text-align: right; color: var(--hl); }
-.meas table.op td:first-child { text-align: left; color: var(--text); }
-.meas table.op td.bad { color: var(--err); cursor: help; }
-.meas table.op .stat { color: var(--warn); }
 
 .console {
   margin: 0; padding: 8px 12px; overflow: auto; background: var(--s0); border-top: 1px solid var(--line);
@@ -145,72 +67,7 @@ table.op td:last-child { text-align: right; color: var(--hl); }
 }
 .console .err { color: var(--err); }
 .console .warn { color: var(--warn); }
-
-footer { height: 24px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; font-size: 12px; color: var(--dim); background: var(--panel); border-top: 1px solid var(--line); }
-
-.vars h4 { margin: 8px 0 2px; font-size: 12px; font-weight: 500; color: var(--dim); }
-.vars h4:first-of-type { margin-top: 0; }
-table.op th { padding: 4px 16px; text-align: right; color: var(--dim); font-weight: 500; border-bottom: 1px solid var(--line); }
 .console .blame { cursor: pointer; }
 .console .blame:hover { text-decoration: underline; }
 
-/* ---- project workspace ---- */
-button.icon { background: transparent; border-color: transparent; padding: 1px 6px; color: var(--dim); }
-button.icon:hover { background: var(--s3); color: var(--text); }
-button.primary { background: var(--brand); border-color: transparent; font-weight: 500; color: #fff; }
-button.primary:hover { background: var(--brand-hover); }
-button.danger { background: var(--danger); border-color: transparent; color: #fff; }
-button.danger:hover { background: var(--danger-hover); }
-
-.side { width: 200px; flex-shrink: 0; overflow-y: auto; background: var(--s1); border-right: 1px solid var(--line); padding: 6px 0 12px; }
-.side-h { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 4px 14px; font-size: 12px; font-weight: 500; color: var(--dim); }
-.sheet { display: flex; align-items: center; margin: 0 6px; border-radius: var(--r); }
-.sheet:hover, .sheet:focus-within { background: var(--s3); }
-.sheet.on { background: var(--hl-bg); }
-.sheet .nm { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; padding: 5px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sheet.on .nm { color: var(--hl); }
-.sheet .ops { display: none; }
-.sheet:hover .ops, .sheet:focus-within .ops { display: flex; }
-.sheet .dot { color: var(--warn); }
-.badge { margin-left: 6px; font-size: 10px; padding: 0 5px; border-radius: 4px; background: var(--hl-bg); color: var(--hl); text-transform: uppercase; letter-spacing: 0.04em; }
-.sheet.editing { flex-direction: column; align-items: stretch; padding: 3px 2px; gap: 2px; }
-.sheet input { font: inherit; color: var(--text); background: var(--s0); border: 1px solid var(--hl); border-radius: var(--r); padding: 4px 7px; outline: none; }
-.sheet .bad { color: var(--err); font-size: 11px; padding: 0 4px; }
-/* Bill of materials window (project/BomWindow.tsx) */
-.bomwin-sheets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 12px; }
-.bomwin-sheets .lbl { font-size: 12px; font-weight: 500; color: var(--dim); }
-.bomwin-sheets label { display: flex; gap: 5px; align-items: center; cursor: pointer; }
-.bomwin .mlib-body { display: block; padding-top: 0; }
-table.bomt { width: 100%; border-collapse: collapse; font-size: 12px; }
-.bomt th { position: sticky; top: 0; z-index: 1; background: var(--panel); text-align: left; font-weight: 500; color: var(--dim); padding: 10px 10px 6px; border-bottom: 1px solid var(--line); }
-.bomt td { padding: 4px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.bomt .n { text-align: right; font-variant-numeric: tabular-nums; width: 3em; }
-.bomt .m { font-family: var(--mono); }
-.bomt .dim { color: var(--dim); }
-.bomt tbody tr:hover td { background: var(--s2); }
-.bomt td.in { padding: 1px 4px; }
-.bomt td.in input { width: 100%; min-width: 90px; box-sizing: border-box; font: 12px var(--mono); color: var(--text); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 3px 6px; }
-.bomt tr:hover td.in input { border-color: var(--line-strong); }
-.bomt td.in input:focus { outline: none; border-color: var(--hl); background: var(--s0); }
-.bomt td.in input::placeholder { color: transparent; }
-.bomt td.in input:focus::placeholder { color: var(--faint); } /* hint only in the cell being edited */
-.bomwin .adlg-foot button { white-space: nowrap; }
-.sheet.confirm { flex-wrap: wrap; gap: 6px; padding: 6px 8px; background: var(--err-bg); }
-.sheet.confirm span { width: 100%; }
-.sheet.confirm button { padding: 2px 10px; font-size: 12px; }
-
-.stabs { display: flex; gap: 2px; padding: 4px 6px 0; border-bottom: 1px solid var(--line); background: var(--s1); overflow-x: auto; flex-shrink: 0; }
-.stab { display: flex; align-items: center; border: 1px solid transparent; border-bottom: 0; border-radius: var(--r) 6px 0 0; color: var(--dim); }
-.stab.on { background: var(--bg); border-color: var(--line); color: var(--text); margin-bottom: -1px; }
-.stab button { background: transparent; border: 0; border-radius: 0; padding: 4px 4px 4px 12px; color: inherit; }
-.stab button.x { padding: 4px 8px 4px 4px; opacity: 0.5; }
-.stab button.x:hover { opacity: 1; background: transparent; }
-.crumbs { display: flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 12px; color: var(--dim); flex-shrink: 0; }
-.crumbs .sep { margin: 0 4px; }
-.crumbs b { color: var(--text); font-weight: 600; }
-button.link { background: transparent; border: 0; padding: 0; color: var(--hl); }
-button.link:hover { background: transparent; text-decoration: underline; }
-
-.banner { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 16px; background: var(--warn-bg); border-bottom: 1px solid rgba(227, 179, 102, 0.25); color: var(--text); flex-shrink: 0; }
-.banner span { margin-right: auto; }
 .libpage { flex: 1; min-height: 0; position: relative; }

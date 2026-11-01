@@ -1,4 +1,4 @@
-import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type Ref } from 'react'
+import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { netlist, type NetCtx } from './netlist'
@@ -11,7 +11,16 @@ import { SourceDialog } from '../sim/SourceDialog'
 import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { createPortal } from 'react-dom'
-import { Icon } from '../icons'
+import { Cpu, Crosshair, FlipHorizontal2, Maximize, MousePointer2, Redo2, RotateCw, Spline, Trash2, Undo2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { Tip } from '@/components/ui/tip'
+import { Toggle } from '@/components/ui/toggle'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
 
 export interface SchematicHandle {
   get(): Sheet; load(s: Sheet): void; replace(s: Sheet): void; select(ids: string[]): void
@@ -132,6 +141,17 @@ const typing = (e: KeyboardEvent) => {
   return !!(t?.isContentEditable || t?.closest?.('input,textarea,select,.cm-editor'))
 }
 const blurOnEnter = (e: RKE<HTMLInputElement>) => (e.key === 'Enter' || e.key === 'Escape') && e.currentTarget.blur()
+
+// floating toolbar / inspector chrome (positions stay in schematic.css: they shift with the parts panel)
+const Sep = () => <Separator orientation="vertical" className="mx-0.5 data-[orientation=vertical]:h-[18px]" />
+const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
+  <Tip label={label}><Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground" aria-label={aria} onClick={onClick} disabled={disabled}>{children}</Button></Tip>
+)
+const INSP = 'sch-insp grid gap-2 rounded-lg border bg-card p-2.5 text-card-foreground shadow-md'
+const FLD = 'grid gap-1 text-[11px] font-normal text-muted-foreground'
+const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_code]:text-foreground'
+const MONO = 'font-mono text-xs md:text-xs text-foreground'
+const InspBtn = (p: ComponentProps<typeof Button>) => <Button size="sm" variant="outline" className="h-7 justify-self-start text-xs" {...p} />
 
 export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic' }: {
   active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
@@ -685,78 +705,93 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       </svg>
 
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
-        : <Rail side="left" label="Parts" icon="chip" title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
-      <div className="sch-bar" ref={bar}>
-        <button className={libOpen ? 'on' : ''} title="Parts library (Shift+L) · search (/)" aria-pressed={libOpen} onClick={() => toggleLib()}>Parts</button>
-        <span className="sep" />
-        <div className="seg" role="group" aria-label="Tool">
-          <button className={tool === 'select' && !placing ? 'on' : ''} title="Select (Esc)" aria-label="Select" onClick={() => use('select')}><Icon name="cursor" /></button>
-          <button className={tool === 'wire' ? 'on' : ''} title="Wire (W)" aria-label="Wire" onClick={() => use('wire')}><Icon name="wire" /></button>
-          <button className={tool === 'text' ? 'on mono' : 'mono'} title="SPICE directive (S)" onClick={() => use('text')}>.op</button>
-          <button className={tool === 'probe' ? 'on' : ''} title="Probe (P) · or Alt+click" aria-label="Probe" onClick={() => use('probe')}><Icon name="probe" /></button>
-        </div>
-        <span className="sep" />
-        {QUICK.map((k) => (
-          <button key={k} className={placing?.place === k && !placing.id ? 'on icon' : 'icon'} title={SYMBOLS[k].title + (SYMBOLS[k].key ? ` (${SYMBOLS[k].key!.toUpperCase()})` : '')}
-            onClick={() => use({ place: k, title: SYMBOLS[k].title })}>
-            <SymbolPreview kind={k} size="small" />
-          </button>
-        ))}
-        <span className="sep" />
-        <button title="Rotate (Ctrl+R)" aria-label="Rotate" onClick={() => orient(true)}><Icon name="rotate" /></button>
-        <button title="Mirror (Ctrl+E)" aria-label="Mirror" onClick={() => orient(false)}><Icon name="mirror" /></button>
-        <button title="Delete (Del)" aria-label="Delete" onClick={del} disabled={!sel.size}><Icon name="trash" /></button>
-        <button title="Undo (⌘Z)" aria-label="Undo" onClick={undo} disabled={!hist.current.undo.length}><Icon name="undo" /></button>
-        <button title="Redo (⇧⌘Z)" aria-label="Redo" onClick={redo} disabled={!hist.current.redo.length}><Icon name="undo" flip /></button>
-        <button title="Fit (F)" aria-label="Fit to window" onClick={() => fit()}><Icon name="fit" /></button>
-        <span className="sep" />
-        <button title="Simulation setup (A)" onClick={() => setDlg('analysis')}>Analysis…</button>
-        {overlay?.op && <button className={showOp ? 'on' : ''} title="Show DC operating point voltages" onClick={() => setShowOp((v) => !v)}>OP</button>}
+        : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
+      <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1 shadow-sm" ref={bar}>
+        <Tip label="Parts library (Shift+L) · search (/)">
+          <Toggle size="sm" className="h-7 px-2 text-xs" pressed={libOpen} onPressedChange={() => toggleLib()}>Parts</Toggle>
+        </Tip>
+        <Sep />
+        {/* items keep their own onClick: re-clicking the current tool still resets it (ends a wire in progress) */}
+        <ToggleGroup type="single" size="sm" aria-label="Tool" value={typeof tool === 'string' ? tool : ''}>
+          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire (W)', 'Wire', <Spline />], ['text', 'SPICE directive (S)', 'SPICE directive', '.op'],
+            ['probe', 'Probe (P) · or Alt+click', 'Probe', <Crosshair />]] as const).map(([k, label, aria, body]) => (
+            <Tip key={k} label={label}>
+              <ToggleGroupItem value={k} aria-label={aria} className={cn('h-7 min-w-7 px-1.5 text-muted-foreground', k === 'text' && 'font-mono text-xs')} onClick={() => use(k)}>{body}</ToggleGroupItem>
+            </Tip>
+          ))}
+        </ToggleGroup>
+        <Sep />
+        {QUICK.map((k) => {
+          const on = placing?.place === k && !placing.id
+          return (
+            <Tip key={k} label={SYMBOLS[k].title + (SYMBOLS[k].key ? ` (${SYMBOLS[k].key!.toUpperCase()})` : '')}>
+              <Button variant="ghost" size="icon-sm" aria-label={SYMBOLS[k].title} aria-pressed={on} className={cn('size-7 [&_.symp]:size-5!', on && 'bg-accent')}
+                onClick={() => use({ place: k, title: SYMBOLS[k].title })}>
+                <SymbolPreview kind={k} size="small" />
+              </Button>
+            </Tip>
+          )
+        })}
+        <Sep />
+        <BarBtn label="Rotate (Ctrl+R)" aria="Rotate" onClick={() => orient(true)}><RotateCw /></BarBtn>
+        <BarBtn label="Mirror (Ctrl+E)" aria="Mirror" onClick={() => orient(false)}><FlipHorizontal2 /></BarBtn>
+        <BarBtn label="Delete (Del)" aria="Delete" onClick={del} disabled={!sel.size}><Trash2 /></BarBtn>
+        <BarBtn label="Undo (⌘Z)" aria="Undo" onClick={undo} disabled={!hist.current.undo.length}><Undo2 /></BarBtn>
+        <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
+        <BarBtn label="Fit (F)" aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
+        <Sep />
+        <Tip label="Simulation setup (A)"><Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" onClick={() => setDlg('analysis')}>Analysis…</Button></Tip>
+        {overlay?.op && (
+          <Tip label="Show DC operating point voltages">
+            <Toggle size="sm" className="h-7 px-2 text-xs" pressed={showOp} onPressedChange={() => setShowOp((v) => !v)}>OP</Toggle>
+          </Tip>
+        )}
       </div>
 
       {one && (
-        <div className="sch-insp" key={one.id}>
-          <div className="t">{entry?.name ?? (one.sheet ? 'Sheet block' : SYMBOLS[one.kind].title)}</div>
-          {entry && <div className="d">{entry.description}</div>}
-          {entry?.group && <div className="d">From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
-          {one.lib && !entry && <div className="d warn">Unknown library part {one.lib}</div>}
+        <div className={INSP} key={one.id}>
+          <div className="text-xs font-semibold">{entry?.name ?? (one.sheet ? 'Sheet block' : SYMBOLS[one.kind].title)}</div>
+          {entry && <div className={D}>{entry.description}</div>}
+          {entry?.group && <div className={D}>From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
+          {one.lib && !entry && <div className={cn(D, 'text-warn')}>Unknown library part {one.lib}</div>}
           {!isFlag(one.kind) && (
-            <label>Name
-              <input value={one.name} spellCheck={false} onChange={(e) => edit(one, 'name', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
-            </label>
+            <Label className={FLD}>Name
+              <Input className={cn('h-7 px-2', MONO)} value={one.name} spellCheck={false} onChange={(e) => edit(one, 'name', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
+            </Label>
           )}
           {one.sheet ? (
             <>
-              <div className="d">Sheet <code>{one.sheet}</code>{!blockSheet && <span className="warn"> · not in project</span>}</div>
-              {stale && <div className="d warn">Ports changed: {stale.join(', ') || 'none'}</div>}
-              <div className="row">
-                {onOpenSheet && <button onClick={() => onOpenSheet(one.sheet!)} disabled={!blockSheet}>Open sheet</button>}
-                {stale && <button onClick={() => updateBlock(one, stale)}>Update pins</button>}
+              <div className={D}>Sheet <code>{one.sheet}</code>{!blockSheet && <span className="text-warn"> · not in project</span>}</div>
+              {stale && <div className={cn(D, 'text-warn')}>Ports changed: {stale.join(', ') || 'none'}</div>}
+              <div className="flex flex-wrap gap-1.5">
+                {onOpenSheet && <InspBtn onClick={() => onOpenSheet(one.sheet!)} disabled={!blockSheet}>Open sheet</InspBtn>}
+                {stale && <InspBtn onClick={() => updateBlock(one, stale)}>Update pins</InspBtn>}
               </div>
             </>
           ) : (
             <>
-              <label>{one.kind === 'label' || one.kind === 'power' ? 'Net name' : one.kind === 'port' ? 'Port name' : 'Value'}
-                <input value={one.value} spellCheck={false} onChange={(e) => edit(one, 'value', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
-              </label>
-              {isSrc(one) && <button title="Edit DC, AC and the transient waveform" onClick={() => setSrcDlg(true)}>Waveform…</button>}
+              <Label className={FLD}>{one.kind === 'label' || one.kind === 'power' ? 'Net name' : one.kind === 'port' ? 'Port name' : 'Value'}
+                <Input className={cn('h-7 px-2', MONO)} value={one.value} spellCheck={false} onChange={(e) => edit(one, 'value', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
+              </Label>
+              {isSrc(one) && <Tip label="Edit DC, AC and the transient waveform"><InspBtn onClick={() => setSrcDlg(true)}>Waveform…</InspBtn></Tip>}
             </>
           )}
         </div>
       )}
 
       {dir && (
-        <div className="sch-insp" key={dir.id}>
-          <label>SPICE directive
-            <textarea ref={ta} rows={6} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
+        <div className={INSP} key={dir.id}>
+          <Label className={FLD}>SPICE directive
+            <Textarea ref={ta} rows={6} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
+              className={cn('max-h-[50vh] min-h-[60px] resize-y overflow-x-auto px-2 py-1.5 leading-snug whitespace-pre [overflow-wrap:normal]', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
-          </label>
-          {dirA && <button onClick={() => setDlg('edit')}>Edit as analysis…</button>}
-          {optLine(dir.text) != null && <button onClick={() => setDlg('options')}>Edit options…</button>}
+          </Label>
+          {dirA && <InspBtn onClick={() => setDlg('edit')}>Edit as analysis…</InspBtn>}
+          {optLine(dir.text) != null && <InspBtn onClick={() => setDlg('options')}>Edit options…</InspBtn>}
         </div>
       )}
 
-      <div className="sch-hint">{hint}</div>
+      <div className="sch-hint text-xs text-muted-foreground">{hint}</div>
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(
         <AnalysisDialog initial={(dlg === 'edit' && dirA) || undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}

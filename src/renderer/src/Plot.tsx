@@ -1,5 +1,12 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import uPlot from 'uplot'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tip } from '@/components/ui/tip'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { RawPlot, RawVar } from '../../main/rawfile'
 import { isExpr } from './contracts'
 import { useCommands } from './commands'
@@ -142,7 +149,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     const el = host.current, doc = el.ownerDocument
     const yUnit = fftv ? 'dB' : first.complex ? (mode === 'db' ? 'dB' : '°') : ''
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
-    const axis = { stroke: '#8a9099', grid: { stroke: '#1f2227' }, ticks: { stroke: '#24272d' } } // --dim / grid between --s1 and --line (canvas can't read CSS vars)
+    const axis = { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } } // ≈ --muted-foreground / --border (canvas can't read CSS vars)
     const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
     runs.forEach(({ label }, r) => {
       const ts = traces.filter((t) => t.run === r)
@@ -274,22 +281,22 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   if (!chart) {
     // .op or single-point results: a table reads better than a chart; one column per sweep run
     return (
-      <table className="op">
+      <table className="m-4 font-mono text-xs">
         {runs.length > 1 && (
-          <thead>
-            <tr><th />{runs.map((r, i) => <th key={i}>{r.label}</th>)}</tr>
-          </thead>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent"><TableHead className="h-8 px-4" />{runs.map((r, i) => <TableHead key={i} className="h-8 px-4 text-right font-medium text-muted-foreground">{r.label}</TableHead>)}</TableRow>
+          </TableHeader>
         )}
-        <tbody>
+        <TableBody>
           {rows.map((v) => (
-            <tr key={v.name}>
-              <td>{pretty(v.name)}</td>
+            <TableRow key={v.name}>
+              <TableCell className="px-4 py-1">{pretty(v.name)}</TableCell>
               {runs.map(({ plot }, i) => (
-                <td key={i}>{eng(plot.vars.find((w) => lc(w) === lc(v))?.re[0] ?? null, UNIT[v.type])}</td>
+                <TableCell key={i} className="px-4 py-1 text-right text-hl">{eng(plot.vars.find((w) => lc(w) === lc(v))?.re[0] ?? null, UNIT[v.type])}</TableCell>
               ))}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </table>
     )
   }
@@ -312,107 +319,120 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   const xUnit = fftv ? 'Hz' : UNIT[scale.type] ?? ''
   const dx = cur.a != null && cur.b != null ? cur.b - cur.a : null
   const seg = <T extends string>(opts: [T, string][], v: T, set: (v: T) => void) => (
-    <div className="seg">
-      {opts.map(([k, t]) => (
-        <button key={k} className={v === k ? 'on' : ''} onClick={() => set(k)}>{t}</button>
-      ))}
-    </div>
+    <ToggleGroup type="single" variant="outline" size="sm" className="mb-2 w-full" value={v} onValueChange={(x) => x && set(x as T)}>
+      {opts.map(([k, t]) => <ToggleGroupItem key={k} value={k} className="h-7 flex-1 text-xs">{t}</ToggleGroupItem>)}
+    </ToggleGroup>
   )
+  const field = 'h-7 font-mono text-xs md:text-xs'
+  const bad = 'w-full font-sans text-[11px] leading-tight text-err'
   return (
     <div className="plot">
-      <div className="vars">
+      <div className="row-span-3 flex flex-col gap-1 overflow-y-auto border-r p-2.5">
         {first.complex && seg([['db', 'Magnitude'], ['phase', 'Phase']], mode, setMode)}
         {canFft && seg([['time', 'Time'], ['fft', 'FFT']], view, (v) => (v === 'fft' ? toFft() : setView(v)))}
         {fftv && seg([['log', 'Log f'], ['lin', 'Linear f']], fftLog ? 'log' : 'lin', (v) => setFftLog(v === 'log'))}
-        <input
-          className="addexpr"
-          type="search"
-          value={q}
-          placeholder="Search vectors"
-          title="Filter by name, e.g. ecg, i(d1), x3. Enter toggles the first match"
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setQ('')
-            if (e.key === 'Enter' && shown[0]) toggle(lc(shown[0]))
-          }}
-        />
-        {q && !shown.length && <div style={{ color: "var(--dim)", fontSize: 12 }}>No vectors match "{q}"</div>}
+        <Tip label="Filter by name, e.g. ecg, i(d1), x3. Enter toggles the first match" side="right">
+          <Input
+            className={field}
+            type="search"
+            value={q}
+            placeholder="Search vectors"
+            aria-label="Search vectors"
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setQ('')
+              if (e.key === 'Enter' && shown[0]) toggle(lc(shown[0]))
+            }}
+          />
+        </Tip>
+        {q && !shown.length && <div className="text-xs text-muted-foreground">No vectors match "{q}"</div>}
         {shown.map((v, i) => (
           <Fragment key={v.name}>
             {grouped && (i === 0 || isCurrent(v.name) !== isCurrent(shown[i - 1].name)) && (
-              <h4>{isCurrent(v.name) ? 'Currents' : 'Voltages'}</h4>
+              <h4 className={H4}>{isCurrent(v.name) ? 'Currents' : 'Voltages'}</h4>
             )}
-            <label style={{ '--c': color(hue(lc(v))) } as React.CSSProperties}>
-              <input type="checkbox" checked={sel.includes(lc(v))} onChange={() => toggle(lc(v))} />
+            <label className="flex cursor-pointer items-center gap-1.5 font-mono text-xs" style={{ '--c': color(hue(lc(v))) } as CSSProperties}>
+              <Checkbox checked={sel.includes(lc(v))} onCheckedChange={() => toggle(lc(v))} className={CHECK} />
               {pretty(v.name)}
             </label>
           </Fragment>
         ))}
-        <h4>Expressions</h4>
+        <h4 className={H4}>Expressions</h4>
         {exprs.map((e) => (
-          <div key={e} className="expr" style={{ '--c': color(hue(e)) } as React.CSSProperties}>
+          <div key={e} className="flex flex-wrap items-center font-mono text-xs" style={{ '--c': color(hue(e)) } as CSSProperties}>
             <span className="sw" />
-            <code title={errors[e] ?? e.slice(1)}>{e.slice(1)}</code>
-            <button className="icon" title="Remove" onClick={() => onSel(sel.filter((s) => s !== e))}>×</button>
-            {errors[e] && <div className="bad">{errors[e]}</div>}
+            <code className="min-w-0 flex-1 truncate" title={errors[e] ?? e.slice(1)}>{e.slice(1)}</code>
+            <Tip label="Remove">
+              <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label={`Remove ${e.slice(1)}`} onClick={() => onSel(sel.filter((s) => s !== e))}><X /></Button>
+            </Tip>
+            {errors[e] && <div className={bad}>{errors[e]}</div>}
           </div>
         ))}
-        <input
-          className="addexpr"
-          value={draft}
-          placeholder="＋ expression"
-          title="e.g. v(out)-v(in), v(a,b)*i(r1), db(v(out)/v(in)), deriv(v(out)), gd(v(out)) · functions: db mag abs ph re im sqrt deriv gd"
-          onChange={(e) => (setDraft(e.target.value), setDraftErr(''))}
-          onKeyDown={(e) => e.key === 'Enter' && addExpr()}
-        />
-        {draftErr && <div className="bad">{draftErr}</div>}
+        <Tip label="e.g. v(out)-v(in), v(a,b)*i(r1), db(v(out)/v(in)), deriv(v(out)), gd(v(out)) · functions: db mag abs ph re im sqrt deriv gd" side="right">
+          <Input
+            className={'mt-0.5 ' + field}
+            value={draft}
+            placeholder="＋ expression"
+            aria-label="Add an expression"
+            onChange={(e) => (setDraft(e.target.value), setDraftErr(''))}
+            onKeyDown={(e) => e.key === 'Enter' && addExpr()}
+          />
+        </Tip>
+        {draftErr && <div className={bad}>{draftErr}</div>}
       </div>
       <div className="chart" ref={host} />
       {(cur.a != null || cur.b != null) && (
-        <div className="readout">
-          <table>
-            <thead>
-              <tr>
-                <th><button className="icon" title="Clear cursors" onClick={() => setCurs({ ...curs, [view]: {} })}>×</button></th>
-                <th>A</th><th>B</th><th>B − A</th><th>{dx != null ? 'slope' : ''}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{fftv ? 'frequency' : scale.name}</td>
-                <td>{eng(cur.a ?? null, xUnit)}</td>
-                <td>{eng(cur.b ?? null, xUnit)}</td>
-                <td>{dx != null && eng(dx, xUnit)}</td>
-                <td>{dx != null && dx !== 0 && `1/Δ ${eng(1 / Math.abs(dx), INV[xUnit] ?? '')}`}</td>
-              </tr>
+        <div className="max-h-[140px] min-w-0 overflow-auto border-t px-2">
+          {/* plain <table>, not <Table>: its own scroll wrapper would break the sticky header */}
+          <table className="w-full font-mono text-[11px]">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className={RH}>
+                  <Tip label="Clear cursors">
+                    <Button variant="ghost" size="icon-xs" className="size-5 text-muted-foreground" aria-label="Clear cursors" onClick={() => setCurs({ ...curs, [view]: {} })}><X /></Button>
+                  </Tip>
+                </TableHead>
+                <TableHead className={RH}>A</TableHead><TableHead className={RH}>B</TableHead><TableHead className={RH}>B − A</TableHead><TableHead className={RH}>{dx != null ? 'slope' : ''}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className={RD}>{fftv ? 'frequency' : scale.name}</TableCell>
+                <TableCell className={RD}>{eng(cur.a ?? null, xUnit)}</TableCell>
+                <TableCell className={RD}>{eng(cur.b ?? null, xUnit)}</TableCell>
+                <TableCell className={RD}>{dx != null && eng(dx, xUnit)}</TableCell>
+                <TableCell className={RD}>{dx != null && dx !== 0 && `1/Δ ${eng(1 / Math.abs(dx), INV[xUnit] ?? '')}`}</TableCell>
+              </TableRow>
               {traces.map((t) => {
                 const ya = cur.a != null ? at(t.x, t.y, cur.a) : null, yb = cur.b != null ? at(t.x, t.y, cur.b) : null
                 const dy = ya != null && yb != null ? yb - ya : null
                 const label = runs.length > 1 && runs[t.run].label ? `${t.name} · ${runs[t.run].label}` : t.name
                 return (
-                  <tr key={t.run + ' ' + t.key}>
-                    <td style={{ '--c': color(hue(t.key), t.run, runs.length) } as React.CSSProperties}><span className="sw" />{label}</td>
-                    <td>{fmt(ya, t.unit)}</td>
-                    <td>{fmt(yb, t.unit)}</td>
-                    <td>{dy != null && fmt(dy, t.unit)}</td>
-                    <td>{dy != null && dx ? eng(dy / dx, `${t.unit}/${xUnit}`) : ''}</td>
-                  </tr>
+                  <TableRow key={t.run + ' ' + t.key}>
+                    <TableCell className={RD} style={{ '--c': color(hue(t.key), t.run, runs.length) } as CSSProperties}><span className="sw" />{label}</TableCell>
+                    <TableCell className={RD}>{fmt(ya, t.unit)}</TableCell>
+                    <TableCell className={RD}>{fmt(yb, t.unit)}</TableCell>
+                    <TableCell className={RD}>{dy != null && fmt(dy, t.unit)}</TableCell>
+                    <TableCell className={RD}>{dy != null && dx ? eng(dy / dx, `${t.unit}/${xUnit}`) : ''}</TableCell>
+                  </TableRow>
                 )
               })}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       )}
-      <div className="hint">
-        <span>
+      <div className="flex min-w-0 items-center gap-2 px-3 pt-0.5 pb-1.5 text-[11px] text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate">
           {note ||
             (fftv
               ? `Hann window · N = ${fftInfo.n} · Δf = ${eng(fftInfo.df, 'Hz')} · ${fftRange ? `${eng(fftRange[0], 's')} – ${eng(fftRange[1], 's')} (cursors A–B)` : 'whole run (place cursors A and B to pick a window)'} · set a fine max step (.tran … 0 tmax) for an accurate spectrum`
               : 'Drag to zoom · double-click to reset · click: cursor A · ⇧click: cursor B · drag a cursor to move it')}
         </span>
-        <span className="exp">
+        <span className="flex gap-0.5">
           {(['png', 'svg', 'csv'] as const).map((k) => (
-            <button key={k} className="icon" title={`Export ${k.toUpperCase()}`} onClick={() => void save(k)}>{k.toUpperCase()}</button>
+            <Tip key={k} label={`Export ${k.toUpperCase()}`}>
+              <Button variant="ghost" size="xs" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => void save(k)}>{k.toUpperCase()}</Button>
+            </Tip>
           ))}
         </span>
       </div>
@@ -421,4 +441,10 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
 }
 
 const PAD_X = 16, PAD_Y = 8 // .chart padding (style.css): uPlot sizes the canvas, not the box
+const H4 = 'mt-2 mb-0.5 text-xs font-medium text-muted-foreground first-of-type:mt-0'
+// per-trace colour from the row's --c
+const CHECK = 'size-3.5 data-[state=checked]:border-(--c) data-[state=checked]:bg-(--c) dark:data-[state=checked]:bg-(--c) [&_svg]:size-3'
+// readout: compact, right-aligned numbers, name column left
+const RH = 'sticky top-0 h-auto bg-background px-2 py-px text-right font-medium text-muted-foreground first:text-left'
+const RD = 'px-2 py-px text-right first:text-left'
 const legendH = (el: HTMLElement) => (el.querySelector('.u-legend') as HTMLElement | null)?.offsetHeight ?? 0

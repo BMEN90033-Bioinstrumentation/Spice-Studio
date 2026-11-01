@@ -1,7 +1,16 @@
 import { useId, useRef, useState, type JSX } from 'react'
 import { isSpiceNumber, spiceValue } from './analysis.ts'
 import { FIELDS, evalTran, parseSource, previewSpan, sourceText, type Source, type TranKind } from './source.ts'
-import { useModal } from './AnalysisDialog.tsx'
+import { X, Plus } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { FormDialog, NumField, fieldGrid } from './AnalysisDialog.tsx'
+
+const muted = 'text-xs text-muted-foreground'
 
 type Fn = Exclude<TranKind, 'none' | 'pwl'>
 const KINDS: [TranKind, string][] = [['none', 'None (DC only)'], ['pulse', 'Pulse'], ['sin', 'Sine'], ['exp', 'Exponential'], ['pwl', 'Piecewise linear'], ['sffm', 'FM (SFFM)'], ['am', 'AM']]
@@ -35,7 +44,6 @@ export function SourceDialog({ name, unit, value, onApply, onClose }: {
     : [{ t: '0', v: '0' }, { t: '1m', v: '1' }, { t: '2m', v: '0' }])
   const [rep, setRep] = useState(pw?.r ?? ''), [td, setTd] = useState(pw?.td ?? '')
   const uid = useId()
-  const card = useRef<HTMLDivElement>(null)
 
   // build the Source + collect errors
   const errs: string[] = []
@@ -68,82 +76,61 @@ export function SourceDialog({ name, unit, value, onApply, onClose }: {
   const text = src ? sourceText(src) : raw.trim()
   const ok = errs.length === 0 && !!text
   const apply = () => ok && (text === value.trim() ? onClose() : onApply(text))
-  const cb = useRef({ apply, onClose })
-  cb.current = { apply, onClose }
-  useModal(card, () => card.current?.querySelector<HTMLElement>('.adlg-form input, .adlg-form select, .adlg-form textarea'), cb)
+  const formEl = useRef<HTMLDivElement>(null)
 
-  const field = (id: string, label: string, u: string, v: string, set: (v: string) => void, ph = '') => (
-    <div className="adlg-f" key={id}>
-      <label htmlFor={uid + id}>{label}</label>
-      <div className="adlg-in">
-        <input id={uid + id} value={v} placeholder={ph} spellCheck={false} autoComplete="off" onChange={(e) => set(e.target.value)} />
-        {u && <span>{u}</span>}
-      </div>
-    </div>
-  )
+  const field = (id: string, label: string, u: string, v: string, set: (v: string) => void, ph = '') =>
+    <NumField key={id} id={uid + id} label={label} unit={u} value={v} onChange={set} placeholder={ph} />
   const u = (k: string) => (k === 'y' ? unit : k)
+  const pt = (i: number, p: Partial<Row>) => setRows(rows.map((y, j) => (j === i ? { ...y, ...p } : y)))
+  const cell = 'h-8 font-mono text-xs md:text-xs'
 
   return (
-    <div className="adlg-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="adlg sdlg" ref={card} role="dialog" aria-modal="true" aria-labelledby={uid + 't'}>
-        <div className="adlg-head">
-          <h2 id={uid + 't'}>{name} waveform</h2>
-          <button type="button" className="adlg-x" aria-label="Close" onClick={onClose}>×</button>
-        </div>
-        <div className="adlg-form sdlg-form">
-          {!init ? <>
-            <p className="adlg-msg">This value uses syntax the waveform editor doesn't cover, so it's shown as text and kept exactly as written.</p>
-            <div className="adlg-f">
-              <label htmlFor={uid + 'raw'}>Value</label>
-              <textarea id={uid + 'raw'} className="sdlg-raw" rows={3} value={raw} spellCheck={false} onChange={(e) => setRaw(e.target.value)} />
+    <FormDialog title={`${name} waveform`} className="sm:max-w-[480px]" ok={ok} apply={apply} onClose={onClose} errs={errs} label="Value" text={text}
+      first={() => formEl.current?.querySelector<HTMLElement>('input, textarea, [data-slot=select-trigger]')}>
+      <div className="-m-1 flex min-h-0 flex-col gap-3 overflow-auto p-1" ref={formEl}>
+        {!init ? <>
+          <Alert className="py-2"><AlertDescription className="text-xs">This value uses syntax the waveform editor doesn't cover, so it's shown as text and kept exactly as written.</AlertDescription></Alert>
+          <div className="grid gap-1.5">
+            <Label htmlFor={uid + 'raw'} className={muted}>Value</Label>
+            <Textarea id={uid + 'raw'} rows={3} value={raw} spellCheck={false} onChange={(e) => setRaw(e.target.value)} className="resize-y font-mono text-xs md:text-xs" />
+          </div>
+        </> : <>
+          <div className={fieldGrid}>
+            {field('dc', 'DC value', unit, dc, setDc, '0')}
+            {field('acm', 'AC magnitude', unit, acMag, setAcMag, 'none')}
+            {field('acp', 'AC phase', '°', acPhase, setAcPhase, '0')}
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={uid + 'k'} className={muted}>Transient waveform</Label>
+            <Select value={kind} onValueChange={(v) => setKind(v as TranKind)}>
+              <SelectTrigger id={uid + 'k'} size="sm" className="w-full text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{KINDS.map(([k, t]) => <SelectItem key={k} value={k} className="text-xs">{t}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          {kind === 'pwl' ? <>
+            <div className="grid max-h-[180px] grid-cols-[1fr_1fr_auto] items-center gap-x-1.5 gap-y-1 overflow-auto p-px" role="group" aria-label="Points">
+              <span className={muted}>Time (s)</span><span className={muted}>Value ({unit})</span><span />
+              {rows.map((x, i) => [
+                <Input key={i + 't'} className={cell} aria-label={`Point ${i + 1} time`} value={x.t} spellCheck={false} onChange={(e) => pt(i, { t: e.target.value })} />,
+                <Input key={i + 'v'} className={cell} aria-label={`Point ${i + 1} value`} value={x.v} spellCheck={false} onChange={(e) => pt(i, { v: e.target.value })} />,
+                <Button key={i + 'x'} variant="ghost" size="icon-sm" aria-label={`Remove point ${i + 1}`} onClick={() => setRows(rows.filter((_, j) => j !== i))}><X /></Button>
+              ])}
             </div>
-          </> : <>
-            <div className="sdlg-grid">
-              {field('dc', 'DC value', unit, dc, setDc, '0')}
-              {field('acm', 'AC magnitude', unit, acMag, setAcMag, 'none')}
-              {field('acp', 'AC phase', '°', acPhase, setAcPhase, '0')}
+            <Button variant="outline" size="sm" className="self-start" onClick={() => setRows([...rows, { t: '', v: '' }])}><Plus />Add point</Button>
+            <div className={fieldGrid}>
+              {field('r', 'Repeat from (r=)', 's', rep, setRep, 'no repeat')}
+              {field('td', 'Delay (td=)', 's', td, setTd, '0')}
             </div>
-            <div className="adlg-f">
-              <label htmlFor={uid + 'k'}>Transient waveform</label>
-              <select id={uid + 'k'} value={kind} onChange={(e) => setKind(e.target.value as TranKind)}>
-                {KINDS.map(([k, t]) => <option key={k} value={k}>{t}</option>)}
-              </select>
+          </> : kind !== 'none' && (
+            <div className={fieldGrid}>
+              {FIELDS[kind].map((f, i) => field(f, `${NAMES[f][0]} (${f})`, u(NAMES[f][1]), args[kind][i],
+                (v) => setArgs((s) => ({ ...s, [kind]: s[kind].map((x, j) => (j === i ? v : x)) })), i < 2 ? '' : 'default'))}
             </div>
-            {kind === 'pwl' ? <>
-              <div className="sdlg-pwl" role="group" aria-label="Points">
-                <span className="adlg-l">Time (s)</span><span className="adlg-l">Value ({unit})</span><span />
-                {rows.map((x, i) => [
-                  <input key={i + 't'} aria-label={`Point ${i + 1} time`} value={x.t} spellCheck={false} onChange={(e) => setRows(rows.map((y, j) => (j === i ? { ...y, t: e.target.value } : y)))} />,
-                  <input key={i + 'v'} aria-label={`Point ${i + 1} value`} value={x.v} spellCheck={false} onChange={(e) => setRows(rows.map((y, j) => (j === i ? { ...y, v: e.target.value } : y)))} />,
-                  <button key={i + 'x'} type="button" aria-label={`Remove point ${i + 1}`} onClick={() => setRows(rows.filter((_, j) => j !== i))}>×</button>
-                ])}
-              </div>
-              <button type="button" className="sdlg-add" onClick={() => setRows([...rows, { t: '', v: '' }])}>Add point</button>
-              <div className="sdlg-grid">
-                {field('r', 'Repeat from (r=)', 's', rep, setRep, 'no repeat')}
-                {field('td', 'Delay (td=)', 's', td, setTd, '0')}
-              </div>
-            </> : kind !== 'none' && (
-              <div className="sdlg-grid">
-                {FIELDS[kind].map((f, i) => field(f, `${NAMES[f][0]} (${f})`, u(NAMES[f][1]), args[kind][i],
-                  (v) => setArgs((s) => ({ ...s, [kind]: s[kind].map((x, j) => (j === i ? v : x)) })), i < 2 ? '' : 'default'))}
-              </div>
-            )}
-            {src && <Preview src={src} unit={unit} />}
-          </>}
-        </div>
-        <div className="adlg-prev" aria-live="polite">
-          <span>Value</span>
-          <code>{text}</code>
-        </div>
-        {errs.length > 0 && <ul className="adlg-errs" role="alert">{errs.map((m) => <li key={m}>{m}</li>)}</ul>}
-        <div className="adlg-foot">
-          <span className="adlg-hint"><kbd>Esc</kbd> cancel · <kbd>{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl '}↵</kbd> apply</span>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button type="button" className="run" disabled={!ok} onClick={apply}>Apply</button>
-        </div>
+          )}
+          {src && <Preview src={src} unit={unit} />}
+        </>}
       </div>
-    </div>
+    </FormDialog>
   )
 }
 
@@ -153,7 +140,7 @@ function Preview({ src, unit }: { src: Source; unit: string }) {
   if (src.tran.kind === 'none') return null
   const T = previewSpan(src), N = 400, ctx = { step: T / 1000, stop: T }
   const ys = Array.from({ length: N + 1 }, (_, i) => evalTran(src, (T * i) / N, ctx))
-  if (ys.some((y) => !isFinite(y))) return <p className="adlg-msg">No preview: {src.tran.kind === 'am' ? 'AM is not previewed' : 'some values are parameters'}.</p>
+  if (ys.some((y) => !isFinite(y))) return <p className={muted}>No preview: {src.tran.kind === 'am' ? 'AM is not previewed' : 'some values are parameters'}.</p>
   let lo = Math.min(...ys), hi = Math.max(...ys)
   if (hi - lo < 1e-12) (lo -= 1), (hi += 1)
   const W = 300, H = 70, y = (v: number) => 4 + (H - 8) * (1 - (v - lo) / (hi - lo))
