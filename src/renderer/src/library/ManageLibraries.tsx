@@ -10,8 +10,6 @@ import { focusPopout, LIBWIN, PopOut } from '../layout/PopOut'
 import { BUNDLED, libOn, parseLibFile, type ImportedLib, type ParsedLib } from './library'
 import { ImportDialog } from './LibraryView'
 import { reloadPacks, setPackEnabled, usePacks, type PackInfo, type Sources } from './sources'
-import '../sim/AnalysisDialog.css'
-import './library.css'
 
 export type ProjectLibs = {
   dir: string; libs: ImportedLib[]; texts: Record<string, string>

@@ -2,7 +2,6 @@ import { useId, useRef, useState, type JSX } from 'react'
 import { isSpiceNumber, spiceValue } from './analysis.ts'
 import { FIELDS, evalTran, parseSource, previewSpan, sourceText, type Source, type TranKind } from './source.ts'
 import { useModal } from './AnalysisDialog.tsx'
-import './AnalysisDialog.css'
 
 type Fn = Exclude<TranKind, 'none' | 'pwl'>
 const KINDS: [TranKind, string][] = [['none', 'None (DC only)'], ['pulse', 'Pulse'], ['sin', 'Sine'], ['exp', 'Exponential'], ['pwl', 'Piecewise linear'], ['sffm', 'FM (SFFM)'], ['am', 'AM']]

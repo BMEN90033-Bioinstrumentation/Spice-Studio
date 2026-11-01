@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState, type JSX, type RefObject } from 're
 import {
   ANALYSES, OPTION_FIELDS, analysisText, defaultAnalysis, emptyOptions, optionsText, parseOptions, validate, validateOptions, type Analysis, type Options, type Sweep
 } from './analysis.ts'
-import './AnalysisDialog.css'
 
 type Kind = Analysis['kind']
 export type Tab = Kind | 'options'

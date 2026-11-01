@@ -7,9 +7,9 @@
 }
 .symp.small path, .symp.small circle { stroke-width: 1.2; }
 .symp .f, .symp circle.pin { fill: currentColor; }
-.symp circle.pin { stroke: none; fill: var(--accent); }
+.symp circle.pin { stroke: none; fill: var(--hl); }
 .symp text { font-family: var(--mono); fill: var(--dim); stroke: none; }
-.symp text.pnum { fill: var(--accent); }
+.symp text.pnum { fill: var(--hl); }
 
 /* library panel (canvas side) */
 .libp {
@@ -18,9 +18,9 @@
 }
 .libp-search { padding: 8px; border-bottom: 1px solid var(--line); }
 .libp-search input, .libv-search {
-  width: 100%; font-size: 12px; font-family: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--r); padding: 6px 8px;
+  width: 100%; font-size: 12px; font-family: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 6px 8px;
 }
-.libp-search input:focus, .libv-search:focus { outline: none; border-color: var(--accent); }
+.libp-search input:focus, .libv-search:focus { outline: none; border-color: var(--hl); }
 .libp-list { flex: 1; overflow-y: auto; padding: 4px 6px 12px; }
 .libp-cat {
   width: 100%; display: flex; align-items: center; gap: 6px; padding: 8px 6px 4px; background: none; border: 0; border-radius: 4px;
@@ -34,8 +34,8 @@
   background: transparent; border: 1px solid transparent; border-radius: var(--r);
 }
 .libp-item:hover, .libv-row:hover { background: var(--s3); }
-.libp-item.on, .libv-row.on { background: var(--accent-bg); border-color: var(--accent-bg); }
-.libp-item.on b, .libv-row.on b { color: var(--accent); }
+.libp-item.on, .libv-row.on { background: var(--hl-bg); border-color: var(--hl-bg); }
+.libp-item.on b, .libv-row.on b { color: var(--hl); }
 .libp-item > span, .libv-row > span:not(.chip) { display: grid; min-width: 0; flex: 1; }
 .libp-item b, .libv-row b { font-weight: 500; font-size: 12px; }
 .libp-item small, .libv-row small { font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -57,7 +57,7 @@
 .libv-nav-b { width: 100%; display: flex; gap: 8px; padding: 6px 8px; text-align: left; background: transparent; border-color: transparent; }
 .libv-nav-b > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .libv-nav-b:hover { background: var(--s3); }
-.libv-nav-b.on { background: var(--accent-bg); border-color: var(--accent-bg); color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
+.libv-nav-b.on { background: var(--hl-bg); border-color: var(--hl-bg); color: var(--hl); box-shadow: inset 2px 0 0 var(--hl); }
 .libv-muted { margin: 4px 6px; font-size: 12px; color: var(--dim); line-height: 1.45; }
 .libv-muted.pad { padding: 16px 10px; }
 
@@ -66,7 +66,7 @@
 .libv-rows { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 8px 8px; }
 .libv-rows .vrow { padding-bottom: 1px; }
 .libv-row { padding: 6px 8px; }
-.chip { flex: none; font: 10px var(--mono); padding: 1px 6px; border: 1px solid var(--border-strong); border-radius: 9px; color: var(--dim); white-space: nowrap; }
+.chip { flex: none; font: 10px var(--mono); padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 9px; color: var(--dim); white-space: nowrap; }
 
 .libv-detail { padding: 20px 24px; }
 .libv-card { max-width: 720px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
@@ -79,7 +79,7 @@
 .libv-dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; font-size: 12px; }
 .libv-dl dt { color: var(--dim); }
 .libv-dl dd { margin: 0; }
-.libv-card code, .libv-dlg code { font: 12px var(--mono); color: var(--accent); }
+.libv-card code, .libv-dlg code { font: 12px var(--mono); color: var(--hl); }
 .libv-tab { border-collapse: collapse; font-size: 12px; width: max-content; min-width: 260px; }
 .libv-tab th { text-align: left; font-weight: 500; color: var(--dim); }
 .libv-tab th, .libv-tab td { padding: 4px 16px 4px 0; border-bottom: 1px solid var(--line); }
@@ -88,21 +88,21 @@
   margin: 0; max-height: 300px; overflow: auto; padding: 10px 12px; background: var(--s0); border: 1px solid var(--line); border-radius: var(--r);
   font: 12px/1.5 var(--mono); color: var(--sym); white-space: pre;
 }
-.libv-code:focus-visible { outline: 2px solid var(--accent); }
+.libv-code:focus-visible { outline: 2px solid var(--hl); }
 
 /* import mapping dialog (chrome from AnalysisDialog.css) */
 .adlg.libv-dlg { width: min(720px, 100%); }
 .libv-dlg-body { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; overflow-y: auto; min-height: 120px; }
 .libv-perr { margin: 0; padding: 8px 10px 8px 26px; border: 1px dashed rgba(240, 120, 123, 0.35); border-radius: var(--r); color: var(--err); font-size: 12px; }
-.libv-imp { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--r2); background: var(--s1); }
+.libv-imp { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: var(--r2); background: var(--s1); }
 .libv-imp.off { opacity: 0.55; }
 .libv-imp-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .libv-imp-h .adlg-chk { margin-right: auto; }
 .libv-imp-h b { font: 500 13px var(--mono); }
 .libv-dlg select {
-  font: 12px var(--mono); color: var(--text); background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--r); padding: 4px 6px;
+  font: 12px var(--mono); color: var(--text); background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--r); padding: 4px 6px;
 }
-.libv-dlg select:focus { outline: none; border-color: var(--accent); }
+.libv-dlg select:focus { outline: none; border-color: var(--hl); }
 .libv-dlg select.bad { border-color: var(--err); }
 .libv-pins { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px 10px; }
 .libv-pins label { display: grid; gap: 3px; font-size: 11px; color: var(--dim); }
@@ -111,31 +111,31 @@
 /* library sources: packs (license badge + source), import target */
 .libv-lic { white-space: nowrap; font: 600 9px var(--mono); letter-spacing: 0.02em; text-transform: none; color: var(--ok); border: 1px solid rgba(76, 195, 138, 0.35); border-radius: 4px; padding: 0 4px; }
 .chip.libv-lic { border-radius: 9px; font-weight: 400; font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.libv-link { padding: 0; border: 0; background: none; font: inherit; color: var(--accent); }
+.libv-link { padding: 0; border: 0; background: none; font: inherit; color: var(--hl); }
 .libv-link:hover { background: none; text-decoration: underline; }
-.libv-to { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border-strong); border-radius: var(--r); overflow: hidden; }
+.libv-to { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
 .libv-to button { border: 0; border-radius: 0; padding: 5px 4px; font-size: 11px; background: transparent; color: var(--dim); }
-.libv-to button + button { border-left: 1px solid var(--border-strong); }
-.libv-to button.on { background: var(--accent-bg); color: var(--accent); }
+.libv-to button + button { border-left: 1px solid var(--line-strong); }
+.libv-to button.on { background: var(--hl-bg); color: var(--hl); }
 
 /* Manage libraries: the parts lists' footer button + the Manage Libraries window */
 .libp-none { flex: 1; }
 /* a real button (user asked for one), full width in a footer strip */
 .libp-packs {
   flex: none; margin: 8px 10px 10px; padding: 7px 10px; font-size: 12px; font-weight: 500; text-align: center;
-  background: var(--s3); border: 1px solid var(--border-strong); border-radius: var(--r); color: var(--text);
+  background: var(--s3); border: 1px solid var(--line-strong); border-radius: var(--r); color: var(--text);
 }
-.libp-packs:hover { background: var(--s3); border-color: var(--border-strong); }
+.libp-packs:hover { background: var(--s3); border-color: var(--line-strong); }
 .packs { display: grid; gap: 10px; align-content: start; padding: 12px 16px 14px; overflow: auto; min-height: 0; flex: 1; }
 .packs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.packs-list > li { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--r2); background: var(--s1); }
+.packs-list > li { display: grid; gap: 4px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--r2); background: var(--s1); }
 .packs-list > li.off .packs-name, .packs-list > li.off .packs-meta { opacity: 0.6; }
 .packs-row { display: flex; align-items: center; gap: 8px; }
-.packs-row input { margin: 0; accent-color: var(--accent); }
-.packs-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.packs-row input { margin: 0; accent-color: var(--hl); }
+.packs-row input:focus-visible { outline: 2px solid var(--hl); outline-offset: 2px; }
 .packs-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .packs-meta { margin: 0 0 0 21px; font-size: 11px; color: var(--faint); line-height: 1.5; }
-.packs-meta a { color: var(--accent); text-decoration: none; }
+.packs-meta a { color: var(--hl); text-decoration: none; }
 .packs-meta a:hover { text-decoration: underline; }
 .packs-list .help-pack { padding: 6px 0 2px 21px; overflow: visible; }
 .packs-list .help-text { max-height: 260px; }
@@ -159,9 +159,9 @@
 .mlib-imp { position: relative; }
 .mlib-menu {
   position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 5; width: 290px; display: grid; gap: 4px; padding: 6px;
-  background: var(--s2); border: 1px solid var(--border-strong); border-radius: var(--r2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: var(--s2); border: 1px solid var(--line-strong); border-radius: var(--r2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 .mlib-menu > button { display: grid; gap: 1px; text-align: left; padding: 7px 9px; background: transparent; border-color: transparent; }
-.mlib-menu > button:hover, .mlib-menu > button:focus-visible { background: var(--s3); border-color: var(--border-strong); }
+.mlib-menu > button:hover, .mlib-menu > button:focus-visible { background: var(--s3); border-color: var(--line-strong); }
 .mlib-menu b { font-weight: 500; font-size: 12px; }
 .mlib-menu small { font-size: 11px; color: var(--dim); }

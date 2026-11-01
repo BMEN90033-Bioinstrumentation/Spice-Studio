@@ -29,9 +29,11 @@ import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
-import './style.css'
 import { Icon } from './icons'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import './index.css'
 
+document.documentElement.classList.add('dark') // shadcn dark theme (index.css); the app is dark only
 if (/Mac/.test(navigator.platform)) document.documentElement.classList.add('mac') // header leaves room for traffic lights
 
 const EXAMPLE = `* RC low-pass filter, fc = 159 Hz
@@ -926,4 +928,4 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   )
 }
 
-createRoot(document.getElementById('root')!).render(<><App /><Help /></>)
+createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /></TooltipProvider>)

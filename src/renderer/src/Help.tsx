@@ -2,8 +2,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useCommands } from './commands'
 import { loadPacks, type PackInfo } from './library/sources'
-import './sim/AnalysisDialog.css'
-import './help.css'
 
 const MAC = navigator.platform.includes('Mac')
 // 'Mod+Shift+Z' -> ⇧⌘Z on macOS, Ctrl+Shift+Z elsewhere

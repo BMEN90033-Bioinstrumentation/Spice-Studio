@@ -3,7 +3,7 @@
 .help-keys h3 { margin: 10px 0 4px; font-size: 12px; font-weight: 500; color: var(--dim); }
 .help-row { display: flex; align-items: baseline; gap: 12px; padding: 3px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .help-row span { flex: 1; }
-.help-row kbd { font: 11px var(--mono); padding: 1px 6px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--border); color: var(--text); white-space: nowrap; }
+.help-row kbd { font: 11px var(--mono); padding: 1px 6px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--line); color: var(--text); white-space: nowrap; }
 .help-about { display: grid; gap: 10px; padding: 14px 16px 18px; }
 .help-about p { margin: 0; }
 .help-about dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 12px; }
@@ -12,7 +12,7 @@
 .help-about dd.bad { color: var(--err); }
 .help-about code { font: 11px var(--mono); }
 .help-dlg.wide { width: min(900px, 100%); height: min(760px, calc(100vh - 48px)); } /* vh: the backdrop's grid row is content-sized */
-.help-dlg a, .help-link { color: var(--accent); text-decoration: none; }
+.help-dlg a, .help-link { color: var(--hl); text-decoration: none; }
 .help-dlg a:hover, .help-link:hover { text-decoration: underline; }
 .help-link { padding: 0; border: 0; background: none; font: inherit; }
 .help-link:hover { background: none; }
@@ -38,4 +38,4 @@
   margin: 0; max-height: 420px; overflow: auto; padding: 10px 12px; background: var(--s0); border: 1px solid var(--line); border-radius: var(--r);
   font: 11px/1.5 var(--mono); color: var(--sym); white-space: pre-wrap; overflow-wrap: anywhere;
 }
-.help-text:focus-visible { outline: 2px solid var(--accent); }
+.help-text:focus-visible { outline: 2px solid var(--hl); }

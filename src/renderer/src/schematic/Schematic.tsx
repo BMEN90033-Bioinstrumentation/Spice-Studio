@@ -11,7 +11,6 @@ import { SourceDialog } from '../sim/SourceDialog'
 import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { createPortal } from 'react-dom'
-import './schematic.css'
 import { Icon } from '../icons'
 
 export interface SchematicHandle {

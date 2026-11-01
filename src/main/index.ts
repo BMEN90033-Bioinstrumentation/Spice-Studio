@@ -338,7 +338,7 @@ const WINDOWS: Record<string, Electron.BrowserWindowConstructorOptions> = {
 const external = ({ url }: { url: string }) => (/^https?:\/\//i.test(url) && void shell.openExternal(url), { action: 'deny' as const })
 function popouts(w: BrowserWindow) {
   w.webContents.setWindowOpenHandler((d) => WINDOWS[d.frameName]
-    ? { action: 'allow', overrideBrowserWindowOptions: { ...WINDOWS[d.frameName], backgroundColor: '#16181d', autoHideMenuBar: true } }
+    ? { action: 'allow', overrideBrowserWindowOptions: { ...WINDOWS[d.frameName], backgroundColor: '#0a0a0a', autoHideMenuBar: true } }
     : external(d))
   w.webContents.on('did-create-window', (c) => c.webContents.setWindowOpenHandler(external))
   w.on('closed', () => BrowserWindow.getAllWindows().forEach((x) => x.destroy()))
@@ -350,7 +350,7 @@ app.whenReady().then(() => {
     // editor = sheets + library panel + canvas + plots: use most of the screen
     width: Math.max(1200, Math.round(screen.getPrimaryDisplay().workAreaSize.width * 0.92)),
     height: Math.max(800, Math.round(screen.getPrimaryDisplay().workAreaSize.height * 0.92)),
-    backgroundColor: '#16181d',
+    backgroundColor: '#0a0a0a',
     // mac: inset traffic lights over the header; Windows/Linux: a normal frame with the menu bar in the window
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const } : { autoHideMenuBar: false }),
     webPreferences: { preload: join(__dirname, '../preload/index.js') }

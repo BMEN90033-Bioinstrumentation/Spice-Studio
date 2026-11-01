@@ -5,8 +5,6 @@ import { useState } from 'react'
 import { PopOut } from '../layout/PopOut'
 import type { BomRow } from './bom'
 import type { PartInfo } from './project'
-import '../sim/AnalysisDialog.css'
-import '../library/library.css'
 
 export const BOMWIN = 'ngspice-bom' // frame name: main/index.ts WINDOWS allows it
 const stem = (f: string) => f.replace(/\.nsch$/i, '')

@@ -7,8 +7,6 @@ import type { PackInfo } from './sources'
 import { SymbolPreview } from './Symbol'
 import { isUrl, Modal, PackLicence } from '../Help'
 import { runCommand } from '../commands'
-import '../sim/AnalysisDialog.css' // shared modal chrome (.adlg-*)
-import './library.css'
 
 const MODEL_KINDS: Kind[] = ['diode', 'zener', 'led', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos']
 const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']

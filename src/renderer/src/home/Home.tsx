@@ -3,7 +3,6 @@ import { validName } from '../project/project'
 import { TEMPLATES } from '../schematic/templates'
 import { Icon } from '../icons'
 import { keyLabel } from '../layout/Panel'
-import './Home.css'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
 

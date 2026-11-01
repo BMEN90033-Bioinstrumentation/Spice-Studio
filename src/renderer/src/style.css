@@ -1,22 +1,22 @@
 :root {
-  /* surfaces, darkest to lightest: canvas, panels, raised controls, hover */
-  --s0: #111316;
-  --s1: #17191d;
-  --s2: #1e2025;
-  --s3: #26292f;
-  --border: #24272d;
-  --border-strong: #32363e;
-  --text: #e2e4e8;
-  --dim: #8a9099;
-  --faint: #5c616a;
-  --accent: #6aa9ff;
-  --accent-bg: rgba(106, 169, 255, 0.13);
-  --primary: #3a73d6;
-  --primary-hover: #4580e3;
-  --run: #2f7a52;
-  --run-hover: #37895d;
-  --danger: #9c3c44;
-  --danger-hover: #ae4750;
+  /* surfaces (canvas, panels, controls, hover), now aliases of the shadcn tokens in index.css */
+  --s0: var(--background);
+  --s1: var(--card);
+  --s2: var(--secondary);
+  --s3: var(--accent);
+  --line: var(--border);
+  --line-strong: var(--input);
+  --text: var(--foreground);
+  --dim: var(--muted-foreground);
+  --faint: oklch(0.5 0 0);
+  --hl: #6aa9ff; /* data highlight: OP values, links, focus on the canvas */
+  --hl-bg: rgba(106, 169, 255, 0.13);
+  --brand: var(--primary);
+  --brand-hover: color-mix(in oklab, var(--primary) 90%, transparent);
+  --run: var(--primary);
+  --run-hover: color-mix(in oklab, var(--primary) 90%, transparent);
+  --danger: var(--destructive);
+  --danger-hover: color-mix(in oklab, var(--destructive) 90%, transparent);
   --ok: #4cc38a;
   --err: #f0787b;
   --err-bg: rgba(240, 120, 123, 0.1);
@@ -26,18 +26,13 @@
   --probe: #f5d061; /* probe cursor, OP tags, sweep band */
   --wire: #6fcf97;
   --sym: #c8cdd5;
-  --r: 6px;  /* controls */
-  --r2: 8px; /* surfaces: popovers, dialogs, cards */
-  /* older names */
+  --r: calc(var(--radius) - 2px);
+  --r2: var(--radius);
   --bg: var(--s0);
   --panel: var(--s1);
-  --line: var(--border);
   --mono: 'SF Mono', Menlo, Consolas, monospace;
-  color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html, body, #root { margin: 0; height: 100%; }
-body { background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, 'Segoe UI', system-ui, sans-serif; }
 
 .app { display: flex; flex-direction: column; height: 100%; }
 [hidden] { display: none !important; }
@@ -52,7 +47,7 @@ header {
 .file { color: var(--dim); }
 .views { margin: 0; -webkit-app-region: no-drag; }
 .actions { margin-left: auto; display: flex; align-items: center; gap: 2px; -webkit-app-region: no-drag; }
-.actions .sep { width: 1px; height: 18px; margin: 0 6px; background: var(--border-strong); }
+.actions .sep { width: 1px; height: 18px; margin: 0 6px; background: var(--line-strong); }
 header > button { -webkit-app-region: no-drag; }
 /* chrome buttons (header, results tabs) are quiet until hovered; Run stays filled */
 header button:not(.run):not(.primary), .tabs button { background: transparent; border-color: transparent; color: var(--dim); }
@@ -66,11 +61,11 @@ header .brand { margin-left: 4px; }
 button.icon > .i { width: 14px; height: 14px; }
 
 button {
-  font: inherit; color: var(--text); background: var(--s2); border: 1px solid var(--border-strong);
+  font: inherit; color: var(--text); background: var(--s2); border: 1px solid var(--line-strong);
   border-radius: var(--r); padding: 4px 11px; cursor: pointer; transition: background-color 80ms, color 80ms;
 }
 button:where(:hover:not(:disabled)) { background: var(--s3); } /* :where keeps it as weak as plain button:hover, so .x:hover rules still win */
-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button:focus-visible { outline: 2px solid var(--hl); outline-offset: 1px; }
 button.run { background: var(--run); border-color: transparent; font-weight: 500; color: #fff; padding: 4px 12px 4px 10px; }
 button.run:hover:not(:disabled) { background: var(--run-hover); }
 button:disabled { opacity: 0.45; cursor: default; }
@@ -101,7 +96,7 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 .vars label { display: flex; gap: 6px; align-items: center; font-family: var(--mono); font-size: 12px; cursor: pointer; }
 .vars input { accent-color: var(--c); }
 /* segmented control: one track, the active option is a raised pill */
-.seg { display: flex; gap: 2px; padding: 2px; background: var(--s0); border: 1px solid var(--border); border-radius: var(--r); }
+.seg { display: flex; gap: 2px; padding: 2px; background: var(--s0); border: 1px solid var(--line); border-radius: var(--r); }
 .seg button { flex: 1; padding: 2px 8px; font-size: 12px; background: transparent; border: 0; border-radius: 4px; color: var(--dim); }
 .seg button:hover:not(:disabled) { background: transparent; color: var(--text); }
 .seg button.on, .seg button.on:hover { background: var(--s3); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
@@ -119,7 +114,7 @@ header .seg button.on, header .seg button.on:hover { background: var(--s3); colo
 
 table.op { margin: 16px; border-collapse: collapse; font-family: var(--mono); }
 table.op td { padding: 4px 16px; border-bottom: 1px solid var(--line); }
-table.op td:last-child { text-align: right; color: var(--accent); }
+table.op td:last-child { text-align: right; color: var(--hl); }
 
 /* plot: cursors, readout, expressions, measurements */
 .pcur { position: absolute; top: 0; bottom: 0; width: 9px; margin-left: -4px; cursor: ew-resize; z-index: 5; }
@@ -137,9 +132,9 @@ table.op td:last-child { text-align: right; color: var(--accent); }
 .vars .expr button.icon { padding: 0 4px; }
 .vars .bad { width: 100%; color: var(--err); font: 11px/1.3 -apple-system, system-ui, sans-serif; }
 .vars input.addexpr { font: 12px var(--mono); color: var(--text); background: var(--s0); border: 1px solid var(--line); border-radius: var(--r); padding: 3px 6px; margin-top: 2px; }
-.vars input.addexpr:focus { border-color: var(--accent); outline: none; }
+.vars input.addexpr:focus { border-color: var(--hl); outline: none; }
 .meas { position: absolute; inset: 0; z-index: 10; overflow: auto; background: var(--bg); }
-.meas table.op td { text-align: right; color: var(--accent); }
+.meas table.op td { text-align: right; color: var(--hl); }
 .meas table.op td:first-child { text-align: left; color: var(--text); }
 .meas table.op td.bad { color: var(--err); cursor: help; }
 .meas table.op .stat { color: var(--warn); }
@@ -162,8 +157,8 @@ table.op th { padding: 4px 16px; text-align: right; color: var(--dim); font-weig
 /* ---- project workspace ---- */
 button.icon { background: transparent; border-color: transparent; padding: 1px 6px; color: var(--dim); }
 button.icon:hover { background: var(--s3); color: var(--text); }
-button.primary { background: var(--primary); border-color: transparent; font-weight: 500; color: #fff; }
-button.primary:hover { background: var(--primary-hover); }
+button.primary { background: var(--brand); border-color: transparent; font-weight: 500; color: #fff; }
+button.primary:hover { background: var(--brand-hover); }
 button.danger { background: var(--danger); border-color: transparent; color: #fff; }
 button.danger:hover { background: var(--danger-hover); }
 
@@ -171,15 +166,15 @@ button.danger:hover { background: var(--danger-hover); }
 .side-h { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 4px 14px; font-size: 12px; font-weight: 500; color: var(--dim); }
 .sheet { display: flex; align-items: center; margin: 0 6px; border-radius: var(--r); }
 .sheet:hover, .sheet:focus-within { background: var(--s3); }
-.sheet.on { background: var(--accent-bg); }
+.sheet.on { background: var(--hl-bg); }
 .sheet .nm { flex: 1; min-width: 0; text-align: left; background: transparent; border: 0; padding: 5px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sheet.on .nm { color: var(--accent); }
+.sheet.on .nm { color: var(--hl); }
 .sheet .ops { display: none; }
 .sheet:hover .ops, .sheet:focus-within .ops { display: flex; }
 .sheet .dot { color: var(--warn); }
-.badge { margin-left: 6px; font-size: 10px; padding: 0 5px; border-radius: 4px; background: var(--accent-bg); color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; }
+.badge { margin-left: 6px; font-size: 10px; padding: 0 5px; border-radius: 4px; background: var(--hl-bg); color: var(--hl); text-transform: uppercase; letter-spacing: 0.04em; }
 .sheet.editing { flex-direction: column; align-items: stretch; padding: 3px 2px; gap: 2px; }
-.sheet input { font: inherit; color: var(--text); background: var(--s0); border: 1px solid var(--accent); border-radius: var(--r); padding: 4px 7px; outline: none; }
+.sheet input { font: inherit; color: var(--text); background: var(--s0); border: 1px solid var(--hl); border-radius: var(--r); padding: 4px 7px; outline: none; }
 .sheet .bad { color: var(--err); font-size: 11px; padding: 0 4px; }
 /* Bill of materials window (project/BomWindow.tsx) */
 .bomwin-sheets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 12px; }
@@ -188,15 +183,15 @@ button.danger:hover { background: var(--danger-hover); }
 .bomwin .mlib-body { display: block; padding-top: 0; }
 table.bomt { width: 100%; border-collapse: collapse; font-size: 12px; }
 .bomt th { position: sticky; top: 0; z-index: 1; background: var(--panel); text-align: left; font-weight: 500; color: var(--dim); padding: 10px 10px 6px; border-bottom: 1px solid var(--line); }
-.bomt td { padding: 4px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.bomt td { padding: 4px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .bomt .n { text-align: right; font-variant-numeric: tabular-nums; width: 3em; }
 .bomt .m { font-family: var(--mono); }
 .bomt .dim { color: var(--dim); }
 .bomt tbody tr:hover td { background: var(--s2); }
 .bomt td.in { padding: 1px 4px; }
 .bomt td.in input { width: 100%; min-width: 90px; box-sizing: border-box; font: 12px var(--mono); color: var(--text); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 3px 6px; }
-.bomt tr:hover td.in input { border-color: var(--border-strong); }
-.bomt td.in input:focus { outline: none; border-color: var(--accent); background: var(--s0); }
+.bomt tr:hover td.in input { border-color: var(--line-strong); }
+.bomt td.in input:focus { outline: none; border-color: var(--hl); background: var(--s0); }
 .bomt td.in input::placeholder { color: transparent; }
 .bomt td.in input:focus::placeholder { color: var(--faint); } /* hint only in the cell being edited */
 .bomwin .adlg-foot button { white-space: nowrap; }
@@ -213,7 +208,7 @@ table.bomt { width: 100%; border-collapse: collapse; font-size: 12px; }
 .crumbs { display: flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 12px; color: var(--dim); flex-shrink: 0; }
 .crumbs .sep { margin: 0 4px; }
 .crumbs b { color: var(--text); font-weight: 600; }
-button.link { background: transparent; border: 0; padding: 0; color: var(--accent); }
+button.link { background: transparent; border: 0; padding: 0; color: var(--hl); }
 button.link:hover { background: transparent; text-decoration: underline; }
 
 .banner { display: flex; align-items: center; gap: 8px; padding: 8px 12px 8px 16px; background: var(--warn-bg); border-bottom: 1px solid rgba(227, 179, 102, 0.25); color: var(--text); flex-shrink: 0; }

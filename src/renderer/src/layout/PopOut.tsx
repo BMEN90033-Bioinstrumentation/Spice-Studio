@@ -2,6 +2,8 @@
 // main/index.ts setWindowOpenHandler only allows these frame names and sets the BrowserWindow options.
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { PortalContainer } from '@/components/ui/portal'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export const POPOUT = 'ngspice-plots'
 export const LIBWIN = 'ngspice-libraries'
@@ -25,6 +27,7 @@ export function PopOut({ title, onClose, children, name = POPOUT, size = 'width=
       if (n instanceof HTMLLinkElement) (c as HTMLLinkElement).href = n.href
       return c
     }))
+    d.documentElement.className = document.documentElement.className // dark theme, mac
     const root = d.createElement('div')
     root.className = 'popout'
     d.body.replaceChildren(root)
@@ -56,5 +59,6 @@ export function PopOut({ title, onClose, children, name = POPOUT, size = 'width=
   }, [])
   useEffect(() => { if (host) host.ownerDocument.title = title }, [title, host])
 
-  return host && createPortal(children, host)
+  // Radix portals (dialogs, selects, menus, tooltips) must mount in this window, not the opener's body
+  return host && createPortal(<PortalContainer.Provider value={host}><TooltipProvider>{children}</TooltipProvider></PortalContainer.Provider>, host)
 }

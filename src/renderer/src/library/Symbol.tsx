@@ -2,7 +2,6 @@
 // Normal kinds draw from SYMBOLS; 'block' draws a box from part.size with stubs out to part.pins.
 import { xform, type Part, type Pt } from '../schematic/model'
 import { SYMBOLS, type Kind, type SymbolDef } from '../schematic/symbols'
-import './library.css'
 
 export type Box = { x0: number; y0: number; x1: number; y1: number }
 export type Shape = Partial<Pick<Part, 'pins' | 'size'>>

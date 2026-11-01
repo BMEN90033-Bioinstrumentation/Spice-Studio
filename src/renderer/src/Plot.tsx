@@ -1,6 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import uPlot from 'uplot'
-import 'uplot/dist/uPlot.min.css'
 import type { RawPlot, RawVar } from '../../main/rawfile'
 import { isExpr } from './contracts'
 import { useCommands } from './commands'
@@ -143,7 +142,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     const el = host.current, doc = el.ownerDocument
     const yUnit = fftv ? 'dB' : first.complex ? (mode === 'db' ? 'dB' : '°') : ''
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
-    const axis = { stroke: '#8a9099', grid: { stroke: '#1f2227' }, ticks: { stroke: '#24272d' } } // --dim / grid between --s1 and --border (canvas can't read CSS vars)
+    const axis = { stroke: '#8a9099', grid: { stroke: '#1f2227' }, ticks: { stroke: '#24272d' } } // --dim / grid between --s1 and --line (canvas can't read CSS vars)
     const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
     runs.forEach(({ label }, r) => {
       const ts = traces.filter((t) => t.run === r)

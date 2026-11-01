@@ -3,7 +3,6 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useCommands } from '../commands'
 import { Icon, type IconName } from '../icons'
 import { focusPopout, PopOut } from './PopOut'
-import './layout.css'
 
 export type Side = 'left' | 'right' | 'bottom'
 export const RAILW = 28 // keep in sync with .rail in layout.css

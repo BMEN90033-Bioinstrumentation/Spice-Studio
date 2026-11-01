@@ -8,7 +8,7 @@
 .rail-left { border-right: 1px solid var(--line); }
 .rail-right { border-left: 1px solid var(--line); }
 .rail-bottom { width: auto; height: 28px; flex-direction: row; padding: 0 10px; border-top: 1px solid var(--line); }
-.rail-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--s1); }
+.rail-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--hl); box-shadow: 0 0 0 2px var(--s1); }
 
 /* panels slide in briefly when opened */
 @keyframes panel-in { from { opacity: 0; transform: translateX(var(--panel-from, -8px)); } }
@@ -22,7 +22,7 @@
 .side-h > span { display: flex; }
 /* results: header actions on the right of the plot tabs; collapsed/popped -> canvas takes the width */
 .tabs-act { margin-left: auto; display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding-left: 8px; }
-.tabs .tabs-act button.primary { padding: 3px 12px; background: var(--primary); border-color: transparent; color: var(--text); }
+.tabs .tabs-act button.primary { padding: 3px 12px; background: var(--brand); border-color: transparent; color: var(--text); }
 .body > main.solo { grid-template-columns: 1fr auto; }
 .body > main.solo > .left { border-right: 0; }
 

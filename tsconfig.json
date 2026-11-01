@@ -10,7 +10,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": { "@/*": ["./src/renderer/src/*"] }
   },
   "include": ["src", "test", "electron.vite.config.ts"]
 }
