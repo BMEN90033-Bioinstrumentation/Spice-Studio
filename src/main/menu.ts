@@ -111,15 +111,15 @@ function template(recents: Recent[]): Item[] {
   const tools: Item[] = [cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
   const help: Item[] = [
     cmd('help.shortcuts', 'Keyboard Shortcuts', 'CmdOrCtrl+/'),
-    ...(mac ? [] : [cmd('help.about', 'About ngspice Studio')]),
+    ...(mac ? [] : [cmd('help.about', 'About Spice Studio')]),
     sep,
     cmd('help.licenses', 'Third-party Licences…')
   ]
   return [
     ...(mac
       ? [{
-          label: 'ngspice Studio',
-          submenu: [cmd('help.about', 'About ngspice Studio'), sep, { role: 'services' }, sep, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, sep, { role: 'quit' }]
+          label: 'Spice Studio',
+          submenu: [cmd('help.about', 'About Spice Studio'), sep, { role: 'services' }, sep, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, sep, { role: 'quit' }]
         } as Item]
       : []),
     { label: 'File', submenu: file },

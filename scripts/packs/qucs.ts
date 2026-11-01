@@ -686,7 +686,7 @@ async function main() {
     chunks.forEach((ch, i) => {
       const file = `${stem}${chunks.length > 1 ? '-' + (i + 1) : ''}.lib`
       const head = [`* Qucs-S community parts: ${cat}${chunks.length > 1 ? ` (${i + 1} of ${chunks.length})` : ''}, ${ch.length} parts`,
-        `* Converted from ${REPO}/tree/${PIN}/library by scripts/packs/qucs.ts (ngspice Studio).`,
+        `* Converted from ${REPO}/tree/${PIN}/library by scripts/packs/qucs.ts (Spice Studio).`,
         '* Licence: GNU GPL version 2 or later, see COPYING; origin and changes: NOTICE.md and BUILD.md.', '']
       writeFileSync(join(OUT, file), [...head, ...ch.map((p) => p.text + '\n')].join('\n'))
       libs.push({ file, entries: ch.map((p) => ({ name: p.name, kind: p.kind, category: p.category, pinMap: p.pins.map((_, k) => k) })) })
@@ -730,7 +730,7 @@ above the part.
 ## What was changed
 
 The files here are a **converted (modified) form** of the Qucs-S library files, produced by \`scripts/packs/qucs.ts\` in
-the ngspice Studio source:
+the Spice Studio source:
 
 - Qucs component properties (\`<Diode>\`, \`<_BJT>\`, \`<JFET>\`, \`<_MOSFET>\`) were rewritten as SPICE \`.model\` cards (or
   small \`.subckt\` wrappers where instance parameters such as MOSFET L/W are needed), following Qucs-S's own ngspice
@@ -744,7 +744,7 @@ the ngspice Studio source:
 ## Where the original source is
 
 ${REPO}/tree/${PIN}/library — the exact files used are listed with download links in \`pack.json\`. The
-conversion script that produced this folder is \`scripts/packs/qucs.ts\` in the ngspice Studio repository; together they
+conversion script that produced this folder is \`scripts/packs/qucs.ts\` in the Spice Studio repository; together they
 are the "preferred form for making modifications" of these files.
 
 This pack comes with NO WARRANTY; see sections 11 and 12 of the GPL.

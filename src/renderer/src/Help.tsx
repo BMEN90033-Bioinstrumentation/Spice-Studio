@@ -121,11 +121,11 @@ export function Help() {
     )
   if (open === 'about')
     return (
-      <Modal title="About ngspice Studio" onClose={() => setOpen(null)}>
+      <Modal title="About Spice Studio" onClose={() => setOpen(null)}>
         <div className="help-about">
           {!info ? <p className="adlg-msg">Loading…</p> : (
             <>
-              <p><b>ngspice Studio</b> {info.version}</p>
+              <p><b>Spice Studio</b> {info.version}</p>
               <p className="adlg-msg">Schematic editor and front end for the ngspice circuit simulator.</p>
               <dl>
                 <dt>Engine</dt>

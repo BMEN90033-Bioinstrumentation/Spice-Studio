@@ -85,7 +85,7 @@ async function runSim(netlist: string, baseDir?: string): Promise<SimResult> {
 ipcMain.handle('sim:run', (_e, netlist: string, baseDir?: string) => runSim(netlist, baseDir))
 
 const NETLIST = { name: 'SPICE netlist', extensions: ['cir', 'sp', 'spice', 'net', 'txt'] }
-const SCHEMATIC = { name: 'ngspice Studio schematic', extensions: ['nsch'] }
+const SCHEMATIC = { name: 'Spice Studio schematic', extensions: ['nsch'] }
 
 ipcMain.handle('file:open', async () => {
   const r = await dialog.showOpenDialog({
@@ -139,7 +139,7 @@ async function opened(file: string) {
   return { dir, file, text: await readFile(file, 'utf8') }
 }
 
-ipcMain.handle('project:defaultParent', () => join(app.getPath('documents'), 'ngspice Studio'))
+ipcMain.handle('project:defaultParent', () => join(app.getPath('documents'), 'Spice Studio'))
 ipcMain.handle('project:pickParent', async (_e, defaultPath?: string) => {
   const r = await dialog.showOpenDialog({ defaultPath, properties: ['openDirectory', 'createDirectory'] })
   return r.canceled ? null : (r.filePaths[0] ?? null)
@@ -160,7 +160,7 @@ ipcMain.handle('project:create', async (_e, parent: string, name: string, files:
   return dir
 })
 ipcMain.handle('project:open', async () => {
-  const r = await dialog.showOpenDialog({ filters: [{ name: 'ngspice Studio project', extensions: ['nsproj'] }], properties: ['openFile'] })
+  const r = await dialog.showOpenDialog({ filters: [{ name: 'Spice Studio project', extensions: ['nsproj'] }], properties: ['openFile'] })
   return r.canceled || !r.filePaths[0] ? null : opened(r.filePaths[0])
 })
 ipcMain.handle('project:openPath', (_e, file: string) => {
@@ -250,7 +250,7 @@ function guardClose(w: BrowserWindow) {
     ackTimer = setTimeout(async () => {
       const r = await dialog.showMessageBox(w, {
         type: 'warning',
-        message: 'ngspice Studio is not responding',
+        message: 'Spice Studio is not responding',
         detail: 'Any unsaved changes will be lost if you quit now.',
         buttons: ['Quit anyway', 'Cancel'],
         defaultId: 1,

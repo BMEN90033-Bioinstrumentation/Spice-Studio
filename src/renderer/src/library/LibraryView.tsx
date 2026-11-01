@@ -107,7 +107,7 @@ function Detail({ e, packs, onNotice }: { e: LibEntry; packs: PackInfo[]; onNoti
         <dt>Value</dt><dd><code>{e.value}</code></dd>
         <dt>Symbol</dt><dd>{SYMBOLS[e.kind].title}</dd>
         <dt>Source</dt><dd>{
-          e.source === 'bundled' ? 'Bundled with ngspice Studio'
+          e.source === 'bundled' ? 'Bundled with Spice Studio'
           : e.source === 'user' ? `My library · ${fileOf(e)}`
           : e.source === 'pack' ? <>{pack?.name ?? 'Pack'}{pack?.version && ` ${/^\d/.test(pack.version) ? 'v' : ''}${pack.version}`} · {fileOf(e)}{pack?.source && <> · from {isUrl(pack.source) ? <a href={pack.source} target="_blank" rel="noreferrer">{pack.source}</a> : pack.source}</>}</>
           : `Project file ${fileOf(e)}`

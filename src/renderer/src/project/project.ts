@@ -17,9 +17,9 @@ export function parseProject(text: string): Project {
   try {
     p = JSON.parse(text)
   } catch {
-    throw new Error('Not an ngspice Studio project: the file is not valid JSON')
+    throw new Error('Not a Spice Studio project: the file is not valid JSON')
   }
-  if (p?.version !== 1) throw new Error('Not an ngspice Studio project (.nsproj v1)')
+  if (p?.version !== 1) throw new Error('Not a Spice Studio project (.nsproj v1)')
   if (typeof p.name !== 'string' || !p.name.trim()) throw new Error('Project has no name')
   if (typeof p.top !== 'string' || !SHEET.test(p.top)) throw new Error(`Top sheet must be a .nsch file in the project folder, got ${JSON.stringify(p.top)}`)
   p.libs ??= []

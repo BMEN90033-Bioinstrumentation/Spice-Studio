@@ -1,5 +1,5 @@
 {
-  "name": "ngspice-studio",
+  "name": "spice-studio",
   "version": "0.1.0",
   "description": "Schematic editor and front end for the ngspice circuit simulator",
   "private": true,

@@ -137,7 +137,7 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
         </p>
         <h2>Built-in</h2>
         <ul className="packs-list">
-          {row({ k: 'builtin', name: 'ngspice Studio parts', on: true, meta: `${plural(BUNDLED.length, 'part')} · bundled with the app · always shown` })}
+          {row({ k: 'builtin', name: 'Spice Studio parts', on: true, meta: `${plural(BUNDLED.length, 'part')} · bundled with the app · always shown` })}
         </ul>
         <h2>Library packs</h2>
         <ul className="packs-list">

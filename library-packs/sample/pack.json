@@ -3,7 +3,7 @@
  "name": "Sample pack",
  "description": "Three generic parts that show how bundled library packs work.",
  "license": "CC0-1.0",
- "source": "ngspice Studio",
+ "source": "Spice Studio",
  "libs": [
   {
    "file": "sample.lib",

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!-- ngspice Studio: the Home brand mark (48-unit grid) on the macOS icon grid: 824 px tile, 100 px margin -->
+  <!-- Spice Studio: the Home brand mark (48-unit grid) on the macOS icon grid: 824 px tile, 100 px margin -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#22303f"/>

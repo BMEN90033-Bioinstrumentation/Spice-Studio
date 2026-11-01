@@ -10,7 +10,7 @@ above the part.
 ## What was changed
 
 The files here are a **converted (modified) form** of the Qucs-S library files, produced by `scripts/packs/qucs.ts` in
-the ngspice Studio source:
+the Spice Studio source:
 
 - Qucs component properties (`<Diode>`, `<_BJT>`, `<JFET>`, `<_MOSFET>`) were rewritten as SPICE `.model` cards (or
   small `.subckt` wrappers where instance parameters such as MOSFET L/W are needed), following Qucs-S's own ngspice
@@ -24,7 +24,7 @@ the ngspice Studio source:
 ## Where the original source is
 
 https://github.com/ra3xdh/qucs_s/tree/899808827218757b1241468d40d2b44d55d8957d/library — the exact files used are listed with download links in `pack.json`. The
-conversion script that produced this folder is `scripts/packs/qucs.ts` in the ngspice Studio repository; together they
+conversion script that produced this folder is `scripts/packs/qucs.ts` in the Spice Studio repository; together they
 are the "preferred form for making modifications" of these files.
 
 This pack comes with NO WARRANTY; see sections 11 and 12 of the GPL.

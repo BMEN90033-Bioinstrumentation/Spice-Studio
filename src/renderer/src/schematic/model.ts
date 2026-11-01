@@ -146,7 +146,7 @@ export function route(a: Pt, b: Pt, vFirst = false): Wire[] {
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {
   const s = JSON.parse(text)
-  if (s?.version !== 1 || !Array.isArray(s.parts) || !Array.isArray(s.wires)) throw new Error('Not an ngspice Studio schematic (.nsch v1)')
+  if (s?.version !== 1 || !Array.isArray(s.parts) || !Array.isArray(s.wires)) throw new Error('Not a Spice Studio schematic (.nsch v1)')
   const num = (v: unknown) => typeof v === 'number' && isFinite(v)
   const pt = (p: any) => num(p?.x) && num(p?.y)
   for (const p of s.parts) {

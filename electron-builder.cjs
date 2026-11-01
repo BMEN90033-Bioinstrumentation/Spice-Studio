@@ -25,15 +25,15 @@ const ngspice = (platform) => [
 ]
 
 module.exports = {
-  appId: 'com.callumvidler.ngspicestudio',
-  productName: 'ngspice Studio',
+  appId: 'com.callumvidler.spicestudio',
+  productName: 'Spice Studio',
   directories: { output: 'dist', buildResources: 'build' },
   files: ['out/**', 'package.json', '!node_modules/**'], // Vite bundles the renderer deps; main/preload only use electron + node builtins
   asar: true,
   npmRebuild: false, // no native modules
   fileAssociations: [
-    { ext: 'nsproj', name: 'ngspice Studio project', role: 'Editor' },
-    { ext: 'nsch', name: 'ngspice Studio schematic', role: 'Editor' }
+    { ext: 'nsproj', name: 'Spice Studio project', role: 'Editor' },
+    { ext: 'nsch', name: 'Spice Studio schematic', role: 'Editor' }
   ],
   beforePack: ({ electronPlatformName: p, arch }) => {
     const dir = `vendor/ngspice/${p}-${Arch[arch]}`

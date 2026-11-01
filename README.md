@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/assets/banner-light.svg">
-    <img alt="ngspice Studio: schematic capture & simulation for ngspice" src="docs/assets/banner-dark.svg" width="100%">
+    <img alt="Spice Studio: schematic capture & simulation for ngspice" src="docs/assets/banner-dark.svg" width="100%">
   </picture>
 </p>
 
@@ -160,7 +160,7 @@ Every part in the app simulates in ngspice. Packs can be switched on and off in 
 
 | Library | Parts | What's in it | Licence |
 |---|---:|---|---|
-| **ngspice Studio parts** (built in) | 63 | Common diodes, Zeners, LEDs, BJTs, JFETs, MOSFETs, op-amp macromodels, a comparator, a TL431 and a 7805. Self-written from datasheet figures; each is tested against those figures. | Part of this repository |
+| **Spice Studio parts** (built in) | 63 | Common diodes, Zeners, LEDs, BJTs, JFETs, MOSFETs, op-amp macromodels, a comparator, a TL431 and a 7805. Self-written from datasheet figures; each is tested against those figures. | Part of this repository |
 | **Qucs-S community parts** | 2,309 | Diodes, BJTs, JFETs, MOSFETs, op-amps, references, regulators, optocouplers and a 555. Converted from [Qucs-S](https://github.com/ra3xdh/qucs_s) at a pinned commit; parts carrying vendor notices are excluded. | GPL-2.0-or-later |
 | **Zetex discretes** (Diodes Inc.) | 437 | BJTs, diodes, MOSFETs and references, shipped byte-identical with the vendor's notice. | Zetex model notice |
 | **National Semiconductor op-amps** | 134 | Op-amp and comparator macromodels, shipped byte-identical with the vendor's notice. | National notice (no resale) |
@@ -259,6 +259,6 @@ npm run dist:linux    # AppImage + .deb
 
 - **ngspice** is bundled unmodified, and its `COPYING` and third-party notices ship inside the app. It is mostly Modified BSD, with LGPL (KLU, numparam), MPL-2.0 (OSDI) and GPL (`table.cm`) parts. The notices say where to get the exact source.
 - **Library packs** carry their own licences and notices (see the table above and each pack's `NOTICE` file). All of them are viewable in the app under *Help → Third-party Licences*.
-- **ngspice Studio's own code** doesn't have a licence yet.
+- **Spice Studio's own code** doesn't have a licence yet.
 
 <p align="center"><sub>Built with Electron, React, CodeMirror and uPlot, on top of the excellent <a href="https://ngspice.sourceforge.io/">ngspice</a>.</sub></p>

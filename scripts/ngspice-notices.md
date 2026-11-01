@@ -1,6 +1,6 @@
 # Third-party notices: bundled ngspice
 
-ngspice Studio ships an unmodified build of [ngspice](https://ngspice.sourceforge.io/)
+Spice Studio ships an unmodified build of [ngspice](https://ngspice.sourceforge.io/)
 (the `bin/`, `lib/` and `share/` folders next to this file). The app runs it as a separate
 program; it does not link to it. The full license texts are in `COPYING`. This file lists
 which of those licenses cover the files shipped here.

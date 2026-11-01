@@ -111,7 +111,7 @@ function App() {
     const offs = [window.api.onOsOpen(osOpen), window.api.onCloseRequest(() => leaving.guard(window.api.closeNow))]
     return () => offs.forEach((f) => f())
   }, [])
-  useEffect(() => { if (!session) document.title = route === 'library' ? 'Component library — ngspice Studio' : 'ngspice Studio' }, [session, route])
+  useEffect(() => { if (!session) document.title = route === 'library' ? 'Component library — Spice Studio' : 'Spice Studio' }, [session, route])
 
   const start = async (f: () => Promise<Session | null>) => {
     try {
@@ -579,7 +579,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const name = isSch ? (proj ? view : (base(schPath) ?? 'untitled.nsch')) : (base(path) ?? 'untitled.cir')
   const isDirty = isSch ? dirty.current.has(view) : netDirty
   useEffect(() => {
-    if (route === 'editor') document.title = `${proj ? proj.name + ' — ' : ''}${isSch && proj ? stem(view) : name}${isDirty ? ' •' : ''} — ngspice Studio`
+    if (route === 'editor') document.title = `${proj ? proj.name + ' — ' : ''}${isSch && proj ? stem(view) : name}${isDirty ? ' •' : ''} — Spice Studio`
   })
   const tabs = useMemo(() => tabsOf(runs ?? []), [runs])
   const cur = tabs.find((t) => t.key === tab) ?? tabs[0]

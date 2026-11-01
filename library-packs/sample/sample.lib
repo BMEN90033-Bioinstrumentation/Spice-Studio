@@ -1,4 +1,4 @@
-* ngspice Studio sample pack: self-written models, CC0-1.0 (public domain dedication).
+* Spice Studio sample pack: self-written models, CC0-1.0 (public domain dedication).
 * Generic parts that prove the pack path end to end; not fitted to any vendor's device.
 
 * small-signal silicon switching diode, Vf ~0.7 V @ 10 mA

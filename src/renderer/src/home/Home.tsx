@@ -62,7 +62,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   return (
     <div className="home">
       <div className="home-bar">
-        <span className="brand">ngspice Studio</span>
+        <span className="brand">Spice Studio</span>
         {engine && (
           <span className={'engine' + (engine.path ? '' : ' bad')} title={engine.path ?? 'Build it with npm run ngspice:build, or install ngspice'}>
             {engine.version}{engine.bundled ? ' (bundled)' : ''}
@@ -76,7 +76,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
             <path d="M8 30h7l3-12 5 20 5-26 4 18h8" />
           </svg>
           <div>
-            <h1>ngspice Studio</h1>
+            <h1>Spice Studio</h1>
             <p>Draw schematics, build hierarchical designs and simulate them with ngspice.</p>
           </div>
         </section>
