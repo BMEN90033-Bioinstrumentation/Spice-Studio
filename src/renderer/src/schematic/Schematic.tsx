@@ -1,5 +1,5 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type Ref } from 'react'
-import { GRID, blockShape, junctions, newPart, nextName, onSegment, pins, route, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
@@ -169,7 +169,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [space, setSpace] = useState(false)
   const [hov, setHov] = useState<ProbeTarget | null>(null)
   const [showOp, setShowOp] = useState(true)
-  const [dlg, setDlg] = useState<Tab | 'analysis' | null>(null) // analysis dialog open, on this tab
+  const [dlg, setDlg] = useState<Tab | 'analysis' | 'edit' | null>(null) // analysis dialog open, on this tab ('edit': rewrite the selected card)
   const [srcDlg, setSrcDlg] = useState(false)
   const [band, setBand] = useState<{ a: Pt; b: Pt } | null>(null) // differential probe rubber band
   const modal = !!dlg || srcDlg
@@ -557,10 +557,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     if (p?.sheet && onOpenSheet) return onOpenSheet(p.sheet)
     ta.current?.focus()
   }
-  // re-fit a sheet block's pins to the sheet's current ports (wires on surviving pins follow by index)
-  function updateBlock(p: Part, ports: string[]) {
-    commit(remap(cur.current, new Set([p.id]), (q) => ({ ...q, ...blockShape(ports) })))
-  }
+  // re-fit a sheet block's pins to the sheet's current ports (wires on surviving pins follow by name)
+  const updateBlock = (p: Part, ports: string[]) => commit(reshapeBlocks(cur.current, new Set([p.id]), ports))
 
   const setText = (s: Sheet, id: string, text: string) => commit({ ...s, texts: s.texts.map((t) => (t.id === id ? { ...t, text } : t)) })
   function addCard(text: string) {
@@ -571,7 +569,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function applyAnalysis(a: Analysis) {
     const text = analysisText(a)
     setDlg(null)
-    if (dirA) return setText(cur.current, dir!.id, text)
+    if (dlg === 'edit' && dir) return setText(cur.current, dir.id, text)
     addCard(text)
   }
   // the sheet's .options line: the first directive line starting .options/.option/.opt (in any card)
@@ -769,7 +767,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             <textarea ref={ta} rows={6} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </label>
-          {dirA && <button onClick={() => setDlg('analysis')}>Edit as analysis…</button>}
+          {dirA && <button onClick={() => setDlg('edit')}>Edit as analysis…</button>}
           {optLine(dir.text) != null && <button onClick={() => setDlg('options')}>Edit options…</button>}
         </div>
       )}
@@ -777,8 +775,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       <div className="sch-hint">{hint}</div>
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(
-        <AnalysisDialog initial={dirA ?? undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}
-          onApply={applyAnalysis} options={optCard(sheet) && optLine(optCard(sheet)!.text)} tab={dlg === 'analysis' ? undefined : dlg}
+        <AnalysisDialog initial={(dlg === 'edit' && dirA) || undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}
+          onApply={applyAnalysis} options={optCard(sheet) && optLine(optCard(sheet)!.text)} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
           onOptions={(line) => (setDlg(null), putOptions(line, false))} onClose={() => setDlg(null)} />, document.body
       )}
       {srcDlg && one && isSrc(one) && createPortal(

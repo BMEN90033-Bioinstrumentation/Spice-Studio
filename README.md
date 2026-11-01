@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img alt="macOS | Windows | Linux" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-4fc3f7?style=flat-square">
+  <img alt="macOS | Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-4fc3f7?style=flat-square">
   <img alt="Electron 45" src="https://img.shields.io/badge/Electron-45-47848f?style=flat-square&logo=electron&logoColor=white">
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black">
@@ -95,7 +95,7 @@
 ### 🖥️ A real desktop app
 - Native menu bar, keyboard shortcuts, collapsible panels
 - ngspice is bundled: nothing else to install
-- Signed macOS builds; Windows and Linux installers
+- Signed macOS builds; a Windows installer
 - Open `.nsproj` / `.nsch` files from Finder or Explorer
 
 </td>
@@ -155,7 +155,7 @@ The Home page shows which engine is in use.
 | <kbd>W</kbd> | wire (<kbd>/</kbd> flips the corner) | <kbd>⌘</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> | sheets / parts / plots panels | <kbd>⌘</kbd> <kbd>N</kbd> / <kbd>⌘</kbd> <kbd>O</kbd> | new / open project |
 | <kbd>S</kbd> | SPICE directive | <kbd>/</kbd> | search parts | <kbd>⌘</kbd> <kbd>/</kbd> | all shortcuts |
 
-On Windows and Linux, use <kbd>Ctrl</kbd> where this table says <kbd>⌘</kbd>.
+On Windows, use <kbd>Ctrl</kbd> where this table says <kbd>⌘</kbd>.
 
 ## Component libraries
 
@@ -167,6 +167,7 @@ Every part in the app simulates in ngspice. Packs can be switched on and off in 
 | **Qucs-S community parts** | 2,309 | Diodes, BJTs, JFETs, MOSFETs, op-amps, references, regulators, optocouplers and a 555. Converted from [Qucs-S](https://github.com/ra3xdh/qucs_s) at a pinned commit; parts carrying vendor notices are excluded. | GPL-2.0-or-later |
 | **Zetex discretes** (Diodes Inc.) | 437 | BJTs, diodes, MOSFETs and references, shipped byte-identical with the vendor's notice. | Zetex model notice |
 | **National Semiconductor op-amps** | 134 | Op-amp and comparator macromodels, shipped byte-identical with the vendor's notice. | National notice (no resale) |
+| **Sample pack** | 3 | Two generic diodes and a limiter subcircuit: a minimal example of how a bundled pack is laid out ([`library-packs/sample/`](library-packs/sample/)). | CC0-1.0 |
 
 Each pack's source, checksums and build notes are in [`library-packs/`](library-packs/), and the scripts that build them are in [`scripts/packs/`](scripts/packs/). To use other vendor models, import the `.lib`/`.mod` file through **Manage Libraries → Import library…**. It goes into *My libraries* (available in every project) or into the current project, and project copies travel with the project.
 

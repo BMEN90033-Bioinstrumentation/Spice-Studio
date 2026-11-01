@@ -14,10 +14,8 @@ Pick an analysis on the left and fill in its fields. Invalid fields turn red wit
 
 Where the line goes:
 
-- If a directive card holding a single analysis line is **selected**, the dialog opens on that analysis and **Apply replaces the card's text**.
-- Otherwise **Apply adds a new card** below the drawing.
-
-After **Apply** the new card stays selected, so to add a second analysis, click on empty canvas (or press **Esc**) first. Otherwise the second Apply overwrites the first.
+- Opened from the toolbar, the menu or **A**, **Apply adds a new card** below the drawing, even if a card is selected.
+- To change an existing analysis, select its card and click **Edit as analysis…** in the inspector. The dialog opens on that analysis and **Apply replaces the card's text**.
 
 | Tab | Directive | Fields |
 |---|---|---|

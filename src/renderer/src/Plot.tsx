@@ -89,6 +89,8 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   // inductors/V-like parts come back twice with savecurrents (branch i(l1) and device i(@l1[i])): list the branch only
   const dup = (v: RawVar) => { const m = /^i\(@([^[\]]+)\[i\]\)$/i.exec(v.name); return !!m && signals.some((w) => lc(w) === `i(${m[1].toLowerCase()})`) }
   const list = [...signals.filter((v) => !isCurrent(v.name)), ...signals.filter((v) => isCurrent(v.name) && !dup(v))]
+  // .op rawfiles have no scale vector (vars[0] is a real result): the table lists every vector
+  const rows = first.points >= 2 ? list : [scale, ...list]
   const exprs = sel.filter(isExpr)
   const hue = (key: string) => (isExpr(key) ? signals.length + exprs.indexOf(key) : signals.findIndex((v) => lc(v) === key))
   const grouped = isCurrent(list[0]?.name ?? '') !== isCurrent(list[list.length - 1]?.name ?? '') // both kinds present
@@ -275,7 +277,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
           </thead>
         )}
         <tbody>
-          {list.map((v) => (
+          {rows.map((v) => (
             <tr key={v.name}>
               <td>{pretty(v.name)}</td>
               {runs.map(({ plot }, i) => (

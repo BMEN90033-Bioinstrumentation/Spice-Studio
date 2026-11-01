@@ -113,7 +113,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
                 <label>
                   <span>Location</span>
                   <div className="loc">
-                    <code title={parent}>{tilde(parent)}{name.trim() && validName(name) ? '/' + name.trim() : ''}</code>
+                    <code title={parent}><bdi dir="ltr">{tilde(parent)}{name.trim() && validName(name) ? '/' + name.trim() : ''}</bdi></code>
                     <button type="button" onClick={pick}>Change…</button>
                   </div>
                 </label>

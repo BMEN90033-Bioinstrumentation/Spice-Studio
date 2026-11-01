@@ -53,7 +53,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
   )
 }
 
-// one column per run; with more than 2 runs (Monte Carlo / sweeps) also mean, σ (sample), min and max
+// one column per run; with more than 2 runs (Monte Carlo / sweeps) mean, σ (sample), min and max come first
 function Measurements({ meas }: { meas: MeasTable }) {
   const names = [...new Set(meas.flatMap((r) => r.rows.map((m) => m.name)))]
   const stats = meas.length > 2
@@ -63,8 +63,8 @@ function Measurements({ meas }: { meas: MeasTable }) {
         <thead>
           <tr>
             <th />
-            {meas.map((r, i) => <th key={i}>{r.label || 'Value'}</th>)}
             {stats && ['mean', 'σ', 'min', 'max'].map((h) => <th key={h} className="stat">{h}</th>)}
+            {meas.map((r, i) => <th key={i}>{r.label || 'Value'}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -76,12 +76,12 @@ function Measurements({ meas }: { meas: MeasTable }) {
             return (
               <tr key={n}>
                 <td>{n}</td>
+                {stats && [mean, sd, v.length ? Math.min(...v) : null, v.length ? Math.max(...v) : null].map((x, i) => <td key={i} className="stat">{eng(x)}</td>)}
                 {cells.map((m, i) => (
                   <td key={i} title={m?.text} className={m && m.value == null ? 'bad' : ''}>
                     {!m ? '—' : m.value == null ? 'failed' : eng(m.value)}
                   </td>
                 ))}
-                {stats && [mean, sd, v.length ? Math.min(...v) : null, v.length ? Math.max(...v) : null].map((x, i) => <td key={i} className="stat">{eng(x)}</td>)}
               </tr>
             )
           })}

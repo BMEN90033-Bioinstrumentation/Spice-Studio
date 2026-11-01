@@ -70,6 +70,8 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 .hint .exp { display: flex; gap: 2px; }
 .hint .exp button { font-size: 10px; padding: 0 5px; }
 .u-legend { color: var(--text); font-family: var(--mono); font-size: 12px; }
+/* many sweep / Monte Carlo runs: the legend scrolls instead of squeezing the chart (Plot sizes the chart from its height) */
+.u-legend.u-inline { max-height: 66px; overflow-y: auto; }
 .u-select { background: rgba(79, 195, 247, 0.12); }
 
 table.op { margin: 16px; border-collapse: collapse; font-family: var(--mono); }

@@ -854,7 +854,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           <span>{status}</span>
           {plot && (
             <span>
-              {plot.points} points · {plot.vars.length - 1} vectors{cur.runs.length > 1 ? ` · ${cur.runs.length} runs` : ''}
+              {plot.points} point{plot.points === 1 ? '' : 's'} · {plot.vars.length - (plot.points >= 2 ? 1 : 0)} vectors{cur.runs.length > 1 ? ` · ${cur.runs.length} runs` : ''}
             </span>
           )}
         </footer>

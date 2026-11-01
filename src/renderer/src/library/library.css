@@ -69,7 +69,7 @@
 .chip { flex: none; font: 10px var(--mono); padding: 1px 6px; border: 1px solid #353b48; border-radius: 9px; color: var(--dim); white-space: nowrap; }
 
 .libv-detail { padding: 20px 24px; }
-.libv-card { max-width: 720px; display: grid; gap: 10px; }
+.libv-card { max-width: 720px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 .libv-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .libv-card h2 { margin: 0 6px 0 0; font-size: 20px; font-weight: 600; font-family: var(--mono); }
 .libv-card h3 { display: flex; align-items: center; margin: 10px 0 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); }
@@ -110,7 +110,7 @@
 
 /* library sources: packs (license badge + source), import target */
 .libv-lic { white-space: nowrap; font: 600 9px var(--mono); letter-spacing: 0.02em; text-transform: none; color: #8fc79a; border: 1px solid #3c5a43; border-radius: 4px; padding: 0 4px; }
-.chip.libv-lic { border-radius: 9px; font-weight: 400; font-size: 10px; }
+.chip.libv-lic { border-radius: 9px; font-weight: 400; font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .libv-link { padding: 0; border: 0; background: none; font: inherit; color: var(--accent); }
 .libv-link:hover { background: none; text-decoration: underline; }
 .libv-to { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #353b48; border-radius: 6px; overflow: hidden; }

@@ -78,7 +78,7 @@ Each run replaces any `.temp` line on the sheet with its own. A `temp=` setting 
 
 ![The 20 runs, zoomed in around 0.5 V](images/06-mc-zoom.png)
 
-The **Measurements** tab has one column per run and then the statistics over all runs: **mean**, **σ** (sample standard deviation), **min** and **max**. Scroll the table to the right to see them.
+The **Measurements** tab starts with the statistics over all runs, **mean**, **σ** (sample standard deviation), **min** and **max**, followed by one column per run. With many runs the plot legend scrolls instead of shrinking the chart.
 
 ![Monte Carlo statistics for t50](images/06-mc-measurements.png)
 

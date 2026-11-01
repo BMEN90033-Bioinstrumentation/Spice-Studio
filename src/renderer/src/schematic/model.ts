@@ -67,6 +67,19 @@ export function blockShape(ports: string[]): { pins: { name: string; x: number; 
   return { pins: [...side(left, -w / 2 - 20), ...side(right, w / 2 + 20)], size: { w, h } }
 }
 
+// Re-fit block parts `ids` to `ports`. Wire ends on a surviving pin (matched by name, any case) follow it; wires on
+// removed pins stay put (dangling), so a port added mid-list never shifts wires onto the wrong pins.
+export function reshapeBlocks(s: Sheet, ids: Set<string>, ports: string[]): Sheet {
+  const m = new Map<string, Pt>(), shape = blockShape(ports)
+  const parts = s.parts.map((p) => {
+    if (!ids.has(p.id)) return p
+    const n = { ...p, ...shape }, at = new Map(shape.pins.map((q) => [q.name.toLowerCase(), xform(n, q)]))
+    for (const q of p.pins ?? []) { const t = at.get(q.name.toLowerCase()); if (t) m.set(key(xform(p, q)), t) }
+    return n
+  })
+  return { ...s, parts, wires: s.wires.map((w) => ({ ...w, a: m.get(key(w.a)) ?? w.a, b: m.get(key(w.b)) ?? w.b })) }
+}
+
 // Port names of a sheet (= its subckt pins), left-to-right then top-to-bottom; duplicates (case-insensitive) once.
 export function sheetPorts(s: Sheet): string[] {
   const seen = new Set<string>()

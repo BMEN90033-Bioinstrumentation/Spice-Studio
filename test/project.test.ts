@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { inside, safeName } from '../src/main/paths.ts'
 import { newProject, parseProject, refreshBlocks, renameRefs, sheetFile, validName } from '../src/renderer/src/project/project.ts'
-import { blockShape, emptySheet, newPart, sheetPorts, type Sheet } from '../src/renderer/src/schematic/model.ts'
+import { blockShape, emptySheet, newPart, pins, sheetPorts, type Sheet } from '../src/renderer/src/schematic/model.ts'
 
 test('newProject round-trips through parseProject', () => {
   const p = newProject('Amp')
@@ -65,6 +65,23 @@ test('refreshBlocks / renameRefs update block instances only when needed', () =>
   const n = renameRefs(r, 'f.nsch', 'g.nsch')!
   assert.equal(n.parts[0].sheet, 'g.nsch')
   assert.equal(renameRefs(n, 'f.nsch', 'h.nsch'), null)
+})
+
+test('refreshBlocks: wires follow their pin by name when a port is added mid-list', () => {
+  const port = (s: Sheet, v: string, x: number, y: number) => newPart(s, 'port', x, y, 0, false, { value: v })
+  const sub = emptySheet()
+  sub.parts.push(port(sub, 'a', 0, 0), port(sub, 'c', 0, 40))
+  const main: Sheet = emptySheet()
+  const blk = newPart(main, 'block', 0, 0, 90, false, { sheet: 'f.nsch', ...blockShape(sheetPorts(sub)) }) // rotated
+  main.parts.push(blk)
+  const [pa, pc] = pins(blk)
+  main.wires.push({ id: 'wa', a: pa, b: { x: -200, y: -200 } }, { id: 'wc', a: { x: 200, y: 200 }, b: pc })
+  sub.parts.push(port(sub, 'b', 0, 20)) // ports now a, b, c: 'c' moves to the other side
+  const r = refreshBlocks(main, 'f.nsch', sub)!
+  const at = Object.fromEntries(r.parts[0].pins!.map((q, i) => [q.name, pins(r.parts[0])[i]]))
+  assert.deepEqual(r.wires[0].a, at.a)
+  assert.deepEqual(r.wires[1].b, at.c)
+  assert.deepEqual(r.wires[0].b, { x: -200, y: -200 }) // far ends untouched
 })
 
 test('parseProject: optional sim settings (compat, timeoutS)', () => {

@@ -77,9 +77,9 @@ Edits inside the sheet change every block that uses it. Results and probing stay
 
 When you add, remove or rename a port on a sheet, the blocks that use the sheet must change shape. This happens by itself when you leave the sheet (switch tabs or close it) and when you save. The block gets the new set of pins and the sheets it is on are marked as changed.
 
-Check the wiring of those blocks afterwards. The pins move to new positions and the existing wires stay where they were, so they may no longer touch the pins: look for the red unconnected-pin squares and rewire.
+Wires follow their pins: each wire end on a pin moves with it to the pin's new position (pins are matched by name, so adding a port in the middle doesn't shift the others). Wires on a removed or renamed port stay where they were, so look for loose ends there. The new pin is unconnected (red square) until you wire it.
 
-![After adding port p1 to filter.nsch, both blocks have three pins and their wires are no longer connected](images/07-ports-changed.png)
+![After adding port p1 to filter.nsch, both blocks have three pins and the existing wires still reach in and out](images/07-ports-changed.png)
 
 If a block's sheet was changed some other way (for example edited outside the app), the inspector shows **Ports changed: …** and an **Update pins** button. A block whose pins don't match its sheet's ports stops the netlist with an error that says to update the block.
 

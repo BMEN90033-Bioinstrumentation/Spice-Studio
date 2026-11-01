@@ -99,7 +99,7 @@ function Detail({ e, packs, onNotice }: { e: LibEntry; packs: PackInfo[]; onNoti
         <h2>{e.name}</h2>
         <span className="chip">{e.category}</span>
         <span className="chip">{e.source === 'bundled' ? 'bundled' : fileOf(e)}</span>
-        {pack?.license && <span className="chip libv-lic">{pack.license}</span>}
+        {pack?.license && <span className="chip libv-lic" title={pack.license}>{pack.license}</span>}
       </div>
       <p className="libv-desc">{e.description}</p>
       <div className="libv-sym"><SymbolPreview kind={e.kind} part={e.kind === 'block' ? blockPartFields(e) : undefined} size="large" /></div>

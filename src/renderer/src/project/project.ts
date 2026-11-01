@@ -1,7 +1,7 @@
 // Project file (.nsproj) model + pure sheet-set helpers. No React, no Electron: node --test loads it.
 import type { Compat, ProjectSim } from '../contracts.ts'
 import type { ImportedLib } from '../library/library.ts'
-import { blockShape, sheetPorts, type Sheet } from '../schematic/model.ts'
+import { reshapeBlocks, sheetPorts, type Sheet } from '../schematic/model.ts'
 import { SYMBOLS } from '../schematic/symbols.ts'
 
 export interface Project { version: 1; name: string; top: string; libs: ImportedLib[]; sim?: ProjectSim }
@@ -53,9 +53,8 @@ export function sheetFile(name: string): string | null {
 export function refreshBlocks(s: Sheet, file: string, sub: Sheet): Sheet | null {
   const ports = sheetPorts(sub), names = (a: string[]) => a.map((n) => n.toLowerCase()).sort().join('\0')
   const want = names(ports)
-  let shape: ReturnType<typeof blockShape> | undefined
-  const parts = s.parts.map((p) => (p.sheet !== file || names((p.pins ?? []).map((q) => q.name)) === want ? p : { ...p, ...(shape ??= blockShape(ports)) }))
-  return shape ? { ...s, parts } : null
+  const ids = new Set(s.parts.filter((p) => p.sheet === file && names((p.pins ?? []).map((q) => q.name)) !== want).map((p) => p.id))
+  return ids.size ? reshapeBlocks(s, ids, ports) : null
 }
 
 // Re-point block parts after a sheet rename. null when nothing referenced it.
