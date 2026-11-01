@@ -54,8 +54,10 @@ if [ $plat = darwin ]; then
   if command -v brew >/dev/null; then PATH="$(brew --prefix bison)/bin:$PATH"; fi
 elif [ $plat = win32 ]; then
   # static libgcc/winpthread: only Windows system DLLs at runtime. libtool swallows -static for ngspice.exe
-  # (-Wl,-Bstatic gets through), and gcc -shared (the .cm links) uses shared libgcc unless -static-libgcc
-  ldflags="-s -static -static-libgcc -Wl,-Bstatic"
+  # (-Wl,-Bstatic gets through). The .cm links never see LDFLAGS (icm/makedefs only detects "MINGW32", not
+  # MINGW64) but do get CFLAGS, and gcc -shared uses the shared libgcc unless told -static-libgcc.
+  cflags="$cflags -static-libgcc"
+  ldflags="-s -static -Wl,-Bstatic"
 fi
 for t in autoconf automake make bison flex; do command -v $t >/dev/null || die "missing build tool: $t"; done
 command -v libtoolize >/dev/null || command -v glibtoolize >/dev/null || die "missing build tool: libtool"
