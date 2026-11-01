@@ -1,4 +1,4 @@
-# Builds the bundled ngspice and the installers on every OS; a pushed v* tag also publishes a GitHub release.
+# Builds the bundled ngspice and the installers for macOS (arm64, x64) and Windows (x64); a pushed v* tag also publishes a GitHub release.
 # Signing is optional: with no secrets set, macOS builds are ad-hoc signed and Windows builds are unsigned.
 #   macOS:   MAC_CSC_LINK (base64 .p12 of a "Developer ID Application" cert) + MAC_CSC_KEY_PASSWORD,
 #            notarisation: APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID
@@ -25,27 +25,33 @@ jobs:
           - { os: macos-15, target: mac } # arm64
           - { os: macos-15-intel, target: mac } # x64 (macos-13 is retired)
           - { os: windows-latest, target: win }
-          - { os: ubuntu-22.04, target: linux } # oldest glibc still hosted: widest AppImage reach
     runs-on: ${{ matrix.os }}
     steps:
       # keep LF endings on Windows: CRLF breaks the shell scripts and ngspice's autogen in MSYS2
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v7
 
+      # the ngspice build is ~10 min per job and only changes with the ref or the build scripts.
+      # ponytail: keyed on scripts, not toolchain version; bump the key if a runner image change breaks a cached binary
+      - name: Cache ngspice
+        id: ngspice
+        uses: actions/cache@v6
+        with:
+          path: vendor/ngspice
+          key: ngspice-${{ runner.os }}-${{ runner.arch }}-${{ env.NGSPICE_REF }}-${{ hashFiles('scripts/build-ngspice*.sh', 'scripts/ngspice-notices.md') }}
+
       - name: Fetch ngspice source
+        if: steps.ngspice.outputs.cache-hit != 'true'
         shell: bash
         run: |
           git clone --filter=blob:none --no-checkout "$NGSPICE_REPO" ngspice-ngspice
           git -C ngspice-ngspice checkout --quiet "$NGSPICE_REF"
 
       - name: Build tools (macOS)
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && steps.ngspice.outputs.cache-hit != 'true'
         run: brew install autoconf automake libtool bison
-      - name: Build tools (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool bison flex build-essential
       - name: Build tools (Windows)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.ngspice.outputs.cache-hit != 'true'
         uses: msys2/setup-msys2@v2.33.0
         with:
           msystem: MINGW64
@@ -53,10 +59,10 @@ jobs:
           install: git make tar autoconf automake libtool bison flex mingw-w64-x86_64-gcc mingw-w64-x86_64-ntldd-git
 
       - name: Build ngspice
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && steps.ngspice.outputs.cache-hit != 'true'
         run: bash scripts/build-ngspice.sh
       - name: Build ngspice (MSYS2)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && steps.ngspice.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: bash scripts/build-ngspice-win.sh
 
@@ -97,8 +103,6 @@ jobs:
             dist/*.dmg
             dist/*.zip
             dist/*.exe
-            dist/*.AppImage
-            dist/*.deb
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
