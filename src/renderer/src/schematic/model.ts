@@ -170,17 +170,19 @@ export function stretch(w: Wire, a: Pt, b: Pt): Wire[] {
 // moved pin or moved wire endpoint follows it, so connections rubber-band through moves, rotates and mirrors. A moved
 // pin that touched a pin of a part staying put gets a new wire back to it, so pin-to-pin connections survive too.
 export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: Pt) => Pt = (q) => q): Sheet {
-  const m = new Map<string, Pt>(), added: Wire[] = []
+  const m = new Map<string, Pt>()
   const still = new Set(s.parts.filter((p) => !sel.has(p.id)).flatMap((p) => pins(p).map(key)))
   for (const w of s.wires) if (sel.has(w.id)) for (const q of [w.a, w.b]) m.set(key(q), g(q))
   const parts = s.parts.map((p) => {
     if (!sel.has(p.id)) return p
     const n = f(p), b = pins(n)
-    pins(p).forEach((q, i) => {
-      m.set(key(q), b[i])
-      if (still.has(key(q))) added.push(...route(q, b[i]))
-    })
+    pins(p).forEach((q, i) => m.set(key(q), b[i]))
     return n
+  })
+  // m now holds every moved point (a part pin wins over a wire end); tie each one that left a still pin back to it
+  const added = [...m].flatMap(([k, n]) => {
+    const [x, y] = k.split(',').map(Number)
+    return still.has(k) ? route({ x, y }, n) : []
   })
   const wires = s.wires.flatMap((w) => {
     const h = (q: Pt) => m.get(key(q)) ?? (sel.has(w.id) ? g(q) : q)

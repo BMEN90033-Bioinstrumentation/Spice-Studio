@@ -61,6 +61,15 @@ test('moving a part off a pin-to-pin connection adds a wire back', () => {
   assert.equal(remap(s, new Set(s.parts.map((p) => p.id)), (p) => ({ ...p, x: p.x + 40 })).wires.length, 0) // moved together
 })
 
+test('dragging a wire off a pin adds a wire back', () => {
+  const s: Sheet = { ...emptySheet(), wires: route({ x: 0, y: 30 }, { x: 0, y: 100 }) }
+  s.parts.push(newPart(s, 'res', 0, 0)) // bottom pin at (0,30)
+  const d = { x: 20, y: 0 }, mv = (q: { x: number; y: number }) => ({ x: q.x + d.x, y: q.y + d.y })
+  const r = remap(s, new Set([s.wires[0].id]), (p) => p, mv)
+  assert.deepEqual(unconnectedPins(r), [{ x: 0, y: -30 }])
+  assert.equal(r.wires.length, 2)
+})
+
 test('nextName picks max + 1 per prefix, case-insensitive', () => {
   const s = emptySheet()
   assert.equal(nextName(s, 'R'), 'R1')
