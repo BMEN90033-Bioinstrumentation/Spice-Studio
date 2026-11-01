@@ -13,9 +13,12 @@ import { LibraryView } from './library/LibraryView'
 import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
 import { usePanels } from './layout/Panel'
-import { ResultsPanel } from './layout/ResultsPanel'
+import { focusPopout } from './layout/PopOut'
+import { paneKey, ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
-import { COMPATS, newProject, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
+import { bom, bomCsv, bomXlsx } from './project/bom'
+import { BOMWIN, BomWindow } from './project/BomWindow'
+import { COMPATS, newProject, type PartInfo, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
 import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
@@ -23,6 +26,7 @@ import { TEMPLATES } from './schematic/templates'
 import { blame, currentVectors, findVector, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
+import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
 import './style.css'
@@ -45,8 +49,8 @@ const json = (x: unknown) => JSON.stringify(x, null, 1)
 // ipcRenderer.invoke wraps main-process errors in "Error invoking remote method …": show only the message
 const msg = (e: unknown) => String((e as Error)?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
-type Run = { label: string; result: SimResult }
-type Tab = { key: string; name: string; runs: PlotRun[] }
+type Run = { label: string; result: SimResult; netlist: string }
+type Tab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[] } // panes: .plot lines
 // plots keyed by plotname + occurrence, so the same analysis lines up across sweep runs
 const keyed = (plots: RawPlot[]) => {
   const n: Record<string, number> = {}
@@ -57,8 +61,9 @@ function tabsOf(runs: Run[]): Tab[] {
   return [...(maps[0] ?? [])].map(([key, p]) => ({
     key,
     name: p.plotname,
-    runs: runs.flatMap((r, i) => (maps[i].has(key) ? [{ label: r.label, plot: maps[i].get(key)! }] : []))
-  }))
+    runs: runs.flatMap((r, i) => (maps[i].has(key) ? [{ label: r.label, plot: maps[i].get(key)! }] : [])),
+    panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name))
+  })).sort((a, b) => analysisPos(runs[0].netlist, a.name) - analysisPos(runs[0].netlist, b.name))
 }
 
 // pack dialect hints (LibEntry.compat, e.g. 'ltspice') of the parts in use -> ngspice compat mode
@@ -225,7 +230,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [simEdit, setSimEdit] = useState<ProjectSim | null>(null)
   const peeked = useRef<string | null>(null) // last generated netlist put in the editor
 
-  const files = Object.keys(disk.current).sort()
+  // sheet list: the top sheet first, then by name with numbers in order ("2-x" before "10-x"), so numbered stages read in sequence
+  const files = Object.keys(disk.current).sort((a, b) => +(b === top) - +(a === top) || a.localeCompare(b, undefined, { numeric: true }))
   const live = (f: string) => handles.current[f]?.get() ?? disk.current[f]
   const isSch = view !== 'net'
 
@@ -236,6 +242,32 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const resolve = useMemo(() => resolver(library), [library])
   const netCtx: NetCtx = useMemo(() => ({ sheets: { ...disk.current }, lib: resolve }), [rev, resolve])
   const sheetList = useMemo(() => (proj ? files.map((file) => ({ file, sheet: disk.current[file] })) : []), [rev, proj])
+  // bill of materials window: over the live (unsaved too) sheets, from the top sheet down; exclude = unticked sheets
+  const [bomOpen, setBomOpen] = useState(false), [bomTick, setBomTick] = useState(0), bomT = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const [bomExclude, setBomExclude] = useState<ReadonlySet<string>>(new Set())
+  useEffect(() => setBomExclude(new Set()), [pdir]) // another project: all sheets again
+  const bomNow = () => bom(Object.fromEntries(files.map((f) => [f, live(f)])), top, resolve, bomExclude, proj?.bom)
+  const bomData = useMemo(() => (proj && bomOpen ? bomNow() : null), [proj, bomOpen, rev, bomTick, resolve, bomExclude, files.join('\0')])
+  // purchasing details typed in the BOM window: state now, project file 400 ms after typing stops (flushed on close)
+  const bomSave = useRef<{ t?: ReturnType<typeof setTimeout>; p?: Project }>({})
+  const flushBom = () => {
+    const s = bomSave.current
+    clearTimeout(s.t)
+    if (s.p) writeProj(s.p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`)), (s.p = undefined)
+  }
+  function setPartInfo(key: string, field: keyof PartInfo, v: string) {
+    if (!proj) return
+    const line: PartInfo = { ...proj.bom?.[key], [field]: v || undefined }, all = { ...proj.bom }
+    if (Object.values(line).some(Boolean)) all[key] = line
+    else delete all[key]
+    const { bom: _, ...rest } = proj, p: Project = Object.keys(all).length ? { ...rest, bom: all } : rest
+    setProj(p)
+    clearTimeout(bomSave.current.t), (bomSave.current = { p, t: setTimeout(flushBom, 400) })
+  }
+  async function exportBom(kind: 'csv' | 'xlsx') {
+    const { rows } = bomNow() // fresh, not the debounced list
+    return window.api.exportSave(`${proj?.name ?? 'project'}-BOM.${kind}`, kind === 'csv' ? bomCsv(rows) : bomXlsx(rows), [kind === 'csv' ? { name: 'CSV', extensions: ['csv'] } : { name: 'Excel workbook', extensions: ['xlsx'] }])
+  }
 
   // ---- sheet bookkeeping ----
   const put = (f: string, s: Sheet) => {
@@ -273,6 +305,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   }
   function dirtied(f: string) {
     if (!dirty.current.has(f)) dirty.current.add(f), bump()
+    clearTimeout(bomT.current), (bomT.current = setTimeout(() => setBomTick((t) => t + 1), 300)) // BOM follows edits, debounced
     // stale annotations are worse than none: drop op/blame on the first edit (same object otherwise, so no re-render)
     setOverlay((o) => (o?.op || o?.blame ? { nets: o.nets, wireNets: o.wireNets } : o))
     if (pdir) clearTimeout(adoptT.current), (adoptT.current = setTimeout(() => adopt(false), 250))
@@ -449,7 +482,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
         out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
         if ((stopped = r.stopped)) break // keep the runs completed so far, drop the cut-off one
-        done.push({ label: s.label, result: r })
+        done.push({ label: s.label, result: r, netlist: s.netlist })
         if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
       }
     } finally {
@@ -464,10 +497,11 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setLog(pre + out)
     setSels((prev) =>
       Object.fromEntries(
-        tabs.map(({ key, runs: [{ plot }] }) => {
+        tabs.flatMap(({ key, runs: [{ plot }], panes }) => {
           const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
-          const keep = prev[key]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
-          return [key, keep?.length ? keep : defaultSel(plot)]
+          const keep = (k: string) => prev[k]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
+          const defs = panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]
+          return defs.map((d, i) => { const k = paneKey(key, i), kept = keep(k); return [k, kept?.length ? kept : d] })
         })
       )
     )
@@ -793,6 +827,10 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
               <div className={'sheet' + (view === 'net' ? ' on' : '')}>
                 <button className="nm" onClick={() => switchTo('net')}>Hand-written netlist{netDirty ? <span className="dot"> •</span> : null}</button>
               </div>
+              <div className="side-h">BOM</div>
+              <div className="sheet">
+                <button className="nm" onClick={() => (bomOpen ? focusPopout(BOMWIN) : setBomOpen(true))} title="Bill of materials for the whole design, with CSV / Excel export">Bill of materials…</button>
+              </div>
             </aside>
           )}
 
@@ -866,6 +904,19 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           onHome={() => (go('editor'), leave(onClose))}
           entries={browse}
           packs={sources.packs}
+        />
+      )}
+      {bomOpen && bomData && (
+        <BomWindow
+          title={`Bill of Materials — ${proj?.name ?? ''}`}
+          sheets={files.filter((f) => bomData.used.includes(f))}
+          exclude={bomExclude}
+          onExclude={setBomExclude}
+          rows={bomData.rows}
+          skipped={bomData.skipped}
+          onExport={exportBom}
+          onInfo={setPartInfo}
+          onClose={() => (flushBom(), setBomOpen(false))}
         />
       )}
       <ManageLibraries sources={sources} project={proj && { dir: pdir!, libs: proj.libs, texts: libTexts, onImport, onRemove, onToggle: onToggleLib }} />

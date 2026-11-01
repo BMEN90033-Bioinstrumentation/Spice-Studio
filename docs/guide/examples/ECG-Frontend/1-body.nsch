@@ -1,0 +1,254 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8b58",
+   "kind": "bv",
+   "x": -300,
+   "y": -70,
+   "rot": 2,
+   "mirror": false,
+   "name": "B1",
+   "value": "V=0.2+1m*(0.15*exp(-((time-floor(time*HR/60)*60/HR-0.10)/0.025)**2)-0.15*exp(-((time-floor(time*HR/60)*60/HR-0.185)/0.008)**2)+1.2*exp(-((time-floor(time*HR/60)*60/HR-0.20)/0.010)**2)-0.25*exp(-((time-floor(time*HR/60)*60/HR-0.215)/0.008)**2)+0.3*exp(-((time-floor(time*HR/60)*60/HR-0.42)/0.040)**2))"
+  },
+  {
+   "id": "mvxwdf8b5b",
+   "kind": "label",
+   "x": -300,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "body"
+  },
+  {
+   "id": "mvxwdf8b5e",
+   "kind": "cap",
+   "x": -360,
+   "y": 90,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "2p"
+  },
+  {
+   "id": "mvxwdf8b5f",
+   "kind": "vsrc",
+   "x": -360,
+   "y": 150,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 0 SIN(0 325 50)"
+  },
+  {
+   "id": "mvxwdf8b5g",
+   "kind": "gnd",
+   "x": -360,
+   "y": 180,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b5h",
+   "kind": "cap",
+   "x": -300,
+   "y": 290,
+   "rot": 0,
+   "mirror": false,
+   "name": "C2",
+   "value": "200p"
+  },
+  {
+   "id": "mvxwdf8b5i",
+   "kind": "gnd",
+   "x": -300,
+   "y": 320,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b5j",
+   "kind": "vsrc",
+   "x": -300,
+   "y": -130,
+   "rot": 2,
+   "mirror": false,
+   "name": "V2",
+   "value": "DC 0 AC 1"
+  },
+  {
+   "id": "mvxwdf8b5o",
+   "kind": "res",
+   "x": -240,
+   "y": -100,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "47k"
+  },
+  {
+   "id": "mvxwdf8b5r",
+   "kind": "res",
+   "x": -240,
+   "y": 160,
+   "rot": 3,
+   "mirror": false,
+   "name": "R2",
+   "value": "56k"
+  },
+  {
+   "id": "mvxwdf8b5u",
+   "kind": "res",
+   "x": -240,
+   "y": 260,
+   "rot": 3,
+   "mirror": false,
+   "name": "R3",
+   "value": "51k"
+  },
+  {
+   "id": "mvxwdf8b5x",
+   "kind": "port",
+   "x": -180,
+   "y": -100,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "RA"
+  },
+  {
+   "id": "mvxwdf8b60",
+   "kind": "port",
+   "x": -180,
+   "y": 160,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "LA"
+  },
+  {
+   "id": "mvxwdf8b63",
+   "kind": "port",
+   "x": -180,
+   "y": 260,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "RL"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8b59",
+   "a": {
+    "x": -300,
+    "y": -40
+   },
+   "b": {
+    "x": -300,
+    "y": 260
+   }
+  },
+  {
+   "id": "mvxwdf8b5c",
+   "a": {
+    "x": -300,
+    "y": 60
+   },
+   "b": {
+    "x": -360,
+    "y": 60
+   }
+  },
+  {
+   "id": "mvxwdf8b5k",
+   "a": {
+    "x": -300,
+    "y": -160
+   },
+   "b": {
+    "x": -270,
+    "y": -160
+   }
+  },
+  {
+   "id": "mvxwdf8b5m",
+   "a": {
+    "x": -270,
+    "y": -160
+   },
+   "b": {
+    "x": -270,
+    "y": -100
+   }
+  },
+  {
+   "id": "mvxwdf8b5p",
+   "a": {
+    "x": -300,
+    "y": 160
+   },
+   "b": {
+    "x": -270,
+    "y": 160
+   }
+  },
+  {
+   "id": "mvxwdf8b5s",
+   "a": {
+    "x": -300,
+    "y": 260
+   },
+   "b": {
+    "x": -270,
+    "y": 260
+   }
+  },
+  {
+   "id": "mvxwdf8b5v",
+   "a": {
+    "x": -210,
+    "y": -100
+   },
+   "b": {
+    "x": -180,
+    "y": -100
+   }
+  },
+  {
+   "id": "mvxwdf8b5y",
+   "a": {
+    "x": -210,
+    "y": 160
+   },
+   "b": {
+    "x": -180,
+    "y": 160
+   }
+  },
+  {
+   "id": "mvxwdf8b61",
+   "a": {
+    "x": -210,
+    "y": 260
+   },
+   "b": {
+    "x": -180,
+    "y": 260
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8b64",
+   "x": -440,
+   "y": 360,
+   "text": "* Patient: ECG (heart rate HR, set on the top sheet) between RA and the body, RA half-cell\n* offset 0.2 V, 325 V mains through 2 pF, 200 pF body-to-earth; electrodes 47k / 56k / 51k"
+  }
+ ]
+}

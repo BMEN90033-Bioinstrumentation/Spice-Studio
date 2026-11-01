@@ -5,7 +5,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
-  ANALYSES, analysisText, defaultAnalysis, emptyOptions, isSpiceNumber, mergeOptions, optionsText, parseAnalysis, parseOptions, spiceValue, validate, validateOptions,
+  ANALYSES, analysisText, defaultAnalysis, emptyOptions, isSpiceNumber, mergeOptions, optionsText, parseAnalysis, parseOptions, plotPanes, analysisPos, spiceValue, validate, validateOptions,
   type Analysis
 } from '../src/renderer/src/sim/analysis.ts'
 
@@ -117,4 +117,20 @@ test('a form-written .options line is accepted by ngspice (skipped if ngspice mi
   assert.equal(r.status, 0, r.stdout + r.stderr)
   assert.doesNotMatch(r.stdout + r.stderr, /error|warning|unknown/i)
   assert.match(r.stdout, /TEMP = 50/)
+})
+
+test('.plot lines become panes for their analysis only', () => {
+  const net = '* x\n.tran 1u 1m\n.plot tran v(a) v(a,b) ; Input; raw\n  .PLOT TRAN I(D1)\n.plot ac v(a)\n'
+  assert.deepEqual(plotPanes(net, 'Transient Analysis', ['time', 'v(a)', 'v(b)']), [
+    { title: 'Input; raw', sel: ['v(a)', '=v(a,b)'] },
+    { title: '', sel: ['=I(D1)'] }
+  ])
+  assert.deepEqual(plotPanes(net, 'AC Analysis', ['frequency', 'v(a)']), [{ title: '', sel: ['v(a)'] }])
+  assert.deepEqual(plotPanes(net, 'Operating Point', ['v(a)']), [])
+})
+
+test('result tabs follow the directive order', () => {
+  const net = '* x\n.options reltol=1e-4\n.tran 1u 1m\n.ac dec 10 1 1k\n.op\n'
+  const order = ['AC Analysis', 'Operating Point', 'Transient Analysis', 'Noise Spectral Density Curves']
+  assert.deepEqual(order.sort((a, b) => analysisPos(net, a) - analysisPos(net, b)), ['Transient Analysis', 'AC Analysis', 'Operating Point', 'Noise Spectral Density Curves'])
 })

@@ -4,7 +4,9 @@ import { eng, Plot, type PlotRun } from '../Plot'
 import type { MeasTable } from '../contracts'
 import type { Blame } from '../sim/probe'
 
-export type ResultTab = { key: string; name: string; runs: PlotRun[] }
+export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[] }
+// sels key of a tab's pane i (.plot lines stack several charts); pane 0 is the tab's own key, so probing lands there
+export const paneKey = (key: string, i: number) => (i ? `${key}|${i}` : key)
 
 export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed, onBlame, actions, meas }: {
   tabs: ResultTab[]; cur?: ResultTab; ran: boolean; onTab: (key: string) => void
@@ -34,7 +36,21 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
         {actions && <span className="tabs-act">{actions}</span>}
       </nav>
       <div className="plotarea">
-        {cur && <Plot key={cur.key} runs={cur.runs} sel={sels[cur.key] ?? []} onSel={(s) => onSels({ ...sels, [cur.key]: s })} />}
+        {cur && (
+          <div className="plotpanes">
+            {(cur.panes?.length ? cur.panes : [null]).map((p, i) => {
+              const k = paneKey(cur.key, i)
+              return (
+                <div key={k} className="plotpane">
+                  {p?.title && <h3 className="panetitle">{p.title}</h3>}
+                  <div className="panebody">
+                    <Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
         {showMeas && <Measurements meas={meas!} />}
       </div>
       <pre className="console">

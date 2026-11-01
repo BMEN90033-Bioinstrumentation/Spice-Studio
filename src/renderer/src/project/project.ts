@@ -4,7 +4,10 @@ import type { ImportedLib } from '../library/library.ts'
 import { reshapeBlocks, sheetPorts, type Sheet } from '../schematic/model.ts'
 import { SYMBOLS } from '../schematic/symbols.ts'
 
-export interface Project { version: 1; name: string; top: string; libs: ImportedLib[]; sim?: ProjectSim }
+// purchasing details per BOM line (key: bom.ts bomKey, e.g. 'res|10k|'), filled in the Bill of materials window
+export interface PartInfo { mfr?: string; mpn?: string; supplier?: string; spn?: string }
+export const PART_FIELDS = ['mfr', 'mpn', 'supplier', 'spn'] as const
+export interface Project { version: 1; name: string; top: string; libs: ImportedLib[]; sim?: ProjectSim; bom?: Record<string, PartInfo> }
 export const COMPATS: Compat[] = ['ps', 'lt', 'ltps', 'kicad']
 
 // same rule as main's safeName (main re-checks: it's the trust boundary)
@@ -39,7 +42,22 @@ export function parseProject(text: string): Project {
     if (compat !== undefined && !COMPATS.includes(compat)) throw new Error(`Unknown compat mode ${JSON.stringify(compat)} (use ${COMPATS.join(', ')})`)
     if (timeoutS !== undefined && !(typeof timeoutS === 'number' && timeoutS >= 0 && isFinite(timeoutS))) throw new Error('Project "sim.timeoutS" must be a number of seconds')
   }
-  return { version: 1, name: p.name, top: p.top, libs: p.libs, ...(p.sim && { sim: { ...(p.sim.compat && { compat: p.sim.compat }), ...(p.sim.timeoutS && { timeoutS: p.sim.timeoutS }) } }) }
+  // bom: keep only the known text fields, trimmed; drop empty lines
+  let bom: Record<string, PartInfo> | undefined
+  if (p.bom !== undefined) {
+    if (typeof p.bom !== 'object' || Array.isArray(p.bom) || !p.bom) throw new Error('Project "bom" must be an object')
+    for (const [k, v] of Object.entries(p.bom)) {
+      if (typeof v !== 'object' || Array.isArray(v) || !v) throw new Error(`Project "bom.${k}" must be an object`)
+      const info: PartInfo = {}
+      for (const f of PART_FIELDS) {
+        const x = (v as any)[f]
+        if (x !== undefined && typeof x !== 'string') throw new Error(`Project "bom.${k}.${f}" must be text`)
+        if (x?.trim()) info[f] = x.trim()
+      }
+      if (Object.keys(info).length) (bom ??= {})[k] = info
+    }
+  }
+  return { version: 1, name: p.name, top: p.top, libs: p.libs, ...(p.sim && { sim: { ...(p.sim.compat && { compat: p.sim.compat }), ...(p.sim.timeoutS && { timeoutS: p.sim.timeoutS }) } }), ...(bom && { bom }) }
 }
 
 // 'filter' / 'filter.nsch' -> 'filter.nsch', or null when not a valid sheet name

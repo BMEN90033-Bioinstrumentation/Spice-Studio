@@ -207,3 +207,28 @@ test('templates netlist cleanly with the bundled library and simulate (skipped i
     }
   }
 })
+
+test('power flags on a sub-sheet are global, like ground', (t) => {
+  const pwr = (s: Sheet, q: Pt, n: string) => { const f = newPart(s, 'power', q.x, q.y); f.value = n; s.parts.push(f) }
+  // sub-sheet: VCC -[1k]- out -[1k]- gnd; out = 5 V only if its VCC is the top sheet's VCC
+  const div = emptySheet()
+  pwr(div, pins(put(div, 'res', ['', 'P:out'], '1k'))[0], 'VCC')
+  put(div, 'res', ['P:out', '0'], '1k')
+  const m = dir(emptySheet(), '.op')
+  pwr(m, pins(put(m, 'vsrc', ['', '0'], 'DC 10'))[0], 'VCC')
+  block(m, 'div.nsch', ['out'], ['out'])
+  const r = netlist(m, 'g', { sheets: { 'main.nsch': m, 'div.nsch': div } })
+  assert.deepEqual([r.errors, r.warnings], [[], []])
+  assert.match(r.text, /^\.global VCC$/m)
+  const plots = sim(t, r.text)
+  if (plots) assert.ok(Math.abs(opv(plots, 'out') - 5) < 1e-6, String(opv(plots, 'out')))
+})
+
+test('no .global for flat sheets', () => {
+  const m = dir(emptySheet(), '.op')
+  put(m, 'vsrc', ['VCC', '0'], 'DC 1')
+  const p = newPart(m, 'power', 0, 0)
+  p.value = 'VCC'
+  m.parts.push(p)
+  assert.doesNotMatch(netlist(m).text, /\.global/)
+})

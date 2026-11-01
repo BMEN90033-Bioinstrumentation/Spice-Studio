@@ -1,0 +1,215 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8b80",
+   "kind": "port",
+   "x": -40,
+   "y": 310,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "cm"
+  },
+  {
+   "id": "mvxwdf8b83",
+   "kind": "res",
+   "x": 10,
+   "y": 310,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "100k"
+  },
+  {
+   "id": "mvxwdf8b8c",
+   "kind": "cap",
+   "x": 100,
+   "y": 220,
+   "rot": 3,
+   "mirror": false,
+   "name": "C1",
+   "value": "10n"
+  },
+  {
+   "id": "mvxwdf8b8d",
+   "kind": "res",
+   "x": 100,
+   "y": 250,
+   "rot": 3,
+   "mirror": false,
+   "name": "R2",
+   "value": "1Meg"
+  },
+  {
+   "id": "mvxwdf8b8k",
+   "kind": "opamp5",
+   "x": 100,
+   "y": 320,
+   "rot": 0,
+   "mirror": false,
+   "name": "X1",
+   "value": "OA_RRO",
+   "lib": "std:OA_RRO"
+  },
+  {
+   "id": "mvxwdf8b8l",
+   "kind": "power",
+   "x": 100,
+   "y": 290,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8b8m",
+   "kind": "power",
+   "x": 100,
+   "y": 350,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8b8n",
+   "kind": "gnd",
+   "x": 70,
+   "y": 330,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b8q",
+   "kind": "res",
+   "x": 220,
+   "y": 320,
+   "rot": 3,
+   "mirror": false,
+   "name": "R3",
+   "value": "100k"
+  },
+  {
+   "id": "mvxwdf8b8r",
+   "kind": "port",
+   "x": 250,
+   "y": 320,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "RL"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8b81",
+   "a": {
+    "x": -40,
+    "y": 310
+   },
+   "b": {
+    "x": -20,
+    "y": 310
+   }
+  },
+  {
+   "id": "mvxwdf8b84",
+   "a": {
+    "x": 40,
+    "y": 310
+   },
+   "b": {
+    "x": 70,
+    "y": 310
+   }
+  },
+  {
+   "id": "mvxwdf8b86",
+   "a": {
+    "x": 50,
+    "y": 310
+   },
+   "b": {
+    "x": 50,
+    "y": 220
+   }
+  },
+  {
+   "id": "mvxwdf8b88",
+   "a": {
+    "x": 50,
+    "y": 220
+   },
+   "b": {
+    "x": 70,
+    "y": 220
+   }
+  },
+  {
+   "id": "mvxwdf8b8a",
+   "a": {
+    "x": 50,
+    "y": 250
+   },
+   "b": {
+    "x": 70,
+    "y": 250
+   }
+  },
+  {
+   "id": "mvxwdf8b8e",
+   "a": {
+    "x": 130,
+    "y": 220
+   },
+   "b": {
+    "x": 160,
+    "y": 220
+   }
+  },
+  {
+   "id": "mvxwdf8b8g",
+   "a": {
+    "x": 160,
+    "y": 220
+   },
+   "b": {
+    "x": 160,
+    "y": 320
+   }
+  },
+  {
+   "id": "mvxwdf8b8i",
+   "a": {
+    "x": 130,
+    "y": 250
+   },
+   "b": {
+    "x": 160,
+    "y": 250
+   }
+  },
+  {
+   "id": "mvxwdf8b8o",
+   "a": {
+    "x": 140,
+    "y": 320
+   },
+   "b": {
+    "x": 190,
+    "y": 320
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8b8s",
+   "x": -40,
+   "y": 390,
+   "text": "* Right-leg drive: inverts the common mode (×−10) and drives it into the body through RL,\n* cancelling mains pickup (body: ~3 Vpp without it, ~19 mVpp with it)"
+  }
+ ]
+}

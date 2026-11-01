@@ -193,3 +193,26 @@ export function validateOptions(o: Options): string[] {
   }
   return e
 }
+
+// `.plot tran v(out) i(r1)` lines -> one stacked chart pane each on that analysis's results tab. ngspice ignores .plot
+// when it writes a rawfile, so they only steer the results panel. Entries are raw vector names, else Plot expressions
+// ('=' + text: v(a,b), I(D1), maths); no spaces inside an entry, as in SPICE. An inline comment titles the chart:
+// `.plot tran v(ecg) ; Amplified ECG`.
+const PLOT_OF: Record<string, RegExp> = { tran: /^transient/i, ac: /^ac\b/i, dc: /^dc\b/i, noise: /^noise/i, op: /^operating/i }
+export function plotPanes(text: string, plotname: string, vars: string[]): { title: string; sel: string[] }[] {
+  const has = new Set(vars.map((v) => v.toLowerCase()))
+  return [...text.matchAll(/^[ \t]*\.plot[ \t]+(\w+)[ \t]+(.*\S)/gim)]
+    .filter((m) => PLOT_OF[m[1].toLowerCase()]?.test(plotname))
+    .map((m) => {
+      const [v, ...t] = m[2].split(';')
+      return { title: t.join(';').trim(), sel: v.trim().split(/\s+/).filter(Boolean).map((x) => (has.has(x.toLowerCase()) ? x.toLowerCase() : '=' + x)) }
+    })
+}
+
+// where the deck first asks for a plot's analysis, so result tabs follow the directive order rather than ngspice's
+// (it writes AC before transient); plots of other analyses sort last
+export function analysisPos(text: string, plotname: string): number {
+  const k = Object.keys(PLOT_OF).find((a) => PLOT_OF[a].test(plotname))
+  const m = k ? new RegExp(`^[ \\t]*\\.${k}\\b`, 'im').exec(text) : null
+  return m ? m.index : Number.MAX_SAFE_INTEGER
+}

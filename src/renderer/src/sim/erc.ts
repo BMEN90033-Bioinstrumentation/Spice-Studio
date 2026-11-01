@@ -2,11 +2,12 @@
 //   errors:   a loop of voltage-defined branches (V, E/H outputs, L: a short at DC), or one of them across a single net
 //   warnings: nets with no DC path to ground (ngspice: "singular matrix" or a meaningless DC point)
 // Each .subckt body is its own scope: its ports (and .global nodes) count as ground, since the instance connects them.
+// An instance whose subckt reaches ground or a .global node inside (or isn't defined here, e.g. .include) grounds its pins.
 // Lenient on purpose (a false error blocks the run): X/T/O/A/N pins are all DC-joined, M/J/Q/B conduct between all
 // their pins. Elements inside .include/.lib files aren't seen. Refs and nets come back as written (first spelling).
 export interface Issue { message: string; refs: string[]; nets: string[] }
 
-type Scope = { anchors: string[]; els: { ref: string; dc: string[][]; vdef?: [string, string]; nets: string[] }[] }
+type Scope = { name?: string; anchors: string[]; els: { ref: string; dc: string[][]; vdef?: [string, string]; nets: string[]; sub?: string }[] }
 const KEYWORD = /^(value|poly|table|vol|cur|laplace|freq|and|or|nand|nor)\b/i
 
 // one element line -> its DC-conducting node groups, voltage-defined output pair, and every node it touches
@@ -33,8 +34,8 @@ function element(t: string[]): Scope['els'][number] | null {
     case 'x': case 'n': case 'p': {
       // X1 n1 n2 … subname [params: | k=v …]: nodes are everything before the subckt/model name
       const end = t.findIndex((s, i) => i > 0 && (/^params:$/i.test(s) || s.includes('=')))
-      const ns = t.slice(1, (end < 0 ? t.length : end) - 1)
-      return { ref, dc: [ns], nets: ns }
+      const last = (end < 0 ? t.length : end) - 1, ns = t.slice(1, last)
+      return { ref, dc: [ns], nets: ns, ...(c === 'x' && { sub: t[last]?.toLowerCase() }) }
     }
     case 'a': {
       // XSPICE: [ ] vectors, %v-style port types, model last. Digital nets have no analog DC path: tie them to ground.
@@ -80,7 +81,7 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
     const t = l.split(/\s+/)
     if (/^\.subckt$/i.test(t[0])) {
       const rest = t.slice(2), end = rest.findIndex((s) => /^params:$/i.test(s) || s.includes('='))
-      const sc: Scope = { anchors: ['0', ...(end < 0 ? rest : rest.slice(0, end))], els: [] }
+      const sc: Scope = { name: t[1]?.toLowerCase(), anchors: ['0', ...(end < 0 ? rest : rest.slice(0, end))], els: [] }
       scopes.push(sc), stack.push(sc)
     } else if (/^\.ends$/i.test(t[0])) stack.length > 1 && stack.pop()
     else if (/^\.global$/i.test(t[0])) globals.push(...t.slice(1))
@@ -89,6 +90,20 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
       const e = element(t)
       if (e) stack.at(-1)!.els.push(e)
     }
+  }
+
+  // does a subckt touch ground / a global node, itself or through the subckts it instantiates? (cycle-safe)
+  const byName = new Map(scopes.filter((s) => s.name).map((s) => [s.name!, s]))
+  const glob = new Set(['0', 'gnd', ...globals.map((g) => g.toLowerCase())])
+  const memo = new Map<string, boolean>()
+  const grounded = (name: string): boolean => {
+    const sc = byName.get(name)
+    if (!sc) return true // defined elsewhere (.include / .lib): assume it does
+    if (memo.has(name)) return memo.get(name)!
+    memo.set(name, false)
+    const r = sc.els.some((e) => e.nets.some((n) => glob.has(n.toLowerCase())) || (!!e.sub && grounded(e.sub)))
+    memo.set(name, r)
+    return r
   }
 
   const errors: Issue[] = [], warnings: Issue[] = []
@@ -103,6 +118,7 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
     for (const a of [...s.anchors, ...globals]) dc.union(k(a), '0')
     for (const e of s.els) {
       for (const g of e.dc) for (const n of g.slice(1)) dc.union(k(g[0]), k(n))
+      if (e.sub && grounded(e.sub)) for (const n of e.nets) dc.union(k(n), '0')
       if (!e.vdef) continue
       const [a, b] = e.vdef.map(k)
       if (a === b) {

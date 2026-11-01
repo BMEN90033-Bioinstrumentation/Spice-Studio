@@ -128,3 +128,27 @@ A1 [d] [dig] adc
   // S control pins conduct nothing
   assert.deepEqual(erc('* t\nV1 a 0 1\nS1 a 0 c 0 sw\nC1 c 0 1n\n.end\n').warnings.map((w) => w.nets), [['c']])
 })
+
+test('erc: a block that reaches ground (or a .global) inside grounds its pins; one that does not still warns', () => {
+  const deck = (body: string) => `* hier
+.global VCC
+V1 VCC 0 DC 5
+X1 a b stage
+X2 b c outer
+${body}
+.subckt outer in out
+X1 in out stage
+.ends outer
+.end
+`
+  // band-pass style: input cap, resistor to ground inside
+  assert.deepEqual(erc(deck('.subckt stage in out\nC1 in out 1u\nR1 out 0 1k\n.ends stage')).warnings, [])
+  // tied to the global supply instead of ground
+  assert.deepEqual(erc(deck('.subckt stage in out\nC1 in out 1u\nR1 out VCC 1k\n.ends stage')).warnings, [])
+  // nothing inside reaches ground: the top nets float
+  const w = erc(deck('.subckt stage in out\nR1 in out 1k\n.ends stage')).warnings
+  assert.equal(w.length, 1)
+  assert.deepEqual(w[0].nets, ['a', 'b', 'c'])
+  // subckt from an .include: unknown body, assumed fine
+  assert.deepEqual(erc('* x\n.include amp.lib\nX1 a b AMP\n.end\n').warnings, [])
+})

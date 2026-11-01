@@ -1,0 +1,233 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8baj",
+   "kind": "port",
+   "x": 790,
+   "y": 30,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "trig"
+  },
+  {
+   "id": "mvxwdf8baq",
+   "kind": "res",
+   "x": 820,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "1Meg"
+  },
+  {
+   "id": "mvxwdf8bar",
+   "kind": "power",
+   "x": 820,
+   "y": -30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8bas",
+   "kind": "cap",
+   "x": 860,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "220n"
+  },
+  {
+   "id": "mvxwdf8bat",
+   "kind": "gnd",
+   "x": 860,
+   "y": 90,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8bau",
+   "kind": "opamp5",
+   "x": 920,
+   "y": 40,
+   "rot": 2,
+   "mirror": true,
+   "name": "X1",
+   "value": "CMP_OC",
+   "lib": "std:CMP_OC"
+  },
+  {
+   "id": "mvxwdf8bav",
+   "kind": "power",
+   "x": 920,
+   "y": 70,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8baw",
+   "kind": "power",
+   "x": 920,
+   "y": 10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8bax",
+   "kind": "gnd",
+   "x": 890,
+   "y": 50,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8bb0",
+   "kind": "led",
+   "x": 980,
+   "y": 10,
+   "rot": 0,
+   "mirror": false,
+   "name": "D1",
+   "value": "LED_RED",
+   "lib": "std:LED_RED"
+  },
+  {
+   "id": "mvxwdf8bb1",
+   "kind": "res",
+   "x": 980,
+   "y": -50,
+   "rot": 0,
+   "mirror": false,
+   "name": "R2",
+   "value": "560"
+  },
+  {
+   "id": "mvxwdf8bb2",
+   "kind": "power",
+   "x": 980,
+   "y": -80,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8bb7",
+   "kind": "res",
+   "x": 1020,
+   "y": 10,
+   "rot": 0,
+   "mirror": false,
+   "name": "R3",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8bb8",
+   "kind": "label",
+   "x": 1020,
+   "y": -20,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "led_a"
+  },
+  {
+   "id": "mvxwdf8bb9",
+   "kind": "label",
+   "x": 980,
+   "y": 40,
+   "rot": 1,
+   "mirror": false,
+   "name": "",
+   "value": "led_k"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8bak",
+   "a": {
+    "x": 790,
+    "y": 30
+   },
+   "b": {
+    "x": 820,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8bam",
+   "a": {
+    "x": 820,
+    "y": 30
+   },
+   "b": {
+    "x": 860,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8bao",
+   "a": {
+    "x": 860,
+    "y": 30
+   },
+   "b": {
+    "x": 890,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8bay",
+   "a": {
+    "x": 960,
+    "y": 40
+   },
+   "b": {
+    "x": 980,
+    "y": 40
+   }
+  },
+  {
+   "id": "mvxwdf8bb3",
+   "a": {
+    "x": 980,
+    "y": -20
+   },
+   "b": {
+    "x": 1020,
+    "y": -20
+   }
+  },
+  {
+   "id": "mvxwdf8bb5",
+   "a": {
+    "x": 980,
+    "y": 40
+   },
+   "b": {
+    "x": 1020,
+    "y": 40
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8bba",
+   "x": 790,
+   "y": 150,
+   "text": "* One-shot: each detection pulls trig to VEE, the 1Meg/220n recharge holds the LED on ~150 ms\n* (one clean flash per beat). LED ≈ 14 mA through 560 Ω; 10k bleed sets its off-state voltage"
+  }
+ ]
+}

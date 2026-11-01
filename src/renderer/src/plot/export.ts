@@ -3,7 +3,7 @@ import type uPlot from 'uplot'
 
 export type CsvRun = { label: string; x: ArrayLike<number>; cols: { name: string; y: ArrayLike<number | null | undefined> }[] }
 
-const cell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s)
+export const cell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s) // one CSV field
 const num = (v: number | null | undefined) => (v == null || !Number.isFinite(v) ? '' : String(v))
 function same(a: ArrayLike<number>, b: ArrayLike<number>) {
   if (a === b) return true
@@ -25,6 +25,53 @@ export function toCsv(xName: string, runs: CsvRun[]): string {
   const rows = Math.max(0, ...cols.map((c) => c.y.length)), out = [cols.map((c) => cell(c.name)).join(',')]
   for (let i = 0; i < rows; i++) out.push(cols.map((c) => num(c.y[i])).join(','))
   return out.join('\n') + '\n'
+}
+
+// Minimal .xlsx (Office Open XML) with one sheet: strings as inline strings, numbers as numbers, packed in an
+// uncompressed ("stored") zip. No library: Excel, Numbers and LibreOffice open it without the .xls-HTML warning.
+export function toXlsx(rows: (string | number)[][], sheetName = 'Sheet1'): Uint8Array {
+  const esc = (s: string) => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '').replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' })[c]!)
+  const col = (i: number) => { let s = ''; for (let n = i + 1; n; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s; return s }
+  const c = (v: string | number, r: number, i: number) => typeof v === 'number' && Number.isFinite(v)
+    ? `<c r="${col(i)}${r}"><v>${v}</v></c>`
+    : `<c r="${col(i)}${r}" t="inlineStr"><is><t xml:space="preserve">${esc(String(v))}</t></is></c>`
+  const X = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n', NS = 'http://schemas.openxmlformats.org'
+  const rel = (id: string, type: string, target: string) => `<Relationship Id="${id}" Type="${NS}/officeDocument/2006/relationships/${type}" Target="${target}"/>`
+  const rels = (r: string) => `${X}<Relationships xmlns="${NS}/package/2006/relationships">${r}</Relationships>`
+  // each column as wide as its longest cell (characters), capped
+  const widths = (rows[0] ?? []).map((_, i) => `<col min="${i + 1}" max="${i + 1}" width="${Math.min(60, Math.max(...rows.map((r) => String(r[i] ?? '').length)) + 2)}" customWidth="1"/>`).join('')
+  return zip({
+    '[Content_Types].xml': `${X}<Types xmlns="${NS}/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>` +
+      `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`,
+    '_rels/.rels': rels(rel('rId1', 'officeDocument', 'xl/workbook.xml')),
+    'xl/workbook.xml': `${X}<workbook xmlns="${NS}/spreadsheetml/2006/main" xmlns:r="${NS}/officeDocument/2006/relationships"><sheets><sheet name="${esc(sheetName.replace(/[[\]:*?/\\]/g, ' ').slice(0, 31))}" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+    'xl/_rels/workbook.xml.rels': rels(rel('rId1', 'worksheet', 'worksheets/sheet1.xml')),
+    'xl/worksheets/sheet1.xml': `${X}<worksheet xmlns="${NS}/spreadsheetml/2006/main"><cols>${widths}</cols><sheetData>${rows.map((row, r) => `<row r="${r + 1}">${row.map((v, i) => c(v, r + 1, i)).join('')}</row>`).join('')}</sheetData></worksheet>`
+  })
+}
+
+const CRC = Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1; return n >>> 0 })
+export const crc32 = (b: Uint8Array) => { let c = ~0; for (const x of b) c = CRC[(c ^ x) & 255] ^ (c >>> 8); return ~c >>> 0 }
+// zip with every entry stored (method 0), dated 1980-01-01; ponytail: no compression or zip64, fine for small exports
+function zip(files: Record<string, string>): Uint8Array {
+  const enc = new TextEncoder(), local: Uint8Array[] = [], central: Uint8Array[] = []
+  let off = 0
+  const rec = (size: number, fill: (v: DataView) => void) => { const b = new Uint8Array(size); fill(new DataView(b.buffer)); return b }
+  for (const [name, text] of Object.entries(files)) {
+    const n = enc.encode(name), d = enc.encode(text), crc = crc32(d)
+    // from 'version needed' on, local and central headers share a layout: flags, method 0, time, date, crc, sizes, name length
+    const common = (v: DataView, o: number) => { v.setUint16(o, 20, true); v.setUint16(o + 8, 0x21, true); v.setUint32(o + 10, crc, true); v.setUint32(o + 14, d.length, true); v.setUint32(o + 18, d.length, true); v.setUint16(o + 22, n.length, true) }
+    const h = rec(30, (v) => { v.setUint32(0, 0x04034b50, true); common(v, 4) })
+    central.push(rec(46, (v) => { v.setUint32(0, 0x02014b50, true); v.setUint16(4, 20, true); common(v, 6); v.setUint32(42, off, true) }), n)
+    local.push(h, n, d)
+    off += h.length + n.length + d.length
+  }
+  const cdSize = central.reduce((a, b) => a + b.length, 0), count = Object.keys(files).length
+  const end = rec(22, (v) => { v.setUint32(0, 0x06054b50, true); v.setUint16(8, count, true); v.setUint16(10, count, true); v.setUint32(12, cdSize, true); v.setUint32(16, off, true) })
+  const all = [...local, ...central, end], out = new Uint8Array(all.reduce((a, b) => a + b.length, 0))
+  let p = 0
+  for (const b of all) out.set(b, p), (p += b.length)
+  return out
 }
 
 type Item = { label: string; color: string }

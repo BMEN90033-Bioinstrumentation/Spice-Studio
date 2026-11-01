@@ -1,0 +1,504 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8bbb",
+   "kind": "block",
+   "x": 0,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "XBODY",
+   "value": "Body",
+   "sheet": "1-body.nsch",
+   "size": {
+    "w": 100,
+    "h": 80
+   },
+   "pins": [
+    {
+     "name": "RA",
+     "x": 70,
+     "y": -20
+    },
+    {
+     "name": "LA",
+     "x": 70,
+     "y": 0
+    },
+    {
+     "name": "RL",
+     "x": 70,
+     "y": 20
+    }
+   ]
+  },
+  {
+   "id": "mvxwdf8bbc",
+   "kind": "block",
+   "x": 220,
+   "y": -10,
+   "rot": 0,
+   "mirror": false,
+   "name": "XINA",
+   "value": "In-amp",
+   "sheet": "2-inamp.nsch",
+   "pins": [
+    {
+     "name": "RA",
+     "x": -60,
+     "y": -10
+    },
+    {
+     "name": "LA",
+     "x": -60,
+     "y": 10
+    },
+    {
+     "name": "cm",
+     "x": 60,
+     "y": -10
+    },
+    {
+     "name": "ina",
+     "x": 60,
+     "y": 10
+    }
+   ],
+   "size": {
+    "w": 80,
+    "h": 60
+   }
+  },
+  {
+   "id": "mvxwdf8bbd",
+   "kind": "block",
+   "x": 220,
+   "y": 110,
+   "rot": 0,
+   "mirror": false,
+   "name": "XRLD",
+   "value": "RLD",
+   "sheet": "3-rld.nsch",
+   "pins": [
+    {
+     "name": "cm",
+     "x": -60,
+     "y": 0
+    },
+    {
+     "name": "RL",
+     "x": 60,
+     "y": 0
+    }
+   ],
+   "size": {
+    "w": 80,
+    "h": 40
+   }
+  },
+  {
+   "id": "mvxwdf8bbe",
+   "kind": "block",
+   "x": 400,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "XBPF",
+   "value": "Band-pass",
+   "sheet": "4-bandpass.nsch",
+   "pins": [
+    {
+     "name": "in",
+     "x": -60,
+     "y": 0
+    },
+    {
+     "name": "out",
+     "x": 60,
+     "y": 0
+    }
+   ],
+   "size": {
+    "w": 80,
+    "h": 40
+   }
+  },
+  {
+   "id": "mvxwdf8bbf",
+   "kind": "block",
+   "x": 580,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "XDET",
+   "value": "Detector",
+   "sheet": "5-detector.nsch",
+   "pins": [
+    {
+     "name": "in",
+     "x": -60,
+     "y": 0
+    },
+    {
+     "name": "out",
+     "x": 60,
+     "y": 0
+    }
+   ],
+   "size": {
+    "w": 80,
+    "h": 40
+   }
+  },
+  {
+   "id": "mvxwdf8bbg",
+   "kind": "block",
+   "x": 760,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "XLED",
+   "value": "One-shot",
+   "sheet": "6-led.nsch",
+   "pins": [
+    {
+     "name": "trig",
+     "x": -60,
+     "y": 0
+    }
+   ],
+   "size": {
+    "w": 80,
+    "h": 40
+   }
+  },
+  {
+   "id": "mvxwdf8bbl",
+   "kind": "label",
+   "x": 110,
+   "y": -20,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "RA"
+  },
+  {
+   "id": "mvxwdf8bbq",
+   "kind": "label",
+   "x": 110,
+   "y": 0,
+   "rot": 1,
+   "mirror": false,
+   "name": "",
+   "value": "LA"
+  },
+  {
+   "id": "mvxwdf8bbr",
+   "kind": "label",
+   "x": 280,
+   "y": -20,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "cm"
+  },
+  {
+   "id": "mvxwdf8bbs",
+   "kind": "label",
+   "x": 160,
+   "y": 110,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "cm"
+  },
+  {
+   "id": "mvxwdf8bc3",
+   "kind": "label",
+   "x": 90,
+   "y": 150,
+   "rot": 1,
+   "mirror": false,
+   "name": "",
+   "value": "RL"
+  },
+  {
+   "id": "mvxwdf8bc8",
+   "kind": "label",
+   "x": 320,
+   "y": 0,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "ina"
+  },
+  {
+   "id": "mvxwdf8bcd",
+   "kind": "label",
+   "x": 490,
+   "y": 0,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "ecg"
+  },
+  {
+   "id": "mvxwdf8bci",
+   "kind": "label",
+   "x": 670,
+   "y": 0,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "tmr"
+  },
+  {
+   "id": "mvxwdf8bcj",
+   "kind": "vsrc",
+   "x": 420,
+   "y": 130,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "DC 5"
+  },
+  {
+   "id": "mvxwdf8bck",
+   "kind": "power",
+   "x": 420,
+   "y": 100,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8bcl",
+   "kind": "gnd",
+   "x": 420,
+   "y": 160,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8bcm",
+   "kind": "vsrc",
+   "x": 500,
+   "y": 130,
+   "rot": 0,
+   "mirror": false,
+   "name": "V2",
+   "value": "DC -5"
+  },
+  {
+   "id": "mvxwdf8bcn",
+   "kind": "power",
+   "x": 500,
+   "y": 100,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8bco",
+   "kind": "gnd",
+   "x": 500,
+   "y": 160,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8bbh",
+   "a": {
+    "x": 70,
+    "y": -20
+   },
+   "b": {
+    "x": 110,
+    "y": -20
+   }
+  },
+  {
+   "id": "mvxwdf8bbj",
+   "a": {
+    "x": 110,
+    "y": -20
+   },
+   "b": {
+    "x": 160,
+    "y": -20
+   }
+  },
+  {
+   "id": "mvxwdf8bbm",
+   "a": {
+    "x": 70,
+    "y": 0
+   },
+   "b": {
+    "x": 110,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bbo",
+   "a": {
+    "x": 110,
+    "y": 0
+   },
+   "b": {
+    "x": 160,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bbt",
+   "a": {
+    "x": 280,
+    "y": 110
+   },
+   "b": {
+    "x": 300,
+    "y": 110
+   }
+  },
+  {
+   "id": "mvxwdf8bbv",
+   "a": {
+    "x": 300,
+    "y": 110
+   },
+   "b": {
+    "x": 300,
+    "y": 150
+   }
+  },
+  {
+   "id": "mvxwdf8bbx",
+   "a": {
+    "x": 300,
+    "y": 150
+   },
+   "b": {
+    "x": 90,
+    "y": 150
+   }
+  },
+  {
+   "id": "mvxwdf8bbz",
+   "a": {
+    "x": 90,
+    "y": 150
+   },
+   "b": {
+    "x": 90,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8bc1",
+   "a": {
+    "x": 90,
+    "y": 20
+   },
+   "b": {
+    "x": 70,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8bc4",
+   "a": {
+    "x": 280,
+    "y": 0
+   },
+   "b": {
+    "x": 320,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bc6",
+   "a": {
+    "x": 320,
+    "y": 0
+   },
+   "b": {
+    "x": 340,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bc9",
+   "a": {
+    "x": 460,
+    "y": 0
+   },
+   "b": {
+    "x": 490,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bcb",
+   "a": {
+    "x": 490,
+    "y": 0
+   },
+   "b": {
+    "x": 520,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bce",
+   "a": {
+    "x": 640,
+    "y": 0
+   },
+   "b": {
+    "x": 670,
+    "y": 0
+   }
+  },
+  {
+   "id": "mvxwdf8bcg",
+   "a": {
+    "x": 670,
+    "y": 0
+   },
+   "b": {
+    "x": 700,
+    "y": 0
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8bcp",
+   "x": -60,
+   "y": 200,
+   "text": "* HR = heart rate (bpm), used by sheet 1-body\n.param HR=72\n.tran 0.5m 6 0 0.5m\n.ac dec 50 10m 1k\n* gear: the 0.5 ms step is far longer than the LED node's ~0.4 µs time constant,\n* which makes the default trapezoidal method ring (±11 mV, sign flips every step)\n.options method=gear"
+  },
+  {
+   "id": "mvxwdf8bcq",
+   "x": -60,
+   "y": 330,
+   "text": "* plotted on Run, one chart per line; text after ; is its title. xdet.qrs = net qrs inside block XDET\n.plot tran v(la,ra) ; Electrodes: lead I (LA − RA) at the skin\n.plot tran v(ina) v(ecg) ; Amplified: instrumentation amp (×11) and 0.5–40 Hz band (×1111)\n.plot tran v(xdet.qrs) v(xdet.thr) v(tmr) ; Detection: QRS vs threshold, 150 ms one-shot\n.plot tran I(XLED.D1) v(xled.led_a,xled.led_k) ; LED current and voltage\n.plot ac v(ina) v(ecg) v(xdet.qrs) ; Frequency response: gain from the electrodes (1 V AC, lead I)"
+  },
+  {
+   "id": "mvxwdf8bcr",
+   "x": -60,
+   "y": 450,
+   "text": "* detected rate from the one-shot (0.833 s = 72 bpm)\n.meas tran beat TRIG v(tmr) VAL=0 FALL=2 TARG v(tmr) VAL=0 FALL=3"
+  }
+ ]
+}

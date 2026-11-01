@@ -1,0 +1,211 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8b9u",
+   "kind": "port",
+   "x": 580,
+   "y": 20,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxwdf8b9x",
+   "kind": "cap",
+   "x": 640,
+   "y": 20,
+   "rot": 3,
+   "mirror": false,
+   "name": "C1",
+   "value": "100n"
+  },
+  {
+   "id": "mvxwdf8b9y",
+   "kind": "res",
+   "x": 670,
+   "y": 50,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "150k"
+  },
+  {
+   "id": "mvxwdf8b9z",
+   "kind": "gnd",
+   "x": 670,
+   "y": 80,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8ba2",
+   "kind": "label",
+   "x": 670,
+   "y": 20,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "qrs"
+  },
+  {
+   "id": "mvxwdf8ba7",
+   "kind": "res",
+   "x": 760,
+   "y": 90,
+   "rot": 3,
+   "mirror": false,
+   "name": "R2",
+   "value": "120k"
+  },
+  {
+   "id": "mvxwdf8ba8",
+   "kind": "power",
+   "x": 790,
+   "y": 90,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8ba9",
+   "kind": "res",
+   "x": 710,
+   "y": 140,
+   "rot": 0,
+   "mirror": false,
+   "name": "R3",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8baa",
+   "kind": "gnd",
+   "x": 710,
+   "y": 170,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8bab",
+   "kind": "label",
+   "x": 710,
+   "y": 90,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "thr"
+  },
+  {
+   "id": "mvxwdf8bac",
+   "kind": "opamp5",
+   "x": 740,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "X1",
+   "value": "CMP_OC",
+   "lib": "std:CMP_OC"
+  },
+  {
+   "id": "mvxwdf8bad",
+   "kind": "power",
+   "x": 740,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8bae",
+   "kind": "power",
+   "x": 740,
+   "y": 60,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8bah",
+   "kind": "port",
+   "x": 820,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8b9v",
+   "a": {
+    "x": 580,
+    "y": 20
+   },
+   "b": {
+    "x": 610,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8ba0",
+   "a": {
+    "x": 670,
+    "y": 20
+   },
+   "b": {
+    "x": 710,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8ba3",
+   "a": {
+    "x": 710,
+    "y": 40
+   },
+   "b": {
+    "x": 710,
+    "y": 110
+   }
+  },
+  {
+   "id": "mvxwdf8ba5",
+   "a": {
+    "x": 710,
+    "y": 90
+   },
+   "b": {
+    "x": 730,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxwdf8baf",
+   "a": {
+    "x": 780,
+    "y": 30
+   },
+   "b": {
+    "x": 820,
+    "y": 30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8bai",
+   "x": 580,
+   "y": 210,
+   "text": "* QRS detector: 10 Hz high-pass (100n/150k), comparator fires while qrs > thr (0.38 V,\n* tune with the 120k). Open-collector output: the pull-up is in the one-shot"
+  }
+ ]
+}

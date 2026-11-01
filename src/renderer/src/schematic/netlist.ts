@@ -46,12 +46,13 @@ interface Global {
   subText: string[]
   names: Set<string> // subckt names taken (lowercase)
   chain: string[] // sheet files being netlisted, for cycle detection
+  globals: Map<string, string> // power flags used on sub-sheets (lowercase -> as written): .global, so VCC is one net everywhere
   ground: boolean
 }
 
 export function netlist(s: Sheet, title?: string, ctx: NetCtx = {}): NetlistResult {
   const g: Global = {
-    ctx, errors: [], warnings: [], libText: new Map(), defs: new Map(), models: new Set(), subs: new Map(), subText: [], names: new Set(), chain: [], ground: false
+    ctx, errors: [], warnings: [], libText: new Map(), defs: new Map(), models: new Set(), subs: new Map(), subText: [], names: new Set(), chain: [], globals: new Map(), ground: false
   }
   // lib subckt/model names can't be reused for sheet subckts
   for (const sh of [s, ...Object.values(ctx.sheets ?? {})])
@@ -67,7 +68,8 @@ export function netlist(s: Sheet, title?: string, ctx: NetCtx = {}): NetlistResu
   else if (!g.ground) errors.push('No ground: add a ground symbol (G) to the circuit')
   if (!ANALYSIS.test(r.directives)) warnings.push('No analysis directive (.op, .tran, .ac, .dc, …): ngspice will have nothing to run')
   const body = s.texts.flatMap((t) => t.text.split('\n').filter((l) => !/^\s*\.end\s*$/i.test(l)))
-  const text = errors.length ? '' : [`* ${title ?? 'schematic'}`, ...r.lines, ...body, ...g.libText.values(), ...g.subText, ...g.models, '.end', ''].join('\n')
+  const glob = g.globals.size ? [`.global ${[...g.globals.values()].join(' ')}`] : []
+  const text = errors.length ? '' : [`* ${title ?? 'schematic'}`, ...glob, ...r.lines, ...body, ...g.libText.values(), ...g.subText, ...g.models, '.end', ''].join('\n')
   return { text, errors, warnings, nets: r.nets, wireNets: r.wireNets, refs: r.refs }
 }
 
@@ -101,6 +103,8 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     if (!isFlag(p.kind)) continue
     if (p.kind !== 'gnd' && BAD.test(p.value)) err(`Invalid net ${p.kind === 'port' ? 'port' : p.kind === 'power' ? 'power flag' : 'label'} "${p.value}": no spaces or =(),{}"' allowed`)
     union(key(pins(p)[0]), '@' + flagName(p).toLowerCase())
+    // power flags are global like ground (a subckt's other nets are local to it); labels stay local to their sheet
+    if (file && p.kind === 'power' && flagName(p) !== '0' && !BAD.test(p.value)) g.globals.set(p.value.toLowerCase(), p.value)
   }
   const portFlags = s.parts.filter((p) => p.kind === 'port')
   if (!file && portFlags.length) warn(`Top sheet has ports (${portFlags.map((p) => p.value).join(', ')}); they act as net labels here`)

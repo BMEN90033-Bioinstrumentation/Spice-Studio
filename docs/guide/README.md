@@ -33,5 +33,6 @@ The chapters use the projects in [`examples/`](examples/). Each is a folder with
 | [Diode-TempSweep](examples/Diode-TempSweep/) | `.step temp` on a 1N4148 diode | 6 |
 | [MonteCarlo-RC](examples/MonteCarlo-RC/) | `.mc 20` with a ±5 % resistor | 6 |
 | [Hier-Filter](examples/Hier-Filter/) | Two copies of a filter sheet used as blocks | 7 |
+| [ECG-Frontend](examples/ECG-Frontend/) | 3-electrode ECG, one sheet per stage: op-amp instrumentation amp, right-leg drive, filters, QRS detector, LED per beat; `.plot` charts and frequency response | 5, 7 |
 
 [`examples/make-examples.ts`](examples/make-examples.ts) regenerates them, and [`images/README.md`](images/README.md) says how the screenshots were made.

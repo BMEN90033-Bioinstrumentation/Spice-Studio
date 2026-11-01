@@ -29,6 +29,9 @@ const fmt = (v: number | null, unit: string) => (/^(dB|°)/.test(unit) ? (v == n
 
 const UNIT: Record<string, string> = { time: 's', frequency: 'Hz', voltage: 'V', current: 'A' }
 const INV: Record<string, string> = { s: 'Hz', Hz: 's' } // unit of 1/Δx
+// axis titles: "Voltage (V)"; units without a quantity name show as "(V/s)", dimensionless as nothing
+const QTY: Record<string, string> = { V: 'Voltage', A: 'Current', W: 'Power', 'Ω': 'Impedance', dB: 'Magnitude', '°': 'Phase', s: 'Time', Hz: 'Frequency' }
+const axisTitle = (unit: string, name = '') => (unit && unit !== '1' ? `${QTY[unit] ?? name} (${unit})`.trim() : name)
 type Mode = 'db' | 'phase'
 type View = 'time' | 'fft'
 type Cur = { a?: number; b?: number }
@@ -80,6 +83,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   const [curs, setCurs] = useState<Record<View, Cur>>(() => CURS.get(first) ?? { time: {}, fft: {} })
   useEffect(() => void CURS.set(first, curs), [curs])
   const [draft, setDraft] = useState(''), [draftErr, setDraftErr] = useState('')
+  const [q, setQ] = useState('') // vector search
   const [note, setNote] = useState('')
   const host = useRef<HTMLDivElement>(null)
   const uref = useRef<uPlot | null>(null)
@@ -152,7 +156,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
           stroke: color(hue(t.key), r, runs.length),
           width: 1.5,
           spanGaps: true,
-          value: (_u: uPlot, y: number | null) => fmt(y, t.unit)
+          value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)) // blank off-hover: reads as a plain legend
         })
     })
     if (!tables.length) tables.push([fftv ? new Float64Array([1, 2]) : scale.re])
@@ -160,7 +164,8 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     const data = tables.length > 1 ? uPlot.join(tables) : tables[0]
     const used = [...new Set(ser.map((x) => x.scale!))]
     const yAxes: uPlot.Axis[] = (used.length ? used : ['y']).map((k, i) => ({
-      ...axis, scale: k, size: i ? 76 : 64, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid,
+      ...axis, scale: k, size: i ? 84 : 72, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, labelSize: 18,
+      label: axisTitle(k === 'y' ? yUnit : k === '1' ? '' : k),
       values: (_u, t) => t.map((v) => (k === 'y' && yUnit ? v + yUnit : eng(v, k === 'y' || k === '1' ? '' : k)))
     }))
     let lines: HTMLDivElement[] = []
@@ -176,9 +181,9 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
         width: el.clientWidth - PAD_X,
         height: el.clientHeight - PAD_Y,
         scales: { x: { time: false, distr: (fftv ? fftLog : first.complex) ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, { auto: true }])) },
-        series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => eng(v, xUnit) }, ...ser],
+        series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => (v == null ? '' : eng(v, xUnit)) }, ...ser],
         axes: [
-          { ...axis, values: (_u, s) => s.map((v) => (v == null ? '' : eng(v, xUnit))) }, // log axes pass null for unlabelled minor ticks
+          { ...axis, labelSize: 18, label: axisTitle(xUnit, scale.name), values: (_u, s) => s.map((v) => (v == null ? '' : eng(v, xUnit))) }, // log axes pass null for unlabelled minor ticks
           ...yAxes
         ],
         cursor: { drag: { x: true, y: true, uni: 20, dist: 4 } }, // dist: a click must not zoom (it places cursor A)
@@ -290,6 +295,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     )
   }
 
+  const shown = q.trim() ? list.filter((v) => [v.name, pretty(v.name)].some((n) => n.toLowerCase().includes(q.trim().toLowerCase()))) : list
   const toggle = (n: string) => onSel(sel.includes(n) ? sel.filter((s) => s !== n) : [...sel, n])
   const addExpr = () => {
     const t = draft.trim().replace(/^=\s*/, '')
@@ -319,9 +325,22 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
         {first.complex && seg([['db', 'Magnitude'], ['phase', 'Phase']], mode, setMode)}
         {canFft && seg([['time', 'Time'], ['fft', 'FFT']], view, (v) => (v === 'fft' ? toFft() : setView(v)))}
         {fftv && seg([['log', 'Log f'], ['lin', 'Linear f']], fftLog ? 'log' : 'lin', (v) => setFftLog(v === 'log'))}
-        {list.map((v, i) => (
+        <input
+          className="addexpr"
+          type="search"
+          value={q}
+          placeholder="Search vectors"
+          title="Filter by name, e.g. ecg, i(d1), x3. Enter toggles the first match"
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setQ('')
+            if (e.key === 'Enter' && shown[0]) toggle(lc(shown[0]))
+          }}
+        />
+        {q && !shown.length && <div style={{ color: "var(--dim)", fontSize: 12 }}>No vectors match "{q}"</div>}
+        {shown.map((v, i) => (
           <Fragment key={v.name}>
-            {grouped && (i === 0 || isCurrent(v.name) !== isCurrent(list[i - 1].name)) && (
+            {grouped && (i === 0 || isCurrent(v.name) !== isCurrent(shown[i - 1].name)) && (
               <h4>{isCurrent(v.name) ? 'Currents' : 'Voltages'}</h4>
             )}
             <label style={{ '--c': color(hue(lc(v))) } as React.CSSProperties}>

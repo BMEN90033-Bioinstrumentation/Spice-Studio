@@ -8,9 +8,9 @@ The screenshots in this chapter use [examples/CE-Amplifier](examples/CE-Amplifie
 
 After a run, the results panel on the right has:
 
-- **Tabs**, one per analysis (*Operating Point*, *Transient Analysis*, *AC Analysis*, *DC transfer characteristic*, *Noise…*), plus **Measurements** when the deck has `.meas` lines.
-- **The vector list** on the left of the plot: **Voltages**, **Currents** and **Expressions**. Tick a box to plot that vector. The first few voltages are ticked for you.
-- **The plot.** Voltages and currents get separate y axes (currents on the right), so a milliamp trace isn't flattened next to a 10 V one.
+- **Tabs**, one per analysis (*Operating Point*, *Transient Analysis*, *AC Analysis*, *DC transfer characteristic*, *Noise…*) in the order of your analysis directives, plus **Measurements** when the deck has `.meas` lines. The first tab is shown after a run.
+- **The vector list** on the left of the plot: **Voltages**, **Currents** and **Expressions**. Tick a box to plot that vector. The first few voltages are ticked for you. **Search vectors** at the top filters the list by name (`ecg`, `i(d1)`, `x3`); **Enter** ticks the first match, **Esc** clears the search.
+- **The plot.** Voltages and currents get separate, titled y axes (currents on the right), so a milliamp trace isn't flattened next to a 10 V one. The legend under it names each trace and shows its value under the mouse.
 - **The console** under the plot: the netlist that was run and ngspice's output.
 
 Plot controls:
@@ -21,6 +21,20 @@ Plot controls:
 - The legend under the plot shows the values under the mouse.
 
 An analysis that produces a single point, such as `.op`, is shown as a table instead of a plot.
+
+### Choosing the plots with `.plot`
+
+Put `.plot` lines in a directive to pick what is plotted after each run. Each line becomes its own chart, stacked in the analysis's tab, so signals of very different sizes (millivolts at the electrodes, volts after the amplifier) each get a readable scale:
+
+```
+.plot tran v(la,ra) ; Electrodes
+.plot tran v(ina) v(ecg) ; Amplified
+.plot tran I(D1) v(led_a,led_k) ; LED current and voltage
+```
+
+Text after `;` (a SPICE inline comment) becomes the chart's title. When the charts don't fit, the stack scrolls.
+
+The word after `.plot` names the analysis (`tran`, `ac`, `dc` or `noise`). An entry can be a vector name or any [expression](#expressions), written without spaces. Each chart keeps its own vector list, so you can tick more traces into it, and Alt+click probes go into the top chart. ngspice ignores `.plot` lines when it writes results for the app, so they don't change the simulation. The [ECG-Frontend](examples/ECG-Frontend/) example uses four.
 
 ## Probing the schematic
 

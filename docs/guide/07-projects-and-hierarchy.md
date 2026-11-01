@@ -44,6 +44,9 @@ Rules:
 - Port names can't contain spaces or `= ( ) , { } " '`.
 - Analysis directives on a sub-sheet are ignored (with a warning); only the top sheet's analyses run. Other directives, such as `.param` and `.model`, stay with the sheet.
 - Ports on the top sheet just act as net labels (with a warning).
+- Power flags (`VCC`, `VEE`…) are global, like ground: a `VCC` flag on any sheet is the same net as the top sheet's `VCC`, so a sub-sheet's op-amps don't need supply ports. Net labels stay local to their sheet; signals go between sheets through ports.
+- The **Sheets** list shows the top sheet first, then the rest by name with numbers in order. Number the sheets to list them in signal order (`1-body`, `2-inamp`, … in the [ECG-Frontend](examples/ECG-Frontend/) example).
+- Inside a block, nets are named `<block>.<net>`: plot the net `qrs` inside block `XDET` as `v(xdet.qrs)`, and a part's current as `I(XLED.D1)`.
 
 ## Blocks
 

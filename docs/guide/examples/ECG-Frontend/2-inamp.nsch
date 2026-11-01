@@ -1,0 +1,480 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8b65",
+   "kind": "port",
+   "x": -40,
+   "y": -100,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "RA"
+  },
+  {
+   "id": "mvxwdf8b68",
+   "kind": "port",
+   "x": -40,
+   "y": 160,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "LA"
+  },
+  {
+   "id": "mvxwdf8b6b",
+   "kind": "opamp5",
+   "x": 40,
+   "y": -90,
+   "rot": 2,
+   "mirror": true,
+   "name": "X1",
+   "value": "OA_RRO",
+   "lib": "std:OA_RRO"
+  },
+  {
+   "id": "mvxwdf8b6c",
+   "kind": "power",
+   "x": 40,
+   "y": -60,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8b6d",
+   "kind": "power",
+   "x": 40,
+   "y": -120,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8b6i",
+   "kind": "res",
+   "x": 40,
+   "y": -30,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "22k"
+  },
+  {
+   "id": "mvxwdf8b6l",
+   "kind": "res",
+   "x": 10,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "R2",
+   "value": "2.2k"
+  },
+  {
+   "id": "mvxwdf8b6m",
+   "kind": "res",
+   "x": 10,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R3",
+   "value": "2.2k"
+  },
+  {
+   "id": "mvxwdf8b6p",
+   "kind": "port",
+   "x": -20,
+   "y": 30,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "cm"
+  },
+  {
+   "id": "mvxwdf8b6q",
+   "kind": "opamp5",
+   "x": 40,
+   "y": 150,
+   "rot": 0,
+   "mirror": false,
+   "name": "X2",
+   "value": "OA_RRO",
+   "lib": "std:OA_RRO"
+  },
+  {
+   "id": "mvxwdf8b6r",
+   "kind": "power",
+   "x": 40,
+   "y": 120,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8b6s",
+   "kind": "power",
+   "x": 40,
+   "y": 180,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8b6x",
+   "kind": "res",
+   "x": 40,
+   "y": 90,
+   "rot": 3,
+   "mirror": false,
+   "name": "R4",
+   "value": "22k"
+  },
+  {
+   "id": "mvxwdf8b72",
+   "kind": "res",
+   "x": 150,
+   "y": -90,
+   "rot": 3,
+   "mirror": false,
+   "name": "R5",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8b7b",
+   "kind": "res",
+   "x": 260,
+   "y": -40,
+   "rot": 3,
+   "mirror": false,
+   "name": "R6",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8b7i",
+   "kind": "res",
+   "x": 150,
+   "y": 150,
+   "rot": 3,
+   "mirror": false,
+   "name": "R7",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8b7r",
+   "kind": "res",
+   "x": 230,
+   "y": 100,
+   "rot": 0,
+   "mirror": false,
+   "name": "R8",
+   "value": "10k"
+  },
+  {
+   "id": "mvxwdf8b7s",
+   "kind": "gnd",
+   "x": 230,
+   "y": 130,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b7t",
+   "kind": "opamp5",
+   "x": 260,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "X3",
+   "value": "OA_RRO",
+   "lib": "std:OA_RRO"
+  },
+  {
+   "id": "mvxwdf8b7u",
+   "kind": "power",
+   "x": 260,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8b7v",
+   "kind": "power",
+   "x": 260,
+   "y": 60,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8b7y",
+   "kind": "port",
+   "x": 360,
+   "y": 30,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "ina"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8b66",
+   "a": {
+    "x": -40,
+    "y": -100
+   },
+   "b": {
+    "x": 10,
+    "y": -100
+   }
+  },
+  {
+   "id": "mvxwdf8b69",
+   "a": {
+    "x": -40,
+    "y": 160
+   },
+   "b": {
+    "x": 10,
+    "y": 160
+   }
+  },
+  {
+   "id": "mvxwdf8b6e",
+   "a": {
+    "x": 80,
+    "y": -90
+   },
+   "b": {
+    "x": 80,
+    "y": -30
+   }
+  },
+  {
+   "id": "mvxwdf8b6g",
+   "a": {
+    "x": 80,
+    "y": -30
+   },
+   "b": {
+    "x": 70,
+    "y": -30
+   }
+  },
+  {
+   "id": "mvxwdf8b6j",
+   "a": {
+    "x": 10,
+    "y": -30
+   },
+   "b": {
+    "x": 10,
+    "y": -80
+   }
+  },
+  {
+   "id": "mvxwdf8b6n",
+   "a": {
+    "x": 10,
+    "y": 30
+   },
+   "b": {
+    "x": -20,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8b6t",
+   "a": {
+    "x": 80,
+    "y": 150
+   },
+   "b": {
+    "x": 80,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxwdf8b6v",
+   "a": {
+    "x": 80,
+    "y": 90
+   },
+   "b": {
+    "x": 70,
+    "y": 90
+   }
+  },
+  {
+   "id": "mvxwdf8b6y",
+   "a": {
+    "x": 10,
+    "y": 90
+   },
+   "b": {
+    "x": 10,
+    "y": 140
+   }
+  },
+  {
+   "id": "mvxwdf8b70",
+   "a": {
+    "x": 80,
+    "y": -90
+   },
+   "b": {
+    "x": 120,
+    "y": -90
+   }
+  },
+  {
+   "id": "mvxwdf8b73",
+   "a": {
+    "x": 180,
+    "y": -90
+   },
+   "b": {
+    "x": 200,
+    "y": -90
+   }
+  },
+  {
+   "id": "mvxwdf8b75",
+   "a": {
+    "x": 200,
+    "y": -90
+   },
+   "b": {
+    "x": 200,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8b77",
+   "a": {
+    "x": 200,
+    "y": 20
+   },
+   "b": {
+    "x": 230,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8b79",
+   "a": {
+    "x": 200,
+    "y": -40
+   },
+   "b": {
+    "x": 230,
+    "y": -40
+   }
+  },
+  {
+   "id": "mvxwdf8b7c",
+   "a": {
+    "x": 290,
+    "y": -40
+   },
+   "b": {
+    "x": 320,
+    "y": -40
+   }
+  },
+  {
+   "id": "mvxwdf8b7e",
+   "a": {
+    "x": 320,
+    "y": -40
+   },
+   "b": {
+    "x": 320,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8b7g",
+   "a": {
+    "x": 80,
+    "y": 150
+   },
+   "b": {
+    "x": 120,
+    "y": 150
+   }
+  },
+  {
+   "id": "mvxwdf8b7j",
+   "a": {
+    "x": 180,
+    "y": 150
+   },
+   "b": {
+    "x": 210,
+    "y": 150
+   }
+  },
+  {
+   "id": "mvxwdf8b7l",
+   "a": {
+    "x": 210,
+    "y": 150
+   },
+   "b": {
+    "x": 210,
+    "y": 60
+   }
+  },
+  {
+   "id": "mvxwdf8b7n",
+   "a": {
+    "x": 210,
+    "y": 60
+   },
+   "b": {
+    "x": 230,
+    "y": 60
+   }
+  },
+  {
+   "id": "mvxwdf8b7p",
+   "a": {
+    "x": 230,
+    "y": 40
+   },
+   "b": {
+    "x": 230,
+    "y": 70
+   }
+  },
+  {
+   "id": "mvxwdf8b7w",
+   "a": {
+    "x": 300,
+    "y": 30
+   },
+   "b": {
+    "x": 360,
+    "y": 30
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8b7z",
+   "x": -40,
+   "y": 220,
+   "text": "* 3-op-amp instrumentation amp from discrete op-amps: buffers U1/U2 (G = 11), difference amp U3 (G = 1)\n* cm: common-mode voltage for the right-leg drive"
+  }
+ ]
+}

@@ -1,0 +1,268 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mvxwdf8b8t",
+   "kind": "port",
+   "x": 350,
+   "y": 30,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "in"
+  },
+  {
+   "id": "mvxwdf8b8w",
+   "kind": "cap",
+   "x": 410,
+   "y": 30,
+   "rot": 3,
+   "mirror": false,
+   "name": "C1",
+   "value": "3.3u"
+  },
+  {
+   "id": "mvxwdf8b8x",
+   "kind": "res",
+   "x": 440,
+   "y": 60,
+   "rot": 0,
+   "mirror": false,
+   "name": "R1",
+   "value": "100k"
+  },
+  {
+   "id": "mvxwdf8b8y",
+   "kind": "gnd",
+   "x": 440,
+   "y": 90,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b9b",
+   "kind": "res",
+   "x": 500,
+   "y": -80,
+   "rot": 3,
+   "mirror": false,
+   "name": "R2",
+   "value": "100k"
+  },
+  {
+   "id": "mvxwdf8b9c",
+   "kind": "cap",
+   "x": 500,
+   "y": -110,
+   "rot": 3,
+   "mirror": false,
+   "name": "C2",
+   "value": "39n"
+  },
+  {
+   "id": "mvxwdf8b9l",
+   "kind": "res",
+   "x": 410,
+   "y": -40,
+   "rot": 3,
+   "mirror": false,
+   "name": "R3",
+   "value": "1k"
+  },
+  {
+   "id": "mvxwdf8b9m",
+   "kind": "gnd",
+   "x": 380,
+   "y": -40,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mvxwdf8b9n",
+   "kind": "opamp5",
+   "x": 500,
+   "y": 20,
+   "rot": 0,
+   "mirror": false,
+   "name": "X1",
+   "value": "OA_RRO",
+   "lib": "std:OA_RRO"
+  },
+  {
+   "id": "mvxwdf8b9o",
+   "kind": "power",
+   "x": 500,
+   "y": -10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "VCC"
+  },
+  {
+   "id": "mvxwdf8b9p",
+   "kind": "power",
+   "x": 500,
+   "y": 50,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "VEE"
+  },
+  {
+   "id": "mvxwdf8b9s",
+   "kind": "port",
+   "x": 610,
+   "y": 20,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "out"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mvxwdf8b8u",
+   "a": {
+    "x": 350,
+    "y": 30
+   },
+   "b": {
+    "x": 380,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8b8z",
+   "a": {
+    "x": 440,
+    "y": 30
+   },
+   "b": {
+    "x": 470,
+    "y": 30
+   }
+  },
+  {
+   "id": "mvxwdf8b91",
+   "a": {
+    "x": 470,
+    "y": 10
+   },
+   "b": {
+    "x": 460,
+    "y": 10
+   }
+  },
+  {
+   "id": "mvxwdf8b93",
+   "a": {
+    "x": 460,
+    "y": 10
+   },
+   "b": {
+    "x": 460,
+    "y": -80
+   }
+  },
+  {
+   "id": "mvxwdf8b95",
+   "a": {
+    "x": 460,
+    "y": -80
+   },
+   "b": {
+    "x": 470,
+    "y": -80
+   }
+  },
+  {
+   "id": "mvxwdf8b97",
+   "a": {
+    "x": 460,
+    "y": -80
+   },
+   "b": {
+    "x": 460,
+    "y": -110
+   }
+  },
+  {
+   "id": "mvxwdf8b99",
+   "a": {
+    "x": 460,
+    "y": -110
+   },
+   "b": {
+    "x": 470,
+    "y": -110
+   }
+  },
+  {
+   "id": "mvxwdf8b9d",
+   "a": {
+    "x": 530,
+    "y": -110
+   },
+   "b": {
+    "x": 560,
+    "y": -110
+   }
+  },
+  {
+   "id": "mvxwdf8b9f",
+   "a": {
+    "x": 560,
+    "y": -110
+   },
+   "b": {
+    "x": 560,
+    "y": 20
+   }
+  },
+  {
+   "id": "mvxwdf8b9h",
+   "a": {
+    "x": 530,
+    "y": -80
+   },
+   "b": {
+    "x": 560,
+    "y": -80
+   }
+  },
+  {
+   "id": "mvxwdf8b9j",
+   "a": {
+    "x": 460,
+    "y": -40
+   },
+   "b": {
+    "x": 440,
+    "y": -40
+   }
+  },
+  {
+   "id": "mvxwdf8b9q",
+   "a": {
+    "x": 540,
+    "y": 20
+   },
+   "b": {
+    "x": 610,
+    "y": 20
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mvxwdf8b9t",
+   "x": 350,
+   "y": 140,
+   "text": "* Band-pass 0.48–41 Hz, gain 101: 3.3u/100k AC coupling removes the electrode offset,\n* 39n across the 100k feedback rolls off above 41 Hz"
+  }
+ ]
+}

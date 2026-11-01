@@ -328,11 +328,12 @@ function guardClose(w: BrowserWindow) {
   })
 }
 
-// window.open: only the results pop-out and Manage Libraries (renderer layout/PopOut.tsx) get a window; http(s) links,
+// window.open: only the results pop-out, Manage Libraries and the BOM (renderer layout/PopOut.tsx) get a window; http(s) links,
 // from any window, go to the browser. The pop-outs close with the main window.
 const WINDOWS: Record<string, Electron.BrowserWindowConstructorOptions> = {
   'ngspice-plots': { width: 1000, height: 700, minWidth: 480, minHeight: 320, title: 'Plots' },
-  'ngspice-libraries': { width: 760, height: 560, minWidth: 520, minHeight: 360, title: 'Manage Libraries' }
+  'ngspice-libraries': { width: 760, height: 560, minWidth: 520, minHeight: 360, title: 'Manage Libraries' },
+  'ngspice-bom': { width: 1240, height: 680, minWidth: 640, minHeight: 360, title: 'Bill of Materials' }
 }
 const external = ({ url }: { url: string }) => (/^https?:\/\//i.test(url) && void shell.openExternal(url), { action: 'deny' as const })
 function popouts(w: BrowserWindow) {
