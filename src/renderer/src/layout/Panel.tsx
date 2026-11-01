@@ -9,7 +9,7 @@ export type Side = 'left' | 'right' | 'bottom'
 export const RAILW = 28 // keep in sync with .rail in layout.css
 
 const MAC = /Mac/.test(navigator.platform)
-export const keyLabel = (k: string) => (MAC ? k.replace('Mod+', '⌘').replace('Shift+', '⇧') : k.replace('Mod+', 'Ctrl+'))
+export const keyLabel = (k: string) => (MAC ? k.replace('Mod+Shift+', '⇧⌘').replace('Mod+', '⌘').replace('Shift+', '⇧') : k.replace('Mod+', 'Ctrl+')) // macOS order: ⇧ before ⌘
 const CHEV: Record<Side, [IconName, IconName]> = { left: ['right', 'left'], right: ['left', 'right'], bottom: ['up', 'down'] } // [show, hide]
 
 // collapsed panel: an icon strip; the label lives in the tooltip

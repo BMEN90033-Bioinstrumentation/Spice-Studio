@@ -4,3 +4,8 @@ dist/
 ngspice-ngspice/
 .DS_Store
 vendor/
+.impeccable/
+.github/agents/impeccable-*
+.github/hooks/impeccable.json
+.github/skills/impeccable/
+PRODUCT.md

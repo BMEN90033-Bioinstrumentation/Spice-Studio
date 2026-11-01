@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { validName } from '../project/project'
 import { TEMPLATES } from '../schematic/templates'
 import { Icon } from '../icons'
+import { keyLabel } from '../layout/Panel'
 import './Home.css'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
@@ -36,9 +37,10 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   const nameRef = useRef<HTMLInputElement>(null)
 
   const reload = () => window.api.recent.list().then(setRecents)
+  const checkEngine = () => window.api.engine().then(setEngine) // looked up afresh each call: picks up an ngspice installed since launch
   useEffect(() => {
     reload()
-    window.api.engine().then(setEngine)
+    checkEngine()
     window.api.project.defaultParent().then((p) => setParent((cur) => cur || p))
   }, [])
   useEffect(() => { if (form) nameRef.current?.focus() }, [form])
@@ -64,7 +66,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
     <div className="home">
       <div className="home-bar">
         {engine && (
-          <span className={'engine' + (engine.path ? '' : ' bad')} title={engine.path ?? 'Build it with npm run ngspice:build, or install ngspice'}>
+          <span className={'engine' + (engine.path ? '' : ' bad')} title={engine.path ?? undefined}>
             {engine.version}{engine.bundled ? ' (bundled)' : ''}
           </span>
         )}
@@ -73,19 +75,30 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
         <h1>Spice Studio</h1>
 
         {error && <div className="home-error" role="alert">{error}</div>}
+        {engine && !engine.path && (
+          <div className="home-engine" role="status">
+            <p>
+              <b>ngspice wasn't found.</b> You can draw and save circuits, but they can't be simulated until it is.{' '}
+              {import.meta.env.DEV
+                ? <>Build it with <code>npm run ngspice:build</code>, or install ngspice (<code>brew install ngspice</code>).</>
+                : <>Reinstall Spice Studio to restore the bundled engine, or install ngspice yourself.</>}
+            </p>
+            <button onClick={checkEngine}>Check again</button>
+          </div>
+        )}
 
         <div className="home-grid">
           <div className="col">
             <h2>Start</h2>
             <div className="acts">
               <button className={form ? 'on' : ''} onClick={() => setForm(!form)} aria-expanded={form} title="From a template or blank">
-                <Icon name="plus" /><span>New project</span><kbd>⌘N</kbd>
+                <Icon name="plus" /><span>New project</span><kbd>{keyLabel('Mod+N')}</kbd>
               </button>
               <button onClick={() => onOpen()} title="A .nsproj folder">
-                <Icon name="folder" /><span>Open project…</span><kbd>⌘O</kbd>
+                <Icon name="folder" /><span>Open project…</span><kbd>{keyLabel('Mod+O')}</kbd>
               </button>
               <button onClick={onOpenFile} title="A single .nsch or .cir">
-                <Icon name="file" /><span>Open file…</span><kbd>⇧⌘O</kbd>
+                <Icon name="file" /><span>Open file…</span><kbd>{keyLabel('Mod+Shift+O')}</kbd>
               </button>
               <button onClick={onLibrary} title="Browse bundled diodes, transistors and op-amps with their models">
                 <Icon name="book" /><span>Component library</span>
