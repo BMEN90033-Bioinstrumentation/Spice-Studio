@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { SimResult } from '../main/index'
 import type { Pack } from '../main/userlib'
 import type { ImportedLib } from '../renderer/src/library/library'
+import type { Filter, SimOptions } from '../renderer/src/contracts'
 
 type Opened = { dir: string; file: string; text: string }
 // a file the OS asked us to open (double-click / Open With): a project, a loose sheet, or why it failed
@@ -14,7 +15,8 @@ const on = <T>(ch: string, cb: (x: T) => void) => {
 }
 
 const api = {
-  runSim: (netlist: string, baseDir?: string): Promise<SimResult> => inv('sim:run', netlist, baseDir),
+  runSim: (netlist: string, baseDir?: string, opts?: SimOptions): Promise<SimResult> => inv('sim:run', netlist, baseDir, opts),
+  stopSim: (): Promise<void> => inv('sim:stop'), // kills the running ngspice; its runSim resolves with stopped: 'user'
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {
@@ -30,6 +32,9 @@ const api = {
     rename: (dir: string, from: string, to: string): Promise<void> => inv('project:rename', dir, from, to),
     importLib: (dir: string): Promise<{ rel: string; text: string } | null> => inv('project:importLib', dir)
   },
+  // export: save dialog + write (string or bytes); pdf: SVG -> PDF file, or 'print' for the system print dialog
+  exportSave: (defaultName: string, data: string | Uint8Array, filters: Filter[]): Promise<string | null> => inv('export:save', defaultName, data, filters),
+  exportPdf: (svg: string, defaultName: string, mode: 'pdf' | 'print' = 'pdf'): Promise<string | null> => inv('export:pdf', svg, defaultName, mode),
   engine: (): Promise<{ path: string | null; version: string; bundled: boolean }> => inv('engine:info'),
   osOpens: (): Promise<OsOpen | null> => inv('app:opens'),
   onOsOpen: (cb: (x: OsOpen) => void) => on('open-path', cb),

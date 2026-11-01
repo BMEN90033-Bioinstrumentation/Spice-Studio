@@ -4,7 +4,10 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ANALYSES, analysisText, defaultAnalysis, isSpiceNumber, parseAnalysis, spiceValue, validate, type Analysis } from '../src/renderer/src/sim/analysis.ts'
+import {
+  ANALYSES, analysisText, defaultAnalysis, emptyOptions, isSpiceNumber, mergeOptions, optionsText, parseAnalysis, parseOptions, spiceValue, validate, validateOptions,
+  type Analysis
+} from '../src/renderer/src/sim/analysis.ts'
 
 const SAMPLES: Analysis[] = [
   { kind: 'op' },
@@ -80,4 +83,38 @@ test('every sample analysis is accepted by ngspice (skipped if ngspice missing)'
     assert.equal(r.status, 0, analysisText(a) + '\n' + r.stderr)
     assert.doesNotMatch(r.stdout + r.stderr, /error|warning/i, analysisText(a))
   }
+})
+
+test('.options: parse into the form, unknown options kept, round-trip', () => {
+  const o = parseOptions('.OPTIONS reltol = 1e-3 method=GEAR klu itl1=500 rshunt=1e12 temp=50')!
+  assert.deepEqual({ reltol: o.reltol, method: o.method, itl1: o.itl1, temp: o.temp, abstol: o.abstol, extra: o.extra },
+    { reltol: '1e-3', method: 'gear', itl1: '500', temp: '50', abstol: '', extra: 'klu rshunt=1e12' })
+  assert.equal(optionsText(o), '.options reltol=1e-3 itl1=500 temp=50 method=gear klu rshunt=1e12')
+  assert.deepEqual(parseOptions(optionsText(o)), o)
+  assert.equal(optionsText(emptyOptions()), '.options')
+  assert.deepEqual(parseOptions('.option method=euler'), { ...emptyOptions(), extra: 'method=euler' }) // unknown method: kept as-is
+  for (const bad of ['.op', '.optionsx a=1', '.options a=1\n.tran 1 2', 'reltol=1']) assert.equal(parseOptions(bad), null, bad)
+})
+
+test('.options: merge key by key, later wins', () => {
+  assert.equal(mergeOptions('.options reltol=1e-3 klu', '.options method=gear reltol=1e-2'), '.options reltol=1e-2 klu method=gear')
+  assert.equal(mergeOptions('', 'itl1=1000 srcsteps=100'), '.options itl1=1000 srcsteps=100')
+  assert.equal(mergeOptions('.opt GMIN = 1e-12', 'gmin=1e-10'), '.options gmin=1e-10')
+})
+
+test('.options: validation', () => {
+  assert.deepEqual(validateOptions(emptyOptions()), [])
+  assert.deepEqual(validateOptions({ ...emptyOptions(), reltol: 'x', itl1: '2.5', gmin: '0', temp: '-40' }),
+    ['Relative tolerance must be a number like 1e-3', 'Minimum conductance must be above 0', 'DC iteration limit must be a whole number like 100'])
+})
+
+test('a form-written .options line is accepted by ngspice (skipped if ngspice missing)', (t) => {
+  const o = { ...emptyOptions(), reltol: '3e-3', abstol: '1e-11', vntol: '1e-5', gmin: '1e-10', itl1: '500', itl4: '100', temp: '50', tnom: '27', method: 'gear' as const, extra: 'rshunt=1e12' }
+  const dir = mkdtempSync(join(tmpdir(), 'optest-'))
+  writeFileSync(join(dir, 'c.cir'), ['* opt', 'V1 a 0 1', 'R1 a 0 1k', optionsText(o), '.op', '.end', ''].join('\n'))
+  const r = spawnSync('ngspice', ['-b', '-r', join(dir, 'o.raw'), join(dir, 'c.cir')], { encoding: 'utf8' })
+  if (r.error) return void t.skip('ngspice not on PATH')
+  assert.equal(r.status, 0, r.stdout + r.stderr)
+  assert.doesNotMatch(r.stdout + r.stderr, /error|warning|unknown/i)
+  assert.match(r.stdout, /TEMP = 50/)
 })

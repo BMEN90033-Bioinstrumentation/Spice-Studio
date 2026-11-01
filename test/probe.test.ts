@@ -198,3 +198,54 @@ test('blame: message formats from ngspice-47 source strings', () => {
   const x = blame('Error on line 3 or its substitute:\n  d1 out a dmod\nNote: no such thing r1', r)
   assert.deepEqual(x, { all: { parts: ['p4'], nets: [] }, lines: [{ line: 'Error on line 3 or its substitute: d1 out a dmod', blame: { parts: ['p4'], nets: [] } }] })
 })
+
+test('phase 9 kinds: current vectors in .op/.tran, branch/T-line ones also in .ac (skipped if ngspice missing)', (t) => {
+  const s = emptySheet()
+  const p = {
+    v1: put(s, 'vsrc', 0, ['in', '0'], 'DC 1 AC 1'),
+    vs: put(s, 'vsrc', 100, ['in', 's'], 'DC 0'),
+    rs: put(s, 'res', 200, ['s', '0'], '500'), // 2 mA through V2
+    e1: put(s, 'vcvs', 300, ['eo', '0', 'in', '0'], '2'),
+    re: put(s, 'res', 400, ['eo', '0'], '1k'),
+    g1: put(s, 'vccs', 500, ['0', 'go', 'in', '0'], '1m'),
+    rg: put(s, 'res', 600, ['go', '0'], '1k'),
+    h1: put(s, 'ccvs', 700, ['ho', '0'], 'V2 1k'),
+    rh: put(s, 'res', 800, ['ho', '0'], '1k'),
+    f1: put(s, 'cccs', 900, ['0', 'fo'], 'V2 3'),
+    rf: put(s, 'res', 1000, ['fo', '0'], '1k'),
+    b1: put(s, 'bv', 1100, ['bo', '0'], 'V=V(in)*4'),
+    rb: put(s, 'res', 1200, ['bo', '0'], '1k'),
+    b2: put(s, 'bi', 1300, ['0', 'bi'], 'I=5m'),
+    rbi: put(s, 'res', 1400, ['bi', '0'], '1k'),
+    s1: put(s, 'sw', 1500, ['in', 'so', 'in', '0']),
+    rso: put(s, 'res', 1600, ['so', '0'], '999'),
+    w1: put(s, 'csw', 1700, ['in', 'wo'], 'V2 CSW'),
+    rwo: put(s, 'res', 1800, ['wo', '0'], '999'),
+    t1: put(s, 'tline', 1900, ['in', '0', 'to', '0']),
+    rt: put(s, 'res', 2000, ['to', '0'], '100'),
+    rx: put(s, 'res', 2100, ['in', 'xp'], '1'),
+    x1: put(s, 'xfmr', 2200, ['xp', '0', 'xs', '0']),
+    rxs: put(s, 'res', 2300, ['xs', '0'], '1k')
+  }
+  const r = nl(s, `${SAVE_CURRENTS}\n.op\n.ac lin 1 1k 1k\n.tran 1u 2u`)
+  assert.deepEqual([r.errors, r.warnings], [[], []])
+  const out = run(t, r.text)
+  if (!out) return
+  assert.equal(out.status, 0, out.log)
+  const [op, ac, tr] = ['Operating Point', 'AC Analysis', 'Transient Analysis'].map((n) => out.plots.find((x) => x.plotname === n)!)
+  const ids = ['e1', 'g1', 'h1', 'f1', 'b1', 'b2', 's1', 'w1', 't1', 'x1'] as const
+  const vec = (pl: RawPlot, id: (typeof ids)[number]) => findVector(pl, currentVectors(p[id], r.refs[p[id].id]))
+  for (const pl of [op, tr]) assert.deepEqual(ids.map((id) => vec(pl, id)), ['i(e1)', 'i(@g1[i])', 'i(h1)', 'i(@f1[i])', 'i(b1)', 'i(@b2[i])', 'i(@s1[i])', 'i(@w1[i])', 'v(t1#i1)', 'i(lxf1_p)'])
+  assert.deepEqual(ids.map((id) => vec(ac, id)), ['i(e1)', null, 'i(h1)', null, 'i(b1)', null, null, null, 'v(t1#i1)', 'i(lxf1_p)'])
+  const near = (pl: RawPlot, id: (typeof ids)[number], want: number) => {
+    const v = pl.vars.find((x) => x.name === vec(pl, id))!.re[0]
+    assert.ok(Math.abs(Math.abs(v) - want) < 1e-6, `${pl.plotname} ${id} ${v} want ±${want}`)
+  }
+  for (const pl of [op, tr]) {
+    near(pl, 'e1', 2e-3), near(pl, 'g1', 1e-3), near(pl, 'h1', 2e-3), near(pl, 'f1', 6e-3), near(pl, 'b1', 4e-3), near(pl, 'b2', 5e-3)
+    near(pl, 't1', 1e-2) // DC: 1 V into 100 Ω through the line
+    near(pl, 'x1', 1) // DC: the primary is a short behind 1 Ω
+  }
+  near(tr, 's1', 1e-3), near(tr, 'w1', 1e-3) // on: 1 V across 1 Ω + 999 Ω
+  near(op, 's1', 1e-9), near(op, 'w1', 1e-9) // ngspice-47 .op quirk: switch @[i] uses Roff (see SAVE_CURRENTS note)
+})

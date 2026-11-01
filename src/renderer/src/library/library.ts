@@ -4,7 +4,7 @@ import { isFlag, SYMBOLS, type Kind } from '../schematic/symbols.ts'
 import { blockShape, type Part, type Sheet } from '../schematic/model.ts'
 import type { Project } from '../project/project.ts'
 
-export type Category = 'Passives' | 'Sources' | 'Diodes' | 'BJTs' | 'JFETs' | 'MOSFETs' | 'Op-amps' | 'Comparators'
+export type Category = 'Passives' | 'Sources' | 'Controlled sources' | 'Switches' | 'Diodes' | 'BJTs' | 'JFETs' | 'MOSFETs' | 'Op-amps' | 'Comparators'
   | 'Regulators' | 'References' | 'Optocouplers' | 'Timers' | 'Subcircuits'
 export interface LibEntry {
   id: string
@@ -82,9 +82,9 @@ export function parseLibFile(text: string): ParsedLib {
   return out
 }
 
-// SPICE number with SI suffix ('5.1', '100n', '2meg'); NaN if unparsable
+// SPICE number with SI suffix (netlist.ts uses it to check transformer values) ('5.1', '100n', '2meg'); NaN if unparsable
 const SI: Record<string, number> = { t: 1e12, g: 1e9, meg: 1e6, k: 1e3, m: 1e-3, mil: 25.4e-6, u: 1e-6, n: 1e-9, p: 1e-12, f: 1e-15 }
-function si(s: string | undefined): number {
+export function si(s: string | undefined): number {
   const m = /^([-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)(meg|mil|[tgkmunpf])?/i.exec(s ?? '')
   return m ? +m[1] * (m[2] ? SI[m[2].toLowerCase()] : 1) : NaN
 }
@@ -232,7 +232,7 @@ export function resolver(entries: LibEntry[]): (id: string) => LibEntry | undefi
 
 // ---------------------------------------------------------------------------------------------- packs
 
-export const CATEGORIES: Category[] = ['Passives', 'Sources', 'Diodes', 'BJTs', 'JFETs', 'MOSFETs', 'Op-amps', 'Comparators', 'Regulators', 'References', 'Optocouplers', 'Timers', 'Subcircuits']
+export const CATEGORIES: Category[] = ['Passives', 'Sources', 'Controlled sources', 'Switches', 'Diodes', 'BJTs', 'JFETs', 'MOSFETs', 'Op-amps', 'Comparators', 'Regulators', 'References', 'Optocouplers', 'Timers', 'Subcircuits']
 export interface PackLibs { id: string; name: string; dir: string; compat?: string; enabled: boolean; libs: ImportedLib[]; texts: Record<string, string> }
 // short provenance tag on panel rows: 'Qucs-S community parts' -> 'Qucs-S'
 export const packTag = (name: string) => name.trim().split(/\s+/)[0] || name
@@ -342,9 +342,10 @@ Ro o out ${o.rout}${o.iq ? `\nIq vp vn DC ${o.iq}` : ''}
   }
 }
 
-const subckt = (name: string, kind: Kind, category: Category, pins: string[], description: string, params: Record<string, string>, body: string): LibEntry => ({
+// defaults: subckt parameters with their defaults ("R=10k pos=0.5"); the instance value then overrides them
+const subckt = (name: string, kind: Kind, category: Category, pins: string[], description: string, params: Record<string, string>, body: string, defaults = ''): LibEntry => ({
   id: 'std:' + name, name, category, kind, description, value: name, params, source: 'bundled',
-  spice: { type: 'subckt', name, pins, pinMap: pins.map((_, i) => i), text: `.subckt ${name} ${pins.join(' ')}\n${body}\n.ends ${name}` }
+  spice: { type: 'subckt', name, pins, pinMap: pins.map((_, i) => i), text: `.subckt ${name} ${pins.join(' ')}${defaults && ' params: ' + defaults}\n${body}\n.ends ${name}` }
 })
 
 // Comparator on the op-amp symbol (in+ in- V+ V- out): open-collector NPN to V-, needs a pull-up. Input tanh (±1 mV
@@ -393,12 +394,41 @@ C1 b gnd 100p
 .model REG7805_QS NPN(IS=1e-14 BF=100)
 .model REG7805_D D(IS=1e-14)`
 
+// Potentiometer: R split at the wiper, pos = travel from B (0) to A (1), clamped so neither half is 0 Ω
+const POT = `* a w b. R = end-to-end resistance, pos = wiper position from B (0) to A (1)
+.param p={min(max(pos,0.001),0.999)}
+R1 a w {R*(1-p)}
+R2 w b {R*p}`
+// Quartz crystal: series motional L-C-R (L from F and Cm: series resonance at F) with shunt C0.
+// ngspice .param expressions have no pi, hence 4π² written out.
+const XTAL = `* 1 2. Butterworth–Van Dyke model: F = series resonance, Cm motional C, R motional (ESR), C0 shunt
+L1 1 n1 {1/(39.4784176*F*F*Cm)}
+C1 n1 n2 {Cm}
+R1 n2 2 {R}
+C0 1 2 {C0}`
+
 export const BUNDLED: LibEntry[] = [
   generic('R', 'res', 'Passives', '1k', 'Resistor'),
   generic('C', 'cap', 'Passives', '1u', 'Capacitor'),
   generic('L', 'ind', 'Passives', '1m', 'Inductor'),
+  { ...subckt('POT', 'pot', 'Passives', ['a', 'w', 'b'], 'Potentiometer: value R=<end-to-end> pos=<wiper 0…1 from B to A>',
+    { R: '10k', pos: '0.5' }, POT, 'R=10k pos=0.5'), value: 'R=10k pos=0.5' },
+  { ...subckt('XTAL', 'xtal', 'Passives', ['1', '2'], 'Quartz crystal (series RLC + C0): value F=<series resonance>, optional Cm R C0 (defaults 25f, 10 Ω, 5p)',
+    { F: '10 MHz', Cm: '25 fF', R: '10 Ω', C0: '5 pF' }, XTAL, 'F=10meg Cm=25f R=10 C0=5p'), value: 'F=10meg' },
+  generic('XFMR', 'xfmr', 'Passives', 'Lp=1m Ls=100u k=0.999', 'Transformer: two coupled inductors, turns ratio √(Lp/Ls); dots mark pri+ and sec+'),
+  generic('K', 'kcouple', 'Passives', 'L1 L2 0.99', 'Mutual coupling between two inductors on the sheet: value <L> <L> <k>'),
+  generic('T', 'tline', 'Passives', 'Z0=50 TD=1n', 'Lossless transmission line: Z0 impedance, TD delay (or F= NL=)'),
   generic('V', 'vsrc', 'Sources', 'DC 1', 'Voltage source (DC, AC, PULSE, SIN… spec in the value)'),
   generic('I', 'isrc', 'Sources', 'DC 1m', 'Current source (DC, AC, PULSE, SIN… spec in the value)'),
+  generic('VCC', 'power', 'Sources', 'VCC', 'Power flag: a net label drawn as a supply rail; same-named flags join'),
+  generic('E', 'vcvs', 'Controlled sources', '1', 'Voltage-controlled voltage source: V(out) = gain · V(ctrl)'),
+  generic('G', 'vccs', 'Controlled sources', '1', 'Voltage-controlled current source: I(out) = gm · V(ctrl), flowing out+ → out- through the source'),
+  generic('H', 'ccvs', 'Controlled sources', 'V1 1k', 'Current-controlled voltage source: value <V source> <transresistance>; senses the current through that V source'),
+  generic('F', 'cccs', 'Controlled sources', 'V1 1', 'Current-controlled current source: value <V source> <gain>; senses the current through that V source'),
+  generic('BV', 'bv', 'Controlled sources', 'V=1', 'Behavioural voltage source: value V=<expression>, e.g. V=V(a)*V(b)'),
+  generic('BI', 'bi', 'Controlled sources', 'I=1m', 'Behavioural current source: value I=<expression>, e.g. I=V(in)/1k'),
+  generic('S', 'sw', 'Switches', 'SW', 'Voltage-controlled switch: on when V(ctrl) > 0.5 V (default model SW: Ron 1 Ω, Roff 1 MΩ)'),
+  generic('W', 'csw', 'Switches', 'V1 CSW', 'Current-controlled switch: value <V source> <model>; on above 1 mA (default model CSW: Ron 1 Ω, Roff 1 MΩ)'),
 
   model('1N4148', 'diode', 'Diodes', 'Small-signal fast switching diode, 100 V, Vf ≈ 0.73 V @ 10 mA, Cj ≈ 2 pF',
     '.model 1N4148 D(IS=4n N=1.9 RS=0.6 CJO=2p M=0.33 VJ=0.5 TT=4n BV=100 IBV=100n)'),

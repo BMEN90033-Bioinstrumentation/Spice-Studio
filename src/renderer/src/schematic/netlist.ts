@@ -3,7 +3,7 @@
 // (Part.lib) pull in their .model / .subckt text once.
 import { key, onSegment, pins, sheetPorts, type Part, type Sheet } from './model.ts'
 import { SYMBOLS, isFlag } from './symbols.ts'
-import type { LibEntry } from '../library/library.ts'
+import { si, type LibEntry } from '../library/library.ts'
 
 export interface NetlistResult {
   text: string // full netlist; '' when errors.length > 0
@@ -28,7 +28,9 @@ const MODELS: Record<string, string> = {
   nmos: '.model NMOS NMOS (level=1 vto=0.7 kp=110u)',
   pmos: '.model PMOS PMOS (level=1 vto=-0.7 kp=50u)',
   njf: '.model NJF NJF (vto=-2 beta=1m)',
-  pjf: '.model PJF PJF (vto=-2 beta=1m)' // SPICE JFET: VTO is negative for P-channel too
+  pjf: '.model PJF PJF (vto=-2 beta=1m)', // SPICE JFET: VTO is negative for P-channel too
+  sw: '.model SW SW(ron=1 roff=1meg vt=0.5 vh=0)',
+  csw: '.model CSW CSW(ron=1 roff=1meg it=1m)'
 }
 const ANALYSIS = /^\s*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss|control)\b/im
 
@@ -97,7 +99,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   const flagName = (p: Part) => (p.kind === 'gnd' || /^(0|gnd)$/i.test(p.value) ? '0' : p.value)
   for (const p of s.parts) {
     if (!isFlag(p.kind)) continue
-    if (p.kind !== 'gnd' && BAD.test(p.value)) err(`Invalid net ${p.kind === 'port' ? 'port' : 'label'} "${p.value}": no spaces or =(),{}"' allowed`)
+    if (p.kind !== 'gnd' && BAD.test(p.value)) err(`Invalid net ${p.kind === 'port' ? 'port' : p.kind === 'power' ? 'power flag' : 'label'} "${p.value}": no spaces or =(),{}"' allowed`)
     union(key(pins(p)[0]), '@' + flagName(p).toLowerCase())
   }
   const portFlags = s.parts.filter((p) => p.kind === 'port')
@@ -148,6 +150,10 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   const directives = s.texts.map((t) => t.text).join('\n')
   const userModels = new Set([...directives.matchAll(/^\s*\.model\s+(\S+)/gim)].map((m) => m[1].toLowerCase()))
   const parts = s.parts.filter((p) => !isFlag(p.kind))
+  // elements a F/H/W/K value names, checked once every ref is known; directive lines can define elements too
+  const named: { ref: string; name: string; what: string }[] = []
+  for (const l of directives.split('\n')) if (/^\s*[a-z]/i.test(l)) seen.add(l.trim().split(/\s+/)[0].toLowerCase())
+  const own = new Set<string>() // refs emitted by this sheet's parts (dup check; directive names may repeat)
   for (const p of parts) {
     const { prefix } = SYMBOLS[p.kind]
     let ref = p.name.trim()
@@ -158,6 +164,10 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     const entry = p.lib ? g.ctx.lib?.(p.lib) : undefined
     if (p.lib && !entry) err(`${ref}: unknown library part "${p.lib}"`)
     const spice = entry?.spice, sub = !!p.sheet || spice?.type === 'subckt'
+    if ((p.kind === 'pot' || p.kind === 'xtal') && !sub) {
+      err(`${ref}: place the ${SYMBOLS[p.kind].title.toLowerCase()} from the library (its subcircuit comes from there)`)
+      continue
+    }
     if (spice) {
       // two different library parts defining the same SPICE name: ngspice silently keeps the first definition for
       // both, so one part would simulate with the other's model. Same source (e.g. a pack part and its project copy) is fine.
@@ -167,13 +177,16 @@ function sheet(s: Sheet, g: Global, file: string | null) {
       else if (d.sig !== sig) err(`${ref}: "${spice.name}" is defined by two different library parts (${d.id} and ${entry!.id}); ngspice would use one model for both — use the same library part for both, or pick a differently named one`)
     }
     const want = sub ? 'X' : prefix
-    if (ref[0].toUpperCase() !== want) {
+    if (p.kind !== 'xfmr' && ref[0].toUpperCase() !== want) { // xfmr: no element of its own, any name
       // a library subckt placed with e.g. the npn symbol is named Q1: becoming XQ1 is expected, not worth a warning
       if (!(sub && prefix !== 'X')) warn(`${ref}: SPICE needs names starting with "${want}", using ${want + ref}`)
       ref = want + ref
     }
-    if (seen.has(ref.toLowerCase())) err(`Duplicate part name ${ref}`)
-    seen.add(ref.toLowerCase())
+    const mine = p.kind === 'xfmr' ? [ref, `L${ref}_P`, `L${ref}_S`, `K${ref}`] : [ref]
+    for (const r of mine) {
+      if (own.has(r.toLowerCase())) err(`Duplicate part name ${r}`)
+      own.add(r.toLowerCase()), seen.add(r.toLowerCase())
+    }
     refs[p.id] = ref
     const value = p.value.trim().replace(/\s+/g, ' ')
     const n = nets[p.id]
@@ -189,22 +202,65 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     if (spice?.type === 'subckt') {
       const nodes: string[] = []
       spice.pinMap.forEach((j, i) => (nodes[j] = n[i]))
+      // the value may carry instance parameters ("R=10k pos=0.3", optionally after the subckt name / "params:")
+      const t = value.split(' ').filter(Boolean)
+      if (t[0]?.toLowerCase() === spice.name.toLowerCase()) t.shift()
+      if (/^params:$/i.test(t[0] ?? '')) t.shift()
       if (spice.pins.some((_, j) => nodes[j] == null) || spice.pinMap.length !== n.length)
         err(`${ref}: pin map of "${entry!.name}" doesn't cover its ${spice.pins.length} subckt pins`)
-      else lines.push(`${ref} ${nodes.join(' ')} ${spice.name}`)
+      else if (t.some((x) => !/^[a-z_]\w*=\S+$/i.test(x))) err(`${ref}: value "${value}" must be ${entry!.name} parameters as name=value pairs`)
+      else lines.push(`${ref} ${nodes.join(' ')} ${spice.name}${t.length ? ' params: ' + t.join(' ') : ''}`)
       if (spice.text) g.libText.set(entry!.id, spice.text)
       else if (spice.include) g.libText.set('inc:' + spice.include, `.include ${/\s/.test(spice.include) ? `"${spice.include}"` : spice.include}`)
       continue
     }
-    if (!value) err(`${ref} has no value`)
+    if (!value) {
+      err(`${ref} has no value`)
+      continue
+    }
+    const t = value.split(' ')
+    if (p.kind === 'xfmr') {
+      const x = xfmr(value)
+      if (typeof x === 'string') err(`${ref}: ${x}`)
+      else lines.push(`L${ref}_P ${n[0]} ${n[1]} ${x.lp}`, `L${ref}_S ${n[2]} ${n[3]} ${x.ls}`, `K${ref} L${ref}_P L${ref}_S ${x.k}`)
+      continue
+    }
+    if (p.kind === 'kcouple') {
+      if (t.length !== 3) err(`${ref}: value "${value}" must be "<inductor> <inductor> <k>", e.g. L1 L2 0.99`)
+      else named.push({ ref, name: t[0], what: 'inductor' }, { ref, name: t[1], what: 'inductor' }), lines.push(`${ref} ${value}`)
+      continue
+    }
+    if (p.kind === 'ccvs' || p.kind === 'cccs' || p.kind === 'csw') {
+      if (t.length < 2) err(`${ref}: value "${value}" must be "<V source> <${p.kind === 'csw' ? 'model' : 'gain'}>", e.g. V1 ${p.kind === 'csw' ? 'CSW' : '10'}`)
+      else if (!/^poly\(/i.test(t[0])) named.push({ ref, name: t[0], what: 'controlling voltage source' })
+    }
+    const v = (p.kind === 'bv' || p.kind === 'bi') && !/^[vi]\s*=/i.test(value) ? (p.kind === 'bv' ? 'V=' : 'I=') + value : value
     const nodes = p.kind === 'opamp' ? [n[0], '0', n[1], n[2]] : p.kind === 'nmos' || p.kind === 'pmos' ? [...n, n[2]] : n
-    lines.push(`${ref} ${nodes.join(' ')} ${value}`)
-    const m = value.split(' ')[0].toLowerCase()
+    lines.push(`${ref} ${nodes.join(' ')} ${v}`)
+    const m = (prefix === 'W' ? t[1] ?? '' : t[0]).toLowerCase()
     if (spice) g.libText.set(entry!.id, spice.text)
     // defaults go after the directives: ngspice keeps the first .model, so user/.include'd models of the same name win
-    else if ('DQMJ'.includes(prefix) && MODELS[m] && !userModels.has(m)) g.models.add(MODELS[m])
+    else if (/^[DQMJSW]$/.test(prefix) && MODELS[m] && !userModels.has(m)) g.models.add(MODELS[m])
   }
+  // ponytail: names only checked on this sheet (+ its directives); an element in another sheet or an .include warns falsely
+  for (const { ref, name, what } of named) if (!seen.has(name.toLowerCase())) warn(`${ref}: ${what} "${name}" is not on this sheet`)
   return { lines, directives, parts: parts.length, nets, wireNets, refs }
+}
+
+// Transformer value "Lp=1m Ls=100u k=0.999" (any order, case-insensitive); an error message if malformed
+function xfmr(value: string): { lp: string; ls: string; k: string } | string {
+  const kv: Record<string, string> = {}
+  for (const tok of value.split(' ')) {
+    const m = /^(lp|ls|k)=(\S+)$/i.exec(tok)
+    if (!m) return `value "${value}" must be Lp=<H> Ls=<H> k=<0…1>, e.g. Lp=1m Ls=100u k=0.999 ("${tok}" isn't one of them)`
+    kv[m[1].toLowerCase()] = m[2]
+  }
+  const miss = ['Lp', 'Ls', 'k'].filter((x) => !kv[x.toLowerCase()])
+  if (miss.length) return `value "${value}" is missing ${miss.join(', ')} (Lp=<H> Ls=<H> k=<0…1>)`
+  const expr = (x: string) => /^\{.*\}$/.test(x) // .param expression: ngspice checks it
+  for (const x of ['lp', 'ls']) if (!expr(kv[x]) && !(si(kv[x]) > 0)) return `${x === 'lp' ? 'Lp' : 'Ls'}=${kv[x]} must be a positive inductance`
+  if (!expr(kv.k) && !(si(kv.k) > 0 && si(kv.k) <= 1)) return `k=${kv.k} must be a coupling factor in (0, 1]`
+  return { lp: kv.lp, ls: kv.ls, k: kv.k }
 }
 
 // X line for a block; netlists its sheet as a .subckt the first time it's used.

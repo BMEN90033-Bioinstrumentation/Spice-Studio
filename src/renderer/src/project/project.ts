@@ -1,9 +1,11 @@
 // Project file (.nsproj) model + pure sheet-set helpers. No React, no Electron: node --test loads it.
+import type { Compat, ProjectSim } from '../contracts.ts'
 import type { ImportedLib } from '../library/library.ts'
 import { blockShape, sheetPorts, type Sheet } from '../schematic/model.ts'
 import { SYMBOLS } from '../schematic/symbols.ts'
 
-export interface Project { version: 1; name: string; top: string; libs: ImportedLib[] }
+export interface Project { version: 1; name: string; top: string; libs: ImportedLib[]; sim?: ProjectSim }
+export const COMPATS: Compat[] = ['ps', 'lt', 'ltps', 'kicad']
 
 // same rule as main's safeName (main re-checks: it's the trust boundary)
 export const validName = (n: string) => /^(?![.\s])[^\\/:*?"<>|\x00-\x1f]{1,80}$/.test(n.trim())
@@ -31,7 +33,13 @@ export function parseProject(text: string): Project {
       if (typeof e?.name !== 'string' || !(e.kind in SYMBOLS) || typeof e.category !== 'string' || !Array.isArray(e.pinMap) || !e.pinMap.every(Number.isInteger))
         throw new Error(`${l.file}: malformed entry ${JSON.stringify(e).slice(0, 80)}`)
   }
-  return { version: 1, name: p.name, top: p.top, libs: p.libs }
+  if (p.sim !== undefined) {
+    const { compat, timeoutS } = p.sim ?? {}
+    if (typeof p.sim !== 'object' || Array.isArray(p.sim) || !p.sim) throw new Error('Project "sim" must be an object')
+    if (compat !== undefined && !COMPATS.includes(compat)) throw new Error(`Unknown compat mode ${JSON.stringify(compat)} (use ${COMPATS.join(', ')})`)
+    if (timeoutS !== undefined && !(typeof timeoutS === 'number' && timeoutS >= 0 && isFinite(timeoutS))) throw new Error('Project "sim.timeoutS" must be a number of seconds')
+  }
+  return { version: 1, name: p.name, top: p.top, libs: p.libs, ...(p.sim && { sim: { ...(p.sim.compat && { compat: p.sim.compat }), ...(p.sim.timeoutS && { timeoutS: p.sim.timeoutS }) } }) }
 }
 
 // 'filter' / 'filter.nsch' -> 'filter.nsch', or null when not a valid sheet name

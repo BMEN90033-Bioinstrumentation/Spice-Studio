@@ -43,6 +43,18 @@ function template(recents: Recent[]): Item[] {
     cmd('file.save', 'Save', 'CmdOrCtrl+S'),
     cmd('file.saveAs', 'Save As…', 'CmdOrCtrl+Shift+S'),
     cmd('file.exportNetlist', 'Export Netlist…'),
+    {
+      label: 'Export',
+      submenu: [
+        cmd('file.export.plotPng', 'Plot as PNG…'),
+        cmd('file.export.plotSvg', 'Plot as SVG…'),
+        cmd('file.export.plotCsv', 'Plot Data as CSV…'),
+        sep,
+        cmd('file.export.schSvg', 'Schematic as SVG…'),
+        cmd('file.export.schPdf', 'Schematic as PDF…')
+      ]
+    },
+    cmd('file.export.print', 'Print Schematic…', 'CmdOrCtrl+P'),
     ...(mac ? [] : [sep, { role: 'quit' } as Item])
   ]
   const editMenu: Item[] = [
@@ -103,7 +115,10 @@ function template(recents: Recent[]): Item[] {
   ]
   const sim: Item[] = [
     cmd('sim.run', 'Run', 'CmdOrCtrl+Enter'),
+    cmd('sim.stop', 'Stop', 'CmdOrCtrl+.'),
+    sep,
     cmd('sim.setup', 'Analysis Setup…', 'A'),
+    cmd('sim.options', 'Simulation Options…'),
     cmd('sim.probe', 'Probe', 'P'),
     sep,
     cmd('sim.viewNetlist', 'View Generated Netlist')

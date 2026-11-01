@@ -7,6 +7,12 @@ import type { RawPlot } from '../../../main/rawfile.ts'
 //  - .op / .tran / .dc plots gain device currents named `i(@r1[i])`, `i(@c1[i])`, `i(@l1[i])`, `i(@i1[current])`,
 //    `i(@d1[id])`, `i(@q1[ic])` (+ ie ib is), `i(@m1[id])` (+ is ig ib). Branch currents are always there, named
 //    `i(v1)`, `i(l1)`, `i(e1)` (the "v1#branch" spelling is only used in ngspice's console output).
+//  - controlled sources: E, H and B with V= have a branch `i(e1)` `i(h1)` `i(b1)` (B also gets `i(@b1[i])`); G, F,
+//    B with I=, S and W only have `i(@g1[i])` `i(@f1[i])` `i(@b2[i])` `i(@s1[i])` `i(@w1[i])`. A T line has no current
+//    vectors, but its internal port-1 branch node holds the current into port1+: rawfile `v(t1#i1)` (also `t1#i2`).
+//    A transformer XF1 is netlisted as LXF1_P / LXF1_S: `i(lxf1_p)` is the primary current.
+//  - S/W in the .op plot: `@s1[i]` / `@w1[i]` are computed with Roff even when the switch is on (1 mV across it reads
+//    1e-9 A); .dc and .tran are right. ponytail: not filtered out; findVector would need the part kind to know.
 //  - .ac: exit status 0, but stderr gets "Warning: unrecognized variable - @r1[i]" per device and the @ vectors
 //    hold garbage (zeros / other devices' values). Branch currents i(v1) i(l1) i(e1) are fine.
 //  - .noise: no warnings, but both noise plots get the same junk i(@…) vectors appended.
@@ -27,6 +33,10 @@ export function currentVectors(p: Part, ref: string): string[] {
     case 'diode': return dev('id')
     case 'npn': case 'pnp': return dev('ic')
     case 'nmos': case 'pmos': return dev('id')
+    case 'vcvs': case 'ccvs': case 'bv': return branch
+    case 'vccs': case 'cccs': case 'bi': case 'sw': case 'csw': return dev('i')
+    case 'tline': return [`v(${r}#i1)`, `${r}#i1`]
+    case 'xfmr': return [`i(l${r}_p)`, `l${r}_p#branch`]
     default: return []
   }
 }

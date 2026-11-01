@@ -85,3 +85,58 @@ test('expandSweep runs through ngspice: each run sees its own value (skipped if 
   // I = 1 / (R + 2R)
   cur.forEach((i, k) => assert.ok(Math.abs(i - 1 / (3 * 1000 * (k + 1))) < 1e-9, `${runs[k].label}: ${i}`))
 })
+
+// I(V1) through a resistor with tc1=0.01: 1 V / (1k * (1 + 0.01 * (T - 27)))
+const TDECK = '* temp\nV1 1 0 1\nR1 1 0 1k tc1=0.01\n.temp 50\n.op\n.end\n'
+const ngspiceI = (t: { skip: (s: string) => void }, deck: string) => {
+  const dir = mkdtempSync(join(tmpdir(), 'swtest-'))
+  writeFileSync(join(dir, 'c.cir'), deck)
+  const p = spawnSync('ngspice', ['-b', '-n', join(dir, 'c.cir')], { encoding: 'utf8' })
+  if (p.error) return t.skip('ngspice not on PATH'), null
+  assert.equal(p.status, 0, p.stdout + p.stderr)
+  return -Number(/v1#branch\s+(\S+)/.exec(p.stdout)![1])
+}
+
+test('.step temp: list/lin/dec forms, T= labels, replaces .temp, runs at that temperature in ngspice', (t) => {
+  assert.deepEqual(values('.step temp list -40 25 85'), [-40, 25, 85])
+  assert.deepEqual(values('.step temp 0 50 25'), [0, 25, 50])
+  assert.deepEqual(values('.step dec temp 1 100 1'), [1, 10, 100])
+  assert.match(parseSteps('.step temp 1 2').errors.join(), /start stop increment/)
+  const { runs, errors } = expandSweep(TDECK.replace('.op', '.step temp list 27 77\n.step param x list 1\n.op'))
+  assert.deepEqual(errors, [])
+  assert.deepEqual(runs.map((r) => r.label), ['T=27, x=1', 'T=77, x=1'])
+  assert.equal(runs[1].netlist, '* temp\nV1 1 0 1\nR1 1 0 1k tc1=0.01\n.op\n.temp 77\n.param x=1\n.end\n')
+  for (const [k, T] of [27, 77].entries()) {
+    const i = ngspiceI(t, runs[k].netlist)
+    if (i === null) return
+    assert.ok(Math.abs(i - 1 / (1000 * (1 + 0.01 * (T - 27)))) < 1e-9, `T=${T}: ${i}`)
+  }
+})
+
+const MCDECK = '* mc\nV1 1 0 1\nR1 1 0 {agauss(1k, 100, 1)}\n.mc 3\n.op\n.end\n'
+test('.mc N: N seeded runs, labels, errors', () => {
+  const { runs, errors } = expandSweep(MCDECK)
+  assert.deepEqual(errors, [])
+  assert.deepEqual(runs.map((r) => r.label), ['run 1', 'run 2', 'run 3'])
+  assert.equal(runs[1].netlist, '* mc\n.options seed=2\nV1 1 0 1\nR1 1 0 {agauss(1k, 100, 1)}\n.op\n.end\n')
+  assert.equal(expandSweep(MCDECK.replace('.mc 3', '.mc 500')).runs.length, 500)
+  const err = (d: string) => expandSweep(d).errors.join()
+  assert.match(err(MCDECK.replace('.mc 3', '.mc 501')), /1 to 500/)
+  assert.match(err(MCDECK.replace('.mc 3', '.mc')), /expected "\.mc N"/)
+  assert.match(err(MCDECK.replace('.mc 3', '.mc 2.5')), /expected/)
+  assert.match(err(MCDECK + '.mc 2\n'), /Only one/)
+  assert.match(err(MCDECK.replace('.op', '.step param x list 1 2\n.op')), /cannot be combined with \.step/)
+})
+
+test('.mc through ngspice: draws differ between runs and repeat exactly (skipped if ngspice missing)', (t) => {
+  const { runs } = expandSweep(MCDECK)
+  const a: number[] = []
+  for (const r of runs) {
+    const i = ngspiceI(t, r.netlist)
+    if (i === null) return
+    a.push(i)
+  }
+  assert.equal(new Set(a).size, 3, `distinct draws: ${a}`)
+  a.forEach((i) => assert.ok(i > 1 / 1500 && i < 1 / 500, `plausible agauss(1k, 100, 1) draw: ${1 / i}`))
+  assert.equal(ngspiceI(t, runs[1].netlist), a[1]) // same seed, same draw
+})

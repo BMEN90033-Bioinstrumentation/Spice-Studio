@@ -130,3 +130,66 @@ export function validate(a: Analysis): string[] {
   }
   return e
 }
+
+// ---- .options line <-> form. Known keys get fields; every other token is kept verbatim in `extra`. ----
+export const OPTION_FIELDS: { key: string; label: string; unit: string; ph: string; help: string; int?: boolean }[] = [
+  { key: 'reltol', label: 'Relative tolerance', unit: '', ph: '1e-3', help: 'reltol: looser (3e-3) is faster and converges more easily' },
+  { key: 'abstol', label: 'Current tolerance', unit: 'A', ph: '1e-12', help: 'abstol' },
+  { key: 'vntol', label: 'Voltage tolerance', unit: 'V', ph: '1e-6', help: 'vntol' },
+  { key: 'gmin', label: 'Minimum conductance', unit: 'S', ph: '1e-12', help: 'gmin: added across every junction' },
+  { key: 'itl1', label: 'DC iteration limit', unit: '', ph: '100', help: 'itl1', int: true },
+  { key: 'itl4', label: 'Transient iteration limit', unit: '', ph: '10', help: 'itl4: per time step', int: true },
+  { key: 'temp', label: 'Temperature', unit: '°C', ph: '27', help: 'temp: circuit temperature' },
+  { key: 'tnom', label: 'Nominal temperature', unit: '°C', ph: '27', help: 'tnom: temperature the models were measured at' }
+]
+export type Method = '' | 'trap' | 'gear'
+export type Options = Record<string, string> & { method: Method; extra: string } // '' = not set (ngspice default)
+
+const OPT = /^\s*\.opt(?:ions?)?(?=\s|$)/i
+export const isOptionsLine = (line: string) => OPT.test(line)
+// "a = 1 b=2 flag" -> [['a','a=1'], ['b','b=2'], ['flag','flag']]
+const optTokens = (s: string): [string, string][] =>
+  s.replace(OPT, '').replace(/\s*=\s*/g, '=').trim().split(/\s+/).filter(Boolean).map((t) => [t.split('=')[0].toLowerCase(), t])
+
+export const emptyOptions = (): Options => ({ ...Object.fromEntries(OPTION_FIELDS.map((f) => [f.key, ''])), method: '', extra: '' }) as Options
+
+export function parseOptions(text: string): Options | null {
+  if (text.includes('\n') || !isOptionsLine(text)) return null
+  const o = emptyOptions(), extra: string[] = []
+  for (const [k, t] of optTokens(text)) {
+    const v = t.slice(k.length + 1)
+    if (OPTION_FIELDS.some((f) => f.key === k) && v && !o[k]) o[k] = v
+    else if (k === 'method' && /^(trap|gear)$/i.test(v) && !o.method) o.method = v.toLowerCase() as Method
+    else extra.push(t)
+  }
+  o.extra = extra.join(' ')
+  return o
+}
+
+export function optionsText(o: Options): string {
+  const kv = [...OPTION_FIELDS.map((f) => f.key), 'method'].filter((k) => o[k]?.trim()).map((k) => `${k}=${o[k].trim()}`)
+  return ['.options', ...kv, ...(o.extra.trim() ? [o.extra.trim().replace(/\s+/g, ' ')] : [])].join(' ')
+}
+
+// merge the options in `add` into the .options line `base`, key by key (add wins); base '' = start fresh
+export function mergeOptions(base: string, add: string): string {
+  const out = optTokens(base)
+  for (const [k, t] of optTokens(add)) {
+    const i = out.findIndex(([q]) => q === k)
+    if (i < 0) out.push([k, t])
+    else out[i] = [k, t]
+  }
+  return ['.options', ...out.map(([, t]) => t)].join(' ')
+}
+
+export function validateOptions(o: Options): string[] {
+  const e: string[] = []
+  for (const f of OPTION_FIELDS) {
+    const v = o[f.key].trim()
+    if (!v) continue
+    if (!isSpiceNumber(v)) e.push(`${f.label} must be a number like ${f.ph}`)
+    else if (f.int && !(Number.isInteger(spiceValue(v)) && spiceValue(v) >= 1)) e.push(`${f.label} must be a whole number like ${f.ph}`)
+    else if (f.key !== 'temp' && f.key !== 'tnom' && spiceValue(v) <= 0) e.push(`${f.label} must be above 0`)
+  }
+  return e
+}

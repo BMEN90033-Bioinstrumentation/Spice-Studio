@@ -1,11 +1,11 @@
-// LTspice-style .step param sweeps, run as one ngspice job per value combination. Pure TS.
+// LTspice-style .step param / .step temp sweeps and .mc Monte Carlo, run as one ngspice job each. Pure TS.
 import { spiceValue } from './analysis.ts'
 
-export interface Step { param: string; values: number[] }
-export interface SweepRun { label: string; netlist: string } // label like "R=1k" or "R=1k, C=10n"; '' when no .step
+export interface Step { param: string; values: number[]; temp?: true } // temp: `.step temp …` (param 'temp')
+export interface SweepRun { label: string; netlist: string } // "R=1k", "R=1k, T=25", "run 3"; '' when no .step/.mc
 
-const MAX_RUNS = 50, MAX_STEPS = 3
-const STEP = /^\s*\.step\b/i
+const MAX_RUNS = 50, MAX_STEPS = 3, MAX_MC = 500
+const STEP = /^\s*\.step\b/i, MC = /^\s*\.mc\b/i, TEMP = /^\s*\.temp\b/i
 const round = (v: number) => Number(v.toPrecision(12)) // kills 0.30000000000000004-style drift
 
 export function parseSteps(netlist: string): { steps: Step[]; errors: string[] } {
@@ -13,11 +13,12 @@ export function parseSteps(netlist: string): { steps: Step[]; errors: string[] }
   for (const line of netlist.split('\n').filter((l) => STEP.test(l))) {
     const t = line.trim().split(/\s+/).slice(1)
     const mode = /^(dec|oct|lin)$/i.test(t[0] ?? '') ? t.shift()!.toLowerCase() : ''
-    if (t[0]?.toLowerCase() !== 'param' || !t[1]) {
-      errors.push(`${line.trim()}: only ".step param NAME …" is supported`)
+    const temp = t[0]?.toLowerCase() === 'temp'
+    if (!temp && (t[0]?.toLowerCase() !== 'param' || !t[1])) {
+      errors.push(`${line.trim()}: only ".step param NAME …" and ".step temp …" are supported`)
       continue
     }
-    const param = t[1], args = t.slice(2)
+    const param = temp ? 'temp' : t[1], args = t.slice(temp ? 1 : 2)
     const fail = (why: string) => errors.push(`${line.trim()}: ${why}`)
     if (steps.some((s) => s.param.toLowerCase() === param.toLowerCase())) {
       fail(`${param} is already stepped`)
@@ -44,7 +45,7 @@ export function parseSteps(netlist: string): { steps: Step[]; errors: string[] }
         values = Array.from({ length: count }, (_, i) => round(a + i * c))
       }
     }
-    steps.push({ param, values })
+    steps.push(temp ? { param, values, temp } : { param, values })
   }
   if (steps.length > MAX_STEPS) errors.push(`At most ${MAX_STEPS} nested .step sweeps are supported (found ${steps.length})`)
   return { steps, errors }
@@ -71,7 +72,33 @@ function setParam(lines: string[], name: string, value: number): string[] {
   return out
 }
 
+// .step temp: one `.temp X` before .end replaces any .temp lines (checked on ngspice-47: .temp and .options temp= both
+// work, and .temp beats .options temp)
+function setTemp(lines: string[], value: number): string[] {
+  const out = lines.filter((l) => !TEMP.test(l)), end = out.findLastIndex((l) => /^\s*\.end\s*$/i.test(l))
+  out.splice(end < 0 ? out.length : end, 0, `.temp ${value}`)
+  return out
+}
+
+// .mc N: an app directive. Run k gets `.options seed=k` right after the title: on ngspice-47 -b that reseeds
+// agauss/aunif/gauss/unif reproducibly, and the first seed= in a deck wins (so ours beats one the user wrote).
+function monteCarlo(netlist: string): { runs: SweepRun[]; errors: string[] } {
+  const lines = netlist.split('\n'), mc = lines.filter((l) => MC.test(l))
+  const n = Number(mc[0].trim().split(/\s+/)[1])
+  const bad = (e: string) => ({ runs: [], errors: [e] })
+  if (mc.length > 1) return bad('Only one .mc line is allowed')
+  // ponytail: .mc with .step would need a seed per (combination, run); reject until someone asks
+  if (lines.some((l) => STEP.test(l))) return bad('.mc cannot be combined with .step: use one or the other')
+  if (!Number.isInteger(n) || n < 1 || n > MAX_MC) return bad(`${mc[0].trim()}: expected ".mc N" with N from 1 to ${MAX_MC}`)
+  const base = lines.filter((l) => !MC.test(l))
+  return {
+    runs: Array.from({ length: n }, (_, k) => ({ label: `run ${k + 1}`, netlist: [base[0], `.options seed=${k + 1}`, ...base.slice(1)].join('\n') })),
+    errors: []
+  }
+}
+
 export function expandSweep(netlist: string): { runs: SweepRun[]; errors: string[] } {
+  if (netlist.split('\n').some((l) => MC.test(l))) return monteCarlo(netlist)
   const { steps, errors } = parseSteps(netlist)
   if (errors.length) return { runs: [], errors }
   if (!steps.length) return { runs: [{ label: '', netlist }], errors }
@@ -81,8 +108,8 @@ export function expandSweep(netlist: string): { runs: SweepRun[]; errors: string
   let combos: number[][] = [[]]
   for (const s of steps) combos = combos.flatMap((c) => s.values.map((v) => [...c, v])) // first .step varies slowest
   const runs = combos.map((c) => ({
-    label: c.map((v, i) => `${steps[i].param}=${eng(v)}`).join(', '),
-    netlist: c.reduce((ls, v, i) => setParam(ls, steps[i].param, v), base).join('\n')
+    label: c.map((v, i) => (steps[i].temp ? `T=${v}` : `${steps[i].param}=${eng(v)}`)).join(', '),
+    netlist: c.reduce((ls, v, i) => (steps[i].temp ? setTemp(ls, v) : setParam(ls, steps[i].param, v)), base).join('\n')
   }))
   return { runs, errors }
 }

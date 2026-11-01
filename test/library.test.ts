@@ -30,7 +30,7 @@ const vec = (p: RawPlot, n: string) => p.vars.find((x) => x.name.toLowerCase() =
 const near = (v: number, lo: number, hi: number, what: string) => assert.ok(v >= lo && v <= hi, `${what} = ${v.toPrecision(4)}, want ${lo}…${hi}`)
 
 test('BUNDLED: exactly the contract ids, well-formed', () => {
-  assert.deepEqual(BUNDLED.map((e) => e.id), ['R', 'C', 'L', 'V', 'I', '1N4148', '1N4007', '1N5819', 'BZX84C5V1', 'LED_RED', 'LED_GREEN',
+  assert.deepEqual(BUNDLED.map((e) => e.id), ['R', 'C', 'L', 'POT', 'XTAL', 'XFMR', 'K', 'T', 'V', 'I', 'VCC', 'E', 'G', 'H', 'F', 'BV', 'BI', 'S', 'W', '1N4148', '1N4007', '1N5819', 'BZX84C5V1', 'LED_RED', 'LED_GREEN',
     '1N914', 'BAT54', 'BAT85', '1N5408', '1N5822', 'UF4007', 'BZX55C3V3', 'BZX55C5V6', 'BZX55C12', '1N4728A', '1N4734A', '1N4742A',
     'LED_BLUE', 'LED_WHITE', 'LED_YELLOW',
     '2N3904', '2N3906', '2N2222', 'BC547B', 'BC557B', 'BC337', 'BC327', '2N5551', '2N5401', 'TIP31C', 'TIP32C', 'BD139', 'BD140',
@@ -40,7 +40,7 @@ test('BUNDLED: exactly the contract ids, well-formed', () => {
   for (const e of BUNDLED) {
     assert.equal(e.source, 'bundled')
     assert.ok(e.description.length > 5, e.id)
-    if (e.spice) assert.equal(e.spice.name, e.value, e.id)
+    if (e.spice) assert.ok(e.spice.name === e.value || /^\w+=/.test(e.value), e.id) // subckt name, or its parameter list (POT, XTAL)
     if (e.spice?.type === 'model') assert.deepEqual(parseLibFile(e.spice.text).models.map((m) => m.name), [e.name])
   }
   assert.deepEqual(['R', 'C', 'L', 'V', 'I', 'OPAMP'].map((n) => [lib(n).kind, lib(n).value, lib(n).spice]),

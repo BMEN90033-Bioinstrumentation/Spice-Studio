@@ -1,8 +1,11 @@
-import { useEffect, useId, useRef, useState, type JSX } from 'react'
-import { ANALYSES, analysisText, defaultAnalysis, validate, type Analysis, type Sweep } from './analysis.ts'
+import { useEffect, useId, useRef, useState, type JSX, type RefObject } from 'react'
+import {
+  ANALYSES, OPTION_FIELDS, analysisText, defaultAnalysis, emptyOptions, optionsText, parseOptions, validate, validateOptions, type Analysis, type Options, type Sweep
+} from './analysis.ts'
 import './AnalysisDialog.css'
 
 type Kind = Analysis['kind']
+export type Tab = Kind | 'options'
 const MOD = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl '
 const DESC: Record<Kind, string> = {
   op: 'DC bias point of every node',
@@ -17,6 +20,33 @@ const SWEEPS: [Sweep, string, string][] = [
   ['lin', 'Linear', 'Total points'],
 ]
 
+// Modal keys (shared with SourceDialog): focus first(), Esc closes, Mod+Enter applies, Tab cycles inside card; focus
+// returns to where it was on close. Capture on window: the modal swallows every key so canvas shortcuts never see them.
+// ponytail: main.tsx's earlier-registered capture listener still runs first for ⌘S/⌘O/⌘Enter
+export function useModal(card: RefObject<HTMLElement | null>, first: () => HTMLElement | null | undefined, cb: RefObject<{ apply(): void; onClose(): void }>) {
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null
+    first()?.focus()
+    const k = (e: KeyboardEvent) => {
+      e.stopPropagation()
+      if (e.key === 'Escape') e.preventDefault(), cb.current.onClose()
+      else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.preventDefault(), cb.current.apply()
+      else if (e.key === 'Tab') trap(e)
+    }
+    const trap = (e: KeyboardEvent) => {
+      const f = [...card.current!.querySelectorAll<HTMLElement>('button:not(:disabled), input, select, textarea')]
+      const i = f.indexOf(document.activeElement as HTMLElement)
+      const to = i < 0 ? f[0] : e.shiftKey && i === 0 ? f[f.length - 1] : !e.shiftKey && i === f.length - 1 ? f[0] : null
+      if (to) e.preventDefault(), to.focus()
+    }
+    window.addEventListener('keydown', k, true)
+    return () => {
+      window.removeEventListener('keydown', k, true)
+      prev?.focus?.()
+    }
+  }, [])
+}
+
 // fit a default's placeholder source/output (V1, out) to what the circuit actually has
 function seed(a: Analysis, sources: string[], outs: string[]): Analysis {
   const fit = (v: string, list: string[]) => (list.includes(v) ? v : list[0] ?? '')
@@ -30,53 +60,38 @@ export function AnalysisDialog(props: {
   sources: string[]
   nets: string[]
   onApply: (a: Analysis) => void
+  options?: string // the sheet's current .options line, if any
+  onOptions: (line: string) => void
+  tab?: Tab // open on this tab (default: the initial analysis)
   onClose: () => void
 }): JSX.Element {
-  const { sources, onApply, onClose } = props
+  const { sources, onApply, onOptions, onClose } = props
   const outs = props.nets.filter((n) => n !== '0')
   const init = props.initial ?? defaultAnalysis('tran')
   const [all, setAll] = useState(
     () => Object.fromEntries(ANALYSES.map(({ kind }) => [kind, kind === init.kind ? init : seed(defaultAnalysis(kind), sources, outs)])) as Record<Kind, Analysis>,
   )
-  const [kind, setKind] = useState<Kind>(init.kind)
-  const a = all[kind]
-  const errs = validate(a)
+  const [opt, setOpt] = useState<Options>(() => (props.options && parseOptions(props.options)) || emptyOptions())
+  const [kind, setKind] = useState<Tab>(props.tab ?? init.kind)
+  const isOpt = kind === 'options'
+  const a = all[isOpt ? init.kind : kind]
+  const form = (isOpt ? opt : a) as unknown as Record<string, string>
+  const errs = isOpt ? validateOptions(opt) : validate(a)
   const ok = errs.length === 0
   const uid = useId()
   const card = useRef<HTMLDivElement>(null)
-  const form = useRef<HTMLDivElement>(null)
+  const formEl = useRef<HTMLDivElement>(null)
   const applyBtn = useRef<HTMLButtonElement>(null)
 
-  const apply = () => ok && onApply(a)
+  const apply = () => ok && (isOpt ? onOptions(optionsText(opt)) : onApply(a))
   const cb = useRef({ apply, onClose })
   cb.current = { apply, onClose }
 
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null
-    ;(form.current?.querySelector<HTMLElement>('input, select') ?? applyBtn.current)?.focus()
-    // capture on window: modal swallows every key so canvas letter shortcuts never see them.
-    // ponytail: main.tsx's earlier-registered capture listener still runs first for ⌘S/⌘O/⌘Enter (see report)
-    const k = (e: KeyboardEvent) => {
-      e.stopPropagation()
-      if (e.key === 'Escape') e.preventDefault(), cb.current.onClose()
-      else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.preventDefault(), cb.current.apply()
-      else if (e.key === 'Tab') trap(e)
-    }
-    const trap = (e: KeyboardEvent) => {
-      const f = [...card.current!.querySelectorAll<HTMLElement>('button:not(:disabled), input, select')]
-      const i = f.indexOf(document.activeElement as HTMLElement)
-      const to = i < 0 ? f[0] : e.shiftKey && i === 0 ? f[f.length - 1] : !e.shiftKey && i === f.length - 1 ? f[0] : null
-      if (to) e.preventDefault(), to.focus()
-    }
-    window.addEventListener('keydown', k, true)
-    return () => {
-      window.removeEventListener('keydown', k, true)
-      prev?.focus?.()
-    }
-  }, [])
+  useModal(card, () => formEl.current?.querySelector<HTMLElement>('input, select') ?? applyBtn.current, cb)
 
-  const upd = (p: Record<string, unknown>) => setAll((s) => ({ ...s, [kind]: { ...s[kind], ...p } as Analysis }))
-  const val = (k: string) => (a as unknown as Record<string, string>)[k]
+  const upd = (p: Record<string, unknown>) =>
+    isOpt ? setOpt((o) => ({ ...o, ...p }) as Options) : setAll((s) => ({ ...s, [kind]: { ...s[kind as Kind], ...p } as Analysis }))
+  const val = (k: string) => form[k]
 
   // validate() messages start with the field's label: show those under the field, the rest in a list
   const shown = new Set<string>()
@@ -141,6 +156,20 @@ export function AnalysisDialog(props: {
   }
 
   const fields = () => {
+    if (isOpt) return <>
+      <p className="adlg-msg">Blank fields use ngspice's default (shown greyed). Written as one <code>.options</code> line.</p>
+      <div className="adlg-f">
+        <span className="adlg-l" id={uid + 'me'}>Integration method</span>
+        <div className="seg" role="group" aria-labelledby={uid + 'me'}>
+          {([['', 'Default'], ['trap', 'Trapezoidal'], ['gear', 'Gear']] as const).map(([v, t]) => (
+            <button key={v} type="button" className={opt.method === v ? 'on' : ''} aria-pressed={opt.method === v} onClick={() => upd({ method: v })}>{t}</button>
+          ))}
+        </div>
+        <small>Gear damps the numerical ringing trapezoidal can show on stiff circuits</small>
+      </div>
+      <div className="sdlg-grid">{OPTION_FIELDS.map((f) => num(f.key, f.label, f.unit, f.ph, f.help))}</div>
+      {num('extra', 'Other options', '', 'e.g. rshunt=1e12 cshunt=1e-12', 'Anything else, kept as typed')}
+    </>
     switch (a.kind) {
       case 'op':
         return <p className="adlg-msg">No parameters. Solves the DC operating point with capacitors open and inductors shorted.</p>
@@ -195,12 +224,16 @@ export function AnalysisDialog(props: {
                 <span>{DESC[k]}</span>
               </button>
             ))}
+            <button type="button" className={isOpt ? 'on' : ''} aria-pressed={isOpt} onClick={() => setKind('options')}>
+              <b>Options</b>
+              <span>Tolerances, iteration limits, temperature</span>
+            </button>
           </div>
-          <div className="adlg-form" ref={form}>{body}</div>
+          <div className="adlg-form" ref={formEl}>{body}</div>
         </div>
         <div className="adlg-prev" aria-live="polite">
           <span>Directive</span>
-          <code>{analysisText(a)}</code>
+          <code>{isOpt ? optionsText(opt) : analysisText(a)}</code>
         </div>
         {rest.length > 0 && <ul className="adlg-errs" role="alert">{rest.map((m) => <li key={m}>{m}</li>)}</ul>}
         <div className="adlg-foot">

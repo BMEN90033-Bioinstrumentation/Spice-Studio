@@ -1,11 +1,13 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron'
-import { spawn } from 'node:child_process'
+import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path'
 import { inside, safeName } from './paths'
 import { parseRaw, type RawPlot } from './rawfile'
+import type { SimOptions, Stopped } from '../renderer/src/contracts'
+import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
 import { installMenu, refreshMenu } from './menu'
 
@@ -13,6 +15,7 @@ export interface SimResult {
   ok: boolean
   log: string
   plots: RawPlot[]
+  stopped?: Stopped // killed by sim:stop or the timeout; plots are dropped (a cut-off rawfile)
 }
 
 // ngspice: NGSPICE_PATH > bundled (packaged: Resources/ngspice; dev: vendor/ngspice/<platform>-<arch>) > Homebrew > PATH.
@@ -38,10 +41,11 @@ const NO_NGSPICE =
   '  • or install it: brew install ngspice  /  apt install ngspice  /  https://ngspice.sourceforge.io\n' +
   '  • or point NGSPICE_PATH at an ngspice executable.'
 
-const run = (e: Engine, args: string[], cwd?: string) =>
+const run = (e: Engine, args: string[], cwd?: string, spawned?: (p: ChildProcess) => void) =>
   new Promise<{ code: number | null; log: string }>((resolve) => {
     let log = ''
     const p = spawn(e.path, args, { cwd, env: e.env })
+    spawned?.(p)
     p.stdout.on('data', (d) => (log += d))
     p.stderr.on('data', (d) => (log += d))
     p.on('error', (err) => resolve({ code: -1, log: `Failed to start ngspice (${e.path}): ${err.message}` }))
@@ -55,18 +59,48 @@ ipcMain.handle('engine:info', async () => {
   return { path: e.path, version: log.match(/ngspice-[\w.+-]+/)?.[0] ?? log.split('\n')[0], bundled: e.bundled }
 })
 
+// SIGTERM, then SIGKILL after 1 s if ngspice ignores it (Windows: kill() is already TerminateProcess)
+function kill(p: ChildProcess) {
+  p.kill()
+  if (process.platform !== 'win32') setTimeout(() => p.exitCode === null && p.signalCode === null && p.kill('SIGKILL'), 1000).unref()
+}
+let active: ((why: Stopped) => void) | null = null // stops the running simulation (one at a time: the renderer waits)
+const COMPAT = ['ps', 'lt', 'ltps', 'kicad']
+
 // -n: skip ~/.spiceinit (a `set filetype=ascii` there would break parseRaw). Success = exit code, not 'warning' lines.
 // ponytail: CLI + rawfile; move to libngspice via koffi in a utilityProcess for live streaming.
 // cwd = baseDir so relative .include/.lib resolve next to the user's file (ngspice resolves them against cwd).
-async function runSim(netlist: string, baseDir?: string): Promise<SimResult> {
+// compat: -D ngbehavior=ps|lt|ltps|kicad (ngspice-47 batch mode accepts it and logs "Compatibility modes selected: ps";
+// ps/lt apply to .include/.lib content, e.g. a PSpice VSWITCH model in an included subckt only parses with ps).
+async function runSim(netlist: string, baseDir?: string, opts?: SimOptions): Promise<SimResult> {
   const e = engine()
   if (!e) return { ok: false, log: NO_NGSPICE, plots: [] }
   const dir = await mkdtemp(join(tmpdir(), 'ngspice-'))
   const cir = join(dir, 'circuit.cir')
   const raw = join(dir, 'out.raw')
+  const cwd = baseDir && existsSync(baseDir) ? baseDir : dir
+  const base = ['-b', '-n', ...(COMPAT.includes(opts?.compat as string) ? ['-D', `ngbehavior=${opts!.compat}`] : [])]
+  let stopped: Stopped | undefined, child: ChildProcess | undefined
+  const stop = (why: Stopped) => {
+    stopped ??= why
+    if (child) kill(child)
+  }
+  active = stop
+  const secs = Number(opts?.timeoutS)
+  const timer = secs > 0 && isFinite(secs) ? setTimeout(() => stop('timeout'), secs * 1000) : undefined
+  const cut = (log: string): SimResult => ({ ok: false, log: log + (stopped === 'user' ? '\nStopped.' : `\nTimed out after ${secs} s.`), plots: [], stopped })
   try {
     await writeFile(cir, netlist.endsWith('\n') ? netlist : netlist + '\n')
-    const { code, log } = await run(e, ['-b', '-n', '-r', raw, cir], baseDir && existsSync(baseDir) ? baseDir : dir)
+    let { code, log } = await run(e, [...base, '-r', raw, cir], cwd, (p) => (child = p))
+    if (stopped) return cut(log)
+    // .meas: a second, rawfile-less pass (see measDeck); only its measurement section goes in the log
+    const md = code === 0 ? measDeck(netlist) : null
+    if (md) {
+      await writeFile(join(dir, 'meas.cir'), md)
+      const m = await run(e, [...base, join(dir, 'meas.cir')], cwd, (p) => (child = p))
+      if (stopped) return cut(log)
+      log = log.replace(/^No \.measure possible in batch mode.*\n.*\n.*\n/m, '') + `\n--- .meas ---\n${measSection(m.log) || '(no measurements printed)'}\n`
+    }
     let plots: RawPlot[] = []
     let parseErr = ''
     if (existsSync(raw)) {
@@ -78,11 +112,44 @@ async function runSim(netlist: string, baseDir?: string): Promise<SimResult> {
     }
     return { ok: code === 0 && !parseErr, log: log + parseErr, plots }
   } finally {
+    clearTimeout(timer)
+    if (active === stop) active = null
     await rm(dir, { recursive: true, force: true })
   }
 }
 
-ipcMain.handle('sim:run', (_e, netlist: string, baseDir?: string) => runSim(netlist, baseDir))
+// ---- export (plots, schematics): save dialog + write; PDF/print render the SVG in a hidden window ----
+type Filter = { name: string; extensions: string[] }
+async function saveAs(defaultName: string, filters: Filter[]) {
+  const r = await dialog.showSaveDialog({ defaultPath: basename(String(defaultName || 'export')), filters: Array.isArray(filters) ? filters : [] })
+  return r.canceled || !r.filePath ? null : r.filePath
+}
+ipcMain.handle('export:save', async (_e, defaultName: string, data: string | Uint8Array, filters: Filter[]) => {
+  if (typeof data !== 'string' && !(data instanceof Uint8Array)) throw new Error('Bad export data')
+  const p = await saveAs(defaultName, filters)
+  if (p) await writeFile(p, data)
+  return p
+})
+// mode 'pdf': save dialog + printToPDF; 'print': the system print dialog
+ipcMain.handle('export:pdf', async (_e, svg: string, defaultName: string, mode: 'pdf' | 'print' = 'pdf') => {
+  if (typeof svg !== 'string') throw new Error('Bad SVG')
+  const p = mode === 'pdf' ? await saveAs(defaultName, [{ name: 'PDF', extensions: ['pdf'] }]) : null
+  if (mode === 'pdf' && !p) return null
+  const w = new BrowserWindow({ show: false, webPreferences: { javascript: false } })
+  try {
+    const html = `<!doctype html><meta charset="utf-8"><style>@page{margin:10mm}html,body{margin:0;background:#fff}svg{width:100%;height:auto;max-height:100vh}</style>${svg}`
+    await w.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html))
+    if (mode === 'print') return await new Promise<string | null>((res) => w.webContents.print({}, (ok) => res(ok ? 'printed' : null)))
+    await writeFile(p!, await w.webContents.printToPDF({ landscape: true, printBackground: true }))
+    return p
+  } finally {
+    w.destroy()
+  }
+})
+
+ipcMain.handle('sim:run', (_e, netlist: string, baseDir?: string, opts?: SimOptions) => runSim(netlist, baseDir, opts))
+ipcMain.handle('sim:stop', () => active?.('user'))
+app.on('will-quit', () => active?.('user'))
 
 const NETLIST = { name: 'SPICE netlist', extensions: ['cir', 'sp', 'spice', 'net', 'txt'] }
 const SCHEMATIC = { name: 'Spice Studio schematic', extensions: ['nsch'] }

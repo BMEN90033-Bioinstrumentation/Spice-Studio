@@ -91,3 +91,4 @@
 .sch-insp .d code { font: 11px var(--mono); color: var(--text); }
 .sch-insp .warn { color: var(--warn); }
 .sch-insp .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.sch .band { stroke: #ffd54f; stroke-width: 1.5; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }

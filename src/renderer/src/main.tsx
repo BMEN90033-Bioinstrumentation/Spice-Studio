@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { SimResult } from '../../main/index'
 import type { OsOpen } from '../../preload/index'
 import type { RawPlot } from '../../main/rawfile'
+import { isExpr, type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
 import { useCommands } from './commands'
@@ -14,12 +15,15 @@ import { useSources, type Sources } from './library/sources'
 import { usePanels } from './layout/Panel'
 import { ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
-import { newProject, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
+import { COMPATS, newProject, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
 import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
 import { TEMPLATES } from './schematic/templates'
 import { blame, currentVectors, findVector, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
+import { diagnose } from './sim/convergence'
+import { erc, type Issue } from './sim/erc'
+import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
 import './style.css'
 
@@ -55,6 +59,14 @@ function tabsOf(runs: Run[]): Tab[] {
     name: p.plotname,
     runs: runs.flatMap((r, i) => (maps[i].has(key) ? [{ label: r.label, plot: maps[i].get(key)! }] : []))
   }))
+}
+
+// pack dialect hints (LibEntry.compat, e.g. 'ltspice') of the parts in use -> ngspice compat mode
+const DIALECT: Record<string, Compat> = { ltspice: 'lt', lt: 'lt', pspice: 'ps', ps: 'ps', ltps: 'ltps', kicad: 'kicad' }
+const COMPAT_NAME: Record<Compat, string> = { ps: 'PSpice', lt: 'LTspice', ltps: 'LTspice + PSpice', kicad: 'KiCad' }
+function autoCompat(sheets: Sheet[], lib: (id: string) => LibEntry | undefined): Compat | undefined {
+  const c = new Set(sheets.flatMap((s) => s.parts.map((p) => DIALECT[(p.lib && lib(p.lib)?.compat?.toLowerCase()) || ''])).filter(Boolean))
+  return c.has('ltps') || (c.has('lt') && c.has('ps')) ? 'ltps' : [...c][0] // ponytail: kicad + another dialect: first wins
 }
 
 type Route = 'home' | 'editor' | 'library'
@@ -205,6 +217,12 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [tab, setTab] = useState('') // plot tab key: survives re-runs that add/remove analyses
   const [status, setStatus] = useState(session.kind === 'project' && session.warn ? session.warn : 'Ready')
   const [running, setRunning] = useState(false)
+  const stopReq = useRef(false) // Stop between sweep runs, when no ngspice is alive to kill
+  const [meas, setMeas] = useState<MeasTable | null>(null)
+  const [diag, setDiag] = useState<Diagnosis[]>([]) // convergence help for the last run
+  // compat / timeout: stored in the .nsproj for projects, per session for loose files; simEdit = the open settings bar
+  const [looseSim, setLooseSim] = useState<ProjectSim>({})
+  const [simEdit, setSimEdit] = useState<ProjectSim | null>(null)
   const peeked = useRef<string | null>(null) // last generated netlist put in the editor
 
   const files = Object.keys(disk.current).sort()
@@ -323,7 +341,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     } catch (e) {
       return setStatus(`Can't update the project: ${msg(e)}`)
     }
-    setProj(p), setOverlay(null), setRuns(null), setStatus(`${f} is now the top sheet`)
+    setProj(p), setOverlay(null), setRuns(null), setMeas(null), setDiag([]), setStatus(`${f} is now the top sheet`)
   }
 
   // ---- libraries (Manage Libraries: it reports failures) ----
@@ -374,7 +392,18 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const ctx = (): NetCtx => ({ sheets: Object.fromEntries(Object.keys(disk.current).map((f) => [f, live(f)])), lib: resolve })
   const gen = () => (proj ? netlist(live(top), `${proj.name} (${top})`, ctx()) : netlist(live(LOOSE), base(schPath) ?? 'untitled', { lib: resolve }))
   const errLog = (errors: string[]) => errors.map((e) => 'Error: ' + e).join('\n')
-  const fail = (log: string, msg: string) => (setRuns([]), setLog(log), setBlamed([]), setStatus(msg))
+  const fail = (log: string, msg: string) => (setRuns([]), setLog(log), setBlamed([]), setMeas(null), setDiag([]), setStatus(msg))
+  const sim = proj ? (proj.sim ?? {}) : looseSim
+  const sheetsNow = () => Object.keys(disk.current).map(live)
+  async function saveSim(s: ProjectSim) {
+    const clean: ProjectSim = { ...(s.compat ? { compat: s.compat } : {}), ...(s.timeoutS && s.timeoutS > 0 ? { timeoutS: s.timeoutS } : {}) }
+    setSimEdit(null)
+    if (!proj) return setLooseSim(clean)
+    const { sim: _, ...rest } = proj, p: Project = Object.keys(clean).length ? { ...rest, sim: clean } : rest
+    setProj(p)
+    await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
+  }
+  const stop = () => ((stopReq.current = true), window.api.stopSim())
 
   async function run() {
     if (running) return
@@ -392,20 +421,44 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       dir = pdir ?? dirOf(schPath)
       pre = [...nl.warnings.map((w) => 'Warning: ' + w), '--- netlist ---', net.trimEnd(), '--- ngspice ---', ''].join('\n')
     } else if (pdir && path) dir = dirOf(path)
+    // ERC on the emitted text: errors block the run, warnings go to the log; both blame parts/nets on the top sheet
+    const chk = erc(net), partOf = new Map(Object.entries(nl?.refs ?? {}).map(([id, ref]) => [ref.toLowerCase(), id]))
+    const issues = (kind: string, xs: Issue[]) =>
+      xs.map((x) => ({ line: `${kind}: ${x.message}`, blame: { parts: x.refs.flatMap((r) => partOf.get(r.toLowerCase()) ?? []), nets: x.nets } }))
+    const join = (bs: Blame[]) => ({ parts: bs.flatMap((b) => b.parts), nets: bs.flatMap((b) => b.nets) })
+    if (chk.errors.length) {
+      const es = issues('Error', chk.errors)
+      fail(es.map((e) => e.line).join('\n') + '\n' + pre, `Electrical rules check: ${chk.errors.length} error${chk.errors.length > 1 ? 's' : ''}, nothing simulated`)
+      if (nl) setBlamed(es), setOverlay({ nets: nl.nets, wireNets: nl.wireNets, blame: join(es.map((e) => e.blame)) })
+      return
+    }
+    const ercWarn = nl ? issues('Warning', chk.warnings) : []
+    if (chk.warnings.length) pre = issues('Warning', chk.warnings).map((w) => w.line).join('\n') + '\n' + pre
     const sweep = expandSweep(net)
     if (sweep.errors.length) return fail(pre + errLog(sweep.errors), `Sweep errors (${sweep.errors.length})`)
-    setRunning(true)
+    const opts: SimOptions = { compat: sim.compat ?? (isSch ? autoCompat(sheetsNow(), resolve) : undefined), timeoutS: sim.timeoutS }
+    setRunning(true), setDiag([]), (stopReq.current = false)
     const t0 = performance.now(), n = sweep.runs.length, done: Run[] = []
-    let out = '', ok = true
-    for (const [i, s] of sweep.runs.entries()) {
-      setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
-      const r = await window.api.runSim(s.netlist, dir)
-      // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
-      const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
-      out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
-      done.push({ label: s.label, result: r })
-      if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
+    let out = '', ok = true, stopped: Stopped | undefined
+    try {
+      for (const [i, s] of sweep.runs.entries()) {
+        if (stopReq.current) { stopped = 'user'; break }
+        setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
+        const r = await window.api.runSim(s.netlist, dir, opts)
+        // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
+        const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
+        out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
+        if ((stopped = r.stopped)) break // keep the runs completed so far, drop the cut-off one
+        done.push({ label: s.label, result: r })
+        if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
+      }
+    } finally {
+      setRunning(false)
     }
+    const mt = done.map((r) => ({ label: r.label, rows: parseMeas(r.result.log) }))
+    setMeas(mt.some((r) => r.rows.length) ? mt : null)
+    // ngspice logs gmin/source stepping warnings on runs it rescued (noise), but a singular matrix result is never trustworthy
+    if (!stopped) setDiag(diagnose(out).filter((d) => !ok || d.problem.startsWith('Singular matrix')))
     const tabs = tabsOf(done)
     setRuns(done)
     setLog(pre + out)
@@ -413,26 +466,35 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       Object.fromEntries(
         tabs.map(({ key, runs: [{ plot }] }) => {
           const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
-          const keep = prev[key]?.filter((v) => has.has(v)) // keep the user's picks when the vectors still exist
+          const keep = prev[key]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
           return [key, keep?.length ? keep : defaultSel(plot)]
         })
       )
     )
     if (nl) {
       const b = blame(nl.warnings.map((w) => 'Warning: ' + w).join('\n') + '\n' + out, nl)
-      const op = done[0].result.plots.find((p) => p.plotname === 'Operating Point')
-      setBlamed(b.lines)
+      const op = done[0]?.result.plots.find((p) => p.plotname === 'Operating Point')
+      setBlamed([...ercWarn, ...b.lines])
       setOverlay({
         nets: nl.nets,
         wireNets: nl.wireNets,
         ...(op && { op: opVoltages(nl, op) }),
-        ...((!ok || /warning/i.test(out)) && { blame: b.all })
+        ...((!ok || /warning/i.test(out) || ercWarn.length) && { blame: join([b.all, ...ercWarn.map((w) => w.blame)]) })
       })
     } else setBlamed([])
     const secs = ((performance.now() - t0) / 1000).toFixed(2)
     const where = proj && isSch && view !== top ? ` · simulated the top sheet ${stem(top)}; open it to probe` : ''
-    setStatus(`${ok ? 'Done' : 'Failed'}${n > 1 ? ` (${done.length}/${n} runs)` : ''} in ${secs} s${where}`)
-    setRunning(false)
+    const head = stopped === 'user' ? 'Stopped' : stopped ? `Timed out after ${opts.timeoutS} s` : ok ? 'Done' : 'Failed'
+    setStatus(`${head}${n > 1 ? ` (${done.length}/${n} runs)` : ''} in ${secs} s${where}`)
+  }
+
+  // convergence banner fix: an .options line on the top sheet (Schematic's addOptions)
+  function applyFix(options: string) {
+    const h = handles.current[top] as (SchematicHandle & { addOptions?: (line: string) => void }) | null | undefined
+    if (!h?.addOptions) return setStatus(`Open the top sheet ${stem(top)} to apply this, or add "${options}" yourself`)
+    h.addOptions(options)
+    setDiag([])
+    setStatus(`Added ${options} to ${stem(top)}: run again`)
   }
 
   // Alt+click in the schematic: toggle that net's voltage / part's current in the current plot tab
@@ -441,6 +503,13 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     if (!cur) return setStatus('Run a simulation first')
     const plot = cur.runs[0].plot
     let want: string, v: string | null
+    if ('net2' in t) {
+      // differential probe: a maths entry Plot evaluates (contracts.ts isExpr)
+      const d = t, term = (n: string) => (n === '0' ? '0' : `v(${n.toLowerCase()})`)
+      const e = `=${term(d.net)}-${term(d.net2)}`, sel = sels[cur.key] ?? []
+      setSels({ ...sels, [cur.key]: sel.includes(e) ? sel.filter((s) => s !== e) : [...sel, e] })
+      return setStatus(`${sel.includes(e) ? 'Removed' : 'Added'} ${e.slice(1)}`)
+    }
     if ('net' in t) {
       const n = voltageVector(t.net)
       if (!n) return setStatus('Ground is the 0 V reference')
@@ -572,6 +641,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     { id: 'view.schematic', run: toSheet, checked: () => route === 'editor' && isSch },
     { id: 'view.netlist', run: () => (go('editor'), switchTo('net')), checked: () => route === 'editor' && !isSch },
     { id: 'sim.run', keys: 'Mod+Enter', run, enabled: () => !running && (isSch ? live(top).parts.length > 0 : /\S/.test(text.current)) },
+    { id: 'sim.stop', keys: 'Mod+.', run: stop, enabled: () => running },
     { id: 'sim.viewNetlist', run: peek, enabled: () => isSch && canPeek },
     { id: 'tools.library', run: () => (isSch && snap(view), bump(), go('library')) }
   ])
@@ -624,8 +694,9 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
             )}
             {!proj && <button onClick={openLoose} title="Open a schematic or netlist here">Open</button>}
             <button onClick={save} title={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}>Save</button>
-            <button className="run" onClick={run} disabled={running} title={proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
-              {running ? 'Running…' : '▶ Run'}
+            <button onClick={() => setSimEdit(simEdit ? null : sim)} title="Run settings: compatibility mode for vendor models, timeout">Run settings</button>
+            <button className="run" onClick={running ? stop : run} title={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
+              {running ? '■ Stop' : '▶ Run'}
             </button>
           </div>
         </header>
@@ -641,6 +712,41 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
             <button onClick={() => setGuard(null)}>Cancel</button>
           </div>
         )}
+
+        {simEdit && (
+          <div className="banner" role="dialog" aria-label="Run settings">
+            <span>Run settings{proj ? ' (saved in the project)' : ''}</span>
+            <label>
+              Compatibility{' '}
+              <select value={simEdit.compat ?? ''} onChange={(e) => setSimEdit({ ...simEdit, compat: (e.target.value || undefined) as Compat | undefined })}>
+                <option value="">Auto (from the parts' libraries)</option>
+                {COMPATS.map((c) => <option key={c} value={c}>{COMPAT_NAME[c]}</option>)}
+              </select>
+            </label>
+            <label>
+              Timeout{' '}
+              <input type="number" min={0} step={1} placeholder="none" style={{ width: '5em' }} value={simEdit.timeoutS ?? ''}
+                onChange={(e) => setSimEdit({ ...simEdit, timeoutS: e.target.value ? Number(e.target.value) : undefined })} />{' '}s
+            </label>
+            <button className="primary" onClick={() => saveSim(simEdit)}>Save</button>
+            <button onClick={() => setSimEdit(null)}>Cancel</button>
+          </div>
+        )}
+        {diag.map((d, i) => (
+          <div key={i} className="banner" role="status" aria-label="Convergence help">
+            <span>{d.problem}</span>
+            {d.fixes.map((f) =>
+              isSch ? (
+                <button key={f.options} onClick={() => applyFix(f.options)} title={`Adds ${f.options} to ${stem(top)}`}>{f.label}</button>
+              ) : (
+                <button key={f.options} onClick={() => navigator.clipboard.writeText(f.options).then(() => setStatus(`Copied ${f.options}: paste it into the netlist`))} title="Copy this line">
+                  {f.label}: <code>{f.options}</code>
+                </button>
+              )
+            )}
+            <button onClick={() => setDiag((x) => x.filter((y) => y !== d))}>Dismiss</button>
+          </div>
+        ))}
 
         <div className="body">
           {proj && !panels.sheets && panels.sheetsRail}
@@ -718,6 +824,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
                 <div className="pane" hidden={view !== f} key={(ids.current[f] ??= uid())}>
                   <Schematic
                     ref={(h) => { handles.current[f] = h }}
+                    name={stem(f)}
                     active={route === 'editor' && view === f}
                     initial={disk.current[f]}
                     onDirty={() => dirtied(f)}
@@ -738,7 +845,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
               </div>
             </section>
             {panels.results((actions) => (
-              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} />
+              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined} />
             ))}
           </main>
         </div>

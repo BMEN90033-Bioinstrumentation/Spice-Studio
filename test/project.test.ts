@@ -66,3 +66,13 @@ test('refreshBlocks / renameRefs update block instances only when needed', () =>
   assert.equal(n.parts[0].sheet, 'g.nsch')
   assert.equal(renameRefs(n, 'f.nsch', 'h.nsch'), null)
 })
+
+test('parseProject: optional sim settings (compat, timeoutS)', () => {
+  const p = newProject('Amp')
+  assert.deepEqual(parseProject(JSON.stringify({ ...p, sim: { compat: 'lt', timeoutS: 30 } })).sim, { compat: 'lt', timeoutS: 30 })
+  assert.deepEqual(parseProject(JSON.stringify({ ...p, sim: {} })).sim, {})
+  assert.deepEqual(parseProject(JSON.stringify({ ...p, sim: { timeoutS: 0 } })).sim, {}) // 0 = no limit
+  assert.equal(parseProject(JSON.stringify(p)).sim, undefined)
+  for (const [sim, re] of [[{ compat: 'hspice' }, /Unknown compat/], [{ timeoutS: -1 }, /timeoutS/], [{ timeoutS: '5' }, /timeoutS/], [null, /must be an object/], [[1], /must be an object/]] as const)
+    assert.throws(() => parseProject(JSON.stringify({ ...p, sim })), re)
+})
