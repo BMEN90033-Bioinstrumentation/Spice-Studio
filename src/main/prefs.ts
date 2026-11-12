@@ -2,10 +2,10 @@
 // to every window. The theme goes through nativeTheme.themeSource, which drives prefers-color-scheme in every renderer
 // (index.css keys the light/dark tokens on it). Also the crash-recovery store's IPC (recovery.ts).
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanPrefs, type Prefs } from '../renderer/src/prefs'
-import { recoveryStore, type RecoveryDraft } from './recovery'
+import { changedSince, isRecovery, recoveryStore, writeAtomic, type RecoveryDraft } from './recovery'
 
 const FILE = () => join(app.getPath('userData'), 'preferences.json')
 let prefs: Prefs = cleanPrefs({})
@@ -19,18 +19,27 @@ export const getPrefs = () => prefs
 export const windowBg = () => (nativeTheme.shouldUseDarkColors ? '#1f1f1f' : '#ffffff') // = index.css --background
 nativeTheme.on('updated', () => BrowserWindow.getAllWindows().forEach((w) => w.setBackgroundColor(windowBg())))
 
-ipcMain.on('prefs:get', (e) => void (e.returnValue = prefs)) // sync: the renderer starts with them (preload)
-ipcMain.handle('prefs:set', (_e, patch: Partial<Prefs>) => {
-  prefs = cleanPrefs({ ...prefs, ...(patch && typeof patch === 'object' ? patch : {}) })
+// applied and pushed first, then saved: a failed write (reported to the Settings window) only loses them at the next launch
+function update(p: Prefs) {
+  prefs = p
   nativeTheme.themeSource = prefs.theme
   for (const w of BrowserWindow.getAllWindows()) w.webContents.send('prefs:changed', prefs)
-  mkdirSync(app.getPath('userData'), { recursive: true }) // applied first: a failed write only loses them at the next launch
-  writeFileSync(FILE(), JSON.stringify(prefs, null, 1))
+  try {
+    writeAtomic(FILE(), JSON.stringify(prefs, null, 1))
+  } catch (e) {
+    throw new Error(`Couldn't save your settings (${(e as Error).message}). They apply until you quit.`)
+  }
   return prefs
+}
+ipcMain.on('prefs:get', (e) => void (e.returnValue = prefs)) // sync: the renderer starts with them (preload)
+// the engine path is executed: only the file picker below sets it; the renderer may only clear it
+ipcMain.handle('prefs:set', (_e, patch: Partial<Prefs>) => {
+  const { ngspicePath, ...rest } = patch && typeof patch === 'object' ? patch : ({} as Partial<Prefs>)
+  return update(cleanPrefs({ ...prefs, ...rest, ...(ngspicePath === '' && { ngspicePath: '' }) }))
 })
 ipcMain.handle('prefs:pickEngine', async () => {
   const r = await dialog.showOpenDialog({ title: 'Choose the ngspice program', properties: ['openFile'] })
-  return r.canceled ? null : (r.filePaths[0] ?? null)
+  return r.canceled || !r.filePaths[0] ? prefs : update(cleanPrefs({ ...prefs, ngspicePath: r.filePaths[0] }))
 })
 
 // crash recovery: app:closeNow means the renderer has saved or the user chose Discard, so this run's copies go;
@@ -40,4 +49,8 @@ let closing = false
 ipcMain.handle('recovery:list', () => recovery.list())
 ipcMain.handle('recovery:write', (_e, r: RecoveryDraft) => void (closing || recovery.write(r)))
 ipcMain.handle('recovery:remove', (_e, id: string) => recovery.remove(id))
+ipcMain.handle('recovery:check', (_e, r: unknown) => {
+  if (!isRecovery(r)) throw new Error('Bad recovery record')
+  return changedSince(r)
+})
 ipcMain.on('app:closeNow', () => ((closing = true), recovery.clearOwned()))

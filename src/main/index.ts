@@ -50,15 +50,17 @@ const run = (e: Engine, args: string[], cwd?: string, spawned?: (p: ChildProcess
     spawned?.(p)
     p.stdout.on('data', (d) => (log += d))
     p.stderr.on('data', (d) => (log += d))
-    p.on('error', (err) => resolve({ code: -1, log: `Failed to start ngspice (${e.path}): ${err.message}` }))
+    p.on('error', (err) => resolve({ code: -1, log: `Failed to start ngspice (${e.path}${e.path === getPrefs().ngspicePath ? ', chosen in Settings › Simulation engine' : ''}): ${err.message}` }))
     p.on('close', (code) => resolve({ code, log }))
   })
 
 ipcMain.handle('engine:info', async () => {
   const e = engine()
   if (!e) return { path: null, version: 'ngspice not found', bundled: false }
-  const { log } = await run(e, ['--version'])
-  return { path: e.path, version: log.match(/ngspice-[\w.+-]+/)?.[0] ?? log.split('\n')[0], bundled: e.bundled }
+  let kid: ChildProcess | undefined // a program that never answers (Settings can point anywhere): give up after 5 s
+  const late = new Promise<{ log: string }>((r) => setTimeout(() => (kid && kill(kid), r({ log: '' })), 5000).unref())
+  const { log } = await Promise.race([run(e, ['--version'], undefined, (p) => (kid = p)), late])
+  return { path: e.path, version: log.match(/ngspice-[\w.+-]+/)?.[0] ?? (log.split('\n')[0] || `No answer from ${basename(e.path)} --version`), bundled: e.bundled }
 })
 
 // SIGTERM, then SIGKILL after 1 s if ngspice ignores it (Windows: kill() is already TerminateProcess)

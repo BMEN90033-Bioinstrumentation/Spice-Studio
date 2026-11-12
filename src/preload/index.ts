@@ -74,13 +74,14 @@ const api = {
     initial: ipcRenderer.sendSync('prefs:get') as Prefs,
     set: (p: Partial<Prefs>): Promise<Prefs> => inv('prefs:set', p),
     onChange: (cb: (p: Prefs) => void) => on('prefs:changed', cb),
-    pickEngine: (): Promise<string | null> => inv('prefs:pickEngine')
+    pickEngine: (): Promise<Prefs> => inv('prefs:pickEngine') // file picker; main sets ngspicePath itself
   },
   // crash recovery copies of unsaved work (main/recovery.ts); list = left by earlier runs
   recovery: {
     list: (): Promise<Recovery[]> => inv('recovery:list'),
     write: (r: RecoveryDraft): Promise<void> => inv('recovery:write', r),
-    remove: (id: string): Promise<void> => inv('recovery:remove', id)
+    remove: (id: string): Promise<void> => inv('recovery:remove', id),
+    check: (r: Recovery): Promise<{ missing: boolean; changed: [string, 'changed' | 'gone'][] }> => inv('recovery:check', r) // saved files newer than the copy
   }
 }
 

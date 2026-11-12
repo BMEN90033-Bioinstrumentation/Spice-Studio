@@ -108,7 +108,15 @@ If the app crashes or is force-quit, the Home page shows **Unsaved work from an 
 - **Discard** deletes the recovery copy.
 - **Later** (when opening a project) opens your saved files and keeps the copy for next time.
 
-You can change how often copies are made, or turn them off, in [Settings](#settings).
+If a saved file changed after the copy was made (you saved it since, or it was edited outside Spice Studio, renamed or deleted), the app lists those files before restoring anything:
+
+- **Keep saved files** keeps those files as they are on disk and restores only the rest of the copy.
+- **Use recovered copy** brings back the copy's version of them too, as unsaved changes. Saving then replaces the newer files.
+- **Cancel** (or **Later**) leaves everything as it is.
+
+If the project itself was moved, renamed or deleted, **Restore** on the Home page offers **Locate project…** to restore into it where it is now, or **Save as files…** to save each recovered sheet (and the netlist) wherever you choose.
+
+You can change how often copies are made, or turn them off, in [Settings](#settings). With copies turned off, a copy you restored is still removed once you save or discard.
 
 ## Settings
 

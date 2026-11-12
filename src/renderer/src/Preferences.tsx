@@ -14,13 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 let cur: Prefs = window.api.prefs.initial
-const subs = new Set<() => void>()
+let saveErr = '' // the last change couldn't be written to disk (main says why)
+const subs = new Set<() => void>(), sub = (f: () => void) => (subs.add(f), () => void subs.delete(f))
 const apply = () => document.documentElement.classList.toggle('no-grid', !cur.grid) // style.css
 apply()
 window.api.prefs.onChange((p) => ((cur = p), apply(), subs.forEach((f) => f())))
 export const prefs = () => cur
-export const usePrefs = () => useSyncExternalStore((f) => (subs.add(f), () => void subs.delete(f)), prefs)
-const setPrefs = (p: Partial<Prefs>) => void window.api.prefs.set(p)
+export const usePrefs = () => useSyncExternalStore(sub, prefs)
+const saved = (q: Promise<Prefs>) =>
+  void q.then(() => '', (e) => String(e?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')).then((m) => ((saveErr = m), subs.forEach((f) => f())))
+const setPrefs = (p: Partial<Prefs>) => saved(window.api.prefs.set(p))
 // run settings for a new project / loose file
 export const newSim = () => (Object.keys(cur.sim).length ? { sim: { ...cur.sim } } : {})
 
@@ -99,13 +102,12 @@ export function PreferencesPanel() {
     const d = await window.api.project.pickParent(p.projectDir || defDir)
     if (d) setPrefs({ projectDir: d })
   }
-  const pickEngine = async () => {
-    const f = await window.api.prefs.pickEngine()
-    if (f) setPrefs({ ngspicePath: f })
-  }
+  const pickEngine = () => saved(window.api.prefs.pickEngine()) // main runs the picker and stores the path itself
+  const err = useSyncExternalStore(sub, () => saveErr)
 
   return (
     <div>
+      {err && <p role="alert" className="mb-3 text-xs text-destructive">{err}</p>}
       <Section title="Appearance">
         <Row label="Theme">
           <ToggleGroup type="single" variant="outline" size="sm" value={p.theme} onValueChange={(v) => v && setPrefs({ theme: v as Theme })} aria-label="Theme">

@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { recoveryStore } from '../src/main/recovery.ts'
+import { changedSince, recoveryStore } from '../src/main/recovery.ts'
 
 const draft = (id: string, extra = {}) => ({ id, name: 'Amp', project: '/p/Amp/Amp.nsproj', sheets: { 'main.nsch': '{"v":1}' }, ...extra })
 
@@ -43,11 +43,44 @@ test('recovery: ids cannot escape the folder, bad records are refused, unreadabl
     for (const id of ['../x', 'a/b', '', 'a.b', 'x'.repeat(65)]) assert.throws(() => s.write(draft(id)), /Bad recovery/, id), assert.throws(() => s.remove(id), /Bad recovery/)
     assert.throws(() => s.write({ ...draft('ok'), sheets: { 'main.nsch': 42 } } as never), /Bad recovery record/)
     assert.throws(() => s.write({ ...draft('ok'), net: { text: 1 } } as never), /Bad recovery record/)
+    for (const k of ['../evil.nsch', 'sub/x.nsch', '.hidden.nsch', 'main.cir']) assert.throws(() => s.write({ ...draft('ok'), sheets: { [k]: '{}' } }), /Bad recovery record/, k)
     writeFileSync(join(dir, 'junk.json'), '{not json')
     writeFileSync(join(dir, 'other.json'), JSON.stringify({ ...draft('mismatch'), time: 1 })) // id must match the file name
     writeFileSync(join(dir, 'half.json.tmp'), '{')
     assert.deepEqual(recoveryStore(() => dir).list(), [])
     assert.equal(readFileSync(join(dir, 'junk.json'), 'utf8'), '{not json')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('recovery: each copy remembers the saved files it was based on; a restore sees which changed, went, or whether the project moved', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'rec-'))
+  try {
+    const p = join(dir, 'Amp'), store = recoveryStore(() => join(dir, 'recovery')), loose = join(dir, 'a.nsch'), cir = join(dir, 'b.cir')
+    mkdirSync(p)
+    for (const [f, t] of [['Amp.nsproj', '{}'], ['main.nsch', 'saved main'], ['f.nsch', 'saved f']]) writeFileSync(join(p, f), t)
+    writeFileSync(loose, 'saved a'), writeFileSync(cir, '* saved b')
+    store.write(draft('proj', { project: join(p, 'Amp.nsproj'), sheets: { 'main.nsch': '{}', 'f.nsch': '{}', 'new.nsch': '{}' }, net: { path: null, text: '*' } }))
+    store.write({ id: 'loose', name: 'a.nsch', path: loose, sheets: { 'untitled.nsch': '{}' }, net: { path: cir, text: '* copy' } })
+    const [a, b] = ['proj', 'loose'].map((id) => recoveryStore(() => join(dir, 'recovery')).list().find((r) => r.id === id)!)
+    assert.deepEqual(Object.keys(a.base!).sort(), ['f.nsch', 'main.nsch', 'new.nsch']) // the untitled netlist has no file
+    assert.equal(a.base!['new.nsch'], null) // not on disk yet
+    assert.deepEqual(changedSince(a), { missing: false, changed: [] })
+    assert.deepEqual(changedSince(b), { missing: false, changed: [] })
+    // after the crash: main.nsch saved again (Later, edit, ⌘S), f.nsch deleted, new.nsch created elsewhere; the loose files edited outside
+    writeFileSync(join(p, 'main.nsch'), 'newer main'), rmSync(join(p, 'f.nsch')), writeFileSync(join(p, 'new.nsch'), 'x')
+    writeFileSync(cir, '* edited outside')
+    assert.deepEqual(changedSince(a), { missing: false, changed: [['main.nsch', 'changed'], ['f.nsch', 'gone'], ['new.nsch', 'changed']] })
+    assert.deepEqual(changedSince(b), { missing: false, changed: [['net', 'changed']] })
+    // the project folder moved: missing, and a located copy is checked against the new folder
+    renameSync(p, join(dir, 'Moved'))
+    assert.equal(changedSince(a).missing, true)
+    assert.deepEqual(changedSince({ ...a, project: join(dir, 'Moved', 'Amp.nsproj') }).changed.map(([k]) => k), ['main.nsch', 'f.nsch', 'new.nsch'])
+    // a renderer can't plant base hashes: the store computes them
+    store.write({ ...draft('spoof', { project: join(dir, 'Moved', 'Amp.nsproj') }), base: { 'main.nsch': 'x' } } as never)
+    const sp = recoveryStore(() => join(dir, 'recovery')).list().find((r) => r.id === 'spoof')!
+    assert.deepEqual(changedSince(sp).changed, [])
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }

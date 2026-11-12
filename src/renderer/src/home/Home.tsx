@@ -79,7 +79,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   error: string
   form: boolean // the new-project form (owned by App: File › New Project opens it)
   setForm: (open: boolean) => void
-  onRestore: (r: Recovery) => void // a crash-recovery copy (Recovery.tsx)
+  onRestore: (r: Recovery) => unknown // a crash-recovery copy (Recovery.tsx)
 }) {
   const [recents, setRecents] = useState<Recent[] | null>(null)
   const [name, setName] = useState('')
