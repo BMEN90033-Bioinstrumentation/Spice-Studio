@@ -18,6 +18,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 let cur: Prefs = window.api.prefs.initial
 let saveErr = '' // the last change couldn't be written to disk (main says why)
@@ -244,15 +245,20 @@ function PreferencesPanel() {
             <ToggleGroupItem value="system" className="px-3"><Monitor />System</ToggleGroupItem>
           </ToggleGroup>
         </Row>
-        <Row label="Schematic colours"><Hint>the canvas only. KiCad colour themes by cosmopotamian</Hint></Row>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-3" role="group" aria-label="Schematic colours">
-          {SCH_PREVIEWS.map((t) => (
-            <button key={t.id} type="button" aria-pressed={t.id === p.schTheme} onClick={() => setPrefs({ schTheme: t.id })} className="group grid gap-1.5 rounded-md text-left outline-none">
-              <SchPreview c={t.c} className={cn('rounded-md border group-hover:border-input group-focus-visible:ring-2 group-focus-visible:ring-ring', t.id === p.schTheme && 'border-foreground/70 ring-1 ring-foreground/70 group-hover:border-foreground/70')} />
-              <span className={cn('truncate text-xs', t.id === p.schTheme ? 'font-medium text-foreground' : 'text-muted-foreground group-hover:text-foreground')}>{t.name}</span>
-            </button>
-          ))}
-        </div>
+        <Row label="Schematic colours">
+          <Select value={p.schTheme} onValueChange={(schTheme) => setPrefs({ schTheme })}>
+            <SelectTrigger size="sm" className="w-56" aria-label="Schematic colours"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {SCH_PREVIEWS.map((t) => ( // the item under the pointer / arrow keys has focus, which opens its preview at once
+                <Tooltip key={t.id}>
+                  <TooltipTrigger asChild><SelectItem value={t.id}>{t.name}</SelectItem></TooltipTrigger>
+                  <TooltipContent side="right" sideOffset={14} className="p-1"><SchPreview c={t.c} className="w-52 rounded-sm" /></TooltipContent>
+                </Tooltip>
+              ))}
+            </SelectContent>
+          </Select>
+          <Hint>the canvas only. KiCad colour themes by cosmopotamian</Hint>
+        </Row>
         <Row label="Interface scale">
           <Pick value={String(p.uiScale)} onChange={(v) => setPrefs({ uiScale: +v })} label="Interface scale" options={UI_SCALES.map((v) => [String(v), `${Math.round(v * 100)} %`])} />
           <Hint>makes everything in every window larger or smaller</Hint>
