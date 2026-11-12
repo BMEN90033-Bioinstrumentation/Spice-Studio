@@ -799,7 +799,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(
         <AnalysisDialog initial={(dlg === 'edit' && dirA) || undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}
-          onApply={applyAnalysis} options={lineOf('options')} ic={lineOf('ic')} nodeset={lineOf('nodeset')} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
+          onApply={applyAnalysis} options={lineOf('options')} ic={lineOf('ic')} nodeset={lineOf('nodeset')} tran={sheet.texts.some((t) => /^\s*\.tran\b/im.test(t.text))} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
           onOptions={(line) => (setDlg(null), putOptions(line, false))} onClose={() => setDlg(null)} />, document.body
       )}
       {srcDlg && one && isSrc(one) && createPortal(

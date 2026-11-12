@@ -66,6 +66,7 @@ test('parseAnalysis accepts sloppy input, rejects the rest', () => {
   assert.deepEqual(parseAnalysis('.PZ 1 0 3 0 VOL ZER'), { kind: 'pz', in1: '1', in2: '0', out1: '3', out2: '0', tf: 'vol', find: 'zer' })
   assert.deepEqual(parseAnalysis('.fourier 50 v(a)'), { kind: 'four', freq: '50', outputs: ['v(a)'] })
   assert.equal((parseAnalysis('.sp dec 10 1 1g 0') as { noise: boolean }).noise, false)
+  assert.deepEqual(parseAnalysis('.tran 10u { 2 * tstop }'), { kind: 'tran', step: '10u', stop: '{2*tstop}', start: '', maxStep: '', uic: false })
   for (const bad of ['', '.op 1', '.tran 1u', '.tran 1 2 3 4 5', '.ac log 10 1 1k', '.dc V1 0 5 1 V2 0 1', '.noise out V1 dec 10 1 1k',
     '.tf v(out)', '.tf out V1', '.sens v(out) ac dec 10 1', '.sens v(out) dc', '.pz in 0 out 0 vol', '.pz in 0 out 0 vol both', '.disto log 10 1 1k',
     '.sp dec 10 1 1g 2', '.four 1k', '.tran 1u 1m\n.op', 'R1 a b 1k'])
@@ -107,6 +108,9 @@ test('validate: defaults clean, friendly field messages', () => {
   assert.match(validate({ ...(defaultAnalysis('pz') as any), out2: 'out' }).join(), /two output nodes must differ/)
   assert.deepEqual(validate({ ...(defaultAnalysis('disto') as any), f2: '1.5' }), ['F2/F1 ratio must be between 0 and 1 (e.g. 0.9)'])
   assert.deepEqual(validate({ ...(defaultAnalysis('four') as any), freq: '0', outputs: [] }), ['Fundamental frequency must be above 0', 'Pick at least one output (e.g. v(out))'])
+  assert.deepEqual(validate({ ...(defaultAnalysis('four') as any), freq: '{f0}' }), ['Fundamental frequency must be a plain number like 1k, not a {parameter}'])
+  assert.deepEqual(validate(defaultAnalysis('four'), { tran: false }), ['Add a .tran analysis as well: Fourier analysis works on its result'])
+  assert.deepEqual(validate(defaultAnalysis('four'), { tran: true }), [])
 })
 
 test('every sample analysis is accepted by ngspice (skipped if ngspice missing)', (t) => {
@@ -162,6 +166,8 @@ test('.ic / .nodeset: net rows round-trip, other tokens kept, validation', () =>
   assert.deepEqual(nv, { rows: [{ net: 'out', value: '2.5' }, { net: 'n1', value: '0' }], extra: 'v(a,b)=1' })
   assert.equal(nodeValsText('ic', nv), '.ic v(out)=2.5 v(n1)=0 v(a,b)=1')
   assert.deepEqual(parseNodeVals(nodeValsText('nodeset', nv)), nv)
+  assert.deepEqual(parseNodeVals('.ic v(out)={ vdd / 2 } v(a) = { k }'), { rows: [{ net: 'out', value: '{vdd/2}' }, { net: 'a', value: '{k}' }], extra: '' })
+  assert.deepEqual(validateNodeVals(parseNodeVals('.ic v(out)={ vdd / 2 }')!), [])
   for (const bad of ['.icx v(a)=1', '.op', '.ic v(a)=1\n.op', 'v(a)=1']) assert.equal(parseNodeVals(bad), null, bad)
   assert.deepEqual(['.opt reltol=1', ' .IC v(a)=1', '.nodeset v(a)=1', '.include x', '.icx'].map(setupKind), ['options', 'ic', 'nodeset', null, null])
   assert.deepEqual(validateNodeVals(nv), [])

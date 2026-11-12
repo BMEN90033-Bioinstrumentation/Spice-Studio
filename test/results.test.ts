@@ -90,7 +90,8 @@ test('.four through the measDeck pass: harmonics and THD per vector, alongside .
   const d = mkdtempSync(join(tmpdir(), 'four-')), f = join(d, 'c.cir')
   const deck = '* four\nV1 in 0 SIN(0 2 1k)\nR1 in out 1k\nD1 out 0 dd\n.model dd D\n.ac dec 10 10 10k\n.tran 1u 5m\n.four 1k v(out) v(in) ; clipped\n.meas tran vmax MAX v(out)\n.end\n'
   const md = measDeck(deck)!
-  assert.match(md, /^run\nsetplot tran1\nfourier 1k v\(out\) v\(in\)\nquit$/m)
+  assert.match(md, /^\.control\ntran 1u 5m\necho Fourier analysis \(\.four\):\nsetplot tran1\nfourier 1k v\(out\) v\(in\)\nquit$/m)
+  assert.match(md, /^\*\.ac dec 10 10 10k$/m) // nothing measures it
   writeFileSync(f, md)
   const p = spawnSync('ngspice', ['-b', '-n', f], { encoding: 'utf8' })
   if (p.error) return void t.skip('ngspice not on PATH')
@@ -129,9 +130,69 @@ Total analysis time (seconds) = 0.01
 })
 
 test('measDeck: .four alone gets a pass, its own .control is left alone', () => {
-  assert.equal(measDeck('* t\n.tran 1u 1m\n.four 1k v(a)\n.end\n'), '* t\n.tran 1u 1m\n.four 1k v(a)\n.control\nrun\nsetplot tran1\nfourier 1k v(a)\nquit\n.endc\n.end\n')
+  assert.equal(measDeck('* t\n.tran 1u 1m\n.four 1k v(a)\n.end\n'),
+    '* t\n.tran 1u 1m\n.four 1k v(a)\n.control\ntran 1u 1m\necho Fourier analysis (.four):\nsetplot tran1\nfourier 1k v(a)\nquit\n.endc\n.end\n')
   assert.equal(measDeck('* t\n.four 1k v(a)\n.control\nrun\n.endc\n'), null)
   assert.equal(measSection('x\nFourier analysis for v(a):\n  THD: 1 %\nngspice-47 done\n'), 'Fourier analysis for v(a):\n  THD: 1 %')
+})
+
+// the measDeck pass of `lines` through ngspice -b (no rawfile): its measurement section; null if ngspice is missing
+function measPass(lines: string[]): string | null {
+  const d = mkdtempSync(join(tmpdir(), 'mp-')), f = join(d, 'c.cir')
+  writeFileSync(f, measDeck(['* t', ...lines, '.options savecurrents', '.end', ''].join('\n'))!)
+  const p = spawnSync('ngspice', ['-b', '-n', f], { encoding: 'utf8' })
+  return p.error ? null : measSection(p.stdout + p.stderr) // the app logs both streams
+}
+const RC = ['V1 in 0 DC 1 AC 1 PULSE(0 1 0 1u 1u 20m 40m) DISTOF1 0.1', 'R1 in out 1k', 'C1 out 0 1u']
+
+test('.meas of each type is read on its own plot, whatever else the deck runs (skipped if ngspice missing)', (t) => {
+  // a .tf/.sens/.pz/.disto after the .tran used to leave "Measurements for Transient Analysis" empty
+  for (const other of ['.tf v(out) V1', '.sens v(out)', '.pz in 0 out 0 vol pz', '.disto dec 5 1 1k', '.op']) {
+    const sec = measPass([...RC, '.tran 10u 40m', '.meas tran vmax MAX v(out)', other])
+    if (sec == null) return void t.skip('ngspice not on PATH')
+    const [m] = parseMeas(sec)
+    assert.equal(m?.name, 'vmax', other + '\n' + sec)
+    near(m.value!, 1 - Math.exp(-20), 1e-2) // the cap charges for 20 ms = 20 tau
+  }
+  // tran, ac and dc measurements together (ngspice's own `run` reports one type only)
+  const sec = measPass([...RC, '.ac dec 10 1 100k ; bode', '.tran 10u 40m', '.dc V1 0 2 0.5', '.tf v(out) V1', '.meas tran vmax MAX v(out)', '.meas ac fc WHEN vdb(out)=-3 FALL=1', '.meas dc vdc FIND v(out) AT=1.5'])!
+  const m = Object.fromEntries(parseMeas(sec).map((x) => [x.name, x.value]))
+  near(m.vmax!, 1, 1e-2), near(m.fc!, 1 / (2 * Math.PI * 1e-3), 1e-2), near(m.vdc!, 1.5)
+  // a {param} analysis can't be a .control command: `run`, with the unmeasured analyses commented out
+  const md = measDeck(['* t', '.param ts=40m', '.tran 10u {ts}', '.ac dec 10 1 1k', '.meas tran vmax MAX v(out)', '.end', ''].join('\n'))!
+  assert.match(md, /^\*\.ac dec 10 1 1k$/m), assert.match(md, /^\.control\nrun\nquit$/m)
+})
+
+test('.four failures reach the log (skipped if ngspice missing)', (t) => {
+  const short = measPass([...RC, '.tran 1u 0.5m', '.four 1k v(out)'])
+  if (short == null) return void t.skip('ngspice not on PATH')
+  assert.match(short, /^Fourier analysis \(\.four\):[\s\S]*\nError: \(1 \* wavelength\) longer than time span/)
+  assert.match(measPass([...RC, '.ac dec 10 1 1k', '.four 1k v(out)'])!, /Error: no such plot named tran1/)
+  assert.deepEqual(parseFour(short), [])
+  // stderr may come through first; a failure with no section at all still shows
+  assert.equal(measSection('Error: bad fundamental freq f0\nCircuit: x\nFourier analysis (.four):\nngspice-47 done\n'), 'Fourier analysis (.four):\nError: bad fundamental freq f0')
+  assert.equal(measSection('Note: x\nError: no such plot named tran1\n'), 'Error: no such plot named tran1')
+})
+
+test('one-point AC .sens is a magnitude/phase table, not a DC one (skipped if ngspice missing)', (t) => {
+  const r = sim([...RC, '.sens v(out) ac lin 1 100 100'])
+  if (!r) return void t.skip('ngspice not on PATH')
+  const [{ plot }] = plotRuns('', r.plots[0], '')
+  assert.equal(tableKind(plot), 'sens')
+  const rows = sensRows(plot)
+  assert.ok(!rows.some((x) => x.name === 'frequency') && rows.every((x) => x.phase != null && x.value > 0), JSON.stringify(rows))
+  near(rows.find((x) => x.name === 'v1_acmag')!.value, 1 / Math.hypot(1, 2 * Math.PI * 100e-3)) // |H(100 Hz)| of the RC
+  const dc = sim([...RC, '.sens v(out)'])!
+  assert.ok(sensRows(plotRuns('', dc.plots[0], '')[0].plot).every((x) => x.phase == null))
+})
+
+test('nested .dc: trailing comments, and two lines each labelled from their own (skipped if ngspice missing)', (t) => {
+  const net = ['V1 d 0 0', 'V2 g 0 0', 'I1 0 g 0', 'R1 d s 100', 'R2 g s 1k', 'R3 s 0 100', '.dc V1 0 1 0.5 V2 0 2 1 ; family', '.dc V2 0 1 1 I1 0 2m 1m']
+  const r = sim(net)
+  if (!r) return void t.skip('ngspice not on PATH')
+  const labels = r.plots.map((p) => plotRuns('', p, net.join('\n')).map((x) => x.label))
+  // ngspice writes the two plots in reverse deck order
+  assert.deepEqual(labels, [['I1=0', 'I1=1m', 'I1=2m'], ['V2=0', 'V2=1', 'V2=2']])
 })
 
 test('erc: .sp port sources (portnum) are not ideal voltage sources', async () => {

@@ -1,11 +1,12 @@
 // Results of .tf/.sens/.pz/.sp/nested .dc (rawfile plots) shaped for the results panel. Pure TS. (.four: meas.ts)
 //   .tf   -> "Transfer Function", 1 point: v(Transfer_function), v(v1#Input_impedance), v(output_impedance_at_V(out)) (or v(vm#Output_impedance))
-//   .sens -> "Sensitivity Analysis": DC 1 real point, AC complex over frequency; one vector per device / parameter, mostly 0
+//   .sens -> "Sensitivity Analysis": DC 1 real point, AC complex over frequency (scale first); one vector per device / parameter, mostly 0
 //   .pz   -> "Pole-Zero Analysis", 1 complex point: v(pole(1)) … v(zero(1)) … in rad/s
-//   .dc with two sources -> one "DC transfer characteristic" plot, the inner sweep repeated per outer value
+//   .dc with two sources -> one "DC transfer characteristic" plot, the inner sweep repeated per outer value; with several
+//         .dc lines the plots come in reverse deck order, so a plot is matched to its line by its numbers
 // (checked on ngspice-47; .options savecurrents adds i(@x[i]) vectors to all of them)
 import type { RawPlot } from '../../../main/rawfile.ts'
-import { parseAnalysis, spiceValue } from './analysis.ts'
+import { parseAnalysis, spiceValue, type Analysis } from './analysis.ts'
 import { eng } from './sweep.ts'
 
 type Run = { label: string; plot: RawPlot }
@@ -16,19 +17,27 @@ const junk = (name: string) => /^i\(@/i.test(name) // savecurrents device curren
 // curves, overlaid like .step runs), sensitivities lose their all-zero vectors; anything else passes through
 export function plotRuns(label: string, plot: RawPlot, netlist: string): Run[] {
   if (/^sensitivity/i.test(plot.plotname)) {
-    const vars = plot.vars.filter((v, i) => (i === 0 && plot.points > 1) || (!junk(v.name) && (v.re.some((x) => x !== 0) || !!v.im?.some((x) => x !== 0))))
+    const vars = plot.vars.filter((v, i) => (i === 0 && plot.complex) || (!junk(v.name) && (v.re.some((x) => x !== 0) || !!v.im?.some((x) => x !== 0))))
     return [{ label, plot: { ...plot, vars } }]
   }
   const x = plot.vars[0]?.re, n = x ? x.indexOf(x[0], 1) : -1 // inner sweep length: where the scale restarts
-  const dc = netlist.split('\n').map((l) => parseAnalysis(l)).find((a) => a?.kind === 'dc' && a.source2)
-  if (!/^dc\b/i.test(plot.plotname) || !dc || dc.kind !== 'dc' || n < 1 || plot.points % n) return [{ label, plot }]
-  const a = spiceValue(dc.start2), step = spiceValue(dc.step2) // NaN for {expr}: numbered labels
+  if (!/^dc\b/i.test(plot.plotname) || n < 1 || plot.points % n) return [{ label, plot }]
+  const nested = netlist.split('\n').map((l) => parseAnalysis(l.replace(/\s*;.*$|\s+(\$\s|\/\/).*$/, ''))).filter((a) => a?.kind === 'dc' && a.source2) as DC[]
+  if (!nested.length) return [{ label, plot }]
+  const fits = (d: DC) => near(spiceValue(d.start), x[0]) && count(d.start, d.stop, d.step) === n && n * count(d.start2, d.stop2, d.step2) === plot.points
+  const dc = nested.find(fits) ?? (nested.length === 1 ? nested[0] : undefined) // one line with {expr} values: it must be that one
+  const a = dc ? spiceValue(dc.start2) : NaN, step = dc ? spiceValue(dc.step2) : NaN // NaN: numbered labels
   return Array.from({ length: plot.points / n }, (_, k) => {
-    const v = a + k * step, at = isFinite(v) ? `${dc.source2}=${eng(Number(v.toPrecision(12)))}` : `${dc.source2} #${k + 1}`
+    const v = a + k * step, at = isFinite(v) ? `${dc!.source2}=${eng(Number(v.toPrecision(12)))}` : `${dc?.source2 ?? 'sweep'} #${k + 1}`
     const cut = (f: Float64Array) => f.slice(k * n, (k + 1) * n)
     return { label: label ? `${label}, ${at}` : at, plot: { ...plot, points: n, vars: plot.vars.map((w) => ({ ...w, re: cut(w.re), ...(w.im && { im: cut(w.im) }) })) } }
   })
 }
+
+type DC = Extract<Analysis, { kind: 'dc' }>
+const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b))
+// points of a start/stop/step sweep, NaN for {expr} values
+const count = (a: string, b: string, s: string) => Math.floor((spiceValue(b) - spiceValue(a)) / spiceValue(s) + 1e-9) + 1
 
 // default vectors for plots the generic pick (first voltages) gets wrong; null = use the generic one
 export const startSel = (plot: RawPlot): string[] | null => {
@@ -44,7 +53,7 @@ export function tableKind(plot: RawPlot): TableKind | null {
   return /^sensitivity/i.test(plot.plotname) && plot.points < 2 ? 'sens' : null
 }
 
-export type Scalar = { name: string; value: number; unit: string }
+export type Scalar = { name: string; value: number; unit: string; phase?: number } // phase (°): an AC value, value = magnitude
 // .tf: gain (its unit follows the output and input kinds), input resistance, output resistance
 export function tfRows(plot: RawPlot): Scalar[] {
   let gain = NaN, src = '?', out = '?', vin = true, vout = true
@@ -60,9 +69,11 @@ export function tfRows(plot: RawPlot): Scalar[] {
   return [{ name: `Gain ${out} / ${src}`, value: gain, unit: vout === vin ? '' : vout ? 'Ω' : 'S' }, ...rows]
 }
 
-// DC .sens: the non-zero sensitivities, largest first. "r1" is per ohm of R1, "r1_m" per unit of its multiplier m, …
+// one-point .sens: the non-zero sensitivities, largest first. "r1" is per ohm of R1, "r1_m" per unit of its multiplier m, …
+// An AC one (complex, a lin 1 sweep) leads with its frequency and gives magnitude and phase.
 export const sensRows = (plot: RawPlot): Scalar[] =>
-  plot.vars.filter((v) => !junk(v.name) && v.re[0] !== 0).map((v) => ({ name: bare(v.name), value: v.re[0], unit: '' }))
+  plot.vars.slice(plot.complex ? 1 : 0).filter((v) => !junk(v.name) && (v.re[0] !== 0 || !!v.im?.[0]))
+    .map((v) => ({ name: bare(v.name), value: plot.complex ? Math.hypot(v.re[0], v.im![0]) : v.re[0], unit: '', ...(plot.complex && { phase: (Math.atan2(v.im![0], v.re[0]) * 180) / Math.PI }) }))
     .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
 
 // .pz: roots in rad/s with their natural frequency (Hz) and, for a complex pair, Q

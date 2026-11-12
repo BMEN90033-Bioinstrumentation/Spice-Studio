@@ -27,7 +27,7 @@ An analysis that produces a single point, such as `.op`, is shown as a table ins
 These results are numbers rather than waveforms, so their tabs show a table in place of the plot. With a sweep there is one column per run (for `.pz`, a **Run** column).
 
 - **Transfer Function**: the gain (output over input source; no unit for V/V or A/A, Ω or S when the kinds differ), the input resistance at the source and the output resistance. A capacitor-coupled input shows a huge input resistance (such as `1e+20 Ω`): at DC the input is open.
-- **Sensitivity Analysis** (DC): one row per part value or model parameter that moves the output, largest first. `r1` is the change per ohm of R1, `r1_m` the change per unit of its multiplier `m`. Parameters with no effect are left out. An AC sensitivity (`.sens … ac …`) is plotted against frequency instead.
+- **Sensitivity Analysis** (DC): one row per part value or model parameter that moves the output, largest first. `r1` is the change per ohm of R1, `r1_m` the change per unit of its multiplier `m`. Parameters with no effect are left out. An AC sensitivity (`.sens … ac …`) is plotted against frequency instead; at a single frequency (`ac lin 1 1k 1k`) it is a table of magnitude ∠ phase.
 - **Pole-Zero Analysis**: each pole and zero with its real and imaginary parts in rad/s, its natural frequency f = |s|/2π and, for a complex pair, Q.
 
 ### A DC sweep with two sources
@@ -143,7 +143,7 @@ Some useful forms:
 .meas ac fpeak WHEN vdb(out)=-3 FALL=1
 ```
 
-ngspice reports measurements for one analysis type only. If the deck has both `.tran` and `.ac`, only the `tran` measurements appear. Put `.ac` measurements in a separate project, or remove the `.tran` line while you need them.
+Each measurement is read from its own analysis, so `.meas tran`, `.meas ac` and `.meas dc` lines can share a deck with each other and with `.tf`, `.sens`, `.pz` or `.disto`. One exception: when a measured analysis line uses a `{parameter}` (such as `.tran 10u {tstop}`), ngspice reports only one analysis type's measurements. Write that line with plain numbers if you need both.
 
 With a sweep or Monte Carlo run there is one column per run, plus **mean**, **σ**, **min** and **max** when there are more than two runs ([chapter 6](06-sweeps.md)).
 

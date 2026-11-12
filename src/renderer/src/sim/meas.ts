@@ -12,19 +12,33 @@ const FAILED = /^\.meas(?:ure)?\s+\w+\s+(\S+)\b.*\bfailed!$/i
 // and a .control run/write deck exits 0 even when the analysis fails. So decks with .meas get a second, rawfile-less
 // pass with this control block (main/index.ts); null = no second pass. A deck with its own .control is left alone.
 // ponytail: costs a second ngspice run per .meas deck; libngspice (shared mode) would give vectors and meas in one.
-// ngspice prints .meas for only one analysis type when a deck has several (tran wins over ac, checked on ngspice-47).
-// .four is skipped the same way ("fourier line ignored since rawfile was produced"), and a .control run ignores .four
-// lines too, so each becomes a `fourier` command on the transient plot (tran1: each run is a fresh ngspice).
+// In a .control deck ngspice evaluates .meas only for the analysis that ran last (with `run`, tran wins over ac, and a
+// .tf/.pz/.sens/.disto after the .tran leaves the tran measurements empty). So the pass runs only the analyses
+// something measures, each as its own command (each command evaluates its own type's .meas); a line that needs
+// .param braces can't be a command, so then the others are commented out and `run` measures the last type only.
+// .four is skipped like .meas ("fourier line ignored since rawfile was produced") and a .control deck ignores .four
+// lines, so each becomes a `fourier` command on the transient plot (tran1: each run is a fresh ngspice), after an
+// echoed marker that measSection starts at, so fourier errors (too short a run, no .tran) reach the log.
+const AN = /^[ \t]*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss)\b.*$/gim
+export const FOUR_MARK = 'Fourier analysis (.four):'
 export function measDeck(netlist: string): string | null {
   const four = [...netlist.matchAll(/^[ \t]*\.four(?:ier)?[ \t]+([^;\n]*[^;\s])/gim)].map((m) => 'fourier ' + m[1])
-  if ((!four.length && !/^[ \t]*\.meas(ure)?\b/im.test(netlist)) || /^[ \t]*\.control\b/im.test(netlist)) return null
-  const ctl = ['.control', 'run', ...(four.length ? ['setplot tran1', ...four] : []), 'quit', '.endc', ''].join('\n'), END = /^[ \t]*\.end[ \t]*$/im
-  return END.test(netlist) ? netlist.replace(END, ctl + '.end') : netlist.replace(/\n?$/, '\n' + ctl)
+  const types = new Set([...netlist.matchAll(/^[ \t]*\.meas(?:ure)?[ \t]+(\w+)/gim)].map((m) => m[1].toLowerCase()))
+  if (four.length) types.add('tran')
+  if (!types.size || /^[ \t]*\.control\b/im.test(netlist)) return null
+  const deck = netlist.replace(AN, (l, k: string) => (types.has(k.toLowerCase()) ? l : '*' + l))
+  const cmds = [...deck.matchAll(AN)].map((m) => m[0].trim().slice(1).replace(/\s+(;|\$\s|\/\/).*$/, ''))
+  const ctl = ['.control', ...(cmds.length && !cmds.some((c) => c.includes('{')) ? cmds : ['run']), ...(four.length ? [`echo ${FOUR_MARK}`, 'setplot tran1', ...four] : []),
+    'quit', '.endc', ''].join('\n'), END = /^[ \t]*\.end[ \t]*$/im
+  return END.test(deck) ? deck.replace(END, ctl + '.end') : deck.replace(/\n?$/, '\n' + ctl)
 }
-// the measurement (and Fourier) part of a measDeck run's log, appended to the run log
+// the measurement (and Fourier) part of a measDeck run's log, appended to the run log, plus any Error lines from before
+// it (stderr, e.g. a fourier failure, does not keep its place relative to stdout through the pipes)
 export const measSection = (log: string) => {
-  const i = log.search(/^\s*(Measurements|Fourier analysis) for /m)
-  return i < 0 ? '' : log.slice(i).replace(/^ngspice-\S+ done\s*$/m, '').replace(/\n{3,}/g, '\n\n').trim()
+  const i = log.search(/^\s*(Measurements for |Fourier analysis for |Fourier analysis \(\.four\):)/m)
+  const errs = log.slice(0, i < 0 ? undefined : i).split('\n').filter((l) => /^\s*error\b/i.test(l)).map((l) => l.trim())
+  const sec = i < 0 ? '' : log.slice(i).replace(/^ngspice-\S+ done\s*$/m, '').replace(/\n{3,}/g, '\n\n').trim()
+  return [sec, ...errs].filter(Boolean).join('\n')
 }
 
 export function parseMeas(log: string): Measurement[] {

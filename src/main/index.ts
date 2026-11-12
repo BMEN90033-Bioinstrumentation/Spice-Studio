@@ -99,7 +99,7 @@ async function runSim(netlist: string, baseDir?: string, opts?: SimOptions): Pro
       await writeFile(join(dir, 'meas.cir'), md)
       const m = await run(e, [...base, join(dir, 'meas.cir')], cwd, (p) => (child = p))
       if (stopped) return cut(log)
-      log = log.replace(/^No \.measure possible in batch mode.*\n.*\n.*\n/m, '').replace(/^\.fourier line ignored.*\n/m, '') + `\n--- .meas ---\n${measSection(m.log) || '(no measurements printed)'}\n`
+      log = log.replace(/^No \.measure possible in batch mode.*\n.*\n.*\n/m, '').replace(/^\.fourier line ignored.*\n/gm, '') + `\n--- ${/^[ \t]*\.meas/im.test(netlist) ? '.meas' : '.four'} ---\n${measSection(m.log) || '(no measurements printed)'}\n`
     }
     let plots: RawPlot[] = []
     let parseErr = ''

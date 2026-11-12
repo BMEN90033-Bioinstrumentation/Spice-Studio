@@ -119,6 +119,7 @@ export function AnalysisDialog(props: {
   options?: string // the sheet's current .options line, if any
   ic?: string // … .ic line
   nodeset?: string // … .nodeset line
+  tran?: boolean // the sheet has a .tran (.four needs one)
   onOptions: (line: string) => void // an .options, .ic or .nodeset line: replaces the sheet's line of that kind
   tab?: Tab // open on this tab (default: the initial analysis)
   onClose: () => void
@@ -139,7 +140,7 @@ export function AnalysisDialog(props: {
   const isOpt = kind === 'options', isNv = kind === 'ic' || kind === 'nodeset', setup = isOpt || isNv
   const a = all[setup ? init.kind : kind]
   const form = (isOpt ? opt : isNv ? nv[kind] : a) as unknown as Record<string, string>
-  const errs = isOpt ? validateOptions(opt) : isNv ? validateNodeVals(nv[kind]) : validate(a)
+  const errs = isOpt ? validateOptions(opt) : isNv ? validateNodeVals(nv[kind]) : validate(a, { tran: props.tran })
   const text = isOpt ? optionsText(opt) : isNv ? nodeValsText(kind, nv[kind]) : analysisText(a)
   const ok = errs.length === 0
   const uid = useId()
@@ -260,7 +261,7 @@ export function AnalysisDialog(props: {
         ))}
         <Button variant="outline" size="sm" className="w-fit" onClick={() => set([...rows, { net: outs.find((n) => !rows.some((r) => r.net === n)) ?? '', value: '0' }])}><Plus />Add net</Button>
       </div>
-      {extra.trim() && num('extra', 'Other entries', '', '', 'Kept as typed')}
+      {num('extra', 'Other entries', '', 'e.g. v(a,b)=1', 'Anything else, kept as typed')}
     </>
   }
 
@@ -293,7 +294,7 @@ export function AnalysisDialog(props: {
           {num('start', 'Start value', u(a.source), '0')}
           {num('stop', 'Stop value', u(a.source), '5')}
           {num('step', 'Increment', u(a.source), '0.1')}
-          {sources.length > 1 && pick('source2', 'Second source', [['', 'None'], ...opts('source2', sources.filter((s) => s !== a.source))],
+          {(sources.length > 1 || a.source2) && pick('source2', 'Second source', [['', 'None'], ...opts('source2', sources.filter((s) => s !== a.source))],
             'Optional: one curve per value of this source',
             (v) => upd(v ? { source2: v, start2: a.start2 || '0', stop2: a.stop2 || '5', step2: a.step2 || '1' } : { source2: '', start2: '', stop2: '', step2: '' }))}
           {a.source2 && <div className={fieldGrid}>

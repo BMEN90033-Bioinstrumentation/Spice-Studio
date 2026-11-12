@@ -25,11 +25,12 @@ export function ScalarTable({ runs }: { runs: PlotRun[] }) {
   if (kind === 'pz') return <PoleZero runs={runs} />
   const per = runs.map((r) => (kind === 'tf' ? tfRows : sensRows)(r.plot))
   const names = [...new Set(per.flatMap((rows) => rows.map((x) => x.name)))]
+  const { complex, vars } = runs[0].plot // a one-point AC .sens: magnitude ∠ phase at its frequency
   return (
     <div className="absolute inset-0 overflow-auto p-4">
       <p className={NOTE}>
         {kind === 'tf' ? 'Small-signal DC transfer function: the gain from the input source to the output, and the resistances they see.'
-          : 'DC sensitivity: how far the output moves per unit change of each part value or parameter (r1: per ohm of R1, r1_m: per unit of its multiplier m). Largest first; zeros left out.'}
+          : `${complex ? `AC sensitivity at ${eng(vars[0].re[0], 'Hz')}, magnitude ∠ phase` : 'DC sensitivity'}: how far the output moves per unit change of each part value or parameter (r1: per ohm of R1, r1_m: per unit of its multiplier m). Largest first; zeros left out.`}
       </p>
       {names.length ? (
         <Table className="w-auto font-mono text-xs">
@@ -40,7 +41,7 @@ export function ScalarTable({ runs }: { runs: PlotRun[] }) {
                 <TableCell className={NAME}>{n}</TableCell>
                 {per.map((rows, i) => {
                   const x = rows.find((r) => r.name === n)
-                  return <TableCell key={i} className={TD}>{x ? val(x.value, x.unit) : '—'}</TableCell>
+                  return <TableCell key={i} className={TD}>{x ? val(x.value, x.unit) + (x.phase == null ? '' : ` ∠ ${x.phase.toFixed(1)}°`) : '—'}</TableCell>
                 })}
               </TableRow>
             ))}

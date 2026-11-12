@@ -75,10 +75,11 @@ export function analysisText(a: Analysis): string {
 
 const SWEEPS = ['dec', 'oct', 'lin']
 
+const BRACES = /\{[^{}]*\}/g, squash = (m: string) => m.replace(/\s+/g, '')
 export function parseAnalysis(text: string): Analysis | null {
   const s = text.trim()
   if (!s || s.includes('\n')) return null
-  const t = s.replace(/\s*\(([^)]*)\)/g, (m) => m.replace(/\s+/g, '')).split(/\s+/) // "v( out , ref )" -> one token
+  const t = s.replace(BRACES, squash).replace(/\s*\(([^)]*)\)/g, squash).split(/\s+/) // "v( out , ref )", "{ a * 2 }" -> one token
   const kind = t[0].toLowerCase(), n = t.length
   const sweep = (x: string) => (SWEEPS.includes(x.toLowerCase()) ? (x.toLowerCase() as Sweep) : null)
   if (kind === '.op') return n === 1 ? { kind: 'op' } : null
@@ -152,7 +153,8 @@ export function spiceValue(s: string): number {
   return m ? Number(m[1]) * (m[2] ? SCALE[m[2].toLowerCase()] : 1) : NaN
 }
 
-export function validate(a: Analysis): string[] {
+// ctx.tran: whether the sheet has a .tran (.four needs one); undefined = unknown
+export function validate(a: Analysis, ctx: { tran?: boolean } = {}): string[] {
   const e: string[] = []
   const num = (v: string, label: string, eg: string, optional = false) => {
     if (optional && !v.trim()) return true
@@ -218,8 +220,11 @@ export function validate(a: Analysis): string[] {
     }
     case 'sp': freqs(a); break
     case 'four': {
-      if (num(a.freq, 'Fundamental frequency', '1k') && val(a.freq) <= 0) e.push('Fundamental frequency must be above 0')
+      // the Fourier pass runs .four as a `fourier` command, where {param} braces are not expanded
+      if (num(a.freq, 'Fundamental frequency', '1k') && a.freq.includes('{')) e.push('Fundamental frequency must be a plain number like 1k, not a {parameter}')
+      else if (val(a.freq) <= 0) e.push('Fundamental frequency must be above 0')
       if (!a.outputs.length) e.push('Pick at least one output (e.g. v(out))')
+      if (ctx.tran === false) e.push('Add a .tran analysis as well: Fourier analysis works on its result')
       break
     }
   }
@@ -301,7 +306,7 @@ export function parseNodeVals(text: string): NodeVals | null {
   if (text.includes('\n') || !IC.test(text)) return null
   const nv: NodeVals = { rows: [], extra: '' }, extra: string[] = []
   // "v( a ) = 1" -> "v(a)=1"
-  for (const t of text.replace(IC, '').replace(/\s*=\s*/g, '=').replace(/\(\s*([^()]*?)\s*\)/g, '($1)').trim().split(/\s+/).filter(Boolean)) {
+  for (const t of text.replace(IC, '').replace(BRACES, squash).replace(/\s*=\s*/g, '=').replace(/\(\s*([^()]*?)\s*\)/g, '($1)').trim().split(/\s+/).filter(Boolean)) {
     const m = /^v\(([^,()]+)\)=(\S+)$/i.exec(t)
     if (m) nv.rows.push({ net: m[1], value: m[2] })
     else extra.push(t)
