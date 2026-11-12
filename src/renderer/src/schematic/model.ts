@@ -107,6 +107,17 @@ export function onSegment(w: Wire, p: Pt): boolean {
   return Math.min(a.x, b.x) <= p.x && p.x <= Math.max(a.x, b.x) && Math.min(a.y, b.y) <= p.y && p.y <= Math.max(a.y, b.y)
 }
 
+// The wires whose interior contains a point, from an index of the wires by row and column (diagonals scanned)
+export function wiresThrough(ws: Wire[]): (p: Pt) => Wire[] {
+  const rows = new Map<number, Wire[]>(), cols = new Map<number, Wire[]>(), diag: Wire[] = []
+  for (const w of ws) {
+    const m = w.a.y === w.b.y ? rows : w.a.x === w.b.x ? cols : null, k = w.a.y === w.b.y ? w.a.y : w.a.x
+    if (m) (m.get(k) ?? m.set(k, []).get(k)!).push(w)
+    else diag.push(w)
+  }
+  return (p) => [...(rows.get(p.y) ?? []), ...(cols.get(p.x) ?? []), ...diag].filter((w) => onSegment(w, p))
+}
+
 // Connectivity rules (the netlister must follow the same ones):
 //  - wire endpoints and pins connect when they coincide;
 //  - a wire endpoint landing mid-way along another wire connects (T-junction);
@@ -123,9 +134,9 @@ export function connections(s: Sheet): Map<string, { all: number; real: number }
   }
   for (const w of s.wires) add(w.a, 1), add(w.b, 1)
   for (const p of s.parts) for (const q of pins(p)) add(q, 1, isFlag(p.kind))
-  // ponytail: O(wires²) T-junction scan; spatial index if sheets get to thousands of wires
+  const through = wiresThrough(s.wires)
   for (const w of s.wires)
-    for (const e of [w.a, w.b]) if (s.wires.some((o) => o !== w && onSegment(o, e))) add(e, 2)
+    for (const e of [w.a, w.b]) if (through(e).some((o) => o !== w)) add(e, 2)
   return m
 }
 
@@ -210,6 +221,14 @@ export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: P
   return { ...s, parts, wires: [...wires, ...added] }
 }
 
+export const NOTE_MIN = 4, NOTE_MAX = 72 // note font sizes kept on load
+// a shape or bus segment turned a quarter clockwise (rot) or mirrored left-right about its own grid-snapped centre;
+// notes and the title block stay as they are (their text reads upright)
+export function turnSeg<T extends { a: Pt; b: Pt }>(w: T, rot: boolean): T {
+  const c = { x: snap((w.a.x + w.b.x) / 2), y: snap((w.a.y + w.b.y) / 2) }
+  const f = (q: Pt): Pt => (rot ? { x: c.x - (q.y - c.y) + 0, y: c.y + (q.x - c.x) + 0 } : { x: 2 * c.x - q.x + 0, y: q.y })
+  return { ...w, a: f(w.a), b: f(w.b) }
+}
 const num = (v: unknown) => typeof v === 'number' && isFinite(v)
 const pt = (p: any) => num(p?.x) && num(p?.y)
 const str = (v: unknown) => typeof v === 'string'
@@ -241,6 +260,9 @@ export function parseSheet(text: string): Sheet {
   if (s.draw !== undefined) {
     if (!Array.isArray(s.draw)) throw new Error('Malformed draw')
     for (const d of s.draw) if (!okDrawing(d)) throw new Error(`Malformed drawing ${JSON.stringify(d).slice(0, 80)}`)
+    // one title block per sheet; note sizes within reason
+    s.draw = s.draw.filter((d: Drawing, i: number) => d.t !== 'title' || s.draw.findIndex((x: Drawing) => x.t === 'title') === i)
+    for (const d of s.draw) if (d.t === 'note' && d.size !== undefined) d.size = Math.min(NOTE_MAX, Math.max(NOTE_MIN, d.size))
   }
   if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && typeof w.id === 'string'))) throw new Error('Malformed buses')
   return s

@@ -59,7 +59,7 @@ Connection rules:
 A bus is one thick line that stands for a group of nets, such as the eight lines of a data bus. It keeps a busy drawing readable; the nets themselves still connect by name.
 
 1. Press **B** (or **Place → Bus**, or **Bus** under the pen button) and draw the bus like a wire. A bus joins only other buses, never wires or pins.
-2. Put a net label on the bus and name it with a range, such as `D[0..7]` (or `D[7..0]`). The bus now carries `D0` to `D7`.
+2. Put a net label on the bus and name it with a range, such as `D[0..7]` (or `D[7..0]`). The bus now carries `D0` to `D7`. A label with such a name that is not on a bus stays an ordinary net label.
 3. Choose **Place → Bus Tap** (or **Bus tap** under the pen button) and click on the bus. A tap is a short diagonal stub from the bus to a wire end. Its value names the member it breaks out, such as `D3`; each new tap takes the next number. Draw a wire from the tap's free end to the part.
 
 A tap joins its wire to the net named by its value, in the same way as a net label, so `D3` on one bus and `D3` on another bus (or a plain `D3` label) are the same net. The netlist stops with an error if a tap names something its bus does not carry, and warns about a tap or bus label that is not on a bus. Buses do not cross into hierarchical blocks: give the sheet one port per member.
@@ -103,7 +103,7 @@ Double-click a card to edit it again. If the card holds a single analysis line, 
 
 After a lot of copying and deleting, part names end up out of order (R7 next to R2). **Tools → Annotate Sheet** renumbers the parts on the current sheet: each prefix (R, C, Q, X…) counts from 1 in reading order, top to bottom, then left to right. **Tools → Annotate Project** does every sheet in a project, top sheet first, and keeps counting from one sheet to the next so every name in the project is different.
 
-References to a renamed part follow it: `i(R1)` and `@R1[i]` in directive cards, `.dc V1 …`, the V source named by an F, H or W part, and the inductors named by a K part. Node names such as `v(R1)` and net labels are left alone. A name that does not end in a number (`Rload`) is not changed, and a name already used by an element line in a directive card is skipped. Both commands can be undone with ⌘Z.
+References to a renamed part follow it wherever SPICE reads a part name: `i(R1)` and `@R1[i]`, the sources of `.dc`, `.tf` and `.noise`, the V source named by an F, H or W part or line, and the inductors named by a K part or line. Node names (such as `v(R1)` or the nodes of an element line), net labels, model names and comments are left alone. Two parts with the same name each get their own number. A name that does not end in a number (`Rload`) is not changed, and a name already used by an element line in a directive card is skipped. Both commands can be undone with ⌘Z on every sheet that is open in a tab. Annotate Project also renumbers sheets that are not open, and those changes can't be undone; the status bar names them, and closing the project without saving drops them.
 
 ## Importing LTspice and KiCad schematics
 
@@ -112,14 +112,14 @@ References to a renamed part follow it: `i(R1)` and `@R1[i]` in directive cards,
 What is converted:
 
 - Resistors, capacitors, inductors, voltage and current sources, diodes (plain, Zener, Schottky, LED), NPN and PNP transistors, MOSFETs, JFETs, controlled sources (E, G, F, H), behavioural sources, switches and transmission lines, with their names, values, rotation and mirroring.
-- Op-amps: LTspice's ideal `opamp` becomes the ideal op-amp. Other op-amps (LTspice vendor symbols, KiCad `Amplifier_Operational`) become the generic op-amp model `OA_GENERIC`, pins matched by position or name; import the vendor model in Manage Libraries if you need it.
-- Ground, net labels, power symbols, hierarchical labels (as ports), wires and junctions. The connections are the source file's: where this app's symbol is a different size, a short wire joins its pin to the original pin position.
+- Op-amps: LTspice's ideal `opamp` becomes the ideal op-amp. Other op-amps become the generic op-amp model `OA_GENERIC`: KiCad ones with their pins matched by name, LTspice ones from the `OpAmps` folder only when all five pins (in+, in−, V+, V−, out) of a standard op-amp layout are wired; anything else from that folder (instrumentation amplifiers, buffers, parts with more pins) becomes a placeholder. Import the vendor model in Manage Libraries if you need it.
+- Ground, net labels, power symbols, hierarchical labels (as ports), wires and junctions. The connections follow the source program's rules: in LTspice anything touching a wire joins it; in KiCad a label joins a wire anywhere along it, but a pin or another wire's end joins only at a wire's end or at a junction. Where this app's symbol is a different size, a short wire joins its pin to the original pin position, or, where that wire would touch another net, a pair of net labels with that net's name does. After placing everything, the import compares the nets with the original's and redoes any part that differs; if a difference remains, the report names the nets.
 - SPICE directives (LTspice `!` text, KiCad text starting with `.`) become directive cards. LTspice's `.tran <stop>` gets a step, and `startup` and `.backanno` are removed. Comments become text notes; lines, rectangles and circles become shapes.
 - A transistor or diode whose model name matches a built-in part (2N3904, 1N4148…) uses that part. KiCad source settings (`Sim.Type`, `Sim.Params`, or the older `Spice_Model`) become the source's value.
 
-An imported file can run commands when you press Run, through a `.control … .endc` block or through a file that an `.include` or `.lib` line pulls in. So the import turns every `.control` block and every `.include`, `.inc` and `.lib` line into comment lines (`* ` in front) and lists each one in the report. To use one, check it (and the file it reads), then delete the leading `* ` on the directive card.
+An imported file can run commands when you press Run: through a `.control … .endc` block, through a line starting with `*#` (ngspice runs those as commands too), or through a file that an `.include` or `.lib` line pulls in. So the import turns every `.control` block and every `.include`, `.inc` and `.lib` line into comment lines (`* ` in front), changes `*#` to the ordinary comment `* #`, and lists each one in the report. To use a block or an include, check it (and the file it reads), then delete the leading `* ` on the directive card.
 
-Anything else becomes a **placeholder**: a block drawn with a red dashed outline, its value starting with `?`. KiCad placeholders keep their pins where the original pins were; LTspice placeholders have no pins, because an `.asc` file does not say where a symbol's pins are. The netlist stops with an error until you replace every placeholder. After the import, a report lists what was not converted or was converted with a change. Buses, hierarchical sheets and arcs are not converted.
+Anything else becomes a **placeholder**: a block drawn with a red dashed outline, its value starting with `?`. KiCad placeholders keep their pins where the original pins were; LTspice placeholders have no pins, because an `.asc` file does not say where a symbol's pins are. The netlist stops with an error until you replace every placeholder. After the import, a report lists what was not converted or was converted with a change, including any line of the file that was skipped because it was damaged. Buses, hierarchical sheets and arcs are not converted. In LTspice a net called `GND` is not ground, so it is renamed `GND_`; in KiCad, a net that is ground here only because of a `GND` label is named in the report. Files with more than 20,000 wires or 5,000 symbols are refused.
 
 ## Notes, shapes and the title block
 
@@ -129,7 +129,7 @@ Annotations explain a drawing. They are never written to the netlist, even when 
 - **Shapes**: choose **Line**, **Arrow**, **Rectangle** or **Ellipse** from the pen button or **Place → Shape**. Click where the shape starts, then click where it ends. The line tool keeps going from the last point, so you can draw a polyline; double-click or press **Esc** to stop.
 - **Title block**: choose **Title block** from the pen button or **Place → Title Block**. It appears under the bottom-right corner of the drawing with the sheet name, today's date and revision A. Select it to edit **Title**, **Author**, **Date** and **Revision**. In a project, **Sheet n of m** is filled in from the Sheets panel. Choose **Title block** again to remove it. Each sheet has its own.
 
-Notes, shapes and the title block are selected, moved, copied, pasted, deleted and undone like parts, and they appear in exported and printed schematics.
+Notes, shapes and the title block are selected, moved, copied, pasted, deleted and undone like parts, and they appear in exported and printed schematics. **Ctrl+R** and **Ctrl+E** turn and mirror selected shapes (and bus segments) about their own centre; text stays upright.
 
 ## Undo
 

@@ -229,12 +229,30 @@ test('buses: taps join their wires to member nets D0…, bus labels name the mem
   assert.match(r.text, /^R1 D0 D1 1k$/m)
   assert.match(r.text, /^R2 D0 0 2k$/m) // same member on another bus: same net
   assert.equal(s.parts.at(-1)!.kind, 'bustap')
-  // a tap naming a non-member, a tap off any bus, a bus label off any bus, a bus port
+  // a tap naming a non-member, a tap off any bus
   s.parts.push(newPart(s, 'bustap', 160, 0, 0, false, { value: 'D7' }), newPart(s, 'bustap', 1000, 1000, 0, false, { value: 'X1' }))
-  s.parts.push(newPart(s, 'label', 1000, 2000, 0, false, { value: 'A[0..1]' }), newPart(s, 'port', 1000, 3000, 0, false, { value: 'B[0..1]' }))
   const e = netlist(s)
-  assert.deepEqual(e.errors, ['Bus tap "D7" isn\'t a member of bus D[0..3]', 'Port "B[0..1]": buses can\'t cross sheets; use one port per member'])
-  assert.deepEqual(e.warnings.slice(0, 2), ['Bus label "A[0..1]" isn\'t on a bus', 'Bus tap "X1" isn\'t on a bus; it still joins net "X1"'])
+  assert.deepEqual(e.errors, ['Bus tap "D7" isn\'t a member of bus D[0..3]'])
+  assert.deepEqual(e.warnings.slice(0, 1), ['Bus tap "X1" isn\'t on a bus; it still joins net "X1"'])
+})
+
+test('a label named like a bus but not on one is an ordinary net label, as before buses existed', () => {
+  const s = emptySheet()
+  put(s, 'res', 0, ['D[0..7]', '0'], '1k'), put(s, 'res', 100, ['D[0..7]', '0'], '2k')
+  op(s)
+  const r = netlist(s)
+  assert.deepEqual([r.errors, r.warnings], [[], []])
+  assert.match(r.text, /^R1 D\[0\.\.7\] 0 1k$/m)
+  assert.match(r.text, /^R2 D\[0\.\.7\] 0 2k$/m) // one net, joined by name
+})
+
+test('the netlist title is one comment line and never a "*#" command line; CR splits directive lines', () => {
+  const s = op(exampleSheet())
+  const t = netlist(s, 'evil\n*#shell touch m\r*#shell touch n').text
+  assert.doesNotMatch(t, /^\s*\*#/m)
+  assert.match(t, /^\* evil \*#shell touch m \*#shell touch n\n/)
+  s.texts.push({ id: uid(), x: 0, y: 0, text: '.param a=1\r.param b=2' })
+  assert.match(netlist(s).text, /^\.param a=1\n\.param b=2$/m)
 })
 
 test('busMembers and the next bus tap name', () => {

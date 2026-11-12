@@ -693,11 +693,13 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     if (p) setStatus(`Exported ${base(p)}`)
   }
 
-  // Tools › Annotate Project: renumber every sheet, top sheet first (undoable per open sheet)
+  // Tools › Annotate Project: renumber every sheet, top sheet first. Undoable on sheets open in a tab only: the status
+  // says when others changed too
   function annotateProject() {
-    const r = annotate(files.map(live))
+    const r = annotate(files.map(live)), shut = files.filter((f, i) => r.sheets[i] !== live(f) && !handles.current[f])
     files.forEach((f, i) => r.sheets[i] !== live(f) && put(f, r.sheets[i]))
-    setStatus(r.renamed ? `Renumbered ${r.renamed} part${r.renamed === 1 ? '' : 's'}` : 'Already numbered in order')
+    setStatus(!r.renamed ? 'Already numbered in order'
+      : `Renumbered ${r.renamed} part${r.renamed === 1 ? '' : 's'}${shut.length ? `. ${shut.map(stem).join(', ')} ${shut.length > 1 ? 'are' : 'is'} not open in a tab, so ${shut.length > 1 ? 'their' : 'its'} changes can't be undone (close without saving to drop them)` : ''}`)
   }
 
   // menu + shortcuts (commands.ts); the canvas' own commands come from the active Schematic

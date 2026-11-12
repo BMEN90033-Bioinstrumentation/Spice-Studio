@@ -176,3 +176,13 @@ test('annotations: drawings round-trip through parseSheet, old files load withou
   assert.throws(() => parseSheet(bad({ id: 'x', t: 'title', x: 0, y: 0, title: 'a' })), /Malformed drawing/)
   assert.throws(() => parseSheet(JSON.stringify({ ...s, buses: [{ id: 'b', a: { x: 0 } }] })), /Malformed buses/)
 })
+
+test('parseSheet keeps note sizes within reason and one title block; turnSeg rotates and mirrors shapes and buses about their centre', async () => {
+  const { turnSeg } = await import('../src/renderer/src/schematic/model.ts')
+  const t = (id: string) => ({ id, t: 'title', x: 0, y: 0, title: id, author: '', date: '', rev: '' })
+  const s = parseSheet(JSON.stringify({ version: 1, parts: [], wires: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: 'x', size: 1e9 }, { id: 'b', t: 'note', x: 0, y: 0, text: 'x', size: -5 }, t('t1'), t('t2')] }))
+  assert.deepEqual(s.draw!.map((d) => (d.t === 'note' ? d.size : d.id)), [72, 4, 't1'])
+  const w = { id: 'w', a: { x: 0, y: 0 }, b: { x: 40, y: 0 } }
+  assert.deepEqual(turnSeg(w, true), { id: 'w', a: { x: 20, y: -20 }, b: { x: 20, y: 20 } })
+  assert.deepEqual(turnSeg({ ...w, b: { x: 40, y: 20 } }, false), { id: 'w', a: { x: 40, y: 0 }, b: { x: 0, y: 20 } })
+})

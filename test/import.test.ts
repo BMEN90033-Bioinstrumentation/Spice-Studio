@@ -3,7 +3,7 @@
 import { test, type TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { defang, importAsc, importKicad, importSchematic, sexpr } from '../src/renderer/src/schematic/importer.ts'
@@ -126,4 +126,82 @@ test('defang matches at least as widely as ngspice: prefixes, case, leading spac
   assert.equal(run('.include\n+ evil.lib\n.LIBRARY x\n .inc y\n.op').text, '* .include\n* + evil.lib\n* .LIBRARY x\n*  .inc y\n.op')
   assert.equal(run('.include a.lib\n.include b.lib').rep.length, 2)
   assert.equal(run('.op\n+ 1\n.model d d').text, '.op\n+ 1\n.model d d') // continuations of live lines stay live
+})
+
+// ---------------------------------------------------------------------------------------------- review fixes
+
+// nets of the named parts, in our pin order
+const netsOf = (s: Sheet, ...names: string[]) => { const n = netlist(s, 'x', lib); return names.map((x) => n.nets[s.parts.find((p) => p.name === x)!.id].join(' ')) }
+const NG = ['vendor/ngspice/darwin-arm64/bin/ngspice', 'vendor/ngspice/win32-x64/bin/ngspice.exe'].map((p) => join(import.meta.dirname, '..', p)).find(existsSync) ?? 'ngspice'
+
+test('"*#" lines (ngspice runs them as commands) become comments, in LTspice and KiCad text; ngspice runs nothing', (t: TestContext) => {
+  const r = importAsc(fx('star-hash.asc'))
+  const k = importKicad('(kicad_sch (version 20231120) (lib_symbols) (text ".op\\n*#shell touch marker5\\r*#shell touch marker6\\n\\t*#shell touch marker7" (at 10 10 0)))')
+  for (const x of [r, k]) assert.ok(x.report.some((l) => /runs a line starting with \*# as a command/.test(l)), x.report.join('\n'))
+  const text = netlist(r.sheet, 'x', lib).text + k.sheet.texts.map((x) => x.text).join('\n')
+  assert.doesNotMatch(text, /^\s*\*#/m)
+  assert.doesNotMatch(text, /^\s*\.(control|inc|lib)/im)
+  assert.equal(r.report.filter((l) => /\*#/.test(l)).length, 4)
+  // the bundled ngspice (or the one on PATH) must not run any of them
+  const dir = mkdtempSync(join(tmpdir(), 'starhash-'))
+  writeFileSync(join(dir, 'c.cir'), netlist(r.sheet, 'x', lib).text.replace(/^\.end$/m, k.sheet.texts[0].text + '\n.end'))
+  const p = spawnSync(NG, ['-b', '-n', join(dir, 'c.cir')], { cwd: dir, encoding: 'utf8', timeout: 20000 })
+  if (p.error) return void t.skip('ngspice not found')
+  for (let i = 1; i <= 7; i++) assert.equal(existsSync(join(dir, 'marker' + i)), false, `marker${i} was created`)
+})
+
+test('two stubs of one part never short each other (LTspice g: all four pins kept apart)', () => {
+  const r = importAsc(fx('g-short.asc'))
+  assert.deepEqual(netsOf(r.sheet, 'G1'), ['0 n2 n3 n4'])
+  assert.deepEqual(r.report, [])
+})
+
+test('a pin of ours landing where two wires cross does not join them', () => {
+  const r = importAsc(fx('cross-short.asc'))
+  assert.deepEqual(netsOf(r.sheet, 'R1'), ['0 a'])
+  const n = netlist(r.sheet, 'x', lib)
+  assert.ok(!n.warnings.some((w) => /several labels/.test(w)), n.warnings.join('\n')) // a and v stay apart
+})
+
+test('a label pair reuses the net\'s own name instead of inventing one', () => {
+  const r = importAsc(fx('rename.asc'))
+  assert.deepEqual(netsOf(r.sheet, 'E1'), ['0 n2 n3 out'])
+  assert.ok(!r.sheet.parts.some((p) => /^E1_/.test(p.value)))
+  assert.match(netlist(r.sheet, 'x', lib).text, /^\.meas op x find v\(out\)$/m)
+})
+
+test('KiCad op-amps in every orientation, and KiCad 9 op-amps whose output pin has no name', () => {
+  const r = importKicad(fx('opamp-orient.kicad_sch'))
+  assert.deepEqual(netsOf(r.sheet, 'XU1', 'XU2', 'XU3', 'XU4', 'XU5'), [1, 2, 3, 4, 5].map((k) => `p${k} n${k} vp${k} vn${k} o${k}`))
+  assert.ok(!r.report.some((l) => /placeholder|differ/.test(l)), r.report.join('\n'))
+})
+
+test('KiCad rules: a pin or wire end on a wire\'s middle is not connected, a label there is', () => {
+  const r = importKicad(fx('kicad-rules.kicad_sch'))
+  const [r1, r2, r3, r4, r5] = netsOf(r.sheet, 'R1', 'R2', 'R3', 'R4', 'R5')
+  assert.deepEqual([r3, r4, r5], ['C 0', 'A 0', 'B 0'])
+  assert.ok(!/^A /.test(r1) && !/^B /.test(r2), `${r1} / ${r2}`)
+  assert.ok(!r.report.some((l) => /differ/.test(l)), r.report.join('\n'))
+})
+
+test('an LTspice symbol from the OpAmps folder that is not a wired 5-pin op-amp becomes a placeholder', () => {
+  const r = importAsc(fx('opamp-unknown.asc'))
+  assert.deepEqual(r.sheet.parts.filter((p) => p.kind === 'block').map((p) => [p.name, p.value]), [['U1', '?lt1167']])
+  assert.ok(r.report.some((l) => /LT1167 is not a 5-pin op-amp/.test(l)))
+  assert.ok(!r.report.some((l) => /OA_GENERIC/.test(l)))
+})
+
+test('bad coordinates and malformed elements are skipped with a report line; the sheet always reloads', () => {
+  for (const [imp, text, what] of [
+    [importAsc, 'Version 4\nWIRE 0 0 x 0\nFLAG a b out\nSYMBOL res a b R0\nSYMATTR InstName R1\nSYMBOL\nTEXT 0 0 Left 2 !.op', /Line 2 \(WIRE\) skipped: non-numeric[^]*Line 3 \(FLAG\)[^]*Line 4 \(SYMBOL\)[^]*Line 6 \(SYMBOL\) skipped: no symbol name/],
+    [importKicad, '(kicad_sch (label "L" (at nan inf 0)) (wire (pts (xy a b) (xy c d))) (wire) (text "hello" (at x y 0)) (junction))', /(?=[^]*label was skipped: non-numeric)(?=[^]*wire was skipped: non-numeric)(?=[^]*text was skipped)(?=[^]*junction was skipped: no position)/]
+  ] as const) {
+    const r = imp(text)
+    assert.match(r.report.join('\n'), what)
+    assert.doesNotMatch(JSON.stringify(r.sheet), /null|NaN/)
+    assert.deepEqual(parseSheet(JSON.stringify(r.sheet)), r.sheet)
+  }
+  const k = importKicad('(kicad_sch (lib_symbols (symbol "Device:R" (symbol "R_1_1" (pin passive line (length 1) (name "~") (number "1"))))) (symbol (lib_id "Device:R") (at 0 0 0) (property "Reference" "R1" (at 0 0 0))))')
+  assert.match(k.report.join('\n'), /symbol was skipped: malformed/)
+  assert.throws(() => importSchematic('x.asc', 'Version 4\n' + 'WIRE 0 0 16 0\n'.repeat(20001)), /too large to import/)
 })

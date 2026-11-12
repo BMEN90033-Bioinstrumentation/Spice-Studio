@@ -1,8 +1,8 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
-import { annotate, rewriteRefs } from './annotate'
+import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
@@ -331,8 +331,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const all = (s: Sheet) => [...s.parts, ...s.wires, ...s.texts, ...(s.draw ?? []), ...(s.buses ?? [])].map((i) => i.id)
   function orient(rot: boolean) {
     const f = <T extends { rot: number; mirror: boolean }>(p: T): T => (rot ? { ...p, rot: (p.rot + 1) % 4 } : { ...p, mirror: !p.mirror })
-    if (typeof tool === 'object') setGhost(f)
-    else if (picked().parts.length) commit(remap(cur.current, sel, f))
+    if (typeof tool === 'object') return setGhost(f)
+    const s = cur.current, k = picked()
+    if (!k.parts.length && !k.draw!.some((d) => 'a' in d) && !k.buses!.length) return
+    const r = k.parts.length ? remap(s, sel, f) : s
+    commit({
+      ...r, ...(r.draw && { draw: r.draw.map((d) => (sel.has(d.id) && 'a' in d ? turnSeg(d, rot) : d)) }),
+      ...(r.buses && { buses: r.buses.map((w) => (sel.has(w.id) ? turnSeg(w, rot) : w)) })
+    })
   }
   function del() {
     if (!sel.size) return
@@ -454,7 +460,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     commit({ ...s, draw: [...(s.draw ?? []), d] })
     show([d.id])
   }
-  const orientable = () => typeof tool === 'object' || picked().parts.length > 0
+  const orientable = () => { const k = picked(); return typeof tool === 'object' || k.parts.length > 0 || k.draw!.some((d) => 'a' in d) || k.buses!.length > 0 }
   useCommands(active && !modal ? [
     { id: 'edit.undo', run: undo, enabled: () => hist.current.undo.length > 0 },
     { id: 'edit.redo', run: redo, enabled: () => hist.current.redo.length > 0 },
@@ -645,8 +651,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     } catch (e) {
       return setReport({ title: `Can't import ${file}`, summary: String((e as Error)?.message ?? e), lines: [] })
     }
-    const s = cur.current, b = bounds(s), ib = bounds(r.sheet)
-    const d = b && ib ? { x: snap(b.x1 + 80 - ib.x0), y: snap(b.y0 - ib.y0) } : { x: 0, y: 0 }
+    const s = cur.current, b = bounds(s), ib = bounds(r.sheet), d0 = b && ib ? { x: snap(b.x1 + 80 - ib.x0), y: snap(b.y0 - ib.y0) } : { x: 0, y: 0 }
+    const d = Number.isFinite(d0.x) && Number.isFinite(d0.y) ? d0 : { x: 0, y: 0 }
     const next: Sheet = { ...s, parts: [...s.parts] }, ren = new Map<string, string>()
     for (const p of r.sheet.parts) {
       const clash = p.name && next.parts.some((q) => q.name.toLowerCase() === p.name.toLowerCase()), name = clash ? nextName(next, p.name.replace(/\d+$/, '')) : p.name
@@ -654,10 +660,15 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       next.parts.push({ ...p, ...add(p, d), name })
     }
     const m = r.sheet
-    if (ren.size) next.parts = next.parts.map((p, i) => (i < s.parts.length || isFlag(p.kind) ? p : { ...p, value: rewriteRefs(p.value, ren) }))
+    if (ren.size) next.parts = next.parts.map((p, i) => (i < s.parts.length || isFlag(p.kind) ? p : { ...p, value: rewriteValue(p, ren) }))
     next.wires = [...s.wires, ...m.wires.map((w) => ({ ...w, a: add(w.a, d), b: add(w.b, d) }))]
     next.texts = [...s.texts, ...m.texts.map((t) => ({ ...t, ...add(t, d), text: rewriteRefs(t.text, ren) }))]
     if (m.draw?.length) next.draw = [...(s.draw ?? []), ...m.draw.map((x) => moveD(x, d))]
+    try {
+      parseSheet(JSON.stringify(next)) // the sheet must save and load again; otherwise nothing is changed
+    } catch (e) {
+      return setReport({ title: `Can't import ${file}`, summary: `The converted drawing is not valid (${(e as Error).message}); your sheet was not changed.`, lines: r.report })
+    }
     commit(next)
     show(all(m))
     setReport({ title: `Imported ${file}`, summary: r.summary, lines: r.report })
