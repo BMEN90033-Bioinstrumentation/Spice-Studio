@@ -172,7 +172,7 @@ const TBTN = "h-12 min-w-12 flex-col gap-1 px-2 text-[11px] leading-none font-no
 const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
   <Tip label={label}><Button variant="ghost" size="sm" className={TBTN} aria-label={aria} onClick={onClick} disabled={disabled}>{children}<span>{aria.split(' ')[0]}</span></Button></Tip>
 )
-const INSP = 'sch-insp grid gap-2 overflow-y-auto rounded-lg border bg-card p-2.5 text-card-foreground shadow-lg'
+const INSP = 'sch-insp grid cursor-move gap-2 overflow-y-auto rounded-lg border bg-card p-2.5 text-card-foreground shadow-lg'
 const FLD = 'grid gap-1 text-[11px] font-normal text-muted-foreground'
 const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_code]:text-foreground'
 const MONO = 'font-mono text-xs md:text-xs text-foreground'
@@ -206,6 +206,15 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     const el = root.current?.querySelector<HTMLElement>('.sch-insp'), w = root.current?.clientWidth
     if (pop && el && w && pop.left > 8 && pop.left + el.offsetWidth > w - 8) setPop({ ...pop, left: Math.max(8, w - el.offsetWidth - 8) })
   })
+  // the popup moves by dragging anywhere on it that isn't a control; kept inside the canvas
+  function dragPop(e: RPE<HTMLDivElement>) {
+    if (!pop || e.button !== 0 || (e.target as Element).closest('input,textarea,button,select,a,[role=combobox]')) return
+    const el = e.currentTarget, box = root.current!, id = pop.id, dx = e.clientX - pop.left, dy = e.clientY - pop.top
+    const mv = (m: PointerEvent) => setPop({ id, left: Math.max(8, Math.min(m.clientX - dx, box.clientWidth - el.offsetWidth - 8)), top: Math.max(8, Math.min(m.clientY - dy, box.clientHeight - 60)) })
+    const end = () => (el.removeEventListener('pointermove', mv), el.removeEventListener('pointerup', end), el.removeEventListener('pointercancel', end))
+    el.setPointerCapture(e.pointerId)
+    el.addEventListener('pointermove', mv), el.addEventListener('pointerup', end), el.addEventListener('pointercancel', end)
+  }
   // right-click menu: at the pointer; on an item outside the selection it selects that item first
   const [menu, setMenu] = useState<{ left: number; top: number; id?: string } | null>(null)
   function context(e: RME) {
@@ -865,7 +874,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         : 'Click to start a wire · Esc returns to select'
       : tool === 'probe'
       ? 'Click a wire to plot its voltage · click a part to plot its current · drag between two nets plots the difference · Esc returns to select'
-      : `Drag to move or box-select · Alt+click probes · Space-drag pans${keysOf('view.fit') ? ` · ${keyLabel(keysOf('view.fit'))} fits` : ''}${keysOf('help.shortcuts') ? ` · ${keyLabel(keysOf('help.shortcuts'))} for all shortcuts` : ''}`
+      : '' // select: nothing to explain (the shortcuts are in Help)
 
   return (
     <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
@@ -998,7 +1007,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       </div>
 
       {one && pop?.id === one.id && (
-        <div className={INSP} style={popAt} key={one.id}>
+        <div className={INSP} style={popAt} onPointerDown={dragPop} key={one.id}>
           <div className="text-xs font-semibold">{entry?.name ?? (one.sheet ? 'Sheet block' : SYMBOLS[one.kind].title)}</div>
           {entry && <div className={D}>{entry.description}</div>}
           {entry?.group && <div className={D}>From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
@@ -1035,7 +1044,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       )}
 
       {dir && pop?.id === dir.id && (
-        <div className={cn(INSP, 'w-max max-w-[calc(100%-16px)] min-w-[230px]')} style={popAt} key={dir.id}>{/* as wide as its longest line, up to the canvas */}
+        <div className={cn(INSP, 'w-max max-w-[calc(100%-16px)] min-w-[230px]')} style={popAt} onPointerDown={dragPop} key={dir.id}>{/* as wide as its longest line, up to the canvas */}
           <Label className={FLD}>SPICE directive
             {/* grows with the text (field-sizing); its corner grip resizes it, and the popup with it */}
             <Textarea ref={ta} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
@@ -1050,7 +1059,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       )}
 
       {drw?.t === 'note' && pop?.id === drw.id && (
-        <div className={INSP} style={popAt} key={drw.id}>
+        <div className={INSP} style={popAt} onPointerDown={dragPop} key={drw.id}>
           <Label className={FLD}>Text note (not netlisted)
             <Textarea ref={ta} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
@@ -1065,7 +1074,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </div>
       )}
       {drw?.t === 'title' && pop?.id === drw.id && (
-        <div className={INSP} style={popAt} key={drw.id}>
+        <div className={INSP} style={popAt} onPointerDown={dragPop} key={drw.id}>
           <div className="text-xs font-semibold">Title block</div>
           {(['title', 'author', 'date', 'rev'] as const).map((f) => (
             <Label key={f} className={FLD}>{f === 'rev' ? 'Revision' : f[0].toUpperCase() + f.slice(1)}
