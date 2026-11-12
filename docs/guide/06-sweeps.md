@@ -2,11 +2,11 @@
 
 [Guide index](README.md) · Previous: [Reading results](05-results.md) · Next: [Projects and hierarchy](07-projects-and-hierarchy.md)
 
-Spice Studio can run the same circuit several times with different values and overlay the results. Three directives do this: `.step param`, `.step temp` and `.mc`. The app expands them itself and runs ngspice once per value, so they work with any analysis.
+Spice Studio can run the same circuit several times with different values and overlay the results. Four directives do this: `.step param`, `.step temp`, `.mc` and `.wc`. The app expands them itself and runs ngspice once per value, so they work with any analysis.
 
 In the plots, each run is drawn in the trace's colour, from light (first run) to dark (last run). The legend and the cursor readout name each run, for example `V(out) · R=1k`. The status bar shows how many runs finished.
 
-Limits: at most 50 runs for `.step` (all nested steps together), at most three nested `.step` lines, and at most 500 runs for `.mc`.
+Limits: at most 50 runs for `.step` (all nested steps together), at most three nested `.step` lines, at most 500 runs for `.mc`, and 2⁸ = 256 corners for `.wc`.
 
 ## Parameter sweep: `.step param`
 
@@ -84,7 +84,7 @@ The **Measurements** tab starts with the statistics over all runs, **mean**, **�
 
 Here σ is about 13 µs, about 1.9 % of the mean. That matches a resistor with a 1.67 % standard deviation (5 % / 3).
 
-`.mc` can't be combined with `.step` in the same project, and a sheet may have only one `.mc` line.
+`.mc` can't be combined with `.step` or `.wc` in the same project, and a sheet may have only one `.mc` line.
 
 ### Gotcha: `gauss` is relative, `agauss` is absolute
 
@@ -100,5 +100,42 @@ In both, the variation is reached at `sigma` standard deviations, so `sigma = 3`
 A common mistake is `agauss(1k, 0.05, 3)`: that is ±0.05 Ω, not ±5 %. The runs then look identical and σ comes out near zero. If your Monte Carlo spread looks too small, check this first.
 
 The uniform functions work the same way: `unif(nom, rel_var)` is relative and `aunif(nom, abs_var)` is absolute.
+
+## Histograms, statistics and yield
+
+With more than two runs (`.step`, `.mc` or `.wc`) you can look at how one number spreads over the runs:
+
+- **A measurement:** on the **Measurements** tab, click the chart icon next to its name.
+- **A trace at a moment or frequency:** place cursor A on the plot, then click the chart icon next to the trace in the cursor readout. Moving cursor A updates the histogram.
+- **An operating-point value:** in a `.op` table, click the chart icon next to the vector.
+
+The panel shows a histogram, the number of runs, the mean, σ (sample standard deviation), the minimum and maximum, and which run gave the minimum and the maximum. Type a **low** and/or **high** limit (SPICE numbers such as `680u` or `1.2k`) to get the **yield**: the share of runs inside the limits. A run where the measurement failed counts as out of spec. The limits are drawn on the histogram as red dashed lines; the mean is the solid line.
+
+The Measurements table also names, under its **min** and **max** columns, the run each came from.
+
+## Worst case: `.wc`
+
+`.wc` runs the circuit at the ends of its tolerances instead of at random values. Write the tolerances exactly as for `.mc`, then use `.wc` instead of `.mc`:
+
+```
+.param R={gauss(1k,0.05,3)}
+C1 out 0 {unif(1u,0.1)}
+.wc
+.tran 10u 3m
+.meas tran t50 WHEN v(out)=0.5 RISE=1
+```
+
+Each `gauss`, `agauss`, `unif`, `aunif` or `limit` call is one toleranced value. Its limits are nom × (1 ± rel) for `gauss` and `unif`, and nom ± abs for `agauss`, `aunif` and `limit`. Each value is named after its `.param` (`R`), its part (`C1`) or its model parameter (`QN.BF`).
+
+With up to 8 toleranced values, the app runs the nominal circuit and then every combination of low and high limits: 2ⁿ corners, labelled like `C1− R+`. The runs are overlaid on the plot like other sweeps. On the **Measurements** tab, **min** and **max** are the worst-case values, with the corner that gave each written under it. In the example above, t50 is 693.6 µs nominal, 593.1 µs at `C1− R−` and 801.1 µs at `C1+ R+`.
+
+With more than 8 values the corners would be too many (512 or more), so the app estimates them instead and says so at the top of the console:
+
+1. It runs the nominal circuit, then each value on its own at its high limit, to see which way each measurement moves.
+2. For each measurement, it runs the corner that should give the maximum (every value at the end that raises it) and the one that should give the minimum.
+
+This needs a `.meas` line. List the measurements to use after `.wc`, for example `.wc t50 vpp`; with no names it uses every `.meas` in the deck. The estimate assumes each measurement rises or falls steadily with each value, which holds for most passive tolerances but not, for example, for a value that tunes a filter through a peak.
+
+A toleranced value inside a subcircuit takes the same corner in every instance of that subcircuit. `.wc` can't be combined with `.step` or `.mc`.
 
 Next: [Projects and hierarchy](07-projects-and-hierarchy.md).

@@ -16,8 +16,8 @@ After a run, the results panel on the right has:
 Plot controls:
 
 - Drag across the plot to zoom; drag mostly sideways to zoom in time only. Double-click to zoom back out.
-- AC plots have **Magnitude** (dB) and **Phase** (degrees) buttons and a log-frequency axis.
-- Transient plots have **Time** and **FFT** buttons (see below).
+- AC plots open in the **Bode** view: magnitude above phase on one log-frequency axis. **Magnitude** and **Phase** show one of them on its own; **Nyquist**, **Polar** and **Smith** draw the complex values (see [AC views](#ac-views-bode-nyquist-polar-smith)).
+- Transient plots have **Time**, **FFT** and **Eye** buttons (see below).
 - The legend under the plot shows the values under the mouse.
 
 An analysis that produces a single point, such as `.op`, is shown as a table instead of a plot.
@@ -96,6 +96,39 @@ Type a formula into **＋ expression** under the vector list and press **Enter**
 | `gd(x)` | group delay of an AC result, in seconds |
 
 Units follow the maths: volts times amps is watts, so `v(out)*i(r1)` or `(v(vcc)-v(out))*i(r3)` is plotted as power in W on its own axis. In AC results, expressions work on complex values, so `db(v(out)/v(in))` is the true gain.
+
+## AC views: Bode, Nyquist, polar, Smith
+
+An AC tab has two rows of view buttons.
+
+- **Bode** (the default) stacks the magnitude in dB over the phase in degrees. The two charts share the frequency axis: zooming one zooms the other, the mouse readout follows in both, and cursors A and B show in both. The cursor readout lists each trace twice, once in dB and once in degrees.
+- **Magnitude** and **Phase** show one chart, as before.
+- **Unwrap phase** (Bode and Phase) removes the jumps from −180° to +180°, so a fourth-order filter's phase runs smoothly down to −360°.
+- **Nyquist** plots Im against Re with equal scales, with −1 marked when it is in view.
+- **Polar** draws the same points on a polar grid: magnitude rings and angle spokes.
+- **Smith** draws reflection coefficients on a Smith chart. S-parameters (from a `.sp` analysis) are drawn as they are. A trace in ohms, such as the expression `v(in)/i(v1)` or a `Z_1_1` vector, is converted with Γ = (Z − Z0)/(Z + Z0); set **Z0** in the sidebar (50 Ω by default). Any other trace is drawn as if it were Γ.
+
+In the Nyquist, polar and Smith views, hover over a trace to read its frequency and value in the top-right corner (on the Smith chart also the impedance). Click a trace to put cursor A at that frequency, Shift+click for cursor B; dots mark each trace at A and B. Only complex traces are drawn there: `db(…)` and other real expressions are left out. **PNG**, **SVG** and **CSV** export these views too; the CSV has the real and imaginary parts.
+
+## Eye diagram
+
+On a transient tab, click **Eye** to overlay a waveform period by period, as an oscilloscope eye diagram does.
+
+1. Pick the **Trace** (one of the ticked traces).
+2. Type the **Bit period**, for example `1u`.
+3. Optionally type an **Offset**: periods start at offset + k × period, so an offset moves the eye sideways (use it to centre the crossings).
+
+Every whole period in the run is drawn over the others, up to 2,000. The app resamples the waveform at 256 points per period, so set a small **Max step** in the `.tran` line for sharp edges. Drag to zoom, double-click to zoom back out. PNG and SVG export the eye.
+
+## Tuning values with sliders
+
+**Tune** in the results tab bar opens a row of sliders above the plots.
+
+1. Pick a value in **Add a parameter or part…**: a `.param` with a plain number, or a resistor, capacitor or inductor whose value is a number.
+2. Each slider covers a decade either side of the value on a log scale. Edit the minimum and maximum, or untick **log** for a linear scale.
+3. Move the slider. The app runs the simulation again a moment after you stop moving it, and stops a run that is still going if you move it again.
+
+The plot updates in place: the zoom, the cursors and the ticked traces stay as they are. Every run while the sliders are open uses the slider values, and the console starts with a `Tuned:` line listing them. The values are not written back to the schematic. Remove a slider (**×**) to go back to the netlist value; close the row to go back to the netlist values for later runs.
 
 ## FFT
 
