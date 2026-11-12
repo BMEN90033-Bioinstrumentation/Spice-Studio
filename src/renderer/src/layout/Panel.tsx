@@ -54,15 +54,18 @@ function load(): State {
 }
 
 // Panel state for one workspace: persisted, registers the view.* commands. `runs` changing = a run finished.
-export function usePanels({ active, hasSheets, isSch, runs, title }: { active: boolean; hasSheets: boolean; isSch: boolean; runs: unknown; title: string }) {
-  const [s, setS] = useState(() => ({ ...load(), ...(hasSheets && { plots: false }) })) // a project opens with results collapsed (nothing run yet)
+// onOpen, autoShow: Settings › Simulation and plots (how a project's results start; a finished run opens hidden results)
+const START = { hidden: { plots: false }, docked: { plots: true, popped: false }, window: { popped: true } }
+export function usePanels({ active, hasSheets, isSch, runs, title, onOpen, autoShow }: { active: boolean; hasSheets: boolean; isSch: boolean; runs: unknown; title: string; onOpen: keyof typeof START; autoShow: boolean }) {
+  const [s, setS] = useState(() => ({ ...load(), ...(hasSheets && START[onOpen]) }))
   const [dot, setDot] = useState(false)
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)) } catch {} }, [s])
   const docked = s.plots && !s.popped
-  useEffect(() => { if (runs && !docked) setDot(true) }, [runs])
   const set = (p: Partial<State>) => setS((x) => ({ ...x, ...p }))
   const show = (p: Partial<State>) => (setDot(false), set(p))
   const dock = () => show({ plots: true, popped: false })
+  // results in their own window stay there: the dot on the rail says they're new
+  useEffect(() => { if (runs && !docked) autoShow && !s.popped ? dock() : setDot(true) }, [runs])
   const togglePlots = () => (docked ? set({ plots: false }) : dock())
   const popout = () => (s.popped ? dock() : show({ popped: true }))
 

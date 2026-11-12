@@ -17,6 +17,8 @@ test('prefs: defaults keep the app as it was (dark, autosave on); garbage falls 
   assert.equal(cleanPrefs({ autosaveSecs: 1e6 }).autosaveSecs, 600)
   assert.deepEqual(cleanPrefs({ sim: { timeoutS: 0 } }).sim, {}) // 0 = no limit = not stored
   assert.deepEqual(cleanPrefs(['dark']), DEFAULT_PREFS)
+  assert.deepEqual(cleanPrefs({ showResults: true, resultsOnOpen: 'window' }), { ...DEFAULT_PREFS, showResults: true, resultsOnOpen: 'window' })
+  assert.deepEqual(cleanPrefs({ showResults: 1, resultsOnOpen: 'floating' }), DEFAULT_PREFS)
 })
 
 test('prefs: schematic colour themes — known ids kept, unknown back to default; every theme yields a full set of colours', async () => {

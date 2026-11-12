@@ -25,9 +25,11 @@ export interface Prefs {
   wheel: 'pan' | 'zoom' // what a plain scroll wheel does on the schematic (Ctrl+wheel / pinch always zooms)
   live: boolean // waveforms fill in while a simulation runs
   plotWidth: number // trace thickness in px
+  showResults: boolean // a finished run opens the results panel if it is hidden
+  resultsOnOpen: 'hidden' | 'docked' | 'window' // the results panel when a project opens
 }
 export const DEFAULT_PREFS: Prefs = { theme: 'dark', schTheme: SCH_DEFAULT, autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
-  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'pan', live: true, plotWidth: 1.5 }
+  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'pan', live: true, plotWidth: 1.5, showResults: false, resultsOnOpen: 'hidden' }
 export const UI_SCALES = [0.8, 0.9, 1, 1.1, 1.25, 1.5], EDITOR_FONTS = [0, 11, 12, 13, 14, 16, 18], PLOT_WIDTHS = [1, 1.5, 2, 3]
 export const AUTOSAVE_MIN = 5, AUTOSAVE_MAX = 600
 
@@ -35,7 +37,7 @@ export const AUTOSAVE_MIN = 5, AUTOSAVE_MAX = 600
 const one = <T,>(ok: readonly T[], v: unknown, dflt: T): T => (ok.includes(v as T) ? (v as T) : dflt)
 export function cleanPrefs(x: unknown): Prefs {
   const p = x && typeof x === 'object' && !Array.isArray(x) ? (x as Record<string, any>) : {}
-  const d = DEFAULT_PREFS, bool = (k: 'autosave' | 'grid' | 'showOp' | 'live') => (typeof p[k] === 'boolean' ? p[k] : d[k])
+  const d = DEFAULT_PREFS, bool = (k: 'autosave' | 'grid' | 'showOp' | 'live' | 'showResults') => (typeof p[k] === 'boolean' ? p[k] : d[k])
   const str = (k: 'projectDir' | 'ngspicePath') => (typeof p[k] === 'string' ? p[k].trim() : d[k])
   const secs = Number(p.autosaveSecs), s = p.sim && typeof p.sim === 'object' ? p.sim : {}, t = Number(s.timeoutS)
   return {
@@ -56,6 +58,8 @@ export function cleanPrefs(x: unknown): Prefs {
     lineWeight: one(['thin', 'normal', 'bold'] as const, p.lineWeight, d.lineWeight),
     wheel: one(['pan', 'zoom'] as const, p.wheel, d.wheel),
     live: bool('live'),
-    plotWidth: one(PLOT_WIDTHS, p.plotWidth, d.plotWidth)
+    plotWidth: one(PLOT_WIDTHS, p.plotWidth, d.plotWidth),
+    showResults: bool('showResults'),
+    resultsOnOpen: one(['hidden', 'docked', 'window'] as const, p.resultsOnOpen, d.resultsOnOpen)
   }
 }

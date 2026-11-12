@@ -7,7 +7,7 @@ import { setKeys, useCommands } from './commands'
 import { keyLabel } from './layout/Panel'
 import { clash, comboOf, FIXED, keysFor, SHORTCUTS } from './shortcuts'
 import { About, type Info } from './Help'
-import { Activity, ArrowLeft, CircuitBoard, Cpu, FolderPlus, Grid3x3, Grip, History, Info as InfoIcon, Keyboard, Monitor, Moon, Move, Palette, RotateCcw, Sun, ZoomIn, type LucideIcon } from 'lucide-react'
+import { Activity, ArrowLeft, CircuitBoard, Cpu, ExternalLink, EyeOff, FolderPlus, Grid3x3, Grip, History, Info as InfoIcon, Keyboard, Monitor, Moon, Move, Palette, PanelRight, RotateCcw, Sun, ZoomIn, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { COMPATS } from './project/project'
 import { SCH_DEFAULT, SCH_THEMES, schThemeCss, type SchColors } from './schematic/themes'
@@ -332,6 +332,18 @@ function PreferencesPanel() {
           Draw waveforms while the simulation runs
           <Hint>Off: the plot appears when the run ends. Progress still shows in the status bar.</Hint>
         </Check>
+        <Check id="pref-show-results" checked={p.showResults} onChange={(showResults) => setPrefs({ showResults })}>
+          Show the results when a run finishes
+          <Hint>Opens the results panel if it is hidden. Off: a dot on its button says there are new results.</Hint>
+        </Check>
+        <Row label="When a project opens">
+          <ToggleGroup type="single" variant="outline" size="sm" value={p.resultsOnOpen} onValueChange={(v) => v && setPrefs({ resultsOnOpen: v as Prefs['resultsOnOpen'] })} aria-label="Results when a project opens">
+            <ToggleGroupItem value="hidden" className="px-3"><EyeOff />Hidden</ToggleGroupItem>
+            <ToggleGroupItem value="docked" className="px-3"><PanelRight />Docked</ToggleGroupItem>
+            <ToggleGroupItem value="window" className="px-3"><ExternalLink />Own window</ToggleGroupItem>
+          </ToggleGroup>
+          <Hint>where the results panel starts</Hint>
+        </Row>
         <Row label="Trace thickness">
           <Pick value={String(p.plotWidth)} onChange={(v) => setPrefs({ plotWidth: +v })} label="Trace thickness" options={PLOT_WIDTHS.map((v) => [String(v), `${v} px`])} />
         </Row>

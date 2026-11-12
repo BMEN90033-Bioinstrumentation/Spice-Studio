@@ -783,7 +783,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const plot = cur?.runs[0].plot
   const logLines = log ? log.split('\n') : []
   const trail = crumbs.length > 1 && crumbs.at(-1) === view ? crumbs : null
-  const panels = usePanels({ active: route === 'editor', hasSheets: !!proj, isSch, runs, title: proj?.name ?? name })
+  const panels = usePanels({ active: route === 'editor', hasSheets: !!proj, isSch, runs, title: proj?.name ?? name, onOpen: prefs().resultsOnOpen, autoShow: prefs().showResults })
 
   const editKeys = (e: { key: string }, commit: () => void) => (e.key === 'Enter' ? commit() : e.key === 'Escape' && setEdit(null))
   const editInput = (commit: () => void) => (
