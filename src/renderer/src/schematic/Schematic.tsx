@@ -5,7 +5,7 @@ import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
 import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
-import { analysisText, isOptionsLine, mergeOptions, parseAnalysis, type Analysis } from '../sim/analysis'
+import { analysisText, mergeOptions, parseAnalysis, setupKind, type Analysis, type SetupKind } from '../sim/analysis'
 import { AnalysisDialog, type Tab } from '../sim/AnalysisDialog'
 import { SourceDialog } from '../sim/SourceDialog'
 import { useCommands } from '../commands'
@@ -122,9 +122,9 @@ function Card({ t, cls }: { t: Directive; cls: string }) {
   )
 }
 
-// first .options line of a directive card, or undefined
+// first .options (.ic, .nodeset) line of a directive card, or undefined
 const isSrc = (p: Part) => p.kind === 'vsrc' || p.kind === 'isrc'
-const optLine = (text: string) => text.split('\n').find(isOptionsLine)
+const optLine = (text: string, k: SetupKind = 'options') => text.split('\n').find((l) => setupKind(l) === k)
 
 // export palette: black on white, sizes in world units (the export has no zoom)
 const PRINT_CSS = [
@@ -430,6 +430,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       'power', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi', 'sw', 'csw', 'tline', 'xfmr', 'kcouple'] as Kind[]).map((k) => ({ id: 'place.' + k, run: () => use({ place: k, title: SYMBOLS[k].title }) })),
     { id: 'sim.setup', run: () => setDlg('analysis') },
     { id: 'sim.options', run: () => setDlg('options') },
+    { id: 'sim.ic', run: () => setDlg('ic') },
     { id: 'file.export.schSvg', run: () => void window.api.exportSave(name + '.svg', exportSvg(), [{ name: 'SVG', extensions: ['svg'] }]) },
     { id: 'file.export.schPdf', run: () => void window.api.exportPdf(exportSvg(), name + '.pdf') },
     { id: 'file.export.print', keys: 'Mod+P', run: () => void window.api.exportPdf(exportSvg(), '', 'print') },
@@ -574,13 +575,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     if (dlg === 'edit' && dir) return setText(cur.current, dir.id, text)
     addCard(text)
   }
-  // the sheet's .options line: the first directive line starting .options/.option/.opt (in any card)
-  const optCard = (s: Sheet) => s.texts.find((t) => optLine(t.text) != null)
-  // write `line` into that card (merge = key by key into what's there, else replace the line), or add a card
+  // the sheet's .options line: the first directive line starting .options/.option/.opt (in any card); same for .ic/.nodeset
+  const optCard = (s: Sheet, k: SetupKind = 'options') => s.texts.find((t) => optLine(t.text, k) != null)
+  const lineOf = (k: SetupKind) => { const c = optCard(sheet, k); return c && optLine(c.text, k) }
+  // write `line` into that card (merge = .options key by key into what's there, else replace the line), or add a card
   function putOptions(line: string, merge: boolean) {
-    const s = cur.current, c = optCard(s)
-    if (!c) return void (mergeOptions('', line) !== '.options' && addCard(mergeOptions('', line)))
-    const old = optLine(c.text)!, next = merge ? mergeOptions(old, line) : line
+    const s = cur.current, k = setupKind(line) ?? 'options', c = optCard(s, k)
+    if (!c) return void (k !== 'options' ? addCard(line) : mergeOptions('', line) !== '.options' && addCard(mergeOptions('', line)))
+    const old = optLine(c.text, k)!, next = merge && k === 'options' ? mergeOptions(old, line) : line
     if (next !== old) setText(s, c.id, c.text.split('\n').map((l) => (l === old ? next : l)).join('\n'))
   }
 
@@ -788,6 +790,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           </Label>
           {dirA && <InspBtn onClick={() => setDlg('edit')}>Edit as analysis…</InspBtn>}
           {optLine(dir.text) != null && <InspBtn onClick={() => setDlg('options')}>Edit options…</InspBtn>}
+          {optLine(dir.text, 'ic') != null && <InspBtn onClick={() => setDlg('ic')}>Edit initial conditions…</InspBtn>}
+          {optLine(dir.text, 'nodeset') != null && <InspBtn onClick={() => setDlg('nodeset')}>Edit nodeset…</InspBtn>}
         </div>
       )}
 
@@ -795,7 +799,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(
         <AnalysisDialog initial={(dlg === 'edit' && dirA) || undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}
-          onApply={applyAnalysis} options={optCard(sheet) && optLine(optCard(sheet)!.text)} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
+          onApply={applyAnalysis} options={lineOf('options')} ic={lineOf('ic')} nodeset={lineOf('nodeset')} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
           onOptions={(line) => (setDlg(null), putOptions(line, false))} onClose={() => setDlg(null)} />, document.body
       )}
       {srcDlg && one && isSrc(one) && createPortal(

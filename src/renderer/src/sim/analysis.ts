@@ -1,30 +1,55 @@
-// Analysis directives (.op/.tran/.ac/.dc/.noise) <-> structured form for the dialog. Pure TS.
+// Analysis directives (.op/.tran/.ac/.dc/.noise/.tf/.sens/.pz/.disto/.sp/.four) <-> structured form for the dialog. Pure TS.
 
 export type Sweep = 'dec' | 'oct' | 'lin'
+type Freqs = { sweep: Sweep; points: string; fstart: string; fstop: string }
+// .tf / .sens output: v(output[,ref]) or, with current, i(output) where output is a V source
+type OutVar = { current: boolean; output: string; ref: string }
 export type Analysis =
   | { kind: 'op' }
   | { kind: 'tran'; step: string; stop: string; start: string; maxStep: string; uic: boolean } // '' = omitted
   | { kind: 'ac'; sweep: Sweep; points: string; fstart: string; fstop: string }
-  | { kind: 'dc'; source: string; start: string; stop: string; step: string }
+  | { kind: 'dc'; source: string; start: string; stop: string; step: string; source2: string; start2: string; stop2: string; step2: string } // source2 '' = no nested sweep
   | { kind: 'noise'; output: string; ref: string; source: string; sweep: Sweep; points: string; fstart: string; fstop: string } // output = net name, ref '' = ground
+  | ({ kind: 'tf'; source: string } & OutVar)
+  | ({ kind: 'sens'; ac: boolean } & OutVar & Freqs) // ac false: DC sensitivity (the sweep fields are kept for the form)
+  | { kind: 'pz'; in1: string; in2: string; out1: string; out2: string; tf: 'vol' | 'cur'; find: 'pz' | 'pol' | 'zer' } // nodes, '0' = ground
+  | ({ kind: 'disto'; f2: string } & Freqs) // f2 = f2overf1, '' = omitted
+  | ({ kind: 'sp'; noise: boolean } & Freqs)
+  | { kind: 'four'; freq: string; outputs: string[] } // outputs: vectors as typed, e.g. v(out)
 
 export const ANALYSES: { kind: Analysis['kind']; title: string }[] = [
   { kind: 'tran', title: 'Transient' },
   { kind: 'ac', title: 'AC sweep' },
   { kind: 'dc', title: 'DC sweep' },
   { kind: 'noise', title: 'Noise' },
-  { kind: 'op', title: 'Operating point' }
+  { kind: 'op', title: 'Operating point' },
+  { kind: 'tf', title: 'Transfer function' },
+  { kind: 'sens', title: 'Sensitivity' },
+  { kind: 'pz', title: 'Pole-zero' },
+  { kind: 'disto', title: 'Distortion' },
+  { kind: 'sp', title: 'S-parameters' },
+  { kind: 'four', title: 'Fourier (THD)' }
 ]
 
+const FREQS: Freqs = { sweep: 'dec', points: '100', fstart: '1', fstop: '1meg' }
 export function defaultAnalysis(kind: Analysis['kind']): Analysis {
   switch (kind) {
     case 'op': return { kind }
     case 'tran': return { kind, step: '10u', stop: '10m', start: '', maxStep: '', uic: false }
-    case 'ac': return { kind, sweep: 'dec', points: '100', fstart: '1', fstop: '1meg' }
-    case 'dc': return { kind, source: 'V1', start: '0', stop: '5', step: '0.1' }
-    case 'noise': return { kind, output: 'out', ref: '', source: 'V1', sweep: 'dec', points: '100', fstart: '1', fstop: '1meg' }
+    case 'ac': return { kind, ...FREQS }
+    case 'dc': return { kind, source: 'V1', start: '0', stop: '5', step: '0.1', source2: '', start2: '', stop2: '', step2: '' }
+    case 'noise': return { kind, output: 'out', ref: '', source: 'V1', ...FREQS }
+    case 'tf': return { kind, current: false, output: 'out', ref: '', source: 'V1' }
+    case 'sens': return { kind, current: false, output: 'out', ref: '', ac: false, ...FREQS, points: '10' }
+    case 'pz': return { kind, in1: 'in', in2: '0', out1: 'out', out2: '0', tf: 'vol', find: 'pz' }
+    case 'disto': return { kind, ...FREQS, points: '10', fstart: '100', f2: '' }
+    case 'sp': return { kind, ...FREQS, points: '20', fstart: '1meg', fstop: '1g', noise: false }
+    case 'four': return { kind, freq: '1k', outputs: ['v(out)'] }
   }
 }
+
+const outVar = (a: OutVar) => (a.current ? `i(${a.output})` : `v(${a.output}${a.ref ? ',' + a.ref : ''})`)
+const freqs = (a: Freqs) => `${a.sweep} ${a.points} ${a.fstart} ${a.fstop}`
 
 export function analysisText(a: Analysis): string {
   switch (a.kind) {
@@ -36,9 +61,15 @@ export function analysisText(a: Analysis): string {
       if (a.uic) t.push('uic')
       return t.join(' ')
     }
-    case 'ac': return `.ac ${a.sweep} ${a.points} ${a.fstart} ${a.fstop}`
-    case 'dc': return `.dc ${a.source} ${a.start} ${a.stop} ${a.step}`
-    case 'noise': return `.noise v(${a.output}${a.ref ? ',' + a.ref : ''}) ${a.source} ${a.sweep} ${a.points} ${a.fstart} ${a.fstop}`
+    case 'ac': return `.ac ${freqs(a)}`
+    case 'dc': return `.dc ${a.source} ${a.start} ${a.stop} ${a.step}` + (a.source2 ? ` ${a.source2} ${a.start2} ${a.stop2} ${a.step2}` : '')
+    case 'noise': return `.noise v(${a.output}${a.ref ? ',' + a.ref : ''}) ${a.source} ${freqs(a)}`
+    case 'tf': return `.tf ${outVar(a)} ${a.source}`
+    case 'sens': return `.sens ${outVar(a)}` + (a.ac ? ` ac ${freqs(a)}` : '')
+    case 'pz': return `.pz ${a.in1} ${a.in2} ${a.out1} ${a.out2} ${a.tf} ${a.find}`
+    case 'disto': return `.disto ${freqs(a)}` + (a.f2 ? ' ' + a.f2 : '')
+    case 'sp': return `.sp ${freqs(a)}` + (a.noise ? ' 1' : '')
+    case 'four': return ['.four', a.freq, ...a.outputs].join(' ')
   }
 }
 
@@ -60,16 +91,51 @@ export function parseAnalysis(text: string): Analysis | null {
     const start = maxStep && v[2] === '0' ? '' : (v[2] ?? '')
     return { kind: 'tran', step: v[0], stop: v[1], start, maxStep, uic }
   }
-  if (kind === '.ac') {
-    const sw = n === 5 && sweep(t[1])
-    return sw ? { kind: 'ac', sweep: sw, points: t[2], fstart: t[3], fstop: t[4] } : null
+  // freqs at t[i..i+3]
+  const fq = (i: number): Freqs | null => {
+    const sw = sweep(t[i] ?? '')
+    return sw && n >= i + 4 ? { sweep: sw, points: t[i + 1], fstart: t[i + 2], fstop: t[i + 3] } : null
   }
-  if (kind === '.dc') return n === 5 ? { kind: 'dc', source: t[1], start: t[2], stop: t[3], step: t[4] } : null
+  const out = (x = ''): OutVar | null => {
+    const v = /^v\(([^,()]+)(?:,([^,()]+))?\)$/i.exec(x), i = /^i\(([^,()]+)\)$/i.exec(x)
+    return v ? { current: false, output: v[1], ref: v[2] ?? '' } : i ? { current: true, output: i[1], ref: '' } : null
+  }
+  if (kind === '.ac') {
+    const f = n === 5 && fq(1)
+    return f ? { kind: 'ac', ...f } : null
+  }
+  if (kind === '.dc') {
+    const [, source, start, stop, step, source2 = '', start2 = '', stop2 = '', step2 = ''] = t
+    return n === 5 || n === 9 ? { kind: 'dc', source, start, stop, step, source2, start2, stop2, step2 } : null
+  }
   if (kind === '.noise') {
     const m = /^v\(([^,()]+)(?:,([^,()]+))?\)$/i.exec(t[1] ?? '')
-    const sw = n === 7 && m && sweep(t[3])
-    return sw ? { kind: 'noise', output: m![1], ref: m![2] ?? '', source: t[2], sweep: sw, points: t[4], fstart: t[5], fstop: t[6] } : null
+    const f = n === 7 && m && fq(3)
+    return f ? { kind: 'noise', output: m![1], ref: m![2] ?? '', source: t[2], ...f } : null
   }
+  if (kind === '.tf') {
+    const o = n === 3 && out(t[1])
+    return o ? { kind: 'tf', ...o, source: t[2] } : null
+  }
+  if (kind === '.sens') {
+    const o = out(t[1]), f = n === 7 && t[2].toLowerCase() === 'ac' && fq(3)
+    if (o && n === 2) return { ...(defaultAnalysis('sens') as Extract<Analysis, { kind: 'sens' }>), ...o }
+    return o && f ? { kind: 'sens', ...o, ac: true, ...f } : null
+  }
+  if (kind === '.pz') {
+    const [tf, find] = [t[5]?.toLowerCase(), t[6]?.toLowerCase()]
+    return n === 7 && (tf === 'vol' || tf === 'cur') && (find === 'pz' || find === 'pol' || find === 'zer')
+      ? { kind: 'pz', in1: t[1], in2: t[2], out1: t[3], out2: t[4], tf, find } : null
+  }
+  if (kind === '.disto') {
+    const f = (n === 5 || n === 6) && fq(1)
+    return f ? { kind: 'disto', ...f, f2: t[5] ?? '' } : null
+  }
+  if (kind === '.sp') {
+    const f = (n === 5 || (n === 6 && /^[01]$/.test(t[5]))) && fq(1)
+    return f ? { kind: 'sp', ...f, noise: t[5] === '1' } : null
+  }
+  if (kind === '.four' || kind === '.fourier') return n >= 3 ? { kind: 'four', freq: t[1], outputs: t.slice(2) } : null
   return null
 }
 
@@ -119,12 +185,41 @@ export function validate(a: Analysis): string[] {
       if (!a.source.trim()) e.push('Pick a source to sweep (e.g. V1)')
       num(a.start, 'Start value', '0'), num(a.stop, 'Stop value', '5')
       if (num(a.step, 'Increment', '0.1') && val(a.step) === 0) e.push('Increment must not be 0')
+      if (!a.source2.trim()) break
+      if (a.source2.trim().toLowerCase() === a.source.trim().toLowerCase()) e.push('The second source must not be the swept source')
+      num(a.start2, 'Second start', '0'), num(a.stop2, 'Second stop', '5')
+      if (num(a.step2, 'Second increment', '1') && val(a.step2) === 0) e.push('Second increment must not be 0')
       break
     }
     case 'noise': {
       if (!a.output.trim()) e.push('Pick an output net (e.g. out)')
       if (!a.source.trim()) e.push('Pick an input source (e.g. V1)')
       freqs(a)
+      break
+    }
+    case 'tf':
+    case 'sens': {
+      if (!a.output.trim()) e.push(a.current ? 'Pick a voltage source to measure the current through (e.g. V1)' : 'Pick an output net (e.g. out)')
+      if (!a.current && a.ref.trim() && a.ref.trim() === a.output.trim()) e.push('The reference node must differ from the output node')
+      if (a.kind === 'tf' && !a.source.trim()) e.push('Pick an input source (e.g. V1)')
+      if (a.kind === 'sens' && a.ac) freqs(a)
+      break
+    }
+    case 'pz': {
+      if (!a.in1.trim() || !a.out1.trim()) e.push('Pick the input and output nodes (e.g. in, out)')
+      if (a.in1.trim() === a.in2.trim()) e.push('The two input nodes must differ')
+      if (a.out1.trim() === a.out2.trim()) e.push('The two output nodes must differ')
+      break
+    }
+    case 'disto': {
+      freqs(a)
+      if (num(a.f2, 'F2/F1 ratio', '0.9', true) && a.f2.trim() && !(val(a.f2) > 0 && val(a.f2) < 1)) e.push('F2/F1 ratio must be between 0 and 1 (e.g. 0.9)')
+      break
+    }
+    case 'sp': freqs(a); break
+    case 'four': {
+      if (num(a.freq, 'Fundamental frequency', '1k') && val(a.freq) <= 0) e.push('Fundamental frequency must be above 0')
+      if (!a.outputs.length) e.push('Pick at least one output (e.g. v(out))')
       break
     }
   }
@@ -194,11 +289,51 @@ export function validateOptions(o: Options): string[] {
   return e
 }
 
+// ---- .ic / .nodeset line <-> net + value rows. Tokens other than v(net)=value are kept verbatim in `extra`. ----
+export type SetupKind = 'options' | 'ic' | 'nodeset'
+export type NodeVals = { rows: { net: string; value: string }[]; extra: string }
+const IC = /^\s*\.(ic|nodeset)(?=\s|$)/i
+// which setup directive a line is (.options/.option/.opt, .ic, .nodeset), else null
+export const setupKind = (line: string): SetupKind | null =>
+  isOptionsLine(line) ? 'options' : (IC.exec(line)?.[1].toLowerCase() as SetupKind | undefined) ?? null
+
+export function parseNodeVals(text: string): NodeVals | null {
+  if (text.includes('\n') || !IC.test(text)) return null
+  const nv: NodeVals = { rows: [], extra: '' }, extra: string[] = []
+  // "v( a ) = 1" -> "v(a)=1"
+  for (const t of text.replace(IC, '').replace(/\s*=\s*/g, '=').replace(/\(\s*([^()]*?)\s*\)/g, '($1)').trim().split(/\s+/).filter(Boolean)) {
+    const m = /^v\(([^,()]+)\)=(\S+)$/i.exec(t)
+    if (m) nv.rows.push({ net: m[1], value: m[2] })
+    else extra.push(t)
+  }
+  nv.extra = extra.join(' ')
+  return nv
+}
+
+export const nodeValsText = (kind: 'ic' | 'nodeset', nv: NodeVals): string =>
+  [`.${kind}`, ...nv.rows.map((r) => `v(${r.net.trim()})=${r.value.trim()}`), ...(nv.extra.trim() ? [nv.extra.trim().replace(/\s+/g, ' ')] : [])].join(' ')
+
+export function validateNodeVals(nv: NodeVals): string[] {
+  const e: string[] = [], seen = new Set<string>()
+  if (!nv.rows.length && !nv.extra.trim()) e.push('Add at least one net')
+  for (const r of nv.rows) {
+    const net = r.net.trim()
+    if (!net) e.push('Pick a net for every row')
+    else if (seen.has(net.toLowerCase())) e.push(`v(${net}) is set twice`)
+    else if (!isSpiceNumber(r.value.trim())) e.push(`v(${net}) needs a value like 0 or 2.5`)
+    seen.add(net.toLowerCase())
+  }
+  return e
+}
+
 // `.plot tran v(out) i(r1)` lines -> one stacked chart pane each on that analysis's results tab. ngspice ignores .plot
 // when it writes a rawfile, so they only steer the results panel. Entries are raw vector names, else Plot expressions
 // ('=' + text: v(a,b), I(D1), maths); no spaces inside an entry, as in SPICE. An inline comment titles the chart:
 // `.plot tran v(ecg) ; Amplified ECG`.
-const PLOT_OF: Record<string, RegExp> = { tran: /^transient/i, ac: /^ac\b/i, dc: /^dc\b/i, noise: /^noise/i, op: /^operating/i }
+const PLOT_OF: Record<string, RegExp> = {
+  tran: /^transient/i, ac: /^ac\b/i, dc: /^dc\b/i, noise: /^noise/i, op: /^operating/i,
+  tf: /^transfer function/i, sens: /^sensitivity/i, pz: /^pole-zero/i, disto: /^distortion/i, sp: /^sp analysis/i
+}
 export function plotPanes(text: string, plotname: string, vars: string[]): { title: string; sel: string[] }[] {
   const has = new Set(vars.map((v) => v.toLowerCase()))
   return [...text.matchAll(/^[ \t]*\.plot[ \t]+(\w+)[ \t]+(.*\S)/gim)]

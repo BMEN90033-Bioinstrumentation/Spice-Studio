@@ -119,6 +119,7 @@ function template(recents: Recent[]): Item[] {
     sep,
     cmd('sim.setup', 'Analysis Setup…', 'A'),
     cmd('sim.options', 'Simulation Options…'),
+    cmd('sim.ic', 'Initial Conditions…'),
     cmd('sim.probe', 'Probe', 'P'),
     sep,
     cmd('sim.viewNetlist', 'View Generated Netlist')
