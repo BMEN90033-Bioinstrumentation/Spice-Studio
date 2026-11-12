@@ -13,9 +13,9 @@ import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../librar
 import { analysisText, mergeOptions, parseAnalysis, setupKind, type Analysis, type SetupKind } from '../sim/analysis'
 import { AnalysisDialog, type Tab } from '../sim/AnalysisDialog'
 import { SourceDialog } from '../sim/SourceDialog'
-import { useCommands } from '../commands'
+import { keysOf, matches, useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
-import { usePrefs } from '../Preferences'
+import { prefs, usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
 import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -254,7 +254,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [box, setBox] = useState<Box | null>(null)
   const [space, setSpace] = useState(false)
   const [hov, setHov] = useState<ProbeTarget | null>(null)
-  const opPref = usePrefs().showOp // Settings › Schematic; the OP toggle overrides it per canvas
+  const { showOp: opPref, gridStyle } = usePrefs() // Settings › Schematic; the OP toggle overrides showOp per canvas (usePrefs also re-renders on a changed shortcut)
+  const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
   const [showOp, setShowOp] = useState(opPref)
   useEffect(() => setShowOp(opPref), [opPref])
   const [dlg, setDlg] = useState<Tab | 'analysis' | 'edit' | null>(null) // analysis dialog open, on this tab ('edit': rewrite the selected card)
@@ -447,37 +448,34 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else setSel(new Set())
   }
 
+  // the canvas' changeable shortcuts (shortcuts.ts ids; Settings › Keyboard shortcuts)
+  const HOT: [string, () => void][] = [
+    ['edit.rotate', () => orient(true)], ['edit.mirror', () => orient(false)], ['edit.duplicate', () => void paste(picked())],
+    ['place.wire', () => use('wire')], ['place.bus', () => use('bus')], ['place.directive', () => use('text')], ['place.note', () => use('note')],
+    ['sim.probe', () => use('probe')], ['sim.setup', () => setDlg('analysis')], ['view.fit', () => fit()], ['view.partsToggle', () => toggleLib()],
+    ['place.fromLibrary', () => (toggleLib(true), setTimeout(() => search.current?.focus()))],
+    ...Object.values(KEYS).map((kind): [string, () => void] => ['place.' + kind, () => use({ place: kind, title: SYMBOLS[kind].title })])
+  ]
+  const hot = (e: KeyboardEvent) => { const h = HOT.find(([id]) => { const keys = keysOf(id); return keys && matches(keys, e) }); h?.[1](); return !!h }
   function onKey(e: KeyboardEvent) {
     if (!active || modal || typing(e)) return
     const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey
     let done = true
     if (k === ' ') setSpace(true)
-    else if (e.ctrlKey && !e.metaKey && (k === 'r' || k === 'e')) orient(k === 'r') // not ⌘R: that's Electron reload
     else if (mod && k === 'z') e.shiftKey ? redo() : undo()
     else if (mod && k === 'y') redo()
     else if (mod && k === 'c') clip.current = picked()
     else if (mod && k === 'x') cut()
     else if (mod && k === 'v') clip.current = paste(clip.current)
-    else if (mod && k === 'd') paste(picked())
     else if (mod && k === 'a') setSel(new Set(all(cur.current)))
-    else if (mod || e.altKey) done = false
-    else if (k === 'escape') esc()
+    else if (k === 'escape' && !mod && !e.altKey) esc()
+    else if (mod || e.altKey) done = hot(e) // a changed shortcut may use a modifier
     else if (k === 'enter' && sel.size === 1) openPop([...sel][0])
     else if (k === 'delete' || k === 'backspace') del()
-    else if (k === 'w') use('wire')
-    else if (k === 's') use('text')
-    else if (k === 't') use('note')
-    else if (k === 'p') use('probe')
-    else if (k === 'a') setDlg('analysis')
     else if (k === '/' && (tool === 'wire' || tool === 'bus')) setVFirst((v) => !v)
-    else if (k === 'b') use('bus')
-    else if (k === '/') toggleLib(true), setTimeout(() => search.current?.focus())
-    else if (e.key === 'L') toggleLib()
     else if (k === '+' || k === '=') zoomBy(1.25)
     else if (k === '-') zoomBy(0.8)
-    else if (k === 'f') fit()
-    else if (KEYS[k] && !e.shiftKey) use({ place: KEYS[k], title: SYMBOLS[KEYS[k]].title })
-    else done = false
+    else done = hot(e)
     if (done) e.preventDefault()
   }
   function onKeyUp(e: KeyboardEvent) {
@@ -488,7 +486,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function onWheel(e: WheelEvent) {
     e.preventDefault()
     const r = svg.current!.getBoundingClientRect()
-    if (e.ctrlKey) zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(Math.max(-50, Math.min(50, -e.deltaY)) * 0.01))
+    if (e.ctrlKey || (prefs().wheel === 'zoom' && !e.shiftKey)) zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(Math.max(-50, Math.min(50, -e.deltaY)) * (e.ctrlKey ? 0.01 : 0.002))) // Settings › Schematic: the wheel zooms (Shift+wheel still pans)
     else setView((v) => ({ ...v, x: v.x - e.deltaX, y: v.y - e.deltaY }))
   }
   const on = useRef({ onKey, onKeyUp, onWheel })
@@ -867,7 +865,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         : 'Click to start a wire · Esc returns to select'
       : tool === 'probe'
       ? 'Click a wire to plot its voltage · click a part to plot its current · drag between two nets plots the difference · Esc returns to select'
-      : `Drag to move or box-select · Alt+click probes · Space-drag pans · F fits · ${keyLabel('Mod+/')} for all shortcuts`
+      : `Drag to move or box-select · Alt+click probes · Space-drag pans${keysOf('view.fit') ? ` · ${keyLabel(keysOf('view.fit'))} fits` : ''}${keysOf('help.shortcuts') ? ` · ${keyLabel(keysOf('help.shortcuts'))} for all shortcuts` : ''}`
 
   return (
     <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
@@ -875,7 +873,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={context}>
         <defs>
           <pattern id={gridId} width={g} height={g} patternUnits="userSpaceOnUse" patternTransform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
-            <circle className="dot" r={1 / view.k} />
+            {gridStyle === 'lines' ? <path className="dot gl" d={`M${g} 0H0V${g}`} strokeWidth={1 / view.k} /> : <circle className="dot" r={1 / view.k} />}
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill={`url(#${gridId})`} />
@@ -937,16 +935,16 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       </svg>
 
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
-        : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
+        : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts${kl('view.parts')}`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
-        <Tip label="Parts library (Shift+L) · search (/)">
+        <Tip label={`Parts library${kl('view.partsToggle')} · search${kl('place.fromLibrary')}`}>
           <Toggle size="sm" className={TBTN} pressed={libOpen} onPressedChange={() => toggleLib()}><Cpu /><span>Parts</span></Toggle>
         </Tip>
         <Sep />
         {/* items keep their own onClick: re-clicking the current tool still resets it (ends a wire in progress) */}
         <ToggleGroup type="single" size="sm" aria-label="Tool" value={typeof tool === 'string' ? tool : ''}>
-          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire (W)', 'Wire', <Spline />], ['text', 'SPICE directive (S)', 'Directive', <span className="grid h-5 place-items-center font-mono text-xs">.op</span>],
-            ['probe', 'Probe (P) · or Alt+click', 'Probe', <Crosshair />]] as const).map(([k, label, aria, body]) => (
+          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire' + kl('place.wire'), 'Wire', <Spline />], ['text', 'SPICE directive' + kl('place.directive'), 'Directive', <span className="grid h-5 place-items-center font-mono text-xs">.op</span>],
+            ['probe', `Probe${kl('sim.probe')} · or Alt+click`, 'Probe', <Crosshair />]] as [Tool & string, string, string, ReactNode][]).map(([k, label, aria, body]) => (
             <Tip key={k} label={label}>
               <ToggleGroupItem value={k} aria-label={k === 'text' ? 'SPICE directive' : aria} className={TBTN} onClick={() => use(k)}>{body}<span>{aria}</span></ToggleGroupItem>
             </Tip>
@@ -972,7 +970,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         {QUICK.map((k) => {
           const on = placing?.place === k && !placing.id
           return (
-            <Tip key={k} label={SYMBOLS[k].title + (SYMBOLS[k].key ? ` (${SYMBOLS[k].key!.toUpperCase()})` : '')}>
+            <Tip key={k} label={SYMBOLS[k].title + kl('place.' + k)}>
               <Button variant="ghost" size="sm" aria-label={SYMBOLS[k].title} aria-pressed={on} className={cn(TBTN, '[&_.symp]:size-5!', on && 'bg-accent text-foreground')}
                 onClick={() => use({ place: k, title: SYMBOLS[k].title })}>
                 <SymbolPreview kind={k} size="small" /><span>{QUICK_LABEL[k] ?? SYMBOLS[k].title}</span>
@@ -981,17 +979,17 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           )
         })}
         <Sep />
-        <BarBtn label="Rotate (Ctrl+R)" aria="Rotate" onClick={() => orient(true)}><RotateCw /></BarBtn>
-        <BarBtn label="Mirror (Ctrl+E)" aria="Mirror" onClick={() => orient(false)}><FlipHorizontal2 /></BarBtn>
+        <BarBtn label={'Rotate' + kl('edit.rotate')} aria="Rotate" onClick={() => orient(true)}><RotateCw /></BarBtn>
+        <BarBtn label={'Mirror' + kl('edit.mirror')} aria="Mirror" onClick={() => orient(false)}><FlipHorizontal2 /></BarBtn>
         <BarBtn label="Delete (Del)" aria="Delete" onClick={del} disabled={!sel.size}><Trash2 /></BarBtn>
         <BarBtn label="Undo (⌘Z)" aria="Undo" onClick={undo} disabled={!hist.current.undo.length}><Undo2 /></BarBtn>
         <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
-        <BarBtn label="Fit (F)" aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
+        <BarBtn label={'Fit' + kl('view.fit')} aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
         <Tip label="Clean up: move name and value labels off parts, wires and each other (the selected parts, or the whole sheet)">
           <Button variant="ghost" size="sm" className={TBTN} aria-label="Clean up" onClick={cleanUp}><Sparkles /><span>Clean up</span></Button>
         </Tip>
         <Sep />
-        <Tip label="Simulation setup (A)"><Button variant="ghost" size="sm" className={TBTN} onClick={() => setDlg('analysis')}><Activity /><span>Analysis</span></Button></Tip>
+        <Tip label={'Simulation setup' + kl('sim.setup')}><Button variant="ghost" size="sm" className={TBTN} onClick={() => setDlg('analysis')}><Activity /><span>Analysis</span></Button></Tip>
         {overlay?.op && (
           <Tip label="Show DC operating point voltages">
             <Toggle size="sm" className={TBTN} aria-label="Operating point values" pressed={showOp} onPressedChange={() => setShowOp((v) => !v)}><Gauge /><span>OP</span></Toggle>
@@ -1086,11 +1084,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           <DropdownMenuItem disabled={!sel.size} onSelect={cut}>Cut<DropdownMenuShortcut>{keyLabel('Mod+X')}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuItem disabled={!sel.size} onSelect={() => (clip.current = picked())}>Copy<DropdownMenuShortcut>{keyLabel('Mod+C')}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuItem disabled={!clip.current} onSelect={() => (clip.current = paste(clip.current))}>Paste<DropdownMenuShortcut>{keyLabel('Mod+V')}</DropdownMenuShortcut></DropdownMenuItem>
-          <DropdownMenuItem disabled={!sel.size} onSelect={() => paste(picked())}>Duplicate<DropdownMenuShortcut>{keyLabel('Mod+D')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => paste(picked())}>Duplicate<DropdownMenuShortcut>{keyLabel(keysOf('edit.duplicate'))}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuItem disabled={!sel.size} onSelect={del}>Delete<DropdownMenuShortcut>Del</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(true)}>Rotate<DropdownMenuShortcut>Ctrl+R</DropdownMenuShortcut></DropdownMenuItem>
-          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(false)}>Mirror<DropdownMenuShortcut>Ctrl+E</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(true)}>Rotate<DropdownMenuShortcut>{keyLabel(keysOf('edit.rotate'))}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(false)}>Mirror<DropdownMenuShortcut>{keyLabel(keysOf('edit.mirror'))}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger disabled={alignable < 2}>Align</DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
@@ -1114,7 +1112,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           <DropdownMenuItem onSelect={cleanUp}>Clean Up Labels</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setSel(new Set(all(cur.current)))}>Select All<DropdownMenuShortcut>{keyLabel('Mod+A')}</DropdownMenuShortcut></DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => fit()}>Fit to Window<DropdownMenuShortcut>F</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => fit()}>Fit to Window<DropdownMenuShortcut>{keyLabel(keysOf('view.fit'))}</DropdownMenuShortcut></DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <div className="sch-hint text-xs text-muted-foreground">{hint}</div>

@@ -3,9 +3,10 @@
 .sch.draw > svg { cursor: crosshair; }
 .sch.pan > svg { cursor: grab; }
 .sch .dot { fill: var(--line-strong); }
+.sch .dot.gl { fill: none; stroke: var(--line-strong); opacity: 0.45; } /* Settings › Schematic › Grid: lines */
 
 .sch .sym path, .sch .sym circle {
-  fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke;
+  fill: none; stroke: currentColor; stroke-width: var(--sch-stroke, 1.5); vector-effect: non-scaling-stroke;
   stroke-linecap: round; stroke-linejoin: round;
 }
 .sch .sym .shade, .sch .sym circle { fill: color-mix(in srgb, currentColor 14%, transparent); } /* body shading */
@@ -13,12 +14,12 @@
 .sch .sym .f { fill: currentColor; }
 .sch .sym .hit { fill: transparent; stroke: none; }
 .sch .part { color: var(--sym); }
-.sch .part text { fill: var(--dim); font: 9px var(--mono); }
+.sch .part text { fill: var(--dim); font: var(--sch-font, 9px) var(--mono); } /* --sch-font / --sch-stroke: Settings › Schematic */
 .sch .part text.n { fill: var(--text); }
 .sch .part.on { color: var(--sel); }
 .sch .part.on text { fill: var(--sel); }
 
-.sch .wire line { stroke: var(--wire); stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.sch .wire line { stroke: var(--wire); stroke-width: var(--sch-stroke, 1.5); vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .sch .wire line.hit { stroke: transparent; stroke-width: 10; }
 .sch .wire.on line:not(.hit) { stroke: var(--sel); }
 .sch .jn { fill: var(--wire); pointer-events: none; }

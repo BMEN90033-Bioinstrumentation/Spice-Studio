@@ -15,6 +15,10 @@ try {
 nativeTheme.themeSource = prefs.theme
 
 export const getPrefs = () => prefs
+export const onPrefs = new Set<() => void>() // main-side listeners (the menu shows changed shortcuts)
+// Settings › Appearance › Interface scale: page zoom of every window, new ones included
+const zoom = (w: BrowserWindow) => !w.isDestroyed() && w.webContents.setZoomFactor(prefs.uiScale)
+app.on('browser-window-created', (_e, w) => w.webContents.on('did-finish-load', () => zoom(w)))
 // window background shown before the page paints: no white flash in dark mode, no black one in light
 export const windowBg = () => (nativeTheme.shouldUseDarkColors ? '#1f1f1f' : '#ffffff') // = index.css --background
 nativeTheme.on('updated', () => BrowserWindow.getAllWindows().forEach((w) => w.setBackgroundColor(windowBg())))
@@ -23,7 +27,8 @@ nativeTheme.on('updated', () => BrowserWindow.getAllWindows().forEach((w) => w.s
 function update(p: Prefs) {
   prefs = p
   nativeTheme.themeSource = prefs.theme
-  for (const w of BrowserWindow.getAllWindows()) w.webContents.send('prefs:changed', prefs)
+  for (const w of BrowserWindow.getAllWindows()) w.webContents.send('prefs:changed', prefs), zoom(w)
+  onPrefs.forEach((f) => f())
   try {
     writeAtomic(FILE(), JSON.stringify(prefs, null, 1))
   } catch (e) {

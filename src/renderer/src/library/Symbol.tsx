@@ -11,8 +11,9 @@ type Orient = Pick<Part, 'x' | 'y' | 'rot' | 'mirror'>
 const ID: Orient = { x: 0, y: 0, rot: 0, mirror: false }
 
 // ponytail: only parses absolute M/L/H/V/A/Z (all symbols.ts uses); arc bulge covered by the padding
-function pathBox(d: SymbolDef): Box {
-  const xs = d.pins.map((p) => p.x), ys = d.pins.map((p) => p.y)
+// body: leave the pins (and so the leads out to them) out of the box
+function pathBox(d: SymbolDef, body = false): Box {
+  const xs = body ? [] : d.pins.map((p) => p.x), ys = body ? [] : d.pins.map((p) => p.y)
   if (d.circle) xs.push(-d.circle, d.circle), ys.push(-d.circle, d.circle)
   for (const path of [d.path, d.fill ?? '']) {
     const t = path.match(/[A-Za-z]|-?[\d.]+/g) ?? []
@@ -24,13 +25,14 @@ function pathBox(d: SymbolDef): Box {
       else if (cmd === 'V') y = n()
       else if (cmd === 'A') (i += 5), (x = n()), (y = n())
       else (x = n()), (y = n())
-      xs.push(x), ys.push(y)
+      if (!body || !d.pins.some((p) => p.x === x && p.y === y)) xs.push(x), ys.push(y)
     }
   }
-  if (!xs.length) xs.push(0), ys.push(0)
+  if (!xs.length) return body ? pathBox(d) : { x0: -3, y0: -3, x1: 3, y1: 3 }
   return { x0: Math.min(...xs) - 3, y0: Math.min(...ys) - 3, x1: Math.max(...xs) + 3, y1: Math.max(...ys) + 3 }
 }
 const BOX = Object.fromEntries(Object.entries(SYMBOLS).map(([k, d]) => [k, pathBox(d)])) as Record<Kind, Box>
+const BODY = Object.fromEntries(Object.entries(SYMBOLS).map(([k, d]) => [k, pathBox(d, true)])) as Record<Kind, Box>
 
 const body = (p?: Shape) => ({ w: p?.size?.w ?? 40, h: p?.size?.h ?? 40 })
 const symPins = (kind: Kind, p?: Shape) => p?.pins ?? SYMBOLS[kind].pins
@@ -46,6 +48,14 @@ export function localBox(kind: Kind, p?: Shape): Box {
   const { w, h } = body(p), ps = symPins(kind, p)
   const xs = [-w / 2, w / 2, ...ps.map((q) => q.x)], ys = [-h / 2, h / 2, ...ps.map((q) => q.y)]
   return { x0: Math.min(...xs) - 3, y0: Math.min(...ys) - 3, x1: Math.max(...xs) + 3, y1: Math.max(...ys) + 3 }
+}
+
+// The drawn body without the leads out to the pins (Clean up puts labels beside this). A custom symbol keeps its whole box.
+export function bodyBox(kind: Kind, p?: Shape): Box {
+  if (p?.sym) return localBox(kind, p)
+  if (kind !== 'block') return BODY[kind]
+  const { w, h } = body(p)
+  return { x0: -w / 2 - 3, y0: -h / 2 - 3, x1: w / 2 + 3, y1: h / 2 + 3 }
 }
 
 // a block pin's point on the box edge, and the unit vector pointing into the box

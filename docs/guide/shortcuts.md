@@ -4,6 +4,8 @@
 
 Taken from the app's code: the menu (`src/main/menu.ts`), the registered commands (`useCommands` in `main.tsx`, `Help.tsx`, `layout/Panel.tsx`) and the canvas key handler (`schematic/Schematic.tsx`). In the app, **Help › Keyboard Shortcuts** (⌘/) shows the main ones.
 
+These are the defaults. Most can be changed in **Settings › Keyboard shortcuts** ([chapter 1](01-getting-started.md#settings)), which is also what **Help › Keyboard Shortcuts** (⌘/) opens.
+
 On Windows and Linux, use **Ctrl** for **⌘**. Rotate and mirror use **Ctrl** on every platform.
 
 ## Anywhere

@@ -41,7 +41,7 @@ export function Editor({ initial, onChange }: { initial: string; onChange: (s: s
         basicSetup,
         spice,
         theme.current.of(dark ? oneDark : []),
-        EditorView.theme({ '&': { height: '100%' }, '&.cm-focused': { outline: 'none' }, '.cm-scroller': { fontFamily: 'var(--mono)' } }),
+        EditorView.theme({ '&': { height: '100%' }, '&.cm-focused': { outline: 'none' }, '.cm-scroller': { fontFamily: 'var(--mono)', fontSize: 'var(--editor-font, inherit)' } }),
         EditorView.updateListener.of((u) => u.docChanged && cb.current(u.state.doc.toString()))
       ]
     })

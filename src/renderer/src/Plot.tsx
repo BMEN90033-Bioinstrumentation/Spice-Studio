@@ -10,7 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { RawPlot, RawVar } from '../../main/rawfile'
 import { isExpr } from './contracts'
 import { useCommands } from './commands'
-import { isDark, useDark } from './Preferences'
+import { isDark, useDark, usePrefs } from './Preferences'
 import { evalExpr, isCurrent, pretty } from './plot/expr'
 import { fft, nextPow2 } from './plot/fft'
 import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
@@ -99,6 +99,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   const first = runs[0].plot
   const [scale, ...signals] = first.vars
   const dark = useDark() // re-render (and redraw the canvas) when the theme changes
+  const lw = usePrefs().plotWidth // Settings › Simulation and plots
   const [mode, setMode] = useState<Mode>('bode')
   const [unw, setUnw] = useState(false) // unwrapped phase
   const [z0, setZ0] = useState('50') // Smith chart reference impedance
@@ -196,7 +197,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
             label: label ? `${t.name} · ${label}` : t.name,
             scale: t.scale,
             stroke: color(hue(t.key), r, runs.length),
-            width: 1.5,
+            width: lw,
             spanGaps: true,
             value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)) // blank off-hover: reads as a plain legend
           })
@@ -312,7 +313,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
       uref.current = []
       place.current = () => {}
     }
-  }, [traces, eyev, cplxv, dark])
+  }, [traces, eyev, cplxv, dark, lw])
   useEffect(() => place.current(), [cur])
 
   const csv = () => {

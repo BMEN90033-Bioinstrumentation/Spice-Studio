@@ -6,13 +6,14 @@ import type { RawPlot } from '../../main/rawfile'
 import { type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
-import { useCommands } from './commands'
+import { keysOf, useCommands } from './commands'
 import { Help } from './Help'
 import { BUNDLED, copyOnUse, libEntries, resolver, type ImportedLib, type LibEntry } from './library/library'
 import { LibraryView } from './library/LibraryView'
 import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
-import { usePanels } from './layout/Panel'
+import { keyLabel, usePanels } from './layout/Panel'
+const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
 import { newSim, prefs, Preferences } from './Preferences'
 import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Recovery'
 import { focusPopout } from './layout/PopOut'
@@ -544,7 +545,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
         // live: the plots fill in while ngspice runs (sim/live.ts), with progress in the status bar
         const lv = liveRun()
-        const r = await window.api.runSim(s.netlist, dir, opts, (c) => {
+        const r = await window.api.runSim(s.netlist, dir, opts, !prefs().live ? undefined : (c) => { // Settings › Simulation: live waveforms
           lv.add(c)
           const plots = lv.plots(), last = plots.at(-1)
           if (!last || last.points < 2) return
@@ -805,7 +806,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         <header>
           <HomeBtn label="Back to the home page" onClick={() => leave(onClose)} />
           {!proj && <Tip label="Open a schematic or netlist here"><Button variant="ghost" size="sm" onClick={openLoose}><FolderOpen />Open</Button></Tip>}
-          <Tip label={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}><Button variant="ghost" size="sm" onClick={save}><Save />Save</Button></Tip>
+          <Tip label={(proj && isSch ? 'Save all sheets' : 'Save') + kl('file.save')}><Button variant="ghost" size="sm" onClick={save}><Save />Save</Button></Tip>
           <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-[18px]" />
           {proj ? (
             <span className="ml-1 font-semibold">{proj.name}</span>
@@ -829,7 +830,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
             <Tip label="Run settings: compatibility mode for vendor models, timeout">
               <Button variant="ghost" size="sm" aria-expanded={!!simEdit} onClick={() => setSimEdit(simEdit ? null : sim)}><SlidersHorizontal />Run settings</Button>
             </Tip>
-            <Tip label={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
+            <Tip label={running ? 'Stop the simulation' + kl('sim.stop') : (proj ? `Run the top sheet ${stem(top)}` : 'Run') + kl('sim.run')}>
               <Button size="sm" variant={running ? 'destructive' : 'default'} className={cn('ml-1.5 min-w-[68px] gap-1.5 font-semibold', !running && 'bg-ok text-ok-fg hover:bg-ok/85')} onClick={running ? stop : run}>
                 {running ? <><Square className="size-3! fill-current" />Stop</> : <><Play className="size-3! fill-current" />Run</>}
               </Button>

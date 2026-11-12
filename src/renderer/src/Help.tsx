@@ -10,6 +10,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tip } from '@/components/ui/tip'
 import { runCommand, useCommands } from './commands'
+import { openSettings } from './Preferences'
 import { loadPacks, type PackInfo } from './library/sources'
 
 const MAC = navigator.platform.includes('Mac')
@@ -19,14 +20,6 @@ const keyLabel = (k: string) =>
     ? k.replace(/Shift\+/g, '⇧').replace(/Alt\+/g, '⌥').replace(/Ctrl\+/g, '⌃').replace(/Mod\+/g, '⌘').replace('Enter', '↵')
     : k.replace(/Mod\+/g, 'Ctrl+')
 
-const SHORTCUTS: [string, [string, string][]][] = [
-  ['File', [['New project', 'Mod+N'], ['Open project', 'Mod+O'], ['Open file', 'Mod+Shift+O'], ['Save', 'Mod+S'], ['Save as', 'Mod+Shift+S'], ['Settings', 'Mod+,']]],
-  ['Simulate', [['Run', 'Mod+Enter'], ['Stop', 'Mod+.'], ['Analysis setup', 'A'], ['Probe tool', 'P'], ['Probe from Select', 'Alt+click'], ['Differential probe', 'Alt+drag']]],
-  ['View', [['Sheets panel', 'Mod+1'], ['Parts panel', 'Mod+2 · Shift+L'], ['Results panel', 'Mod+3'], ['Search parts', '/'], ['Zoom in / out', '+ · −'], ['Fit to window', 'F'], ['Pan', 'Space+drag · middle-drag']]],
-  ['Edit (canvas)', [['Undo', 'Mod+Z'], ['Redo', 'Mod+Shift+Z'], ['Cut / copy / paste', 'Mod+X · Mod+C · Mod+V'], ['Duplicate', 'Mod+D'], ['Select all', 'Mod+A'], ['Add to selection', 'Shift+click'], ['Delete', 'Del · ⌫'], ['Rotate / mirror', 'Ctrl+R · Ctrl+E'], ['Back to Select', 'Esc']]],
-  ['Place', [['Wire', 'W'], ['Flip wire corner', '/ (while wiring)'], ['Resistor / capacitor / inductor', 'R · C · L'], ['Voltage / current source', 'V · I'], ['Diode / NPN / NMOS', 'D · Q · M'], ['Ground / net label / port', 'G · N · H'], ['SPICE directive', 'S'], ['Text note', 'T'], ['Bus', 'B']]],
-  ['Help', [['Keyboard shortcuts', 'Mod+/']]]
-]
 
 export type Info = Awaited<ReturnType<typeof window.api.menu.info>> & { engine: Awaited<ReturnType<typeof window.api.engine>> }
 
@@ -107,20 +100,6 @@ function Fold({ title, open, children }: { title: React.ReactNode; open?: boolea
 }
 
 // the bodies of the Keyboard shortcuts and About dialogs; Home's Settings page shows the same two
-export function Shortcuts() {
-  return (
-    <div className="grid min-h-0 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-7 gap-y-1 overflow-auto">
-      {SHORTCUTS.map(([group, rows]) => (
-        <section key={group}>
-          <h3 className={cn(h3, 'mt-2.5 mb-1')}>{group}</h3>
-          {rows.map(([what, k]) => (
-            <div key={what} className="flex items-center gap-3 border-b py-1 text-xs"><span className="flex-1">{what}</span><Kbd className="font-mono">{keyLabel(k)}</Kbd></div>
-          ))}
-        </section>
-      ))}
-    </div>
-  )
-}
 export function About({ info }: { info: Info | null }) {
   return (
     <div className="grid gap-2.5 text-sm">
@@ -146,7 +125,7 @@ export function About({ info }: { info: Info | null }) {
 }
 
 export function Help() {
-  const [open, setOpen] = useState<'shortcuts' | 'about' | 'licenses' | null>(null)
+  const [open, setOpen] = useState<'about' | 'licenses' | null>(null)
   const [info, setInfo] = useState<Info | null>(null)
   const [lic, setLic] = useState<Lic | null>(null)
   const licenses = () => {
@@ -158,17 +137,11 @@ export function Help() {
     Promise.all([window.api.menu.info(), window.api.engine()]).then(([a, engine]) => setInfo({ ...a, engine }))
   }
   useCommands([
-    { id: 'help.shortcuts', keys: 'Mod+/', run: () => setOpen('shortcuts') },
+    { id: 'help.shortcuts', keys: 'Mod+/', run: () => openSettings('keys') }, // the list lives in Settings, where it can be changed
     { id: 'help.about', run: about },
     { id: 'help.licenses', run: licenses },
     { id: 'tools.engineInfo', run: about }
   ])
-  if (open === 'shortcuts')
-    return (
-      <Modal title="Keyboard shortcuts" onClose={() => setOpen(null)}>
-        <Shortcuts />
-      </Modal>
-    )
   if (open === 'about')
     return (
       <Modal title="About Spice Studio" onClose={() => setOpen(null)}>

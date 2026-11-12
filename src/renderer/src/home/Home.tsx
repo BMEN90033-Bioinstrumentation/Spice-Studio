@@ -137,7 +137,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" className="mt-3" onClick={onLibrary} />
         </nav>
         <Action icon={Settings} title="Settings" tip="Theme, autosave, defaults, keyboard shortcuts, the simulation engine and version details" className="mt-auto mb-3"
-          onClick={openSettings} />
+          onClick={() => openSettings()} />
         {engine && (
           <Tip label={engine.path ?? 'ngspice not found'} side="right">
             <div className="flex items-center gap-2 border-t px-2 pt-3 text-xs text-muted-foreground">

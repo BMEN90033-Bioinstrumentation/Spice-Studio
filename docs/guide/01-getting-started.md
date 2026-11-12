@@ -123,8 +123,12 @@ You can change how often copies are made, or turn them off, in [Settings](#setti
 Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar. Settings fills the window, with a tab down the left for each section: Appearance, Schematic, Autosave, New projects and files, Simulation engine, Keyboard shortcuts and About. **Back** at the top left (or Esc) returns to where you were. Changes apply at once to every open window, and are kept for next time.
 
 - **Theme**: **Light**, **Dark** or **System** (follows your computer's setting). Dark is the default. Exported and printed schematics are always black on white.
+- **Appearance** also has **Interface scale** (80 % to 150 %, for every window) and **Netlist text size** for the netlist editor.
 - **Schematic**: show or hide the grid, and whether operating-point values appear on the schematic after a run. The **OP** button on the canvas toolbar still turns them on and off for the sheet you are on.
+- **Schematic** also has the **Grid style** (dots or lines), the **Label text size** for part names and values, the **Line weight** of symbols and wires, and what the **Scroll wheel** does: pan (the default; pinch or Ctrl+wheel zooms) or zoom (Shift+wheel then pans).
+- **Simulation and plots**: whether waveforms are drawn while a simulation runs, and the **Trace thickness** of plots.
 - **Autosave**: keep recovery copies of unsaved work, and how often (5 to 600 seconds).
+- **Keyboard shortcuts**: every shortcut that can be changed, by group. Click one and press the new keys; Esc cancels, and Backspace leaves the command with no shortcut. A key that is already taken, or one of the standard editing keys, is refused with the reason. The arrow beside a changed shortcut puts it back, and **Reset all** restores every default. Menus and tooltips show your keys. The fixed keys (undo, copy and paste, Esc, zoom and the mouse gestures) are listed at the bottom.
 - **New projects and files**: the folder New project suggests, and the compatibility mode and timeout that new projects and single files start with. Each project then keeps its own in **Run settings** ([chapter 4](04-simulating.md#run-settings)).
 - **Simulation engine**: the ngspice the app uses, its version and where it is. **Choose…** picks another ngspice program; **Use bundled** goes back to the built-in one. If the chosen program doesn't run, this shows the error.
 

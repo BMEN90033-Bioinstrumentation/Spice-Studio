@@ -3,12 +3,14 @@
 // or Settings on the Home page.
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { Compat } from './contracts'
-import { useCommands } from './commands'
-import { About, Shortcuts, type Info } from './Help'
-import { ArrowLeft } from 'lucide-react'
+import { setKeys, useCommands } from './commands'
+import { keyLabel } from './layout/Panel'
+import { clash, comboOf, FIXED, keysFor, SHORTCUTS } from './shortcuts'
+import { About, type Info } from './Help'
+import { Activity, ArrowLeft, CircuitBoard, Cpu, FolderPlus, Grid3x3, Grip, History, Info as InfoIcon, Keyboard, Monitor, Moon, Move, Palette, RotateCcw, Sun, ZoomIn, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { COMPATS } from './project/project'
-import { AUTOSAVE_MAX, AUTOSAVE_MIN, type Prefs, type Theme } from './prefs'
+import { AUTOSAVE_MAX, AUTOSAVE_MIN, EDITOR_FONTS, PLOT_WIDTHS, UI_SCALES, type Prefs, type Theme } from './prefs'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -19,7 +21,16 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 let cur: Prefs = window.api.prefs.initial
 let saveErr = '' // the last change couldn't be written to disk (main says why)
 const subs = new Set<() => void>(), sub = (f: () => void) => (subs.add(f), () => void subs.delete(f))
-const apply = () => document.documentElement.classList.toggle('no-grid', !cur.grid) // style.css
+const FONT = { s: '8px', m: '9px', l: '11px' }, STROKE = { thin: '1', normal: '1.5', bold: '2.2' }
+// what the stylesheets and the shortcut handlers read: grid (style.css), schematic text and line weight (schematic.css),
+// netlist editor text size (Editor.tsx), the changed shortcuts (commands.ts)
+const apply = () => {
+  const r = document.documentElement
+  r.classList.toggle('no-grid', !cur.grid)
+  r.style.setProperty('--sch-font', FONT[cur.labelSize]), r.style.setProperty('--sch-stroke', STROKE[cur.lineWeight])
+  cur.editorFont ? r.style.setProperty('--editor-font', cur.editorFont + 'px') : r.style.removeProperty('--editor-font')
+  setKeys(cur.keys)
+}
 apply()
 window.api.prefs.onChange((p) => ((cur = p), apply(), subs.forEach((f) => f())))
 export const prefs = () => cur
@@ -43,45 +54,53 @@ const MAC = /Mac/.test(navigator.platform)
 const COMPAT_NAME: Record<Compat, string> = { ps: 'PSpice', lt: 'LTspice', ltps: 'LTspice + PSpice', kicad: 'KiCad' } // as main.tsx's Run settings
 const AUTO = 'auto'
 
-const TABS = [['appearance', 'Appearance'], ['schematic', 'Schematic'], ['autosave', 'Autosave'], ['new', 'New projects and files'], ['engine', 'Simulation engine'],
-  ['keys', 'Keyboard shortcuts'], ['about', 'About']] as const
+const TABS = [['appearance', 'Appearance', Palette], ['schematic', 'Schematic', CircuitBoard], ['sim', 'Simulation and plots', Activity], ['autosave', 'Autosave', History],
+  ['new', 'New projects and files', FolderPlus], ['engine', 'Simulation engine', Cpu], ['keys', 'Keyboard shortcuts', Keyboard], ['about', 'About', InfoIcon]] as const satisfies readonly (readonly [string, string, LucideIcon])[]
 type Tab = (typeof TABS)[number][0]
 const TabCtx = createContext<Tab | null>(null) // the section on show (Section renders only its own)
-let show: (() => void) | undefined
-export const openSettings = () => show?.() // Home's Settings button
+let show: ((tab?: Tab) => void) | undefined
+export const openSettings = (tab?: Tab) => show?.(tab) // Home's Settings button; Help › Keyboard Shortcuts
 
 export function Preferences() {
   const [open, setOpen] = useState(false), [tab, setTab] = useState<Tab>('appearance')
   const [info, setInfo] = useState<Info | null>(null)
   const box = useRef<HTMLDivElement>(null)
-  show = () => setOpen(true)
+  show = (t) => (t && setTab(t), setOpen(true))
   useCommands([{ id: 'app.preferences', keys: 'Mod+,', run: () => setOpen((o) => !o) }])
   useEffect(() => {
     if (!open) return
     box.current?.focus() // keys typed here stay here (the canvas has single-key shortcuts)
     Promise.all([window.api.menu.info(), window.api.engine()]).then(([a, engine]) => setInfo({ ...a, engine }))
+    // a key pressed while focus is outside the page (the focused control went away): it must not reach the canvas
+    const stray = (e: KeyboardEvent) => {
+      if (box.current?.contains(e.target as Node)) return
+      e.stopPropagation()
+      e.key === 'Escape' ? setOpen(false) : box.current?.focus()
+    }
+    window.addEventListener('keydown', stray, true)
+    return () => window.removeEventListener('keydown', stray, true)
   }, [open])
   if (!open) return null
   const title = TABS.find(([id]) => id === tab)![1]
   return (
     <div ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-50 flex bg-background text-sm outline-none"
-      onKeyDown={(e) => (e.stopPropagation(), e.key === 'Escape' && !(e.target as Element).closest('input,textarea,[role=combobox],[role=listbox]') && setOpen(false))}>
+      onKeyDown={(e) => (e.stopPropagation(), e.key === 'Escape' && !(e.target as Element).closest('input,textarea,[role=combobox],[role=listbox],[data-capture]') && setOpen(false))}>
       <nav className="flex w-60 shrink-0 flex-col gap-0.5 border-r bg-card/40 px-3 pb-3" aria-label="Settings sections">
         {/* top-left: Back, to the right of the macOS window buttons; the rest of the strip drags the window */}
         <div className={cn('-mx-3 flex h-11 shrink-0 items-center px-2 [-webkit-app-region:drag]', MAC && 'pl-[78px]')}>
           <Button variant="ghost" size="sm" className="[-webkit-app-region:no-drag]" onClick={() => setOpen(false)}><ArrowLeft />Back</Button>
         </div>
         <h1 className="mb-2 px-2 text-base font-semibold">Settings</h1>
-        {TABS.map(([id, name]) => (
+        {TABS.map(([id, name, Icon]) => (
           <Button key={id} variant="ghost" size="sm" aria-current={id === tab ? 'page' : undefined} onClick={() => setTab(id)}
-            className={cn('h-9 justify-start px-2 font-normal text-muted-foreground', id === tab && 'bg-accent font-medium text-foreground')}>{name}</Button>
+            className={cn('h-9 justify-start gap-2.5 px-2 font-normal text-muted-foreground', id === tab && 'bg-accent font-medium text-foreground')}><Icon />{name}</Button>
         ))}
       </nav>
       <div className="min-w-0 flex-1 overflow-y-auto">{/* not <main>: style.css lays every <main> out as the editor's two-column grid */}
         <div className="h-11 [-webkit-app-region:drag]" />
         <div className="max-w-[760px] px-10 pb-12">
           <h2 className="mb-5 text-lg font-semibold">{title}</h2>
-          {tab === 'keys' ? <Shortcuts /> : tab === 'about' ? <About info={info} /> : <TabCtx value={tab}><PreferencesPanel /></TabCtx>}
+          {tab === 'keys' ? <KeysEditor /> : tab === 'about' ? <About info={info} /> : <TabCtx value={tab}><PreferencesPanel /></TabCtx>}
         </div>
       </div>
     </div>
@@ -122,6 +141,66 @@ function Num({ id, value, unit, min, max, placeholder, onCommit }: { id: string;
   )
 }
 
+const Pick = ({ value, onChange, options, label }: { value: string; onChange: (v: string) => void; options: (readonly [string, string])[] | [string, string][]; label: string }) => (
+  <Select value={value} onValueChange={onChange}>
+    <SelectTrigger size="sm" className="w-32" aria-label={label}><SelectValue /></SelectTrigger>
+    <SelectContent>{options.map(([v, t]) => <SelectItem key={v} value={v}>{t}</SelectItem>)}</SelectContent>
+  </Select>
+)
+
+// Keyboard shortcuts: click a shortcut, press the new keys. Esc cancels, Backspace removes the shortcut.
+function KeysEditor() {
+  const p = usePrefs()
+  const [cap, setCap] = useState<string | null>(null) // the id being changed
+  const [msg, setMsg] = useState<{ id: string; text: string } | null>(null)
+  const set = (id: string, keys: string | null) => { // null = back to the default
+    const next = { ...p.keys }
+    keys === null ? delete next[id] : (next[id] = keys)
+    setPrefs({ keys: next })
+  }
+  function onKey(e: React.KeyboardEvent, id: string) {
+    e.preventDefault(), e.stopPropagation()
+    if (e.key === 'Escape') return setCap(null)
+    if ((e.key === 'Backspace' || e.key === 'Delete') && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) return set(id, ''), setCap(null), setMsg(null)
+    const keys = comboOf(e, MAC)
+    if (!keys) return // a modifier on its own: keep waiting
+    const why = clash(p.keys, id, keys)
+    if (why) return setMsg({ id, text: `${keyLabel(keys)}: ${why}` })
+    set(id, keys), setCap(null), setMsg(null)
+  }
+  const groups = [...new Set(SHORTCUTS.map((s) => s.group))]
+  return (
+    <div className="grid gap-6">
+      <div className="flex items-center gap-3">
+        <p className="flex-1 text-xs text-muted-foreground">Click a shortcut, then press the new keys. Esc cancels; Backspace leaves the command without a shortcut.</p>
+        <Button variant="outline" size="sm" disabled={!Object.keys(p.keys).length} onClick={() => (setPrefs({ keys: {} }), setMsg(null))}><RotateCcw />Reset all</Button>
+      </div>
+      {groups.map((g) => (
+        <section key={g}>
+          <h3 className="mb-1 text-xs font-medium text-muted-foreground">{g}</h3>
+          {SHORTCUTS.filter((s) => s.group === g).map((s) => {
+            const keys = keysFor(p.keys, s.id), changed = s.id in p.keys, on = cap === s.id
+            return (
+              <div key={s.id} className="grid grid-cols-[1fr_auto_28px] items-center gap-2 border-b py-1">
+                <span>{s.title}{msg?.id === s.id && <span role="alert" className="ml-3 text-xs text-destructive">{msg.text}</span>}</span>
+                <Button data-capture variant={on ? 'default' : 'outline'} size="sm" className={cn('h-7 min-w-24 font-mono text-xs', !keys && !on && 'text-muted-foreground')}
+                  aria-label={`Shortcut for ${s.title}: ${keys || 'none'}. Click to change`} onClick={() => (setCap(on ? null : s.id), setMsg(null))} onKeyDown={on ? (e) => onKey(e, s.id) : undefined} onBlur={() => on && setCap(null)}>
+                  {on ? 'Press keys…' : keys ? keyLabel(keys) : 'None'}
+                </Button>
+                {changed ? <Button variant="ghost" size="icon-xs" aria-label={`Reset ${s.title} to ${keyLabel(s.keys)}`} title={`Reset to ${keyLabel(s.keys)}`} onClick={() => (set(s.id, null), setMsg(null))}><RotateCcw /></Button> : <span />}
+              </div>
+            )
+          })}
+        </section>
+      ))}
+      <section>
+        <h3 className="mb-1 text-xs font-medium text-muted-foreground">Fixed</h3>
+        {FIXED.map(([what, k]) => <div key={what} className="flex items-center gap-3 border-b py-1.5 text-muted-foreground"><span className="flex-1">{what}</span><span className="font-mono text-xs">{keyLabel(k)}</span></div>)}
+      </section>
+    </div>
+  )
+}
+
 // the settings themselves: one Section per tab
 function PreferencesPanel() {
   const p = usePrefs()
@@ -142,19 +221,66 @@ function PreferencesPanel() {
       <Section id="appearance">
         <Row label="Theme">
           <ToggleGroup type="single" variant="outline" size="sm" value={p.theme} onValueChange={(v) => v && setPrefs({ theme: v as Theme })} aria-label="Theme">
-            <ToggleGroupItem value="light" className="px-3">Light</ToggleGroupItem>
-            <ToggleGroupItem value="dark" className="px-3">Dark</ToggleGroupItem>
-            <ToggleGroupItem value="system" className="px-3">System</ToggleGroupItem>
+            <ToggleGroupItem value="light" className="px-3"><Sun />Light</ToggleGroupItem>
+            <ToggleGroupItem value="dark" className="px-3"><Moon />Dark</ToggleGroupItem>
+            <ToggleGroupItem value="system" className="px-3"><Monitor />System</ToggleGroupItem>
           </ToggleGroup>
+        </Row>
+        <Row label="Interface scale">
+          <Pick value={String(p.uiScale)} onChange={(v) => setPrefs({ uiScale: +v })} label="Interface scale" options={UI_SCALES.map((v) => [String(v), `${Math.round(v * 100)} %`])} />
+          <Hint>makes everything in every window larger or smaller</Hint>
+        </Row>
+        <Row label="Netlist text size">
+          <Pick value={String(p.editorFont)} onChange={(v) => setPrefs({ editorFont: +v })} label="Netlist text size" options={EDITOR_FONTS.map((v) => [String(v), v ? `${v} px` : 'Default'])} />
+          <Hint>the text in the netlist editor</Hint>
         </Row>
       </Section>
 
       <Section id="schematic">
         <Check id="pref-grid" checked={p.grid} onChange={(grid) => setPrefs({ grid })}>Show the grid</Check>
+        <Row label="Grid style">
+          <ToggleGroup type="single" variant="outline" size="sm" value={p.gridStyle} onValueChange={(v) => v && setPrefs({ gridStyle: v as Prefs['gridStyle'] })} aria-label="Grid style">
+            <ToggleGroupItem value="dots" className="px-3"><Grip />Dots</ToggleGroupItem>
+            <ToggleGroupItem value="lines" className="px-3"><Grid3x3 />Lines</ToggleGroupItem>
+          </ToggleGroup>
+        </Row>
+        <Row label="Label text size">
+          <ToggleGroup type="single" variant="outline" size="sm" value={p.labelSize} onValueChange={(v) => v && setPrefs({ labelSize: v as Prefs['labelSize'] })} aria-label="Label text size">
+            <ToggleGroupItem value="s" className="px-3">Small</ToggleGroupItem>
+            <ToggleGroupItem value="m" className="px-3">Normal</ToggleGroupItem>
+            <ToggleGroupItem value="l" className="px-3">Large</ToggleGroupItem>
+          </ToggleGroup>
+          <Hint>part names and values</Hint>
+        </Row>
+        <Row label="Line weight">
+          <ToggleGroup type="single" variant="outline" size="sm" value={p.lineWeight} onValueChange={(v) => v && setPrefs({ lineWeight: v as Prefs['lineWeight'] })} aria-label="Line weight">
+            <ToggleGroupItem value="thin" className="px-3">Thin</ToggleGroupItem>
+            <ToggleGroupItem value="normal" className="px-3">Normal</ToggleGroupItem>
+            <ToggleGroupItem value="bold" className="px-3">Bold</ToggleGroupItem>
+          </ToggleGroup>
+          <Hint>symbols and wires</Hint>
+        </Row>
+        <Row label="Scroll wheel">
+          <ToggleGroup type="single" variant="outline" size="sm" value={p.wheel} onValueChange={(v) => v && setPrefs({ wheel: v as Prefs['wheel'] })} aria-label="Scroll wheel">
+            <ToggleGroupItem value="pan" className="px-3"><Move />Pans</ToggleGroupItem>
+            <ToggleGroupItem value="zoom" className="px-3"><ZoomIn />Zooms</ToggleGroupItem>
+          </ToggleGroup>
+          <Hint>{p.wheel === 'zoom' ? 'Shift+wheel, Space-drag or the middle button pans' : 'pinch or Ctrl+wheel zooms'}</Hint>
+        </Row>
         <Check id="pref-op" checked={p.showOp} onChange={(showOp) => setPrefs({ showOp })}>
           Show operating-point values on the schematic after a run
           <Hint>The OP button on the canvas toolbar still turns them on and off.</Hint>
         </Check>
+      </Section>
+
+      <Section id="sim">
+        <Check id="pref-live" checked={p.live} onChange={(live) => setPrefs({ live })}>
+          Draw waveforms while the simulation runs
+          <Hint>Off: the plot appears when the run ends. Progress still shows in the status bar.</Hint>
+        </Check>
+        <Row label="Trace thickness">
+          <Pick value={String(p.plotWidth)} onChange={(v) => setPrefs({ plotWidth: +v })} label="Trace thickness" options={PLOT_WIDTHS.map((v) => [String(v), `${v} px`])} />
+        </Row>
       </Section>
 
       <Section id="autosave">

@@ -1,6 +1,7 @@
 // Command registry: one place that menu clicks (main -> 'menu:command') and renderer shortcuts both go through.
 // Pure helpers (matches, stateOf, sameState) are exported for tests; nothing touches the DOM until useCommands mounts.
 import { useEffect, useRef } from 'react'
+import { keysFor } from './shortcuts.ts'
 
 export interface Command {
   id: string
@@ -16,6 +17,10 @@ export type KeyLike = Pick<KeyboardEvent, 'key' | 'code' | 'metaKey' | 'ctrlKey'
 export const NATIVE: Record<string, string> = {
   'edit.undo': 'undo', 'edit.redo': 'redo', 'edit.cut': 'cut', 'edit.copy': 'copy', 'edit.paste': 'paste', 'edit.selectAll': 'selectAll', 'edit.delete': 'delete'
 }
+// the user's changed shortcuts (Settings › Keyboard shortcuts; Preferences.tsx keeps this current); '' = none
+let over: Record<string, string> = {}
+export const setKeys = (o: Record<string, string>) => void (over = o)
+export const keysOf = (id: string, dflt?: string) => keysFor(over, id, dflt)
 const ALIAS: Record<string, string> = { plus: '+', minus: '-', space: ' ', esc: 'escape', del: 'delete', return: 'enter' }
 const isMac = () => typeof navigator !== 'undefined' && /Mac/.test(navigator.platform)
 
@@ -82,7 +87,8 @@ function onKey(e: KeyboardEvent) {
   const text = inText(t)
   for (let i = sources.length - 1; i >= 0; i--)
     for (const c of sources[i].cmds) {
-      if (!c.keys || !matches(c.keys, e) || (text && !isGlobal(c.keys))) continue
+      const keys = c.keys && keysOf(c.id, c.keys)
+      if (!keys || !matches(keys, e) || (text && !isGlobal(keys))) continue
       e.preventDefault(), e.stopPropagation() // capture: beats CodeMirror's Mod-Enter and the canvas' own keys
       if (!e.repeat && call(c.enabled, true)) c.run(), schedule()
       return

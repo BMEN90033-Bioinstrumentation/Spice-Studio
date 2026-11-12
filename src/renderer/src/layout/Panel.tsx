@@ -11,7 +11,10 @@ export type Side = 'left' | 'right' | 'bottom'
 export const RAILW = 28 // keep in sync with the rail's w-7 below and div.sch rules in layout.css
 
 const MAC = /Mac/.test(navigator.platform)
-export const keyLabel = (k: string) => (MAC ? k.replace('Mod+Shift+', '⇧⌘').replace('Mod+', '⌘').replace('Shift+', '⇧') : k.replace('Mod+', 'Ctrl+')) // macOS order: ⇧ before ⌘
+// 'Mod+Shift+Z' -> ⇧⌘Z on macOS (⇧ before ⌘), Ctrl+Shift+Z elsewhere
+export const keyLabel = (k: string) => (MAC
+  ? k.replace(/Mod\+Shift\+/g, 'Shift+Mod+').replace(/Ctrl\+/g, '⌃').replace(/Alt\+/g, '⌥').replace(/Shift\+/g, '⇧').replace(/Mod\+/g, '⌘').replace(/Enter/g, '↵')
+  : k.replace(/Mod\+/g, 'Ctrl+'))
 const CHEV: Record<Side, [LucideIcon, LucideIcon]> = { left: [ChevronRight, ChevronLeft], right: [ChevronLeft, ChevronRight], bottom: [ChevronUp, ChevronDown] } // [show, hide]
 const RAIL: Record<Side, string> = { left: 'w-7 flex-col border-r', right: 'w-7 flex-col border-l', bottom: 'h-7 px-2.5 border-t' }
 const TIP: Record<Side, 'right' | 'left' | 'top'> = { left: 'right', right: 'left', bottom: 'top' }

@@ -6,6 +6,8 @@ import { app, BrowserWindow, ipcMain, Menu, type MenuItemConstructorOptions as I
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
+import { getPrefs, onPrefs } from './prefs'
+import { accelOf } from '../renderer/src/shortcuts'
 
 type State = Record<string, { enabled: boolean; checked?: boolean }>
 type Recent = { name: string; file: string }
@@ -16,8 +18,11 @@ const ids = new Set<string>(), exists = new Set<string>() // command items in th
 
 const send = (id: string, accel = false) => opts.window()?.webContents.send('menu:command', { id, accel })
 // renderer command: label + shown-only accelerator
+// the label shows the user's changed shortcut (Settings › Keyboard shortcuts) when there is one
+const shown = (id: string, accelerator?: string) => (id in getPrefs().keys && plainKeys ? accelOf(getPrefs().keys[id]) : accelerator)
+let plainKeys = true // false after a changed shortcut turned out not to be a valid Electron accelerator: defaults are shown
 const cmd = (id: string, label: string, accelerator?: string, extra: Partial<Item> = {}): Item => (ids.add(id), {
-  id, label, accelerator, registerAccelerator: false, enabled: false, click: () => send(id), ...extra
+  id, label, accelerator: shown(id, accelerator), registerAccelerator: false, enabled: false, click: () => send(id), ...extra
 })
 const check = (id: string, label: string, accelerator?: string) => cmd(id, label, accelerator, { type: 'checkbox' })
 // text-editing command: accelerator registered; the renderer runs the native op when a text field has focus
@@ -176,12 +181,16 @@ export async function refreshMenu() {
   const r = await opts.recents().catch(() => [])
   exists.clear(), ids.clear()
   for (const x of r) if (existsSync(x.file)) exists.add(x.file)
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template(r)))
+  plainKeys = true
+  let m: Menu
+  try { m = Menu.buildFromTemplate(template(r)) } catch { plainKeys = false; ids.clear(); m = Menu.buildFromTemplate(template(r)) }
+  Menu.setApplicationMenu(m)
   apply()
 }
 
 export function installMenu(o: typeof opts) {
   opts = o
+  onPrefs.add(() => void refreshMenu())
   ipcMain.on('menu:state', (_e, s: State) => {
     state = s && typeof s === 'object' ? s : {}
     apply()

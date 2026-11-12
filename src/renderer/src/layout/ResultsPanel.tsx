@@ -2,6 +2,8 @@
 import { Component, useMemo, useState, type ReactNode } from 'react'
 import { ChartColumn, SlidersHorizontal } from 'lucide-react'
 import { eng, Plot, type PlotRun } from '../Plot'
+import { keysOf } from '../commands'
+import { keyLabel } from './Panel'
 import { Histogram } from '../plot/Histogram'
 import { Tune, type TuneHost } from '../plot/Tune'
 import { isWorstCase } from '../sim/sweep'
@@ -67,7 +69,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
         ))}
         {hasMeas && <TabBtn on={showMeas} onClick={() => setOnMeas(true)}>Measurements</TabBtn>}
         {four.length > 0 && <TabBtn on={showFour} onClick={() => setOnMeas('four')}>Fourier</TabBtn>}
-        {!ran && <span className="px-1.5 text-muted-foreground">Press Run (⌘↵) to simulate</span>}
+        {!ran && <span className="px-1.5 text-muted-foreground">Press Run{keysOf('sim.run') ? ` (${keyLabel(keysOf('sim.run'))})` : ''} to simulate</span>}
         {ran && !tabs.length && !hasMeas && !four.length && <span className="px-1.5 text-muted-foreground">No analysis results. Check the console.</span>}
         {tune && ran && (
           <Tip label="Sliders on .param and part values: moving one re-runs the simulation">
