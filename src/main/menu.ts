@@ -111,6 +111,10 @@ function template(recents: Recent[]): Item[] {
     cmd('place.port', 'Sheet Port', 'H'),
     cmd('place.directive', 'SPICE Directive', 'S'),
     sep,
+    cmd('place.note', 'Text Note', 'T'),
+    { label: 'Shape', submenu: [cmd('place.line', 'Line'), cmd('place.arrow', 'Arrow'), cmd('place.rect', 'Rectangle'), cmd('place.ellipse', 'Ellipse')] },
+    check('place.titleBlock', 'Title Block'),
+    sep,
     cmd('place.fromLibrary', 'From Library…', '/')
   ]
   const sim: Item[] = [

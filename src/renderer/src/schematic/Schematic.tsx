@@ -1,6 +1,7 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
+import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
 import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
@@ -11,8 +12,10 @@ import { SourceDialog } from '../sim/SourceDialog'
 import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { createPortal } from 'react-dom'
-import { Cpu, Crosshair, FlipHorizontal2, Maximize, MousePointer2, Redo2, RotateCw, Spline, Trash2, Undo2 } from 'lucide-react'
+import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -36,7 +39,14 @@ export interface Overlay {
   blame?: { parts: string[]; nets: string[] }
 }
 
-type Tool = 'select' | 'wire' | 'text' | 'probe' | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+type ShapeTool = 'line' | 'arrow' | 'rect' | 'ellipse'
+type Tool = 'select' | 'wire' | 'text' | 'note' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+const SHAPES: { t: ShapeTool; title: string; icon: ReactNode }[] = [
+  { t: 'line', title: 'Line', icon: <Minus /> }, { t: 'arrow', title: 'Arrow', icon: <MoveUpRight /> },
+  { t: 'rect', title: 'Rectangle', icon: <Square /> }, { t: 'ellipse', title: 'Ellipse', icon: <Circle /> }
+]
+const isShape = (t: Tool): t is ShapeTool => typeof t === 'string' && SHAPES.some((s) => s.t === t)
+const shapeName = (t: ShapeTool) => SHAPES.find((s) => s.t === t)!.title.toLowerCase()
 type View = { x: number; y: number; k: number }
 type Orient = Pick<Part, 'x' | 'y' | 'rot' | 'mirror'>
 type Drag =
@@ -74,12 +84,14 @@ const tbox = (t: Directive): Box => {
 }
 const subset = (s: Sheet, ids: Set<string>, keep = true): Sheet => {
   const f = (i: { id: string }) => ids.has(i.id) === keep
-  return { version: 1, parts: s.parts.filter(f), wires: s.wires.filter(f), texts: s.texts.filter(f) }
+  return { version: 1, parts: s.parts.filter(f), wires: s.wires.filter(f), texts: s.texts.filter(f), draw: (s.draw ?? []).filter(f), buses: (s.buses ?? []).filter(f) }
 }
 const corners = (b: Box) => [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y1 }]
+const count = (s: Sheet) => s.parts.length + s.wires.length + s.texts.length + (s.draw?.length ?? 0) + (s.buses?.length ?? 0)
 
-function bounds(s: Sheet): Box | null {
-  const pts = [...s.parts.flatMap((p) => corners(pbox(p))), ...s.wires.flatMap((w) => [w.a, w.b]), ...s.texts.flatMap((t) => corners(tbox(t)))]
+function bounds(s: Sheet, skipTitle = false): Box | null {
+  const pts = [...s.parts.flatMap((p) => corners(pbox(p))), ...s.wires.flatMap((w) => [w.a, w.b]), ...s.texts.flatMap((t) => corners(tbox(t))),
+    ...(s.draw ?? []).flatMap((d) => (skipTitle && d.t === 'title' ? [] : corners(dbox(d)))), ...(s.buses ?? []).flatMap((w) => [w.a, w.b])]
   if (!pts.length) return null
   return pts.reduce((b, q) => ({ x0: Math.min(b.x0, q.x), y0: Math.min(b.y0, q.y), x1: Math.max(b.x1, q.x), y1: Math.max(b.y1, q.y) }), norm(pts[0], pts[0]))
 }
@@ -133,7 +145,10 @@ const PRINT_CSS = [
   'text{font-family:ui-monospace,Menlo,Consolas,monospace}',
   '.part text{fill:#333;font-size:9px}.part text.n{fill:#000}.part text.pn{fill:#555}',
   '.wire line{stroke:#000;stroke-width:1.2;stroke-linecap:round}.jn{fill:#000}',
-  '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}'
+  '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}',
+  '.drw path{fill:none;stroke:#333;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}.drw .f{fill:#333}.drw .hit,.drw .hitf{display:none}',
+  '.drw text{fill:#222;white-space:pre}.drw.title text{font-size:9px}.drw.title .tt{font-size:13px;font-weight:600}.drw.title .lb{fill:#777;font-size:7px}',
+  '.bus line{stroke:#000;stroke-width:3.5;stroke-linecap:round}.bjn{fill:#000}'
 ].join('')
 
 const typing = (e: KeyboardEvent) => {
@@ -153,11 +168,12 @@ const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_
 const MONO = 'font-mono text-xs md:text-xs text-foreground'
 const InspBtn = (p: ComponentProps<typeof Button>) => <Button size="sm" variant="outline" className="h-7 justify-self-start text-xs" {...p} />
 
-export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic' }: {
+export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic', sheetNo }: {
   active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
   library?: LibEntry[]; browse?: LibEntry[] /* Parts panel list, default library */; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
   libOpen?: boolean; onLibOpen?: (open: boolean) => void // parts panel, controlled by the workspace layout when given
   name?: string // export file stem
+  sheetNo?: string // title block "sheet n of m"
 }) {
   const [sheet, setSheet] = useState(initial)
   const [sel, setSel] = useState<Set<string>>(() => new Set())
@@ -302,7 +318,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     use({ place: e.kind, title: e.name, id: e.id, extra })
   }
   const picked = () => subset(cur.current, sel)
-  const all = (s: Sheet) => [...s.parts, ...s.wires, ...s.texts].map((i) => i.id)
+  const all = (s: Sheet) => [...s.parts, ...s.wires, ...s.texts, ...(s.draw ?? []), ...(s.buses ?? [])].map((i) => i.id)
   function orient(rot: boolean) {
     const f = <T extends { rot: number; mirror: boolean }>(p: T): T => (rot ? { ...p, rot: (p.rot + 1) % 4 } : { ...p, mirror: !p.mirror })
     if (typeof tool === 'object') setGhost(f)
@@ -315,10 +331,19 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
   // Pastes c offset by +20 with fresh ids/names, selects it, and returns what was pasted (so repeated ⌘V cascades).
   function paste(c: Sheet | null): Sheet | null {
-    if (!c || !(c.parts.length + c.wires.length + c.texts.length)) return c
+    if (!c || !count(c)) return c
     const s = cur.current
-    const next: Sheet = { ...s, parts: [...s.parts], wires: [...s.wires], texts: [...s.texts] }
-    const out: Sheet = { version: 1, parts: [], wires: [], texts: [] }
+    const next: Sheet = { ...s, parts: [...s.parts], wires: [...s.wires], texts: [...s.texts], draw: [...(s.draw ?? [])], buses: [...(s.buses ?? [])] }
+    const out: Sheet = { version: 1, parts: [], wires: [], texts: [], draw: [], buses: [] }
+    for (const d of c.draw ?? []) {
+      if (d.t === 'title' && next.draw!.some((x) => x.t === 'title')) continue // one title block per sheet
+      const n = { ...moveD(d, { x: 20, y: 20 }), id: uid() }
+      next.draw!.push(n), out.draw!.push(n)
+    }
+    for (const w of c.buses ?? []) {
+      const n = { id: uid(), a: add(w.a, { x: 20, y: 20 }), b: add(w.b, { x: 20, y: 20 }) }
+      next.buses!.push(n), out.buses!.push(n)
+    }
     const off = (q: Pt) => add(q, { x: 20, y: 20 })
     for (const p of c.parts) {
       const pre = SYMBOLS[p.kind].prefix
@@ -361,6 +386,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else if (k === 'delete' || k === 'backspace') del()
     else if (k === 'w') use('wire')
     else if (k === 's') use('text')
+    else if (k === 't') use('note')
     else if (k === 'p') use('probe')
     else if (k === 'a') setDlg('analysis')
     else if (k === '/' && tool === 'wire') setVFirst((v) => !v)
@@ -406,7 +432,17 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
   // menu commands (commands.ts) for the active canvas only; the keys stay in onKey above
   const cut = () => ((clip.current = picked()), del())
-  const some = (s: Sheet | null) => !!s && s.parts.length + s.wires.length + s.texts.length > 0
+  const some = (s: Sheet | null) => !!s && count(s) > 0
+  const titleOf = (s: Sheet) => s.draw?.find((d) => d.t === 'title')
+  // title block on/off; it goes under the drawing's bottom-right corner
+  function toggleTitle() {
+    const s = cur.current, t = titleOf(s)
+    if (t) return void (commit({ ...s, draw: s.draw!.filter((d) => d !== t) }), setSel(new Set()))
+    const b = bounds(s) ?? { x0: 0, y0: 0, x1: TB.w, y1: 0 }
+    const d: Drawing = { id: uid(), t: 'title', x: snap(b.x1 - TB.w), y: snap(b.y1 + 30), title: name, author: '', date: new Date().toISOString().slice(0, 10), rev: 'A' }
+    commit({ ...s, draw: [...(s.draw ?? []), d] })
+    show([d.id])
+  }
   const orientable = () => typeof tool === 'object' || picked().parts.length > 0
   useCommands(active && !modal ? [
     { id: 'edit.undo', run: undo, enabled: () => hist.current.undo.length > 0 },
@@ -425,6 +461,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'view.showOp', run: () => setShowOp((v) => !v), enabled: () => !!overlay?.op, checked: () => !!overlay?.op && showOp },
     { id: 'place.wire', run: () => use('wire') },
     { id: 'place.directive', run: () => use('text') },
+    { id: 'place.note', run: () => use('note') },
+    ...SHAPES.map(({ t }) => ({ id: 'place.' + t, run: () => use(t) })),
+    { id: 'place.titleBlock', run: toggleTitle, checked: () => !!titleOf(cur.current) },
     { id: 'place.fromLibrary', run: () => (toggleLib(true), setTimeout(() => search.current?.focus())) },
     ...(['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'npn', 'pnp', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port',
       'power', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi', 'sw', 'csw', 'tline', 'xfmr', 'kcouple'] as Kind[]).map((k) => ({ id: 'place.' + k, run: () => use({ place: k, title: SYMBOLS[k].title }) })),
@@ -476,6 +515,20 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       return e.currentTarget.setPointerCapture(e.pointerId)
     }
     if (tool === 'wire') return wireClick(p)
+    if (isShape(tool)) {
+      if (!start) return setStart(p)
+      if (same(p, start)) return
+      commit({ ...s, draw: [...(s.draw ?? []), { id: uid(), t: tool, a: start, b: p }] })
+      return setStart(tool === 'line' ? p : null) // lines chain into a polyline until Esc / double-click
+    }
+    if (tool === 'note') {
+      const d: Drawing = { id: uid(), t: 'note', x: p.x, y: p.y, text: 'Note' }
+      commit({ ...s, draw: [...(s.draw ?? []), d] })
+      setSel(new Set([d.id]))
+      use('select')
+      setTimeout(() => ta.current?.select())
+      return
+    }
     if (tool === 'text') {
       const t = { id: uid(), x: p.x, y: p.y, text: '.op' }
       commit({ ...s, texts: [...s.texts, t] })
@@ -520,7 +573,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       if (same(dd, d.d)) return
       d.d = dd // each frame recomputed from the drag-start snapshot, so no drift
       const r = remap(d.base, d.sel, (q) => ({ ...q, ...add(q, dd) }), (q) => add(q, dd))
-      live({ ...r, texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)) })
+      live({
+        ...r, texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)),
+        ...(r.draw && { draw: r.draw.map((x) => (d.sel.has(x.id) ? moveD(x, dd) : x)) }),
+        ...(r.buses && { buses: r.buses.map((w) => (d.sel.has(w.id) ? { ...w, a: add(w.a, dd), b: add(w.b, dd) } : w)) })
+      })
     }
   }
   function up(e: RPE<SVGSVGElement>) {
@@ -542,7 +599,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       const hits = [
         ...s.parts.filter((p) => corners(pbox(p)).every(inside)),
         ...s.wires.filter((w) => inside(w.a) && inside(w.b)),
-        ...s.texts.filter((t) => corners(tbox(t)).every(inside))
+        ...s.texts.filter((t) => corners(tbox(t)).every(inside)),
+        ...(s.draw ?? []).filter((x) => corners(dbox(x)).every(inside)),
+        ...(s.buses ?? []).filter((w) => inside(w.a) && inside(w.b))
       ]
       setSel(new Set([...d.base, ...hits.map((i) => i.id)]))
     } else if (d?.t === 'move') {
@@ -552,7 +611,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
 
   function dbl(e: RME) {
-    if (tool === 'wire') return setStart(null)
+    if (tool === 'wire' || isShape(tool)) return setStart(null)
     // pointer capture from pointerdown retargets dblclick to the <svg>: hit-test the point instead
     const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id')
     const p = cur.current.parts.find((q) => q.id === id)
@@ -588,7 +647,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function exportSvg(): string {
     const g = svg.current!.querySelector(':scope > g')!.cloneNode(true) as SVGGElement
     g.removeAttribute('transform')
-    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .band, title').forEach((e) => e.remove())
+    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .hitf, .band, title').forEach((e) => e.remove())
     g.querySelectorAll('[data-id]').forEach((e) => e.removeAttribute('data-id'))
     g.querySelectorAll('.on, .hl, .blame').forEach((e) => e.classList.remove('on', 'hl', 'blame'))
     // crop: bounds() plus the part labels, estimated like the cards (monospace, char = 0.6em)
@@ -611,6 +670,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const ports = blockSheet && sheetPorts(blockSheet.sheet)
   const stale = ports && ports.join('\0') !== (one!.pins ?? []).map((q) => q.name).join('\0') ? ports : undefined
   const dir = sel.size === 1 ? sheet.texts.find((t) => sel.has(t.id)) : undefined
+  const drw = sel.size === 1 ? sheet.draw?.find((d) => sel.has(d.id) && (d.t === 'note' || d.t === 'title')) : undefined
+  const editDraw = (d: Drawing, f: string, v: string | number) =>
+    commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === d.id ? ({ ...x, [f]: v } as Drawing) : x)) }, `edit:${d.id}:${f}`)
   const dirA = dir ? parseAnalysis(dir.text.trim()) : null
   const hovNet = hov && 'net' in hov ? hov.net : null, hovPart = hov && 'partId' in hov ? hov.partId : null
   const blamed = new Set(overlay?.blame?.parts)
@@ -642,6 +704,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
     : tool === 'text'
       ? 'Click to place a SPICE directive · Esc returns to select'
+      : tool === 'note'
+      ? 'Click to place a text note (not part of the netlist) · Esc returns to select'
+      : isShape(tool)
+      ? start
+        ? `Click to finish the ${shapeName(tool)}${tool === 'line' ? ' and start the next segment · double-click or Esc ends' : ' · Esc cancels'}`
+        : `Click where the ${shapeName(tool)} starts · Esc returns to select`
       : tool === 'wire'
       ? start
         ? 'Click to add a corner · click a pin or wire to finish · / flips the corner · double-click or Esc ends'
@@ -661,6 +729,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </defs>
         <rect width="100%" height="100%" fill={`url(#${gridId})`} />
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
+          {sheet.draw?.map((d) => <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} sheetNo={sheetNo} />)}
           {sheet.parts.map((p) => (
             <g key={p.id} data-id={p.id} className={`part${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
               <g className="sym" transform={tf(p)}>
@@ -687,6 +756,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             </g>
           )}
           {tool === 'text' && cursor && <Card t={{ id: '', ...cursor, text: '.op' }} cls="ghost" />}
+          {tool === 'note' && cursor && <DrawingEl d={{ id: '', t: 'note', ...cursor, text: 'Note' }} cls="ghost" />}
+          {isShape(tool) && cursor && (start ? <DrawingEl d={{ id: '', t: tool, a: start, b: cursor }} cls="ghost" />
+            : <g className="preview"><circle cx={cursor.x} cy={cursor.y} r={2.5} /></g>)}
           {tool === 'wire' && cursor && (
             <g className="preview">
               {start && route(start, cursor, vFirst).map((w, i) => <line key={i} x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />)}
@@ -720,6 +792,19 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             </Tip>
           ))}
         </ToggleGroup>
+        <DropdownMenu>
+          <Tip label="Annotate: text, lines, shapes, title block">
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label="Draw" className={cn('size-7 text-muted-foreground', (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /></Button>
+            </DropdownMenuTrigger>
+          </Tip>
+          <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>T</DropdownMenuShortcut></DropdownMenuItem>
+            {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem checked={!!titleOf(sheet)} onSelect={toggleTitle}><PanelBottom className="text-muted-foreground" />Title block</DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Sep />
         {QUICK.map((k) => {
           const on = placing?.place === k && !placing.id
@@ -788,6 +873,33 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           </Label>
           {dirA && <InspBtn onClick={() => setDlg('edit')}>Edit as analysis…</InspBtn>}
           {optLine(dir.text) != null && <InspBtn onClick={() => setDlg('options')}>Edit options…</InspBtn>}
+        </div>
+      )}
+
+      {drw?.t === 'note' && (
+        <div className={INSP} key={drw.id}>
+          <Label className={FLD}>Text note (not netlisted)
+            <Textarea ref={ta} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
+              className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
+              onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
+          </Label>
+          <Label className={FLD}>Size
+            <Select value={String(drw.size ?? NOTE)} onValueChange={(v) => editDraw(drw, 'size', +v)}>
+              <SelectTrigger size="sm" className="h-7 w-full text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{NOTE_SIZES.map(([l, v]) => <SelectItem key={v} value={String(v)}>{l}</SelectItem>)}</SelectContent>
+            </Select>
+          </Label>
+        </div>
+      )}
+      {drw?.t === 'title' && (
+        <div className={INSP} key={drw.id}>
+          <div className="text-xs font-semibold">Title block</div>
+          {(['title', 'author', 'date', 'rev'] as const).map((f) => (
+            <Label key={f} className={FLD}>{f === 'rev' ? 'Revision' : f[0].toUpperCase() + f.slice(1)}
+              <Input className="h-7 px-2 text-xs md:text-xs" value={drw[f]} spellCheck={false} onChange={(e) => editDraw(drw, f, e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
+            </Label>
+          ))}
+          <div className={D}>Sheet {sheetNo ?? '1 of 1'} is filled in from the project.</div>
         </div>
       )}
 

@@ -32,11 +32,19 @@ export interface Directive {
   y: number
   text: string
 }
+// Annotations, never netlisted: shapes from a to b, free text notes (size = font size, default 10), and the
+// sheet's title block (one per sheet; "sheet n of m" is filled in when drawn).
+export type Drawing =
+  | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt }
+  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number }
+  | { id: string; t: 'title'; x: number; y: number; title: string; author: string; date: string; rev: string }
 export interface Sheet {
   version: 1
   parts: Part[]
   wires: Wire[]
   texts: Directive[]
+  draw?: Drawing[] // absent in older files
+  buses?: Wire[] // bus segments: connect only to each other (and bus taps / bus labels), never to wires or pins
 }
 
 export const emptySheet = (): Sheet => ({ version: 1, parts: [], wires: [], texts: [] })
@@ -213,6 +221,17 @@ export function parseSheet(text: string): Sheet {
   s.texts ??= [] // Phase 2 files predate directives
   if (!Array.isArray(s.texts)) throw new Error('Malformed texts')
   for (const t of s.texts) if (!pt(t) || typeof t.text !== 'string' || typeof t.id !== 'string') throw new Error(`Malformed directive ${JSON.stringify(t).slice(0, 80)}`)
+  const str = (v: unknown) => typeof v === 'string'
+  if (s.draw !== undefined) {
+    if (!Array.isArray(s.draw)) throw new Error('Malformed draw')
+    for (const d of s.draw) {
+      const ok = str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
+        : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
+        : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b))
+      if (!ok) throw new Error(`Malformed drawing ${JSON.stringify(d).slice(0, 80)}`)
+    }
+  }
+  if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && str(w.id)))) throw new Error('Malformed buses')
   return s
 }
 

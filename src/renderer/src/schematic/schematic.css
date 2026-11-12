@@ -63,3 +63,17 @@
 .sch .ghost text { fill: currentColor; font: 7px var(--mono); }
 .sch .part.on text.pn { fill: var(--sel); }
 .sch .band { stroke: var(--probe); stroke-width: 1.5; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+/* annotations (drawings.tsx): a quieter colour than parts, never netlisted */
+.sch .drw { color: #8fa3ba; }
+.sch .drw path { fill: none; stroke: currentColor; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.sch .drw .f { fill: currentColor; }
+.sch .drw path.hit { stroke: transparent; stroke-width: 10; pointer-events: stroke; }
+.sch .drw .hitf { fill: transparent; }
+.sch .drw text { fill: currentColor; font-family: var(--mono); white-space: pre; }
+.sch .drw.title text { font-size: 9px; fill: var(--text); }
+.sch .drw.title .tt { font-size: 13px; font-weight: 600; }
+.sch .drw.title .lb { fill: var(--dim); font-size: 7px; }
+.sch .drw.on { color: var(--sel); }
+.sch .drw.on text, .sch .drw.on.title text { fill: var(--sel); }
+.sch .drw.ghost { color: var(--hl); opacity: 0.6; pointer-events: none; }

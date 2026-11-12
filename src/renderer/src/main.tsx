@@ -930,6 +930,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
                   <Schematic
                     ref={(h) => { handles.current[f] = h }}
                     name={stem(f)}
+                    sheetNo={proj ? `${files.indexOf(f) + 1} of ${files.length}` : undefined}
                     active={route === 'editor' && view === f}
                     initial={disk.current[f]}
                     onDirty={() => dirtied(f)}

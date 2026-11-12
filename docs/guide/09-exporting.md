@@ -26,7 +26,7 @@ With a sheet on screen:
 - **File › Export › Schematic as PDF…** saves it as a PDF.
 - **File › Print Schematic…** opens the system print dialog.
 
-The export is black on white, cropped to the drawing, and leaves out the grid, the selection, the operating-point tags and the unconnected-pin markers. Directive cards are included.
+The export is black on white, cropped to the drawing, and leaves out the grid, the selection, the operating-point tags and the unconnected-pin markers. Directive cards, notes, shapes and the title block are included.
 
 ## Netlists
 
