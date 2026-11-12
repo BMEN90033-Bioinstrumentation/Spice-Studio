@@ -4,6 +4,7 @@ import type { Pack } from '../main/userlib'
 import type { ImportedLib } from '../renderer/src/library/library'
 import type { Filter, SimOptions } from '../renderer/src/contracts'
 import type { Prefs } from '../renderer/src/prefs'
+import type { Recovery, RecoveryDraft } from '../main/recovery'
 
 type Opened = { dir: string; file: string; text: string }
 // a file the OS asked us to open (double-click / Open With): a project, a loose sheet, or why it failed
@@ -74,6 +75,12 @@ const api = {
     set: (p: Partial<Prefs>): Promise<Prefs> => inv('prefs:set', p),
     onChange: (cb: (p: Prefs) => void) => on('prefs:changed', cb),
     pickEngine: (): Promise<string | null> => inv('prefs:pickEngine')
+  },
+  // crash recovery copies of unsaved work (main/recovery.ts); list = left by earlier runs
+  recovery: {
+    list: (): Promise<Recovery[]> => inv('recovery:list'),
+    write: (r: RecoveryDraft): Promise<void> => inv('recovery:write', r),
+    remove: (id: string): Promise<void> => inv('recovery:remove', id)
   }
 }
 

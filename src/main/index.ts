@@ -9,7 +9,7 @@ import { parseRaw, type RawPlot } from './rawfile'
 import type { SimOptions, Stopped } from '../renderer/src/contracts'
 import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
-import { getPrefs, windowBg } from './prefs' // preferences, theme
+import { getPrefs, windowBg } from './prefs' // preferences, theme, crash-recovery IPC
 import { installMenu, refreshMenu } from './menu'
 
 export interface SimResult {

@@ -14,6 +14,7 @@ import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
 import { usePanels } from './layout/Panel'
 import { newSim, prefs, Preferences } from './Preferences'
+import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Recovery'
 import { focusPopout } from './layout/PopOut'
 import { paneKey, ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
@@ -89,9 +90,10 @@ function autoCompat(sheets: Sheet[], lib: (id: string) => LibEntry | undefined):
 }
 
 type Route = 'home' | 'editor' | 'library'
-type Session =
+export type Session = (
   | { kind: 'project'; dir: string; file: string /* .nsproj, relative */; project: Project; sheets: Record<string, Sheet>; libTexts: Record<string, string>; warn: string }
-  | { kind: 'loose'; path: string | null; sheet: Sheet; net?: { path: string; text: string } }
+  | { kind: 'loose'; path: string | null; sheet: Sheet }
+) & { net?: { path: string | null; text: string }; rid?: string; dirty?: string[] } // rid/dirty: restored from a recovery copy (Recovery.tsx); dirty 'net' = the netlist
 
 const LOOSE = 'untitled.nsch' // the single sheet's key in loose-file mode
 // Leaving the current session (window close/quit, a file opened from the OS): the mounted Workspace swaps in its
@@ -162,7 +164,7 @@ function App() {
 
   const start = async (f: () => Promise<Session | null>) => {
     try {
-      const s = await f()
+      const s = await offerRecovery(await f()) // a crash left unsaved work for it: restore / discard / later
       if (!s) return
       setSession(s), setGen((g) => g + 1), setRoute('editor'), setError(''), setForm(false)
     } catch (e) {
@@ -210,7 +212,7 @@ function App() {
     <>
       {route === 'library'
         ? <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.browse]} packs={sources.packs} />
-        : <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} />}
+        : <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} onRestore={(r) => start(() => restoreSession(r, loadProject))} />}
       <ManageLibraries sources={sources} project={null} />
     </>
   )
@@ -225,7 +227,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   // Sheets: `disk` is the last snapshot of every sheet (open tabs hold the live copy, see live()); `dirty` = unsaved.
   // Refs, not state, so async save/rename flows always see current values; bump() re-renders.
   const disk = useRef<Record<string, Sheet>>(session.kind === 'project' ? { ...session.sheets } : { [LOOSE]: session.sheet })
-  const dirty = useRef(new Set<string>())
+  const dirty = useRef(new Set<string>(session.dirty?.filter((f) => f !== 'net')))
   const [rev, bump] = useReducer((x: number) => x + 1, 0)
   const handles = useRef<Record<string, SchematicHandle | null>>({})
   const ids = useRef<Record<string, string>>({}) // file -> stable React key, survives renames
@@ -238,12 +240,12 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const pendingSel = useRef<string[] | null>(null)
 
   const [schPath, setSchPath] = useState(session.kind === 'loose' ? session.path : null)
-  const net0 = session.kind === 'loose' && session.net
+  const net0 = session.net
   const netInit = net0 ? net0.text : proj ? `* ${proj.name}: scratch netlist. "View netlist" fills it from the top sheet.\n` : EXAMPLE
   const [initial, setInitial] = useState(netInit)
   const text = useRef(netInit)
   const [path, setPath] = useState<string | null>(net0 ? net0.path : null)
-  const [netDirty, setNetDirty] = useState(false)
+  const [netDirty, setNetDirty] = useState(!!session.dirty?.includes('net'))
   const [runs, setRuns] = useState<Run[] | null>(null)
   const [log, setLog] = useState('')
   const [blamed, setBlamed] = useState<{ line: string; blame: Blame }[]>([]) // blame().lines
@@ -259,6 +261,13 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [looseSim, setLooseSim] = useState<ProjectSim>(() => prefs().sim) // Settings › New projects and files
   const [simEdit, setSimEdit] = useState<ProjectSim | null>(null)
   const peeked = useRef<string | null>(null) // last generated netlist put in the editor
+  // crash-recovery copy of whatever is unsaved (Recovery.tsx); refs, so it reads the live sheets and editor text
+  useAutosave(session.rid, () => {
+    const sheets = Object.fromEntries([...dirty.current].map((f) => [f, json(live(f))]))
+    const net = netDirty && text.current !== peeked.current ? { path, text: text.current } : undefined
+    if (!Object.keys(sheets).length && !net) return null
+    return proj ? { name: proj.name, project: `${pdir}/${pfile}`, sheets, net } : { name: base(schPath) ?? base(path) ?? 'Untitled', path: schPath, sheets, net }
+  })
 
   // sheet list: the top sheet first, then by name with numbers in order ("2-x" before "10-x"), so numbered stages read in sequence
   const files = Object.keys(disk.current).sort((a, b) => +(b === top) - +(a === top) || a.localeCompare(b, undefined, { numeric: true }))
@@ -992,4 +1001,4 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   )
 }
 
-createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /><Preferences /></TooltipProvider>)
+createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /><Preferences /><RecoveryPrompt /></TooltipProvider>)

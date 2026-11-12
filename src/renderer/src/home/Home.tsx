@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils'
 import { keyLabel } from '../layout/Panel'
 import { About, Shortcuts } from '../Help'
 import { PreferencesPanel, usePrefs } from '../Preferences'
+import { RecoveryList, type Recovery } from '../Recovery'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
 
@@ -70,7 +71,7 @@ function Action({ icon: I, title, tip, keys, className, ...b }: { icon: LucideIc
 }
 const H2 = 'mb-3 text-[13px] font-semibold'
 
-export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, setForm }: {
+export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, setForm, onRestore }: {
   onCreate: (parent: string, name: string, template: string) => Promise<void>
   onOpen: (file?: string) => Promise<void>
   onOpenFile: () => Promise<void>
@@ -78,6 +79,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   error: string
   form: boolean // the new-project form (owned by App: File › New Project opens it)
   setForm: (open: boolean) => void
+  onRestore: (r: Recovery) => void // a crash-recovery copy (Recovery.tsx)
 }) {
   const [recents, setRecents] = useState<Recent[] | null>(null)
   const [name, setName] = useState('')
@@ -153,6 +155,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
       <main className="home-main block min-w-0 flex-1 overflow-y-auto px-10 pb-12">
         <div className="mx-auto max-w-[880px]">
           {error && <Alert variant="destructive" className="mb-6"><AlertDescription>{error}</AlertDescription></Alert>}
+          <RecoveryList onRestore={onRestore} />
           {engine && !engine.path && (
             <Alert role="status" className="mb-6 flex items-center gap-3 border-warn/30 bg-warn/10">
               <p className="flex-1">

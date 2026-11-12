@@ -1,10 +1,11 @@
 // Preferences (userData/preferences.json): loaded before the first window, changed by the Settings window, pushed live
 // to every window. The theme goes through nativeTheme.themeSource, which drives prefers-color-scheme in every renderer
-// (index.css keys the light/dark tokens on it).
+// (index.css keys the light/dark tokens on it). Also the crash-recovery store's IPC (recovery.ts).
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { cleanPrefs, type Prefs } from '../renderer/src/prefs'
+import { recoveryStore, type RecoveryDraft } from './recovery'
 
 const FILE = () => join(app.getPath('userData'), 'preferences.json')
 let prefs: Prefs = cleanPrefs({})
@@ -32,3 +33,11 @@ ipcMain.handle('prefs:pickEngine', async () => {
   return r.canceled ? null : (r.filePaths[0] ?? null)
 })
 
+// crash recovery: app:closeNow means the renderer has saved or the user chose Discard, so this run's copies go;
+// writes arriving after it (a blur as the window closes) are dropped rather than leaving a stale copy behind
+const recovery = recoveryStore(() => join(app.getPath('userData'), 'recovery'))
+let closing = false
+ipcMain.handle('recovery:list', () => recovery.list())
+ipcMain.handle('recovery:write', (_e, r: RecoveryDraft) => void (closing || recovery.write(r)))
+ipcMain.handle('recovery:remove', (_e, id: string) => recovery.remove(id))
+ipcMain.on('app:closeNow', () => ((closing = true), recovery.clearOwned()))

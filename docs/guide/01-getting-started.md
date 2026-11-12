@@ -98,6 +98,18 @@ Below the plot, the console shows the netlist the app generated and ngspice's ou
 
 Press ⌘S, or click **Save**, to save every changed sheet. Unsaved sheets show a • after their name. If you go back Home or open another project with unsaved changes, the app asks you to **Save**, **Discard** or **Cancel**.
 
+### If the app quits unexpectedly
+
+While you have unsaved changes, the app keeps a recovery copy of them: every 30 seconds, when you pause for a moment and when you switch to another window. The copy goes in the app's own settings folder, never over your files. Saving, or choosing **Discard** when you close, removes it.
+
+If the app crashes or is force-quit, the Home page shows **Unsaved work from an earlier session** the next time you start it, with the project or file, the sheets that changed and when. Opening that project or file again also asks first.
+
+- **Restore** opens the project with the changes put back. They are marked unsaved (•): your files on disk stay as they were until you press ⌘S.
+- **Discard** deletes the recovery copy.
+- **Later** (when opening a project) opens your saved files and keeps the copy for next time.
+
+You can change how often copies are made, or turn them off, in [Settings](#settings).
+
 ## Settings
 
 Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar, which also lists the keyboard shortcuts and version details. Changes apply at once to every open window, and are kept for next time.
