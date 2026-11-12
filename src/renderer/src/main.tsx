@@ -40,6 +40,7 @@ import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Penc
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
@@ -264,7 +265,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const tuned = useRef<Knob[]>([]), superseded = useRef(false) // live tuning (plot/Tune.tsx): slider values for every run; a run a slider move stopped keeps the old plot
   const [meas, setMeas] = useState<MeasTable | null>(null)
   const [diag, setDiag] = useState<Diagnosis[]>([]) // convergence help for the last run
-  // compat / timeout: stored in the .nsproj for projects, per session for loose files; simEdit = the open settings bar
+  // compat / timeout: stored in the .nsproj for projects, per session for loose files; simEdit = the open settings popup
   const [looseSim, setLooseSim] = useState<ProjectSim>(() => prefs().sim) // Settings › New projects and files
   const [simEdit, setSimEdit] = useState<ProjectSim | null>(null)
   const peeked = useRef<string | null>(null) // last generated netlist put in the editor
@@ -851,29 +852,38 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         )}
 
         {simEdit && (
-          <div className={cn(BANNER, 'gap-3 bg-muted/50')} role="dialog" aria-label="Run settings">
-            <span className="mr-auto">Run settings{proj ? ' (saved in the project)' : ''}</span>
-            <Label className="font-normal">
-              Compatibility
-              <Select value={simEdit.compat ?? AUTO} onValueChange={(v) => setSimEdit({ ...simEdit, compat: v === AUTO ? undefined : (v as Compat) })}>
-                <SelectTrigger size="sm" className="h-7"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={AUTO}>Auto (from the parts' libraries)</SelectItem>
-                  {COMPATS.map((c) => <SelectItem key={c} value={c}>{COMPAT_NAME[c]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </Label>
-            <Label className="font-normal">
-              Timeout
-              <InputGroup className="h-7 w-24">
-                <InputGroupInput type="number" min={0} step={1} placeholder="none" value={simEdit.timeoutS ?? ''}
-                  onChange={(e) => setSimEdit({ ...simEdit, timeoutS: e.target.value ? Number(e.target.value) : undefined })} />
-                <InputGroupAddon align="inline-end">s</InputGroupAddon>
-              </InputGroup>
-            </Label>
-            <Button size="sm" onClick={() => saveSim(simEdit)}>Save</Button>
-            <Button size="sm" variant="ghost" onClick={() => setSimEdit(null)}>Cancel</Button>
-          </div>
+          <Dialog open onOpenChange={(o) => !o && setSimEdit(null)}>
+            <DialogContent className="sm:max-w-[360px]" onKeyDown={(e) => e.stopPropagation()}>
+              <DialogHeader>
+                <DialogTitle className="text-sm">Run settings</DialogTitle>
+                <DialogDescription className="text-xs">{proj ? 'Saved in the project.' : 'For this file, until the app closes.'}</DialogDescription>
+              </DialogHeader>
+              <form className="grid gap-3" onSubmit={(e) => (e.preventDefault(), saveSim(simEdit))}>
+                <Label className="grid gap-1.5 font-normal">
+                  Compatibility
+                  <Select value={simEdit.compat ?? AUTO} onValueChange={(v) => setSimEdit({ ...simEdit, compat: v === AUTO ? undefined : (v as Compat) })}>
+                    <SelectTrigger size="sm" className="h-7 w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={AUTO}>Auto (from the parts' libraries)</SelectItem>
+                      {COMPATS.map((c) => <SelectItem key={c} value={c}>{COMPAT_NAME[c]}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Label>
+                <Label className="grid gap-1.5 font-normal">
+                  Timeout
+                  <InputGroup className="h-7 w-24">
+                    <InputGroupInput type="number" min={0} step={1} placeholder="none" value={simEdit.timeoutS ?? ''}
+                      onChange={(e) => setSimEdit({ ...simEdit, timeoutS: e.target.value ? Number(e.target.value) : undefined })} />
+                    <InputGroupAddon align="inline-end">s</InputGroupAddon>
+                  </InputGroup>
+                </Label>
+                <DialogFooter>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setSimEdit(null)}>Cancel</Button>
+                  <Button type="submit" size="sm">Save</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         )}
         {diag.map((d, i) => (
           <div key={i} className={WARNBAR} role="status" aria-label="Convergence help">

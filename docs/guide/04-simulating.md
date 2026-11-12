@@ -91,9 +91,9 @@ If you stop a run, or it times out, the points computed before that are kept in 
 
 ## Run settings
 
-Click **Run settings** in the header. A bar opens under the header:
+Click **Run settings** in the header. A popup opens:
 
-![The Run settings bar](images/04-run-settings.png)
+![The Run settings popup](images/04-run-settings.png)
 
 - **Compatibility** sets ngspice's compatibility mode for vendor models: **PSpice**, **LTspice**, **LTspice + PSpice** or **KiCad**. **Auto (from the parts' libraries)** uses whatever the libraries of the parts on your sheets declare, and nothing otherwise. Use it when models written for another simulator fail to parse ([chapter 8](08-libraries.md#compatibility-mode-for-pspice-and-ltspice-models)).
 - **Timeout** stops any run that takes longer than this many seconds. Leave it blank for no limit.
