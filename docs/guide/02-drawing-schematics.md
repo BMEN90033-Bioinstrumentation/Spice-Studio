@@ -54,6 +54,16 @@ Connection rules:
 - A green dot marks a junction of three or more connections.
 - A small red square marks a pin with nothing connected to it.
 
+## Buses
+
+A bus is one thick line that stands for a group of nets, such as the eight lines of a data bus. It keeps a busy drawing readable; the nets themselves still connect by name.
+
+1. Press **B** (or **Place → Bus**, or **Bus** under the pen button) and draw the bus like a wire. A bus joins only other buses, never wires or pins.
+2. Put a net label on the bus and name it with a range, such as `D[0..7]` (or `D[7..0]`). The bus now carries `D0` to `D7`.
+3. Choose **Place → Bus Tap** (or **Bus tap** under the pen button) and click on the bus. A tap is a short diagonal stub from the bus to a wire end. Its value names the member it breaks out, such as `D3`; each new tap takes the next number. Draw a wire from the tap's free end to the part.
+
+A tap joins its wire to the net named by its value, in the same way as a net label, so `D3` on one bus and `D3` on another bus (or a plain `D3` label) are the same net. The netlist stops with an error if a tap names something its bus does not carry, and warns about a tap or bus label that is not on a bus. Buses do not cross into hierarchical blocks: give the sheet one port per member.
+
 ## Ground, net labels and the power flag
 
 - **Ground** (G) is net `0`, the reference for all voltages. Every circuit needs at least one ground.
@@ -107,7 +117,7 @@ What is converted:
 - SPICE directives (LTspice `!` text, KiCad text starting with `.`) become directive cards. LTspice's `.tran <stop>` gets a step, and `startup` and `.backanno` are removed. Comments become text notes; lines, rectangles and circles become shapes.
 - A transistor or diode whose model name matches a built-in part (2N3904, 1N4148…) uses that part. KiCad source settings (`Sim.Type`, `Sim.Params`, or the older `Spice_Model`) become the source's value.
 
-An imported file can carry commands, so the import is careful with them. A `.control … .endc` block runs ngspice commands when you press Run, and those can include shell commands. Each one is turned into comment lines (`* ` in front of every line) and listed in the report; remove the `* ` yourself once you have read it and trust it. `.include` and `.lib` lines are kept as written, and the report points out any that read a file outside the project folder (an absolute path or `..`).
+An imported file can run commands when you press Run, through a `.control … .endc` block or through a file that an `.include` or `.lib` line pulls in. So the import turns every `.control` block and every `.include`, `.inc` and `.lib` line into comment lines (`* ` in front) and lists each one in the report. To use one, check it (and the file it reads), then delete the leading `* ` on the directive card.
 
 Anything else becomes a **placeholder**: a block drawn with a red dashed outline, its value starting with `?`. KiCad placeholders keep their pins where the original pins were; LTspice placeholders have no pins, because an `.asc` file does not say where a symbol's pins are. The netlist stops with an error until you replace every placeholder. After the import, a report lists what was not converted or was converted with a change. Buses, hierarchical sheets and arcs are not converted.
 

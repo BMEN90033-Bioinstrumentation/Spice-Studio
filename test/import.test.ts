@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { importAsc, importKicad, importSchematic, sexpr } from '../src/renderer/src/schematic/importer.ts'
+import { defang, importAsc, importKicad, importSchematic, sexpr } from '../src/renderer/src/schematic/importer.ts'
 import { netlist } from '../src/renderer/src/schematic/netlist.ts'
 import { parseSheet, type Sheet } from '../src/renderer/src/schematic/model.ts'
 import { BUNDLED, resolver } from '../src/renderer/src/library/library.ts'
@@ -99,20 +99,31 @@ test('LTspice directives ngspice rejects are fixed up and reported', () => {
   assert.ok(r.report.some((l) => /startup/.test(l)))
 })
 
-test('imported .control blocks are commented out (untrusted file), outside .include/.lib paths reported', () => {
+test('imported .control blocks and includes are commented out (untrusted file), each reported', () => {
   const r = importAsc(fx('control.asc'))
   const text = netlist(r.sheet, 'x', lib).text
   assert.doesNotMatch(text, /^\s*\.control/im) // an active .control would run its shell/system lines at Run
   assert.doesNotMatch(text, /^\s*(shell|system|run)\b/im)
+  assert.doesNotMatch(text, /^\s*\.(inc|lib)/im) // an included file could hold a .control block itself
   assert.match(text, /^\* \.CONTROL\n\* run\n\* shell touch \/tmp\/pwned\n\* \.endc$/m)
   assert.match(text, /^\* \.control\n\* system rm -rf ~$/m) // unterminated
   assert.match(text, /^\.op$/m)
   assert.equal(r.report.filter((l) => /\.control block was disabled/.test(l)).length, 2)
-  assert.ok(r.report.some((l) => l.startsWith('".include /etc/models.lib" reads a file outside')))
-  assert.ok(r.report.some((l) => l.startsWith('".lib ../shared/opamps.lib" reads a file outside')))
-  assert.ok(r.report.some((l) => l.startsWith('".inc local.lib" kept')))
+  for (const f of ['/etc/models.lib', '../shared/opamps.lib', 'local.lib'])
+    assert.ok(r.report.some((l) => l.includes(`was disabled: it reads ${f}, and an imported schematic is untrusted`)), f)
+  assert.ok(!r.report.some((l) => /\bsafe\b|kept:/.test(l)))
   // KiCad text directives go through the same check
   const k = importKicad('(kicad_sch (version 20231120) (lib_symbols) (text ".tran 1u 1m\\n.control\\nshell echo hi\\n.endc" (at 10 10 0)))')
   assert.deepEqual(k.sheet.texts.map((t) => t.text), ['.tran 1u 1m\n* .control\n* shell echo hi\n* .endc'])
   assert.ok(k.report.some((l) => /\.control block was disabled/.test(l)))
+})
+
+test('defang matches at least as widely as ngspice: prefixes, case, leading space, continuations, unterminated blocks', () => {
+  const run = (text: string) => { const t = [{ text }], rep: string[] = []; defang(t, rep); return { text: t[0].text, rep } }
+  assert.equal(run('.controlx\nshell a\n.endc\n.op').text, '* .controlx\n* shell a\n* .endc\n.op')
+  assert.equal(run('  .CoNtRoL;x\nshell a\n  .ENDCx\n.op').text, '*   .CoNtRoL;x\n* shell a\n*   .ENDCx\n.op')
+  assert.equal(run('.op\n.control\nshell a\n.op\n.tran 1 2').text, '.op\n* .control\n* shell a\n* .op\n* .tran 1 2') // unterminated: to the end
+  assert.equal(run('.include\n+ evil.lib\n.LIBRARY x\n .inc y\n.op').text, '* .include\n* + evil.lib\n* .LIBRARY x\n*  .inc y\n.op')
+  assert.equal(run('.include a.lib\n.include b.lib').rep.length, 2)
+  assert.equal(run('.op\n+ 1\n.model d d').text, '.op\n+ 1\n.model d d') // continuations of live lines stay live
 })

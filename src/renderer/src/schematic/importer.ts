@@ -112,25 +112,26 @@ function fit(f: FPart, nets: Nets): { part: Pick<Part, 'x' | 'y' | 'rot' | 'mirr
   return { part: best!.at, plan: best!.plan }
 }
 
-// Imported files are untrusted. A .control … .endc block runs ngspice commands at Run (shell, system, file writes):
-// comment it out, line by line, so it is kept but inert (an unterminated .control too). .include / .lib stay as
-// written; those reaching outside the project (absolute path, ..) are named in the report.
+// Imported files are untrusted. A .control … .endc block runs ngspice commands at Run (shell, system, file writes), and
+// a file pulled in by .include / .lib can hold one too. Both are commented out ("* " in front) so they are kept but
+// inert. Matching is at least as wide as ngspice's: a line that merely starts with .control opens a block (.controlx
+// too), only a line starting with .endc closes it (unterminated: to the end of the card), .inc* / .lib* lines are
+// includes, and a "+" continuation of a commented line is commented with it.
 export function defang(texts: { text: string }[], report: string[]): void {
   for (const t of texts) {
-    let on = false, n = 0
+    let on = false, prev = false
     t.text = t.text.split('\n').map((l) => {
-      if (/^\s*\.control\b/i.test(l)) (on = true), n++
-      const out = on ? '* ' + l : l
-      if (on && /^\s*\.endc\b/i.test(l)) on = false
-      return out
+      let off = on || (prev && /^\s*\+/.test(l))
+      if (!on && /^\s*\.control/i.test(l)) (on = off = true), report.push('A .control block was disabled (turned into comment lines): it runs ngspice commands, which can include shell commands, when you press Run. After checking it, remove the leading "* " from its lines on the directive card to use it')
+      else if (on && /^\s*\.endc/i.test(l)) on = false
+      else if (!off && /^\s*\.(inc|lib)/i.test(l)) {
+        const file = l.trim().split(/\s+/).slice(1).join(' ') || '(no file named)'
+        off = true
+        report.push(`"${l.trim()}" was disabled: it reads ${file}, and an imported schematic is untrusted (that file could hold a .control block that runs commands). After checking ${file}, remove the leading "* " on the directive card to use it`)
+      }
+      prev = off
+      return off ? '* ' + l : l
     }).join('\n')
-    for (let i = 0; i < n; i++) report.push('A .control block was disabled (turned into comment lines): it runs ngspice commands, which can include shell commands, when you press Run. Check it, then remove the "* " prefixes if you trust it')
-    for (const m of t.text.matchAll(/^\s*\.(lib|inc\w*)\s+(.+?)\s*$/gim)) {
-      const path = m[2].replace(/^["']|["']$/g, '')
-      report.push(/^([\\/~]|[a-z]:[\\/])/i.test(path) || /(^|[\\/])\.\.([\\/]|$)/.test(path)
-        ? `".${m[1]} ${m[2]}" reads a file outside the project folder: check it before running`
-        : `".${m[1]} ${m[2]}" kept: ngspice must find that file`)
-    }
   }
 }
 
