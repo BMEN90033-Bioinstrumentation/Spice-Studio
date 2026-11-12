@@ -1,0 +1,66 @@
+// Maths for the extra plot views: phase unwrap (Bode), Z → Γ and chart geometry (Nyquist / polar / Smith), eye folding. Pure TS.
+
+// a phase in degrees, unwrapped: a step of more than 180° between neighbouring points is taken as a wrap (exactly ±180°
+// is left alone, so ties don't drift one way). Gaps stay null.
+export function unwrap(deg: ArrayLike<number | null>): (number | null)[] {
+  let off = 0, prev = NaN
+  return Array.from(deg, (y) => {
+    if (y == null || !Number.isFinite(y)) return null
+    const d = y + off - prev
+    if (Math.abs(d) > 180) off -= 360 * Math.round(d / 360)
+    return (prev = y + off)
+  })
+}
+
+// reflection coefficient of an impedance: Γ = (Z − Z0) / (Z + Z0)
+export function gamma(zr: number, zi: number, z0: number): [number, number] {
+  const ar = zr - z0, br = zr + z0, d = br * br + zi * zi
+  return [(ar * br + zi * zi) / d, (zi * br - ar * zi) / d]
+}
+
+// ≈ count round-numbered ticks covering [lo, hi]. Bounded loop: a span far below the values' precision (1e9 ± 1e-7)
+// can't add up step by step.
+export function ticks(lo: number, hi: number, count = 6): number[] {
+  if (!(hi > lo && Number.isFinite(lo) && Number.isFinite(hi))) return Number.isFinite(lo) ? [lo] : []
+  const raw = (hi - lo) / count, p = 10 ** Math.floor(Math.log10(raw)), step = p * ([1, 2, 5, 10].find((m) => m * p >= raw) ?? 10)
+  const out = new Set<number>(), i0 = Math.ceil(lo / step)
+  for (let j = 0; j <= Math.min(1000, 2 * Math.ceil(count) + 2); j++) {
+    const v = (i0 + j) * step
+    if (v > hi + step * 1e-9) break
+    out.add(Math.abs(v) < step * 1e-9 ? 0 : v)
+  }
+  return [...out]
+}
+
+// Smith chart grid: constant-resistance circles and constant-reactance arcs (normalised to Z0), as Γ-plane polylines
+export const SMITH_R = [0, 0.2, 0.5, 1, 2, 5], SMITH_X = [0.2, 0.5, 1, 2, 5]
+export function smithGrid(): { kind: 'r' | 'x'; v: number; pts: [number, number][] }[] {
+  const g = (zr: number, zi: number) => gamma(zr, zi, 1), N = 160
+  // x = tan(θ) sweeps the whole reactance line; r = t / (1 − t) sweeps resistance 0…∞
+  const circles = SMITH_R.map((v) => ({ kind: 'r' as const, v, pts: Array.from({ length: N + 1 }, (_, k) => g(v, Math.tan(-Math.PI / 2 + (Math.PI * k) / N))) }))
+  const arcs = SMITH_X.flatMap((x) => [x, -x]).map((v) => ({ kind: 'x' as const, v, pts: Array.from({ length: N + 1 }, (_, k) => g(k / N / (1 - k / N + 1e-9), v)) }))
+  return [...circles, ...arcs]
+}
+
+// Eye diagram: y(x) resampled on n points per period (linear interpolation) for every whole period
+// [offset + kT, offset + (k+1)T] inside the data. At most `max` segments (the first ones); total: how many there are.
+export function fold(x: ArrayLike<number>, y: ArrayLike<number>, period: number, offset: number, n = 256, max = 2000) {
+  const t = Float64Array.from({ length: n }, (_, i) => (i * period) / (n - 1)), segs: Float64Array[] = []
+  const x0 = x[0], x1 = x[x.length - 1]
+  if (!(period > 0) || !(x1 > x0)) return { t, segs, total: 0 }
+  const k0 = Math.ceil((x0 - offset) / period - 1e-9), total = Math.max(0, Math.floor((x1 * (1 + 1e-12) - offset) / period) - k0)
+  let j = 0
+  for (let k = k0; segs.length < Math.min(max, total); k++) {
+    const s = offset + k * period
+    const seg = new Float64Array(n)
+    for (let i = 0; i < n; i++) {
+      const v = Math.min(x1, s + t[i])
+      while (j < x.length - 2 && x[j + 1] < v) j++
+      while (j > 0 && x[j] > v) j--
+      const span = x[j + 1] - x[j], a = span > 0 ? Math.min(1, Math.max(0, (v - x[j]) / span)) : 0
+      seg[i] = y[j] + a * (y[j + 1] - y[j])
+    }
+    segs.push(seg)
+  }
+  return { t, segs, total }
+}

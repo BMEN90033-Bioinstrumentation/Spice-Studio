@@ -1,4 +1,5 @@
 // Plot export: CSV (pure), SVG (hand-built from a drawn uPlot) and PNG (the uPlot canvas + a legend line).
+// Several uPlots (the stacked Bode view) export as one image, stacked top to bottom.
 import type uPlot from 'uplot'
 
 export type CsvRun = { label: string; x: ArrayLike<number>; cols: { name: string; y: ArrayLike<number | null | undefined> }[] }
@@ -84,11 +85,12 @@ function items(u: uPlot): (Item & { i: number })[] {
 }
 // plot area in CSS px (uPlot positions .u-over exactly over it)
 const area = (u: uPlot) => ({ l: parseFloat(u.over.style.left), t: parseFloat(u.over.style.top), w: u.over.clientWidth, h: u.over.clientHeight })
+const keyed = (u: uPlot) => (u.legend.show === false ? [] : items(u)) // legend entries: none where the chart hides its legend (Bode magnitude)
 type Ax = uPlot.Axis & { _splits?: number[]; _values?: (string | number | null)[]; _show?: boolean; side?: number }
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-const LEG = 18 // legend row height
+export const LEG = 18 // legend row height
 
-function legendRows(list: Item[], width: number, charW: number) {
+export function legendRows(list: Item[], width: number, charW: number) {
   const rows: { x: number; it: Item }[][] = [[]]
   let x = 8
   for (const it of list) {
@@ -101,9 +103,18 @@ function legendRows(list: Item[], width: number, charW: number) {
 }
 
 // cursors: x values (data units) drawn as dashed lines labelled A, B
-export function toSvg(u: uPlot, cursors: (number | undefined)[] = []): string {
+export function toSvg(u: uPlot | uPlot[], cursors: (number | undefined)[] = []): string {
+  if (Array.isArray(u)) {
+    if (u.length === 1) return toSvg(u[0], cursors)
+    // nested <svg>s, one per chart; clip-path ids made unique
+    const parts = u.map((x, i) => toSvg(x, cursors).replace(/"plot"|#plot\)/g, (m) => m.replace('plot', 'plot' + i)))
+    const size = parts.map((p) => /width="(\d+)" height="(\d+)"/.exec(p)!.slice(1).map(Number))
+    let y = 0
+    const body = parts.map((p, i) => { const s = p.replace('<svg ', `<svg y="${y}" `); y += size[i][1]; return s })
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.max(...size.map((s) => s[0]))}" height="${y}">\n${body.join('\n')}\n</svg>`
+  }
   const { l, t, w, h } = area(u), W = u.width
-  const legend = legendRows(items(u), W, 7), H = u.height + legend.length * LEG + 6
+  const legend = legendRows(keyed(u), W, 7), H = u.height + legend.length * LEG + 6
   const o: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Helvetica, Arial, sans-serif" font-size="11">`,
     `<rect width="${W}" height="${H}" fill="#ffffff"/>`,
@@ -197,9 +208,19 @@ function decimate(u: uPlot, xs: ArrayLike<number>, ys: ArrayLike<number | null |
   return pts
 }
 
-export async function toPng(u: uPlot, cursors: (number | undefined)[] = []): Promise<Uint8Array> {
+export async function toPng(u: uPlot | uPlot[], cursors: (number | undefined)[] = []): Promise<Uint8Array> {
+  const cs = (Array.isArray(u) ? u : [u]).map((x) => paneCanvas(x, cursors))
+  const c = cs[0].ownerDocument.createElement('canvas')
+  c.width = Math.max(...cs.map((x) => x.width)), c.height = cs.reduce((a, x) => a + x.height, 0)
+  const g = c.getContext('2d')!
+  cs.reduce((y, x) => (g.drawImage(x, 0, y), y + x.height), 0)
+  const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/png'))
+  if (!blob) throw new Error('PNG encoding failed')
+  return new Uint8Array(await blob.arrayBuffer())
+}
+function paneCanvas(u: uPlot, cursors: (number | undefined)[]): HTMLCanvasElement {
   const src = u.ctx.canvas, pr = src.width / u.width
-  const legend = legendRows(items(u), u.width, 7.5)
+  const legend = legendRows(keyed(u), u.width, 7.5)
   const c = src.ownerDocument.createElement('canvas')
   c.width = src.width, c.height = src.height + Math.round((legend.length * LEG + 6) * pr)
   const g = c.getContext('2d')!
@@ -229,7 +250,5 @@ export async function toPng(u: uPlot, cursors: (number | undefined)[] = []): Pro
       g.fillText(it.label, x + 18, y + 4)
     }
   })
-  const blob = await new Promise<Blob | null>((ok) => c.toBlob(ok, 'image/png'))
-  if (!blob) throw new Error('PNG encoding failed')
-  return new Uint8Array(await blob.arrayBuffer())
+  return c
 }

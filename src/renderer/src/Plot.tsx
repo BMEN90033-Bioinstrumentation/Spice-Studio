@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import uPlot from 'uplot'
-import { X } from 'lucide-react'
+import { ChartColumn, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,12 @@ import { evalExpr, isCurrent, pretty } from './plot/expr'
 import { fft, nextPow2 } from './plot/fft'
 import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
 import { traceWav } from './sim/wav'
+import { ComplexView, type CTrace, type CvApi, type CvKind } from './plot/ComplexView'
+import { Eye } from './plot/Eye'
+import { SELECT } from './plot/Tune'
+import { Histogram } from './plot/Histogram'
+import { unwrap } from './plot/views'
+import { spiceValue } from './sim/analysis'
 export { isCurrent, pretty }
 
 const HUES = [199, 36, 123, 0, 291, 54, 174, 340]
@@ -36,14 +42,17 @@ export function eng(v: number | null, unit = ''): string {
 // dB and degrees read better fixed-point than with SI prefixes
 const fmt = (v: number | null, unit: string) => (/^(dB|°)/.test(unit) ? (v == null || !isFinite(v) ? '—' : v.toFixed(2) + unit) : eng(v, unit))
 
-const UNIT: Record<string, string> = { time: 's', frequency: 'Hz', voltage: 'V', current: 'A' }
+const UNIT: Record<string, string> = { time: 's', frequency: 'Hz', voltage: 'V', current: 'A', impedance: 'Ω', admittance: 'S', 's-param': '1' } // the last three: .sp
 const INV: Record<string, string> = { s: 'Hz', Hz: 's' } // unit of 1/Δx
 // axis titles: "Voltage (V)"; units without a quantity name show as "(V/s)", dimensionless as nothing
 const QTY: Record<string, string> = { V: 'Voltage', A: 'Current', W: 'Power', 'Ω': 'Impedance', dB: 'Magnitude', '°': 'Phase', s: 'Time', Hz: 'Frequency' }
 const axisTitle = (unit: string, name = '') => (unit && unit !== '1' ? `${QTY[unit] ?? name} (${unit})`.trim() : name)
-type Mode = 'db' | 'phase'
-type View = 'time' | 'fft'
+// AC: bode = magnitude and phase stacked (two uPlots, shared x); nyquist/polar/smith: plot/ComplexView
+type Mode = 'bode' | 'db' | 'phase' | CvKind
+type View = 'time' | 'fft' | 'eye'
 type Cur = { a?: number; b?: number }
+const CPLX: Mode[] = ['nyquist', 'polar', 'smith']
+let SYNC = 0 // uPlot cursor-sync keys, one per Bode chart pair
 export type PlotRun = { label: string; plot: RawPlot }
 // cursors outlive the Plot (tab switches, pop-out) until the next run replaces the plot objects
 const CURS = new WeakMap<RawPlot, Record<View, Cur>>()
@@ -55,16 +64,19 @@ export function defaultSel(plot: RawPlot): string[] {
   return (volts.length ? volts : sig).slice(0, 4).map(lc)
 }
 
-// One drawn line: a vector or expression in one run. x/y as drawn (dB/° for AC, dB for FFT); re/im the raw values.
-type Trace = { key: string; name: string; run: number; unit: string; scale: string; x: Float64Array; y: ArrayLike<number | null>; re: Float64Array; im: Float64Array | null }
+// One drawn line: a vector or expression in one run. x/y as drawn (dB/° for AC, dB for FFT); re/im the raw values, vu
+// their unit. pane: which stacked chart (Bode: 0 magnitude, 1 phase).
+type Trace = { key: string; name: string; run: number; unit: string; scale: string; x: Float64Array; y: ArrayLike<number | null>; re: Float64Array; im: Float64Array | null; vu: string; pane: number }
 
 // dB of an exactly-zero AC magnitude (e.g. a DC supply node) is -Infinity, which wrecks uPlot's y range for the
 // whole chart: non-finite points become gaps (null) instead
-const ac = (re: Float64Array, im: Float64Array, mode: Mode) =>
-  Array.from(re, (r, i) => {
+const ac = (re: Float64Array, im: Float64Array, mode: 'db' | 'phase', unw = false) => {
+  const y = Array.from(re, (r, i) => {
     const y = mode === 'db' ? 20 * Math.log10(Math.hypot(r, im[i])) : (Math.atan2(im[i], r) * 180) / Math.PI
     return Number.isFinite(y) ? y : null
   })
+  return unw && mode === 'phase' ? unwrap(y) : y
+}
 const clean = (a: Float64Array): ArrayLike<number | null> => (a.every(Number.isFinite) ? a : Array.from(a, (v) => (Number.isFinite(v) ? v : null)))
 
 // y at x = v by linear interpolation (x ascending); null outside the data
@@ -82,21 +94,28 @@ function at(x: ArrayLike<number>, y: ArrayLike<number | null>, v: number): numbe
   return x[b] === x[a] ? ya : ya + ((yb - ya) * (v - x[a])) / (x[b] - x[a])
 }
 
-export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void }) {
+// hold: new data replaces the old for the same view (live tuning): keep the x zoom
+export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void; hold?: boolean }) {
   const first = runs[0].plot
   const [scale, ...signals] = first.vars
   const dark = useDark() // re-render (and redraw the canvas) when the theme changes
-  const [mode, setMode] = useState<Mode>('db')
+  const [mode, setMode] = useState<Mode>('bode')
+  const [unw, setUnw] = useState(false) // unwrapped phase
+  const [z0, setZ0] = useState('50') // Smith chart reference impedance
   const [view, setView] = useState<View>('time')
   const [fftLog, setFftLog] = useState(true)
   const [fftRange, setFftRange] = useState<[number, number] | null>(null)
-  const [curs, setCurs] = useState<Record<View, Cur>>(() => CURS.get(first) ?? { time: {}, fft: {} })
-  useEffect(() => void CURS.set(first, curs), [curs])
+  const [eye, setEye] = useState({ key: '', period: '', offset: '0' }) // eye diagram: trace, bit period, offset (SPICE numbers)
+  const [hist, setHist] = useState<string | null>(null) // histogram over the runs: a trace at cursor A (id) or an .op row ('op:' + name)
+  const [curs, setCurs] = useState<Record<View, Cur>>(() => CURS.get(first) ?? { time: {}, fft: {}, eye: {} })
+  useEffect(() => void CURS.set(first, curs), [curs, first])
   const [draft, setDraft] = useState(''), [draftErr, setDraftErr] = useState('')
   const [q, setQ] = useState('') // vector search
   const [note, setNote] = useState('')
   const host = useRef<HTMLDivElement>(null)
-  const uref = useRef<uPlot | null>(null)
+  const uref = useRef<uPlot[]>([]) // the chart(s) on screen: one, the Bode pair, or the eye diagram
+  const cv = useRef<CvApi | null>(null)
+  const zoom = useRef<{ key: string; x: [number, number] } | null>(null) // last x zoom, restored with `hold`
   const cur = curs[view], curRef = useRef(cur)
   curRef.current = cur
   const place = useRef(() => {})
@@ -110,6 +129,9 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   const grouped = isCurrent(list[0]?.name ?? '') !== isCurrent(list[list.length - 1]?.name ?? '') // both kinds present
   const canFft = scale.type === 'time' && !first.complex
   const fftv = view === 'fft' && canFft
+  const eyev = view === 'eye' && canFft
+  const bodev = first.complex && mode === 'bode'
+  const cplxv = first.complex && CPLX.includes(mode)
 
   const { traces, errors, fftInfo } = useMemo(() => {
     const shown = [...signals.filter((v) => sel.includes(lc(v))).map(lc), ...sel.filter(isExpr)]
@@ -119,7 +141,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     runs.forEach(({ plot }, run) => {
       const x = plot.vars[0].re
       for (const key of shown) {
-        let re: Float64Array, im: Float64Array | null, unit: string, name: string, sc: string
+        let re: Float64Array, im: Float64Array | null, unit: string, name: string, sc: string, vu: string
         if (isExpr(key)) {
           const v = evalExpr(key.slice(1), plot)
           if ('error' in v) {
@@ -127,127 +149,170 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
             continue
           }
           ;({ re, im, unit } = v)
-          name = key.slice(1)
+          name = key.slice(1), vu = unit
           sc = plot.complex ? (im || unit === 'dB' || unit === '°' ? 'y' : unit || '1') : unit || '1'
         } else {
           const v = plot.vars.find((w) => lc(w) === key)
           if (!v) continue
           re = v.re, im = plot.complex ? (v.im ?? null) : null, name = pretty(v.name)
-          unit = UNIT[v.type] ?? (isCurrent(v.name) ? 'A' : 'V')
+          unit = vu = UNIT[v.type] ?? (isCurrent(v.name) ? 'A' : 'V')
           // volts and amps get separate y scales (mA next to V would draw as a flat line); dB/phase share one
           sc = plot.complex ? 'y' : isCurrent(v.name) ? 'A' : 'V'
         }
         if (fftv) {
           const s = fft(x, re, { n, t0: fftRange?.[0], t1: fftRange?.[1] }), k = fftLog ? 1 : 0 // log axis: no DC bin
           df = s.df
-          traces.push({ key, name, run, unit: 'dB' + (unit === 'V' || unit === 'A' ? unit : ''), scale: 'y', x: s.f.subarray(k), y: clean(s.mag.subarray(k).map((m) => 20 * Math.log10(m))), re, im: null })
-        } else if (im) traces.push({ key, name, run, unit: mode === 'db' ? 'dB' : '°', scale: sc, x, y: ac(re, im, mode), re, im })
-        else traces.push({ key, name, run, unit, scale: sc, x, y: isExpr(key) ? clean(re) : re, re, im: null })
+          traces.push({ key, name, run, unit: 'dB' + (unit === 'V' || unit === 'A' ? unit : ''), scale: 'y', x: s.f.subarray(k), y: clean(s.mag.subarray(k).map((m) => 20 * Math.log10(m))), re, im: null, vu, pane: 0 })
+        } else if (im) {
+          const t = { key, name, run, scale: sc, x, re, im, vu }
+          if (mode !== 'phase') traces.push({ ...t, unit: 'dB', y: ac(re, im, 'db'), pane: 0 }) // the Nyquist/polar/Smith views use re/im
+          if (mode === 'phase' || bodev) traces.push({ ...t, unit: '°', y: ac(re, im, 'phase', unw), pane: +bodev })
+        } else traces.push({ key, name, run, unit, scale: sc, x, y: isExpr(key) ? clean(re) : re, re, im: null, vu, pane: +(bodev && unit === '°') })
       }
     })
     return { traces, errors, fftInfo: { n, df } }
-  }, [runs, sel, mode, fftv, fftLog, fftRange])
+  }, [runs, sel, mode, unw, fftv, fftLog, fftRange])
 
   useEffect(() => {
     if (first.points < 2 || !host.current) return
     const el = host.current, doc = el.ownerDocument
-    const yUnit = fftv ? 'dB' : first.complex ? (mode === 'db' ? 'dB' : '°') : ''
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
     const axis = dark // ≈ --muted-foreground / --border (canvas can't read CSS vars)
       ? { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } }
       : { stroke: '#737373', grid: { stroke: 'rgba(0,0,0,0.08)' }, ticks: { stroke: 'rgba(0,0,0,0.15)' } }
-    const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
-    runs.forEach(({ label }, r) => {
-      const ts = traces.filter((t) => t.run === r)
-      if (!ts.length) return
-      tables.push([ts[0].x, ...ts.map((t) => t.y as uPlot.AlignedData[1])])
-      for (const t of ts)
-        ser.push({
-          label: label ? `${t.name} · ${label}` : t.name,
-          scale: t.scale,
-          stroke: color(hue(t.key), r, runs.length),
-          width: 1.5,
-          spanGaps: true,
-          value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)) // blank off-hover: reads as a plain legend
-        })
+    // one chart per pane: Bode stacks magnitude over phase, both following one x zoom and one hover cursor
+    const panes = bodev ? [0, 1] : [0], sync = bodev ? { key: `bode${++SYNC}` } : undefined
+    const boxes = panes.map(() => el.appendChild(doc.createElement('div')))
+    const height = () => Math.max(40, (el.clientHeight - PAD_Y - boxes.reduce((h, b) => h + legendH(b), 0)) / panes.length)
+    const built = panes.map((p) => {
+      const yUnit = fftv ? 'dB' : first.complex ? (bodev ? ['dB', '°'][p] : mode === 'db' ? 'dB' : '°') : ''
+      const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
+      runs.forEach(({ label }, r) => {
+        const ts = traces.filter((t) => t.run === r && t.pane === p)
+        if (!ts.length) return
+        tables.push([ts[0].x, ...ts.map((t) => t.y as uPlot.AlignedData[1])])
+        for (const t of ts)
+          ser.push({
+            label: label ? `${t.name} · ${label}` : t.name,
+            scale: t.scale,
+            stroke: color(hue(t.key), r, runs.length),
+            width: 1.5,
+            spanGaps: true,
+            value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)) // blank off-hover: reads as a plain legend
+          })
+      })
+      if (!tables.length) tables.push([fftv ? new Float64Array([1, 2]) : scale.re])
+      // sweep runs have their own (adaptive) x points: join onto a common x, gaps as undefined
+      const data = tables.length > 1 ? uPlot.join(tables) : tables[0]
+      const used = [...new Set(ser.map((x) => x.scale!))]
+      return { yUnit, ser, data, used: used.length ? used : ['y'] }
     })
-    if (!tables.length) tables.push([fftv ? new Float64Array([1, 2]) : scale.re])
-    // sweep runs have their own (adaptive) x points: join onto a common x, gaps as undefined
-    const data = tables.length > 1 ? uPlot.join(tables) : tables[0]
-    const used = [...new Set(ser.map((x) => x.scale!))]
-    const yAxes: uPlot.Axis[] = (used.length ? used : ['y']).map((k, i) => ({
-      ...axis, scale: k, size: i ? 84 : 72, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, labelSize: 18,
-      label: axisTitle(k === 'y' ? yUnit : k === '1' ? '' : k),
-      values: (_u, t) => t.map((v) => (k === 'y' && yUnit ? v + yUnit : eng(v, k === 'y' || k === '1' ? '' : k)))
-    }))
-    let lines: HTMLDivElement[] = []
-    const draw = () =>
-      lines.forEach((d, i) => {
+    const axesN = Math.max(...built.map((b) => b.used.length)) // stacked charts get as many y axes, so their plot areas line up
+    const us: uPlot[] = [], lines: HTMLDivElement[][] = []
+    const draw = (u: uPlot) =>
+      lines[us.indexOf(u)]?.forEach((d, i) => {
         const x = curRef.current[i ? 'b' : 'a'], p = x == null ? NaN : u.valToPos(x, 'x')
         const ok = p >= 0 && p <= u.over.clientWidth
         d.style.display = ok ? '' : 'none'
         if (ok) d.style.left = p + 'px'
       })
-    const u: uPlot = new uPlot(
-      {
-        width: el.clientWidth - PAD_X,
-        height: el.clientHeight - PAD_Y,
-        scales: { x: { time: false, distr: (fftv ? fftLog : first.complex) ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, { auto: true }])) },
-        series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => (v == null ? '' : eng(v, xUnit)) }, ...ser],
-        axes: [
-          { ...axis, labelSize: 18, label: axisTitle(xUnit, scale.name), values: (_u, s) => s.map((v) => (v == null ? '' : eng(v, xUnit))) }, // log axes pass null for unlabelled minor ticks
-          ...yAxes
-        ],
-        cursor: { drag: { x: true, y: true, uni: 20, dist: 4 } }, // dist: a click must not zoom (it places cursor A)
-        legend: { live: true },
-        hooks: { draw: [draw] }
-      },
-      data,
-      // mount by callback: uPlot's `instanceof HTMLElement` check fails for the pop-out window's elements (other realm)
-      (u, init) => (el.appendChild(u.root), init())
-    )
-    uref.current = u
-    place.current = draw
+    let syncing = false
+    const follow = (u: uPlot, k: string) => {
+      if (k !== 'x' || syncing || !us.includes(u)) return
+      syncing = true
+      for (const o of us) if (o !== u) o.setScale('x', { min: u.scales.x.min!, max: u.scales.x.max! })
+      syncing = false
+    }
+    let before: Cur = {}
+    // Bode: one legend, under the phase chart, its hover values "dB · °"; the magnitude chart keeps a legend only for traces
+    // the phase chart lacks (real dB expressions)
+    const below = new Set(bodev ? built[1].ser.map((x) => x.label) : [])
+    const topLegend = !bodev || built[0].ser.some((x) => !below.has(x.label))
+    const val = (x: uPlot.Series, u: uPlot, y: number, i: number, idx: number | null) => String((x.value as (u: uPlot, y: number, i: number, idx: number | null) => string)(u, y, i, idx))
+    if (bodev)
+      built[1].ser = built[1].ser.map((x) => ({
+        ...x,
+        value: (u: uPlot, y: number | null, si: number, idx: number | null) => {
+          const own = val(x, u, y!, si, idx), t = us[0], j = t?.series.findIndex((s) => s.label === x.label) ?? -1
+          const ty = y != null && j > 0 && idx != null && t.data[0][idx] === u.data[0][idx] ? t.data[j][idx] : null
+          return ty == null ? own : `${val(t.series[j], t, ty, j, idx)} · ${own}`
+        }
+      }))
+    built.forEach(({ yUnit, ser, data, used }, pi) => {
+      const yAxes: uPlot.Axis[] = used.map((k, i) => ({
+        ...axis, scale: k, size: i ? 84 : 72, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, labelSize: 18,
+        label: axisTitle(k === 'y' ? yUnit : k === '1' ? '' : k),
+        values: (_u, t) => t.map((v) => (k === 'y' && yUnit ? v + yUnit : eng(v, k === 'y' || k === '1' ? '' : k)))
+      }))
+      while (yAxes.length < axesN) yAxes.push({ scale: used[0], side: 1, size: 84, values: (_u, t) => t.map(() => ''), grid: { show: false }, ticks: { show: false } })
+      // the top Bode chart: x grid without labels
+      const xAxis: uPlot.Axis = pi < panes.length - 1
+        ? { ...axis, size: 8, values: (_u, s) => s.map(() => '') }
+        : { ...axis, labelSize: 18, label: axisTitle(xUnit, scale.name), values: (_u, s) => s.map((v) => (v == null ? '' : eng(v, xUnit))) } // log axes pass null for unlabelled minor ticks
+      const u: uPlot = new uPlot(
+        {
+          width: el.clientWidth - PAD_X,
+          height: height(),
+          scales: { x: { time: false, distr: (fftv ? fftLog : first.complex) ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, { auto: true }])) },
+          series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => (v == null ? '' : eng(v, xUnit)) }, ...ser],
+          axes: [xAxis, ...yAxes],
+          cursor: { drag: { x: true, y: true, uni: 20, dist: 4 }, sync }, // dist: a click must not zoom (it places cursor A)
+          legend: { live: true, show: pi > 0 || topLegend },
+          hooks: { draw: [draw], setScale: [follow] }
+        },
+        data,
+        // mount by callback: uPlot's `instanceof HTMLElement` check fails for the pop-out window's elements (other realm)
+        (u, init) => (boxes[pi].appendChild(u.root), init())
+      )
+      us.push(u)
 
-    // cursors: click sets A, Shift+click sets B, drag a line to move it
-    const xAt = (cx: number) => u.posToVal(Math.min(u.over.clientWidth, Math.max(0, cx - u.over.getBoundingClientRect().left)), 'x')
-    const set = (k: 'a' | 'b', x: number) => setCurs((c) => ({ ...c, [view]: { ...c[view], [k]: x } }))
-    lines = (['a', 'b'] as const).map((k) => {
-      const d = doc.createElement('div')
-      d.className = 'pcur'
-      d.dataset.k = k.toUpperCase()
-      d.addEventListener('mousedown', (e) => {
-        if (e.button) return
-        e.stopPropagation(), e.preventDefault() // not a zoom drag
-        const move = (ev: MouseEvent) => set(k, xAt(ev.clientX))
-        const up = () => (doc.removeEventListener('mousemove', move), doc.removeEventListener('mouseup', up))
-        doc.addEventListener('mousemove', move)
-        doc.addEventListener('mouseup', up)
+      // cursors: click sets A, Shift+click sets B, drag a line to move it
+      const xAt = (cx: number) => u.posToVal(Math.min(u.over.clientWidth, Math.max(0, cx - u.over.getBoundingClientRect().left)), 'x')
+      const set = (k: 'a' | 'b', x: number) => setCurs((c) => ({ ...c, [view]: { ...c[view], [k]: x } }))
+      lines.push((['a', 'b'] as const).map((k) => {
+        const d = doc.createElement('div')
+        d.className = 'pcur'
+        d.dataset.k = k.toUpperCase()
+        d.addEventListener('mousedown', (e) => {
+          if (e.button) return
+          e.stopPropagation(), e.preventDefault() // not a zoom drag
+          const move = (ev: MouseEvent) => set(k, xAt(ev.clientX))
+          const up = () => (doc.removeEventListener('mousemove', move), doc.removeEventListener('mouseup', up))
+          doc.addEventListener('mousemove', move)
+          doc.addEventListener('mouseup', up)
+        })
+        for (const ev of ['click', 'dblclick']) d.addEventListener(ev, (e) => e.stopPropagation())
+        u.over.appendChild(d)
+        return d
+      }))
+      draw(u)
+      let down = { x: NaN, y: NaN }
+      u.over.addEventListener('mousedown', (e) => (down = { x: e.clientX, y: e.clientY }))
+      u.over.addEventListener('click', (e) => {
+        if (!(Math.abs(e.clientX - down.x) < 4 && Math.abs(e.clientY - down.y) < 4)) return // that was a zoom drag
+        if (e.detail <= 1) before = curRef.current
+        set(e.shiftKey ? 'b' : 'a', xAt(e.clientX))
       })
-      for (const ev of ['click', 'dblclick']) d.addEventListener(ev, (e) => e.stopPropagation())
-      u.over.appendChild(d)
-      return d
+      // double-click resets the zoom: undo the cursor moves its two clicks made
+      u.over.addEventListener('dblclick', () => setCurs((c) => ({ ...c, [view]: before })))
     })
-    draw()
-    let down = { x: NaN, y: NaN }, before: Cur = {}
-    u.over.addEventListener('mousedown', (e) => (down = { x: e.clientX, y: e.clientY }))
-    u.over.addEventListener('click', (e) => {
-      if (!(Math.abs(e.clientX - down.x) < 4 && Math.abs(e.clientY - down.y) < 4)) return // that was a zoom drag
-      if (e.detail <= 1) before = curRef.current
-      set(e.shiftKey ? 'b' : 'a', xAt(e.clientX))
-    })
-    // double-click resets the zoom: undo the cursor moves its two clicks made
-    u.over.addEventListener('dblclick', () => setCurs((c) => ({ ...c, [view]: before })))
+    uref.current = us
+    place.current = () => us.forEach(draw)
+    const zk = fftv ? `fft${fftLog}` : 'x'
+    if (hold && zoom.current?.key === zk) us[0].setScale('x', { min: zoom.current.x[0], max: zoom.current.x[1] }) // follow() zooms the rest
 
     // the element's own window: an opener-window observer never fires for the pop-out's elements
-    const ro = new (doc.defaultView ?? window).ResizeObserver(() => u.setSize({ width: el.clientWidth - PAD_X, height: el.clientHeight - PAD_Y - legendH(el) }))
+    const ro = new (doc.defaultView ?? window).ResizeObserver(() => us.forEach((u) => u.setSize({ width: el.clientWidth - PAD_X, height: height() })))
     ro.observe(el)
     return () => {
-      ro.disconnect(), u.destroy()
-      uref.current = null
+      // remember a zoom (a range inside the data) for the next chart, see `hold`
+      const { min, max } = us[0].scales.x, xs = us[0].data[0]
+      zoom.current = min != null && max != null && xs.length && (min > xs[0] || max < xs[xs.length - 1]) ? { key: zk, x: [min, max] } : null
+      ro.disconnect(), us.forEach((u) => u.destroy()), boxes.forEach((b) => b.remove())
+      uref.current = []
       place.current = () => {}
     }
-  }, [traces, dark])
+  }, [traces, eyev, cplxv, dark])
   useEffect(() => place.current(), [cur])
 
   const csv = () => {
@@ -258,7 +323,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
         x: ts[0]?.x ?? new Float64Array(0),
         cols: ts.flatMap((t) =>
           t.im
-            ? [{ name: `${t.name} dB`, y: ac(t.re, t.im, 'db') }, { name: `${t.name} phase °`, y: ac(t.re, t.im, 'phase') }]
+            ? t.pane ? [] : [{ name: `${t.name} dB`, y: ac(t.re, t.im, 'db') }, { name: `${t.name} phase °`, y: ac(t.re, t.im, 'phase', unw) }] // Bode: once, not per pane
             : [{ name: fftv ? `${t.name} ${t.unit}` : t.name, y: t.y }]
         )
       }
@@ -266,12 +331,12 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     return toCsv(fftv ? 'frequency' : scale.name, out.filter((r) => r.cols.length))
   }
   const save = async (kind: 'png' | 'svg' | 'csv' | 'wav') => {
-    const u = uref.current
-    if (!u) return
+    const u = uref.current, c = cplxv && cv.current
+    if (!u.length && !c) return
     try {
-      const marks = [cur.a, cur.b], base = (first.plotname.split(' ')[0] || 'plot').toLowerCase() + (fftv ? '-fft' : '')
+      const marks = eyev ? [] : [cur.a, cur.b], base = (first.plotname.split(' ')[0] || 'plot').toLowerCase() + (fftv ? '-fft' : eyev ? '-eye' : cplxv ? '-' + mode : '')
       const ts = traces.filter((t) => t.run === 0), w = kind === 'wav' ? traceWav(ts[0].x, ts.map((t) => t.y)) : null // one channel per trace, 44.1 kHz
-      const data = w ? w.wav : kind === 'png' ? await toPng(u, marks) : kind === 'svg' ? toSvg(u, marks) : csv()
+      const data = w ? w.wav : c ? (kind === 'png' ? await c.png() : kind === 'svg' ? c.svg() : c.csv()) : kind === 'png' ? await toPng(u, marks) : kind === 'svg' ? toSvg(u, marks) : csv()
       const p = await window.api.exportSave(`${base}.${kind}`, data, [{ name: { png: 'PNG image', svg: 'SVG image', csv: 'CSV', wav: 'WAV audio' }[kind], extensions: [kind] }])
       if (p && w) return setNote(`Saved ${p}: ${ts.length} channel${ts.length > 1 ? 's' : ''}, 44.1 kHz, full scale ±${eng(w.scale)}`)
       setNote(p ? `Saved ${p}` : '')
@@ -279,35 +344,55 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
       setNote(`Export failed: ${(e as Error).message}`)
     }
   }
+  // the Nyquist/polar/Smith view's traces (complex ones only) and the eye diagram's (the picked trace, every run)
+  const ctraces = useMemo<CTrace[]>(() => (cplxv ? traces.filter((t) => t.im).map((t) => ({ label: runs.length > 1 && runs[t.run].label ? `${t.name} · ${runs[t.run].label}` : t.name, color: color(hue(t.key), t.run, runs.length), x: t.x, re: t.re, im: t.im!, unit: t.vu })) : []), [traces, cplxv, dark])
+  const eyeKey = traces.some((t) => t.key === eye.key) ? eye.key : (traces[0]?.key ?? '')
+  const eyeTraces = useMemo(() => (eyev ? traces.filter((t) => t.key === eyeKey).map((t) => ({ x: t.x, y: t.re, color: color(hue(t.key), t.run, runs.length).replace(')', ' / 0.45)') })) : []), [traces, eyev, eyeKey, dark])
   const chart = first.points >= 2
-  const canWav = canFft && !fftv && traces.some((t) => t.run === 0) // time-domain traces: Export > Plot as WAV
+  const canWav = canFft && !fftv && !eyev && traces.some((t) => t.run === 0) // time-domain traces: Export > Plot as WAV
+  const can = () => uref.current.length > 0 || (cplxv && !!cv.current)
   useCommands(chart ? [
-    { id: 'file.export.plotPng', run: () => void save('png'), enabled: () => !!uref.current },
-    { id: 'file.export.plotSvg', run: () => void save('svg'), enabled: () => !!uref.current },
-    { id: 'file.export.plotCsv', run: () => void save('csv'), enabled: () => !!uref.current && traces.length > 0 },
-    { id: 'file.export.plotWav', run: () => void save('wav'), enabled: () => !!uref.current && canWav }
+    { id: 'file.export.plotPng', run: () => void save('png'), enabled: can },
+    { id: 'file.export.plotSvg', run: () => void save('svg'), enabled: can },
+    { id: 'file.export.plotCsv', run: () => void save('csv'), enabled: () => can() && !eyev && traces.length > 0 },
+    { id: 'file.export.plotWav', run: () => void save('wav'), enabled: () => can() && canWav }
   ] : [])
+  const many = runs.length > 2 // sweeps / Monte Carlo / worst case: histograms over the runs
+  const histBtn = (id: string, what: string) => (
+    <Tip label={`Histogram and statistics of ${what} over the ${runs.length} runs`}>
+      <Button variant="ghost" size="icon-xs" className="ml-1 size-4 align-middle text-muted-foreground" aria-label={`Histogram of ${what}`} onClick={() => setHist(id)}><ChartColumn className="size-3" /></Button>
+    </Tip>
+  )
 
   if (!chart) {
     // .op or single-point results: a table reads better than a chart; one column per sweep run
+    const opv = (plot: RawPlot, v: RawVar) => plot.vars.find((w) => lc(w) === lc(v))?.re[0] ?? null
+    const hv = hist?.startsWith('op:') ? rows.find((v) => 'op:' + lc(v) === hist) : undefined
     return (
-      <table className="m-4 font-mono text-xs">
-        {runs.length > 1 && (
-          <TableHeader>
-            <TableRow className="hover:bg-transparent"><TableHead className="h-8 px-4" />{runs.map((r, i) => <TableHead key={i} className="h-8 px-4 text-right font-medium text-muted-foreground">{r.label}</TableHead>)}</TableRow>
-          </TableHeader>
+      <div className="absolute inset-0 overflow-auto">
+        {hv && (
+          <div className="m-4 mb-0">
+            <Histogram id={hist!} title={`${pretty(hv.name)} over ${runs.length} runs`} values={runs.map(({ plot }) => opv(plot, hv))} labels={runs.map((r) => r.label)} unit={UNIT[hv.type] ?? ''} onClose={() => setHist(null)} />
+          </div>
         )}
-        <TableBody>
-          {rows.map((v) => (
-            <TableRow key={v.name}>
-              <TableCell className="px-4 py-1">{pretty(v.name)}</TableCell>
-              {runs.map(({ plot }, i) => (
-                <TableCell key={i} className="px-4 py-1 text-right text-hl">{eng(plot.vars.find((w) => lc(w) === lc(v))?.re[0] ?? null, UNIT[v.type])}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </table>
+        <table className="m-4 font-mono text-xs">
+          {runs.length > 1 && (
+            <TableHeader>
+              <TableRow className="hover:bg-transparent"><TableHead className="h-8 px-4" />{runs.map((r, i) => <TableHead key={i} className="h-8 px-4 text-right font-medium text-muted-foreground">{r.label}</TableHead>)}</TableRow>
+            </TableHeader>
+          )}
+          <TableBody>
+            {rows.map((v) => (
+              <TableRow key={v.name}>
+                <TableCell className="px-4 py-1">{pretty(v.name)}{many && histBtn('op:' + lc(v), pretty(v.name))}</TableCell>
+                {runs.map(({ plot }, i) => (
+                  <TableCell key={i} className="px-4 py-1 text-right text-hl">{eng(opv(plot, v), UNIT[v.type])}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </table>
+      </div>
     )
   }
 
@@ -335,12 +420,37 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
   )
   const field = 'h-7 font-mono text-xs md:text-xs'
   const bad = 'w-full font-sans text-[11px] leading-tight text-err'
+  const z0v = spiceValue(z0), eyeT = spiceValue(eye.period), eyeOff = eye.offset.trim() ? spiceValue(eye.offset) : 0
+  const ht = hist && !cplxv && !eyev ? traces.find((t) => `${t.key}|${t.pane}` === hist) : undefined // histogram of a trace at cursor A
   return (
     <div className="plot">
       <div className="row-span-3 flex flex-col gap-1 overflow-y-auto border-r p-2.5">
-        {first.complex && seg([['db', 'Magnitude'], ['phase', 'Phase']], mode, setMode)}
-        {canFft && seg([['time', 'Time'], ['fft', 'FFT']], view, (v) => (v === 'fft' ? toFft() : setView(v)))}
+        {first.complex && seg([['bode', 'Bode'], ['db', 'Magnitude'], ['phase', 'Phase']], mode, setMode)}
+        {first.complex && seg([['nyquist', 'Nyquist'], ['polar', 'Polar'], ['smith', 'Smith']], mode, setMode)}
+        {first.complex && (bodev || mode === 'phase') && (
+          <label className="mb-2 flex cursor-pointer items-center gap-1.5 text-xs"><Checkbox checked={unw} onCheckedChange={(c) => setUnw(!!c)} className="size-3.5" />Unwrap phase</label>
+        )}
+        {first.complex && mode === 'smith' && (
+          <Tip label="Reference impedance. Impedance traces (Ω, e.g. v(in)/i(v1)) are drawn as Γ = (Z − Z0)/(Z + Z0); S-parameters as they are" side="right">
+            <label className="mb-2 flex items-center gap-1.5 text-xs">Z0<Input className={field + ' w-20'} aria-invalid={!(z0v > 0)} aria-label="Reference impedance Z0" value={z0} onChange={(e) => setZ0(e.target.value)} />Ω</label>
+          </Tip>
+        )}
+        {canFft && seg([['time', 'Time'], ['fft', 'FFT'], ['eye', 'Eye']], view, (v) => (v === 'fft' ? toFft() : setView(v)))}
         {fftv && seg([['log', 'Log f'], ['lin', 'Linear f']], fftLog ? 'log' : 'lin', (v) => setFftLog(v === 'log'))}
+        {eyev && (
+          <div className="mb-2 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-xs">
+            <span>Trace</span>
+            {/* native <select>: Radix Select lists open off-screen in the pop-out window */}
+            <select value={eyeKey} onChange={(e) => setEye({ ...eye, key: e.target.value })} className={SELECT + ' h-7 w-full min-w-0 font-mono'} aria-label="Eye diagram trace">
+              {!traces.length && <option value="">Tick a trace</option>}
+              {traces.filter((t) => !t.run).map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+            </select>
+            <span>Bit period</span>
+            <Input className={field} aria-invalid={!!eye.period && !(eyeT > 0)} aria-label="Bit period" placeholder="e.g. 1u" value={eye.period} onChange={(e) => setEye({ ...eye, period: e.target.value })} />
+            <span>Offset</span>
+            <Input className={field} aria-invalid={isNaN(eyeOff)} aria-label="Offset" placeholder="0" value={eye.offset} onChange={(e) => setEye({ ...eye, offset: e.target.value })} />
+          </div>
+        )}
         <Tip label="Filter by name, e.g. ecg, i(d1), x3. Enter toggles the first match" side="right">
           <Input
             className={field}
@@ -390,8 +500,14 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
         </Tip>
         {draftErr && <div className={bad}>{draftErr}</div>}
       </div>
-      <div className="chart" ref={host} />
-      {(cur.a != null || cur.b != null) && (
+      {cplxv ? (
+        <ComplexView key={mode} kind={mode as CvKind} traces={ctraces} z0={z0v > 0 ? z0v : 50} curs={cur} xUnit={xUnit} api={cv}
+          onCur={(k, x) => setCurs((c) => ({ ...c, [view]: { ...c[view], [k]: x } }))} />
+      ) : eyev ? (
+        eyeT > 0 && !isNaN(eyeOff) && eyeTraces.length ? <Eye traces={eyeTraces} period={eyeT} offset={eyeOff} unit={traces.find((t) => t.key === eyeKey)!.unit} name={traces.find((t) => t.key === eyeKey)!.name} onChart={(u) => (uref.current = u ? [u] : [])} />
+          : <div className="chart grid place-items-center text-xs text-muted-foreground">{eyeTraces.length ? 'Enter the bit period (and an offset) to fold the trace into an eye diagram' : 'Tick a trace for the eye diagram'}</div>
+      ) : <div className="chart" ref={host} />}
+      {(cur.a != null || cur.b != null) && !cplxv && !eyev && (
         <div className="max-h-[140px] min-w-0 overflow-auto border-t px-2">
           {/* plain <table>, not <Table>: its own scroll wrapper would break the sticky header */}
           <table className="w-full font-mono text-[11px]">
@@ -418,8 +534,10 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
                 const dy = ya != null && yb != null ? yb - ya : null
                 const label = runs.length > 1 && runs[t.run].label ? `${t.name} · ${runs[t.run].label}` : t.name
                 return (
-                  <TableRow key={t.run + ' ' + t.key}>
-                    <TableCell className={RD} style={{ '--c': color(hue(t.key), t.run, runs.length) } as CSSProperties}><span className="sw" />{label}</TableCell>
+                  <TableRow key={t.run + ' ' + t.key + ' ' + t.pane}>
+                    <TableCell className={RD} style={{ '--c': color(hue(t.key), t.run, runs.length) } as CSSProperties}>
+                      <span className="sw" />{label}{many && !t.run && cur.a != null && histBtn(`${t.key}|${t.pane}`, `${t.name}${bodev ? ` (${t.unit})` : ''} at A`)}
+                    </TableCell>
                     <TableCell className={RD}>{fmt(ya, t.unit)}</TableCell>
                     <TableCell className={RD}>{fmt(yb, t.unit)}</TableCell>
                     <TableCell className={RD}>{dy != null && fmt(dy, t.unit)}</TableCell>
@@ -436,16 +554,24 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
           {note ||
             (fftv
               ? `Hann window · N = ${fftInfo.n} · Δf = ${eng(fftInfo.df, 'Hz')} · ${fftRange ? `${eng(fftRange[0], 's')} – ${eng(fftRange[1], 's')} (cursors A–B)` : 'whole run (place cursors A and B to pick a window)'} · set a fine max step (.tran … 0 tmax) for an accurate spectrum`
+              : cplxv ? `Hover a trace for its frequency and value · click: cursor A · ⇧click: cursor B${mode === 'smith' ? '' : ' · wheel: zoom · double-click: reset'}${cur.a != null ? ` · A = ${eng(cur.a, xUnit)}` : ''}${cur.b != null ? ` · B = ${eng(cur.b, xUnit)}` : ''}`
+              : eyev ? 'Every bit period from the offset on, drawn over each other · drag to zoom · double-click to reset'
               : 'Drag to zoom · double-click to reset · click: cursor A · ⇧click: cursor B · drag a cursor to move it')}
         </span>
         <span className="flex gap-0.5">
-          {(['png', 'svg', 'csv', ...(canWav ? ['wav' as const] : [])] as const).map((k) => (
+          {(eyev ? (['png', 'svg'] as const) : (['png', 'svg', 'csv', ...(canWav ? ['wav' as const] : [])] as const)).map((k) => (
             <Tip key={k} label={`Export ${k.toUpperCase()}`}>
               <Button variant="ghost" size="xs" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => void save(k)}>{k.toUpperCase()}</Button>
             </Tip>
           ))}
         </span>
       </div>
+      {ht && (
+        <div className="absolute inset-0 z-20 overflow-auto bg-background p-3">
+          <Histogram id={hist!} title={`${ht.name}${bodev ? ` (${ht.unit})` : ''} at A = ${eng(cur.a ?? null, xUnit)} over ${runs.length} runs`} unit={ht.unit} onClose={() => setHist(null)}
+            labels={runs.map((r) => r.label)} values={runs.map((_, r) => { const t = traces.find((t) => t.run === r && `${t.key}|${t.pane}` === hist); return t && cur.a != null ? at(t.x, t.y, cur.a) : null })} />
+        </div>
+      )}
     </div>
   )
 }

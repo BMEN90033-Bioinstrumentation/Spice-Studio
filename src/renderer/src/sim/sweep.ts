@@ -1,11 +1,17 @@
-// LTspice-style .step param / .step temp sweeps and .mc Monte Carlo, run as one ngspice job each. Pure TS.
+// LTspice-style .step param / .step temp sweeps, .mc Monte Carlo and .wc worst case, run as one ngspice job each. Pure TS.
 import { spiceValue } from './analysis.ts'
+import { parseMeas } from './meas.ts'
 
 export interface Step { param: string; values: number[]; temp?: true } // temp: `.step temp …` (param 'temp')
-export interface SweepRun { label: string; netlist: string } // "R=1k", "R=1k, T=25", "run 3"; '' when no .step/.mc
+// label: "R=1k", "R=1k, T=25", "run 3", "R+ C−"; '' when no .step/.mc/.wc. skip: don't run it, log the label (.wc)
+export interface SweepRun { label: string; netlist: string; skip?: boolean }
+// note: a line for the log (.wc says what it ran); observe: called with each finished run's log, in order (.wc's
+// sensitivity fallback picks its last corners from the earlier runs' .meas results, so those runs' fields are getters)
+export interface Sweep { runs: SweepRun[]; errors: string[]; note?: string; observe?: (log: string) => void }
 
 const MAX_RUNS = 50, MAX_STEPS = 3, MAX_MC = 500
-const STEP = /^\s*\.step\b/i, MC = /^\s*\.mc\b/i, TEMP = /^\s*\.temp\b/i
+export const MAX_WC = 8 // .wc runs all 2^n corners up to n = 8 toleranced values (256 corners), else the sensitivity fallback
+const STEP = /^\s*\.step\b/i, MC = /^\s*\.mc\b/i, TEMP = /^\s*\.temp\b/i, WC = /^\s*\.wc\b/i
 const round = (v: number) => Number(v.toPrecision(12)) // kills 0.30000000000000004-style drift
 
 export function parseSteps(netlist: string): { steps: Step[]; errors: string[] } {
@@ -62,7 +68,7 @@ const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // ngspice: a later `.param X=` overrides an earlier one (checked on ngspice-47), so editing every existing
 // assignment in place keeps dependent params ({2*X}) consistent; otherwise a new .param goes before .end.
-function setParam(lines: string[], name: string, value: number): string[] {
+export function setParam(lines: string[], name: string, value: number): string[] {
   const re = new RegExp(`(^|[\\s,])(${esc(name)})(\\s*=\\s*)(\\{[^}]*\\}|'[^']*'|[^\\s,]+)`, 'gi')
   let hit = false
   const out = lines.map((l) => (/^\s*\.param\b/i.test(l) ? l.replace(re, (_, pre, n, eq) => ((hit = true), `${pre}${n}${eq}${value}`)) : l))
@@ -88,7 +94,7 @@ function monteCarlo(netlist: string): { runs: SweepRun[]; errors: string[] } {
   const bad = (e: string) => ({ runs: [], errors: [e] })
   if (mc.length > 1) return bad('Only one .mc line is allowed')
   // ponytail: .mc with .step would need a seed per (combination, run); reject until someone asks
-  if (lines.some((l) => STEP.test(l))) return bad('.mc cannot be combined with .step: use one or the other')
+  if (lines.some((l) => STEP.test(l) || WC.test(l))) return bad('.mc cannot be combined with .step or .wc: use one of them')
   if (!Number.isInteger(n) || n < 1 || n > MAX_MC) return bad(`${mc[0].trim()}: expected ".mc N" with N from 1 to ${MAX_MC}`)
   const base = lines.filter((l) => !MC.test(l))
   return {
@@ -97,8 +103,101 @@ function monteCarlo(netlist: string): { runs: SweepRun[]; errors: string[] } {
   }
 }
 
-export function expandSweep(netlist: string): { runs: SweepRun[]; errors: string[] } {
+// Tolerances, written as for .mc: gauss(nom, rel, sigma) / unif(nom, rel) vary by ±rel·nom at their limit,
+// agauss(nom, abs, sigma) / aunif(nom, abs) / limit(nom, abs) by ±abs; sunif(0) by ±1 and sgauss(0) by ±3 (3σ). Each call
+// in the deck is one toleranced value, named after its .param (R), its element (R1) or its .model parameter (QN.BF).
+// Only calls in .param lines or inside {…} or '…' count (a B-source's own functions don't); text after ; is a comment.
+export type Tol = { name: string; line: number; start: number; end: number; nom: string; dev: string; rel: boolean }
+const ARGS: Record<string, [number, number]> = { gauss: [2, 3], agauss: [2, 3], unif: [2, 2], aunif: [2, 2], limit: [2, 2], sgauss: [1, 1], sunif: [1, 1] }
+export function tolerances(lines: string[]): Tol[] {
+  const out: Tol[] = [], FN = /\b(agauss|gauss|aunif|unif|limit|sgauss|sunif)\s*\(/gi
+  let head: string[] = [] // the first tokens of the logical line ('+' lines continue it)
+  lines.forEach((full, line) => {
+    if (/^\s*\*/.test(full)) return
+    const l = full.replace(/;.*$|\s\$\s.*$/, ''), cont = /^\s*\+/.test(l)
+    if (!cont) head = l.trim().split(/\s+/)
+    const param = /^\.param$/i.test(head[0] ?? '')
+    for (const m of l.matchAll(FN)) {
+      const args: string[] = []
+      let d = 0, a = m.index + m[0].length, end = -1
+      for (let i = a; i < l.length && end < 0; i++) {
+        if (l[i] === '(') d++
+        else if (l[i] === ')' && d-- === 0) args.push(l.slice(a, i)), (end = i + 1)
+        else if (l[i] === ',' && !d) args.push(l.slice(a, i)), (a = i + 1)
+      }
+      const f = m[1].toLowerCase(), [lo, hi] = ARGS[f], pre = l.slice(0, m.index)
+      const braced = pre.split('{').length > pre.split('}').length || pre.split("'").length % 2 === 0 // inside {…} or '…'
+      if (end < 0 || args.length < lo || args.length > hi || !(param || braced)) continue
+      const assigned = /([a-z_]\w*)\s*=[^=]*$/i.exec(cont ? pre.replace(/^\s*\+/, '') : pre)?.[1]
+      let name = !/^\./.test(head[0] ?? '') ? head[0] : /^\.model$/i.test(head[0]) && assigned ? `${head[1]}.${assigned}` : (assigned ?? `tol${out.length + 1}`)
+      if (out.some((t) => t.name === name)) name += `#${out.length + 1}`
+      const std = f === 'sgauss' || f === 'sunif' // a standard random number: nominal 0
+      out.push({ name, line, start: m.index, end, nom: std ? '0' : args[0].trim(), dev: std ? (f === 'sgauss' ? '3' : '1') : args[1].trim(), rel: f === 'gauss' || f === 'unif' })
+    }
+  })
+  return out
+}
+// the deck with every tolerance at sign -1 (low limit), 0 (nominal) or +1 (high limit), as expressions ngspice evaluates
+export function atCorner(lines: string[], tols: Tol[], signs: number[]): string[] {
+  const out = [...lines]
+  tols.map((t, j) => [t, signs[j]] as const).sort(([a], [b]) => b.line - a.line || b.start - a.start).forEach(([t, s]) => {
+    const v = !s ? `(${t.nom})` : t.rel ? `((${t.nom})*(1${s < 0 ? '-' : '+'}(${t.dev})))` : `((${t.nom})${s < 0 ? '-' : '+'}(${t.dev}))`
+    out[t.line] = out[t.line].slice(0, t.start) + v + out[t.line].slice(t.end)
+  })
+  return out
+}
+
+// .wc [meas …]: worst case over the tolerances. Up to MAX_WC values: the nominal circuit, then all 2^n corners. Above
+// that, extreme-value selection by sensitivity: nominal, each value alone at its high limit, then per measurement (the
+// named ones, else every .meas) the corner that maximises it and the one that minimises it, assuming each measurement
+// is monotonic in each value.
+function worstCase(netlist: string): Sweep {
+  const lines = netlist.split('\n'), wc = lines.filter((l) => WC.test(l))
+  const bad = (e: string) => ({ runs: [], errors: [e] })
+  if (wc.length > 1) return bad('Only one .wc line is allowed')
+  if (lines.some((l) => STEP.test(l))) return bad('.wc cannot be combined with .step: use one or the other')
+  const base = lines.filter((l) => !WC.test(l)), tols = tolerances(base), n = tols.length
+  if (!n) return bad('.wc: no toleranced values. Write them as for .mc, e.g. .param R={gauss(1k,0.05,3)} or R1 a b {unif(1k,0.01)}')
+  const at = (signs: number[]) => atCorner(base, tols, signs).join('\n')
+  const label = (signs: number[]) => tols.map((t, j) => t.name + (signs[j] > 0 ? '+' : '−')).join(' ')
+  const nominal = { label: 'nominal', netlist: at(tols.map(() => 0)) }, names = tols.map((t) => t.name).join(', ')
+  if (n <= MAX_WC) {
+    const corners = Array.from({ length: 2 ** n }, (_, k) => tols.map((_, j) => ((k >> j) & 1 ? 1 : -1)))
+    return { runs: [nominal, ...corners.map((s) => ({ label: label(s), netlist: at(s) }))], errors: [], note: `Worst case: ${n} toleranced value${n > 1 ? 's' : ''} (${names}): the nominal circuit and all ${2 ** n} corners` }
+  }
+  const named = wc[0].trim().split(/\s+/).slice(1).map((m) => m.toLowerCase())
+  const inDeck = base.flatMap((l) => (/^\s*\.meas(ure)?\s/i.test(l) ? [l.trim().split(/\s+/)[2]?.toLowerCase()].filter(Boolean) : []))
+  const unknown = named.filter((m) => !inDeck.includes(m))
+  if (unknown.length) return bad(`.wc ${unknown.join(' ')}: no .meas line named ${unknown.join(', ')}${inDeck.length ? ` (the deck measures ${inDeck.join(', ')})` : ''}`)
+  const meas = named.length ? named : inDeck
+  if (!meas.length) return bad(`.wc: ${n} toleranced values need ${2 ** n} corners (more than ${2 ** MAX_WC}). Add a .meas line: the app then picks each measurement's worst corners from its sensitivity to each value`)
+  const logs: string[] = [], val = (run: number, m: string) => parseMeas(logs[run] ?? '').find((x) => x.name === m)?.value ?? null
+  // +1: this value at its high limit raises measurement m, −1 lowers it (no change counts as +1); null: m has no value in
+  // the nominal or a sensitivity run (failed, or not printed), so its corners can't be picked
+  const dir = (m: string) => {
+    const a = val(0, m), d = tols.map((_, j) => { const b = val(1 + j, m); return a == null || b == null ? null : b < a ? -1 : 1 })
+    return d.includes(null) ? null : (d as number[])
+  }
+  // a corner that can't be picked is marked skip: the run loop logs its label and doesn't run it
+  const pick = (m: string, s: 1 | -1) => ({
+    get skip() { return !dir(m) },
+    get label() { const d = dir(m); return `${s > 0 ? 'max' : 'min'} ${m}: ${d ? label(d.map((x) => x * s)) : `skipped, ${m} has no value in the nominal or a sensitivity run (see their logs)`}` },
+    get netlist() { const d = dir(m); return d ? at(d.map((x) => x * s)) : '' }
+  })
+  return {
+    runs: [nominal, ...tols.map((t, j) => ({ label: `${t.name}+ alone`, netlist: at(tols.map((_, k) => +(k === j))) })), ...meas.flatMap((m) => [pick(m, 1), pick(m, -1)])],
+    errors: [],
+    note: `Worst case: ${n} toleranced values (${names}) would need ${2 ** n} corners (more than ${2 ** MAX_WC}), so they are estimated from sensitivities: the nominal circuit, each value alone at its high limit, then for ${meas.join(', ')} the corner that maximises and the one that minimises it. This assumes each measurement changes monotonically with each value.`,
+    observe: (log) => void logs.push(log)
+  }
+}
+
+// worst-case runs (their measurement statistics are corners, not a distribution: no mean or σ)
+export const isWorstCase = (labels: string[]) => /^nominal(,|$)/.test(labels[0] ?? '') && labels.length > 1 // 'nominal, V2=1': nested .dc
+
+export function expandSweep(netlist: string): Sweep {
   if (netlist.split('\n').some((l) => MC.test(l))) return monteCarlo(netlist)
+  if (netlist.split('\n').some((l) => WC.test(l))) return worstCase(netlist)
   const { steps, errors } = parseSteps(netlist)
   if (errors.length) return { runs: [], errors }
   if (!steps.length) return { runs: [{ label: '', netlist }], errors }

@@ -33,6 +33,7 @@ import { parseMeas } from './sim/meas'
 import { plotRuns, startSel } from './sim/results'
 import { expandSweep } from './sim/sweep'
 import { keepSel, liveRun, progress } from './sim/live'
+import { tunedNote, withKnobs, type Knob } from './sim/tune'
 import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -258,6 +259,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [status, setStatus] = useState(session.kind === 'project' && session.warn ? session.warn : 'Ready')
   const [running, setRunning] = useState(false)
   const stopReq = useRef(false) // Stop between sweep runs, when no ngspice is alive to kill
+  const tuned = useRef<Knob[]>([]), superseded = useRef(false) // live tuning (plot/Tune.tsx): slider values for every run; a run a slider move stopped keeps the old plot
   const [meas, setMeas] = useState<MeasTable | null>(null)
   const [diag, setDiag] = useState<Diagnosis[]>([]) // convergence help for the last run
   // compat / timeout: stored in the .nsproj for projects, per session for loose files; simEdit = the open settings bar
@@ -497,6 +499,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
 
   async function run() {
     if (running) return
+    superseded.current = false
     // unopened, saved sheets: pick up edits made outside the app since the project was opened
     if (pdir && isSch)
       for (const f of Object.keys(disk.current))
@@ -524,15 +527,19 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     }
     const ercWarn = nl ? issues('Warning', chk.warnings) : []
     if (chk.warnings.length) pre = issues('Warning', chk.warnings).map((w) => w.line).join('\n') + '\n' + pre
+    if (tuned.current.length) (net = withKnobs(net, tuned.current)), (pre += tunedNote(tuned.current) + '\n')
     const sweep = expandSweep(net)
+    if (sweep.note) pre += sweep.note + '\n'
     if (sweep.errors.length) return fail(pre + errLog(sweep.errors), `Sweep errors (${sweep.errors.length})`)
     const opts: SimOptions = { compat: sim.compat ?? (isSch ? autoCompat(sheetsNow(), resolve) : undefined), timeoutS: sim.timeoutS }
     setRunning(true), setDiag([]), (stopReq.current = false)
+    const quiet = tuned.current.length > 0 // tuning (plot/Tune.tsx): no live fill, the old plot stays until the run is done
     const t0 = performance.now(), n = sweep.runs.length, done: Run[] = []
     let out = '', ok = true, stopped: Stopped | undefined
     try {
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
+        if (s.skip) { out += `--- ${s.label} ---\n`; continue } // .wc: a corner it couldn't pick (sim/sweep.ts)
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
         // live: the plots fill in while ngspice runs (sim/live.ts), with progress in the status bar
         const lv = liveRun()
@@ -543,17 +550,24 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           const pc = progress(last, s.netlist)
           setStatus(`${n > 1 ? `Running ${i + 1}/${n} (${s.label})` : 'Running'}…${pc == null ? '' : ` ${Math.floor(pc * 100)}%`}`)
           const rs = [...done, { label: s.label, result: { ok: true, log: '', plots }, netlist: s.netlist }]
-          setRuns(rs), fillSels(rs)
+          if (!quiet) setRuns(rs), fillSels(rs)
         })
         // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
         const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
         out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
         if ((stopped = r.stopped)) { if (r.plots.length) done.push({ label: s.label, result: r, netlist: s.netlist }); break } // keep what the cut-off run computed too
         done.push({ label: s.label, result: r, netlist: s.netlist })
+        sweep.observe?.(r.log)
         if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
       }
     } finally {
       setRunning(false)
+    }
+    // tuning: a run a slider move stopped is replaced by the next one (a normal run's live partial plots go back to the plot
+    // before it); a tuning run the user stopped keeps the last finished plot. A normal run the user stopped keeps its part.
+    if (stopped === 'user' && (superseded.current || quiet)) {
+      if (!quiet) setRuns(runs)
+      return setStatus(superseded.current ? 'Stopped: the tuning sliders moved' : 'Stopped: the plot shows the last finished run')
     }
     const mt = done.map((r) => ({ label: r.label, rows: parseMeas(r.result.log) }))
     setMeas(mt.some((r) => r.rows.length) ? mt : null)
@@ -988,7 +1002,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
               </div>
             </section>
             {panels.results((actions) => (
-              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined} />
+              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined}
+                tune={{ netlist: runs?.[0]?.netlist ?? '', knobs: tuned.current, running, set: (k) => void (tuned.current = k), run, cancel: () => ((superseded.current = true), stop()) }} />
             ))}
           </main>
         </div>
