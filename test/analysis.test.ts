@@ -194,6 +194,7 @@ test('logicalLines: + continues past comment and blank lines, inline comments cu
     { text: '.tran 1u 1m', rows: [6, 7], note: '' }
   ])
   assert.deepEqual(logicalLines('a$b c\nV(x) 1;n').map((l) => l.text), ['a$b c', 'V(x) 1']) // $ only with spaces around
+  assert.deepEqual(logicalLines('.ac dec 10\n  # note\n+ 1 1k'), [{ text: '.ac dec 10 1 1k', rows: [0, 2], note: '' }])
 })
 
 test('.plot lines become panes for their analysis only', () => {

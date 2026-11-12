@@ -77,7 +77,7 @@ const SWEEPS = ['dec', 'oct', 'lin']
 
 const BRACES = /\{[^{}]*\}/g, squash = (m: string) => m.replace(/\s+/g, '')
 // A deck's logical lines, read the way ngspice does: inline comments (`;`, ` $ `, `//`) are cut from each physical line,
-// `*` and blank lines are skipped, and a `+` line continues the previous line left. rows: its physical line numbers
+// `*`, `#` and blank lines are skipped (leading blanks allowed, checked on ngspice-47), and a `+` line continues the previous line left. rows: its physical line numbers
 // (0-based); note: its `;` comment text (a .plot title).
 export type LogicalLine = { text: string; rows: number[]; note: string }
 export function logicalLines(deck: string): LogicalLine[] {
@@ -85,7 +85,7 @@ export function logicalLines(deck: string): LogicalLine[] {
   deck.split('\n').forEach((raw, i) => {
     const c = raw.search(/;|(^|\s)\$(\s|$)|\/\//), l = (c < 0 ? raw : raw.slice(0, c)).trim(), sc = raw.indexOf(';')
     const note = sc < 0 ? '' : raw.slice(sc + 1).trim(), last = out[out.length - 1]
-    if (!l || l.startsWith('*')) return
+    if (!l || /^[*#]/.test(l)) return
     if (l.startsWith('+') && last) (last.text += ' ' + l.slice(1).trim()), last.rows.push(i), (last.note = [last.note, note].filter(Boolean).join('; '))
     else out.push({ text: l, rows: [i], note })
   })

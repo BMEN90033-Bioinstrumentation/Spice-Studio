@@ -239,6 +239,8 @@ test('the .meas pass reads + lines past comments and blank lines, as ngspice doe
   near(rc(['R1 in out 1k'], ['.tran 10u', '* note', '+ 40m'])!, rcRef, 1e-6)
   near(rc(['R1 in out 1k'], ['.tran 10u', '', '+ 40m'])!, rcRef, 1e-6)
   near(rc(['R1 in out 1k'], ['.tran 10u $ step', '+ 40m'])!, rcRef, 1e-6)
+  near(rc(['R1 in out 1k'], ['.tran 10u 40m', '.ac dec 10', '# note', '+ 1 1k'])!, rcRef, 1e-6) // # is a comment line too
+  near(rc(['R1 in out', '   #note', '+ 1k'], ['.tran 10u', '  # x', '+ 40m'])!, rcRef, 1e-6)
 })
 
 test('measDeck leaves the deck as it was, apart from commenting out unmeasured analyses and adding .control', () => {
