@@ -27,8 +27,8 @@ const RAW: Record<string, { name: string; dark: boolean; c: string }> = {
 }
 
 export const SCH_DEFAULT = 'default' // the app's own colours, following Settings › Theme
-type Colors = Record<(typeof KEYS)[number], string>
-const colors = (c: string) => Object.fromEntries(c.split(' ').map((v, i) => [KEYS[i], v])) as Colors
+export type SchColors = Record<(typeof KEYS)[number], string>
+const colors = (c: string) => Object.fromEntries(c.split(' ').map((v, i) => [KEYS[i], v])) as SchColors
 export const SCH_THEMES = Object.entries(RAW).map(([id, t]) => ({ id, name: t.name, dark: t.dark, c: colors(t.c) }))
 export const SCH_THEME_IDS = [SCH_DEFAULT, ...Object.keys(RAW)]
 

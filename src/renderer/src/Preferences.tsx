@@ -1,7 +1,7 @@
 // Preferences: the live store (main/prefs.ts owns the file and pushes every change to every window) and the
 // Settings page: fills the main window, with a tab down the side per section. App menu › Settings… / File › Preferences…, Mod+,,
 // or Settings on the Home page.
-import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import type { Compat } from './contracts'
 import { setKeys, useCommands } from './commands'
 import { keyLabel } from './layout/Panel'
@@ -10,7 +10,7 @@ import { About, type Info } from './Help'
 import { Activity, ArrowLeft, CircuitBoard, Cpu, FolderPlus, Grid3x3, Grip, History, Info as InfoIcon, Keyboard, Monitor, Moon, Move, Palette, RotateCcw, Sun, ZoomIn, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { COMPATS } from './project/project'
-import { SCH_DEFAULT, SCH_THEMES, schThemeCss } from './schematic/themes'
+import { SCH_DEFAULT, SCH_THEMES, schThemeCss, type SchColors } from './schematic/themes'
 import { AUTOSAVE_MAX, AUTOSAVE_MIN, EDITOR_FONTS, PLOT_WIDTHS, UI_SCALES, type Prefs, type Theme } from './prefs'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -131,21 +131,40 @@ const PathText = ({ path, empty }: { path: string; empty: string }) => (
     <bdi dir="ltr">{path || <span className="font-sans text-muted-foreground">{empty}</span>}</bdi>
   </code>
 )
-// Schematic colours: a small circuit drawn in each theme's colours (Default: the app's own, from the stylesheet)
-type SchColors = Pick<(typeof SCH_THEMES)[number]['c'], 'background' | 'grid' | 'component_outline' | 'component_body' | 'reference' | 'value' | 'wire' | 'junction'>
+// Schematic colours: a sample circuit drawn in a theme's colours, every one of them in use (Default: the app's own, from the stylesheets)
 const SCH_PREVIEWS: { id: string; name: string; c: SchColors }[] = [{ id: SCH_DEFAULT, name: 'Default', c: { background: 'var(--bg)', grid: 'var(--line-strong)', component_outline: 'var(--sym)',
-  component_body: 'color-mix(in srgb, var(--sym) 14%, transparent)', reference: 'var(--text)', value: 'var(--dim)', wire: 'var(--wire)', junction: 'var(--wire)' } }, ...SCH_THEMES]
+  component_body: 'color-mix(in srgb, var(--sym) 14%, transparent)', reference: 'var(--text)', value: 'var(--dim)', wire: 'var(--wire)', junction: 'var(--wire)',
+  bus: 'light-dark(#2f6fb0, #5b9bd5)', note: 'light-dark(#4a5d73, #8fa3ba)', no_connect: 'var(--err)', erc_error: 'var(--err)' } }, ...SCH_THEMES] // bus, note: as schematic.css
+// laid out so that no text, wire or part touches another, and text sits between the grid rows (dots every 20)
 const SchPreview = ({ c, className }: { c: SchColors; className?: string }) => (
-  <svg viewBox="0 0 80 50" className={className} style={{ background: c.background }} fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {[10, 30, 50, 70].flatMap((x) => [8, 25, 42].map((y) => <circle key={x + ',' + y} cx={x} cy={y} r=".6" fill={c.grid} />))}
-    <path d="M14 25V16H28M48 16H74M64 16V24M64 28V42H14V39" stroke={c.wire} />
-    <path d="M28 16l2-4 4 8 4-8 4 8 4-8 2 4M57 24H71M57 28H71" stroke={c.component_outline} />
-    <circle cx="14" cy="32" r="7" stroke={c.component_outline} fill={c.component_body} />
-    <circle cx="64" cy="16" r="1.8" fill={c.junction} />
-    <text x="38" y="8" textAnchor="middle" fontSize="6" fontFamily="var(--mono)" fill={c.reference}>R1</text>
-    <text x="38" y="29" textAnchor="middle" fontSize="6" fontFamily="var(--mono)" fill={c.value}>10k</text>
+  <svg viewBox="0 0 240 146" className={className} style={{ background: c.background }} fill="none" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fontSize="7" fontFamily="var(--mono)" aria-hidden="true">
+    {Array.from({ length: 12 }, (_, i) => 10 + 20 * i).flatMap((x) => [10, 30, 50, 70, 90, 110, 130].map((y) => <circle key={x + ',' + y} cx={x} cy={y} r=".7" fill={c.grid} />))}
+    {/* wires: source to the RC filter, into the buffer and its feedback, out to the port; ground rail; the bus taps */}
+    <path d="M30 70V30H50M80 30H130M100 30V56M100 62V110M30 90V110H100M65 110V116M166 40H204M190 40V76H120V50H130M204 88V116M220 88V116" stroke={c.wire} />
+    <path d="M130 116H232" stroke={c.bus} strokeWidth="3.2" />
+    <g stroke={c.component_outline}>
+      <circle cx="30" cy="80" r="10" fill={c.component_body} />
+      <path d="M130 20V60L166 40ZM204 35H218L223 40L218 45H204Z" fill={c.component_body} />
+      <path d="M30 74V78M28 76H32M28 85H32M50 30l3-6 6 12 6-12 6 12 6-12 3 6M90 56H110M90 62H110M58 116H72M61 119H69M64 122H66M140 25.6V16M133 30H137M135 28V32M133 50H137" />
+    </g>
+    {[[100, 30], [65, 110], [190, 40]].map(([x, y]) => <circle key={x} cx={x} cy={y} r="2" fill={c.junction} />)}
+    <path d="M137 9l6 6M143 9l-6 6" stroke={c.no_connect} />
+    <rect x="196" y="64" width="32" height="24" stroke={c.erc_error} strokeDasharray="3 2.5" />
+    <text x="212" y="82" textAnchor="middle" fill={c.erc_error}>X1 ?</text>
+    <g fill={c.reference}>
+      <text x="45" y="78">V1</text><text x="65" y="20" textAnchor="middle">R1</text><text x="86" y="58" textAnchor="end">C1</text><text x="174" y="26">U1</text>
+      <text x="213" y="26" textAnchor="middle">out</text><text x="132" y="126">D[0..3]</text>
+    </g>
+    <g fill={c.value}><text x="45" y="86">5V</text><text x="65" y="46" textAnchor="middle">10k</text><text x="86" y="66" textAnchor="end">10n</text><text x="174" y="58">741</text></g>
+    <text x="12" y="139" fill={c.note}>Note: RC low-pass, buffered</text>
   </svg>
 )
+// a theme at a glance: its colours round a ring (each once), its background in the middle
+const SchSwatch = ({ c: { background, ...rest } }: { c: SchColors }) => {
+  const ring = [...new Set(Object.values(rest))]
+  return <span aria-hidden="true" className="size-4 shrink-0 rounded-full border border-foreground/25"
+    style={{ background: `radial-gradient(${background} 0 34%, transparent 38%), conic-gradient(${[...ring, ring[0]].join(',')})` }} />
+}
 // number box committed on Enter / blur (each keystroke would be clamped mid-typing)
 function Num({ id, value, unit, min, max, placeholder, onCommit }: { id: string; value?: number; unit: string; min: number; max?: number; placeholder?: string; onCommit: (v: number | undefined) => void }) {
   const [t, setT] = useState(value == null ? '' : String(value))
@@ -225,6 +244,7 @@ function PreferencesPanel() {
   const p = usePrefs()
   const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
   const [defDir, setDefDir] = useState('')
+  const [hl, setHl] = useState<string | null>(null) // Schematic colours: the highlighted item in the open list
   useEffect(() => void window.api.project.defaultParent().then(setDefDir), [])
   useEffect(() => void window.api.engine().then(setEngine), [p.ngspicePath])
   const pickDir = async () => {
@@ -246,13 +266,14 @@ function PreferencesPanel() {
           </ToggleGroup>
         </Row>
         <Row label="Schematic colours">
-          <Select value={p.schTheme} onValueChange={(schTheme) => setPrefs({ schTheme })}>
+          <Select value={p.schTheme} onValueChange={(schTheme) => setPrefs({ schTheme })} onOpenChange={() => setHl(null)}>
             <SelectTrigger size="sm" className="w-56" aria-label="Schematic colours"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {SCH_PREVIEWS.map((t) => ( // the item under the pointer / arrow keys has focus, which opens its preview at once
-                <Tooltip key={t.id}>
-                  <TooltipTrigger asChild><SelectItem value={t.id}>{t.name}</SelectItem></TooltipTrigger>
-                  <TooltipContent side="right" sideOffset={14} className="p-1"><SchPreview c={t.c} className="w-52 rounded-sm" /></TooltipContent>
+              {SCH_PREVIEWS.map((t) => ( // the item under the pointer / arrow keys has focus: its preview is the one on show
+                <Tooltip key={t.id} open={hl === t.id}>
+                  <TooltipTrigger asChild><SelectItem value={t.id} onFocus={() => setHl(t.id)}><SchSwatch c={t.c} />{t.name}</SelectItem></TooltipTrigger>
+                  {/* no frame: the card and its arrow take the theme's own background (the tooltip paints both with --foreground) */}
+                  <TooltipContent side="right" sideOffset={14} className="p-0 shadow-xl" style={{ '--foreground': t.c.background } as CSSProperties}><SchPreview c={t.c} className="w-96 rounded-md" /></TooltipContent>
                 </Tooltip>
               ))}
             </SelectContent>

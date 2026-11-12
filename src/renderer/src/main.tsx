@@ -14,7 +14,7 @@ import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
 import { keyLabel, usePanels } from './layout/Panel'
 const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
-import { newSim, prefs, Preferences } from './Preferences'
+import { newSim, openSettings, prefs, Preferences } from './Preferences'
 import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Recovery'
 import { focusPopout } from './layout/PopOut'
 import { paneKey, ResultsPanel } from './layout/ResultsPanel'
@@ -36,7 +36,7 @@ import { plotRuns, startSel } from './sim/results'
 import { expandSweep } from './sim/sweep'
 import { keepSel, liveRun, progress } from './sim/live'
 import { tunedNote, withKnobs, type Knob } from './sim/tune'
-import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
+import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, Settings, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -898,7 +898,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         <div className="body">
           {proj && !panels.sheets && panels.sheetsRail}
           {proj && panels.sheets && (
-            <aside className="panel-in w-[200px] shrink-0 overflow-y-auto border-r bg-card pt-1.5 pb-3">
+            <aside className="panel-in flex w-[200px] shrink-0 flex-col overflow-y-auto border-r bg-card pt-1.5 pb-1.5">
               <div className={SIDE_H}>
                 Sheets
                 <span className="flex">
@@ -947,6 +947,10 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
                 <Tip label="Bill of materials for the whole design, with CSV / Excel export" side="right">
                   <Button variant="ghost" size="sm" className={NM} onClick={() => (bomOpen ? focusPopout(BOMWIN) : setBomOpen(true))}>Bill of materials…</Button>
                 </Tip>
+              </div>
+              {/* bottom left, as on Home */}
+              <div className="mx-1.5 mt-auto pt-3">
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start gap-2.5 px-2 font-normal" onClick={() => openSettings()}><Settings />Settings</Button>
               </div>
             </aside>
           )}
