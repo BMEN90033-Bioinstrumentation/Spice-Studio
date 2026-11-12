@@ -36,7 +36,8 @@ test('BUNDLED: exactly the contract ids, well-formed', () => {
     '2N3904', '2N3906', '2N2222', 'BC547B', 'BC557B', 'BC337', 'BC327', '2N5551', '2N5401', 'TIP31C', 'TIP32C', 'BD139', 'BD140',
     'MPSA42', 'MPSA92', '2N4401', '2N4403', 'J201', '2N5457', 'BF245A', 'J176',
     '2N7000', 'BS250', 'IRF540N', 'IRF9540N', 'IRLZ44N', 'BSS138', 'BSS84', 'AO3400',
-    'OPAMP', 'OA_GENERIC', 'OA_FAST', 'OA_LOWPOWER', 'OA_RRO', 'CMP_OC', 'TL431', '7805'].map((n) => 'std:' + n))
+    'OPAMP', 'OA_GENERIC', 'OA_FAST', 'OA_LOWPOWER', 'OA_RRO', 'CMP_OC', 'TL431', '7805',
+    'AND2', 'NAND2', 'OR2', 'NOR2', 'XOR2', 'INV', 'BUF', 'DFF'].map((n) => 'std:' + n))
   for (const e of BUNDLED) {
     assert.equal(e.source, 'bundled')
     assert.ok(e.description.length > 5, e.id)

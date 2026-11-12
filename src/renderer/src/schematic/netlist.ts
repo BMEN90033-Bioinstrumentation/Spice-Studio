@@ -3,6 +3,7 @@
 // (Part.lib) pull in their .model / .subckt text once.
 import { key, onSegment, pins, sheetPorts, type Part, type Sheet } from './model.ts'
 import { SYMBOLS, isFlag } from './symbols.ts'
+import { isDigital } from './digital.ts'
 import { si, type LibEntry } from '../library/library.ts'
 
 export interface NetlistResult {
@@ -168,7 +169,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     const entry = p.lib ? g.ctx.lib?.(p.lib) : undefined
     if (p.lib && !entry) err(`${ref}: unknown library part "${p.lib}"`)
     const spice = entry?.spice, sub = !!p.sheet || spice?.type === 'subckt'
-    if ((p.kind === 'pot' || p.kind === 'xtal') && !sub) {
+    if ((p.kind === 'pot' || p.kind === 'xtal' || isDigital(p.kind)) && !sub) {
       err(`${ref}: place the ${SYMBOLS[p.kind].title.toLowerCase()} from the library (its subcircuit comes from there)`)
       continue
     }

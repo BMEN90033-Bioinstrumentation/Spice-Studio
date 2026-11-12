@@ -188,7 +188,7 @@ test('hierarchical netlist simulates in ngspice: cascaded dividers (skipped if n
 })
 
 test('templates netlist cleanly with the bundled library and simulate (skipped if ngspice missing)', (t) => {
-  assert.deepEqual(TEMPLATES.map((x) => x.id), ['rc', 'bjt-ce', 'opamp-inv', 'hier'])
+  assert.deepEqual(TEMPLATES.map((x) => x.id), ['rc', 'bjt-ce', 'opamp-inv', 'hier', 'digital'])
   const lib = resolver(BUNDLED)
   for (const tp of TEMPLATES) {
     const r = netlist(tp.sheets['main.nsch'], tp.name, { sheets: tp.sheets, lib })

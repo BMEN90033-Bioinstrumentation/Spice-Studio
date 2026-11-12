@@ -1,12 +1,14 @@
 // Schematic symbols. Local coords, y down, grid = 10. Pins are listed in SPICE
 // node order (what the netlister will emit), and must sit on grid multiples so
 // they stay on-grid after 90° rotations.
+import { DIGITAL_SYMBOLS, type DigitalKind } from './digital.ts'
 
 export type Kind =
   | 'res' | 'cap' | 'ind' | 'vsrc' | 'isrc' | 'diode'
   | 'npn' | 'pnp' | 'nmos' | 'pmos' | 'opamp' | 'gnd' | 'label'
   | 'port' | 'block' | 'opamp5' | 'zener' | 'led' | 'njf' | 'pjf'
   | 'vcvs' | 'vccs' | 'ccvs' | 'cccs' | 'bv' | 'bi' | 'sw' | 'csw' | 'tline' | 'xfmr' | 'kcouple' | 'power' | 'pot' | 'xtal'
+  | DigitalKind // XSPICE gates (digital.ts)
 
 export interface SymbolDef {
   title: string
@@ -179,7 +181,8 @@ export const SYMBOLS: Record<Kind, SymbolDef> = {
     path: 'M0 -30V-20L6 -16.7L-6 -10L6 -3.3L-6 3.3L6 10L-6 16.7L0 20V30M20 0H12',
     fill: 'M6 0L12 -3V3Z'
   },
-  xtal: { title: 'Crystal', prefix: 'Y', value: 'F=10meg', pins: two, path: 'M0 -30V-10M-12 -10H12M0 10V30M-12 10H12M-8 -6H8V6H-8Z' }
+  xtal: { title: 'Crystal', prefix: 'Y', value: 'F=10meg', pins: two, path: 'M0 -30V-10M-12 -10H12M0 10V30M-12 10H12M-8 -6H8V6H-8Z' },
+  ...DIGITAL_SYMBOLS
 }
 
 export const PALETTE: Kind[] = ['res', 'cap', 'ind', 'pot', 'xtal', 'xfmr', 'kcouple', 'tline', 'vsrc', 'isrc', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi',

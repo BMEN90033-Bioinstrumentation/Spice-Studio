@@ -1,0 +1,345 @@
+{
+ "version": 1,
+ "parts": [
+  {
+   "id": "mwd12mxu0",
+   "kind": "vsrc",
+   "x": 0,
+   "y": 40,
+   "rot": 0,
+   "mirror": false,
+   "name": "V1",
+   "value": "PULSE(0 5 0 2n 2n 0.5u 1u)"
+  },
+  {
+   "id": "mwd12mxu1",
+   "kind": "gnd",
+   "x": 0,
+   "y": 70,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mwd12mxu2",
+   "kind": "label",
+   "x": 0,
+   "y": 10,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "clk"
+  },
+  {
+   "id": "mwd12mxv5",
+   "kind": "dff",
+   "x": 120,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "U1",
+   "value": "vdd=5 tpd=10n",
+   "lib": "std:DFF"
+  },
+  {
+   "id": "mwd12mxv6",
+   "kind": "label",
+   "x": 60,
+   "y": -10,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "q0n"
+  },
+  {
+   "id": "mwd12mxvb",
+   "kind": "label",
+   "x": 210,
+   "y": -10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "q0"
+  },
+  {
+   "id": "mwd12mxve",
+   "kind": "label",
+   "x": 210,
+   "y": 10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "q0n"
+  },
+  {
+   "id": "mwd12mxvf",
+   "kind": "dff",
+   "x": 380,
+   "y": 0,
+   "rot": 0,
+   "mirror": false,
+   "name": "U2",
+   "value": "vdd=5 tpd=10n",
+   "lib": "std:DFF"
+  },
+  {
+   "id": "mwd12mxvg",
+   "kind": "label",
+   "x": 300,
+   "y": -10,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "q1n"
+  },
+  {
+   "id": "mwd12mxvj",
+   "kind": "label",
+   "x": 300,
+   "y": 10,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "q0n"
+  },
+  {
+   "id": "mwd12mxvo",
+   "kind": "label",
+   "x": 470,
+   "y": -10,
+   "rot": 3,
+   "mirror": false,
+   "name": "",
+   "value": "q1"
+  },
+  {
+   "id": "mwd12mxvr",
+   "kind": "label",
+   "x": 470,
+   "y": 10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "q1n"
+  },
+  {
+   "id": "mwd12mxvs",
+   "kind": "res",
+   "x": 500,
+   "y": -10,
+   "rot": 3,
+   "mirror": false,
+   "name": "R1",
+   "value": "1k"
+  },
+  {
+   "id": "mwd12mxvt",
+   "kind": "cap",
+   "x": 530,
+   "y": 20,
+   "rot": 0,
+   "mirror": false,
+   "name": "C1",
+   "value": "1n"
+  },
+  {
+   "id": "mwd12mxvu",
+   "kind": "gnd",
+   "x": 530,
+   "y": 50,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": ""
+  },
+  {
+   "id": "mwd12mxvv",
+   "kind": "label",
+   "x": 530,
+   "y": -10,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "avg"
+  },
+  {
+   "id": "mwd12mxvw",
+   "kind": "xor2",
+   "x": 380,
+   "y": 120,
+   "rot": 0,
+   "mirror": false,
+   "name": "U3",
+   "value": "vdd=5 tpd=10n",
+   "lib": "std:XOR2"
+  },
+  {
+   "id": "mwd12mxvx",
+   "kind": "label",
+   "x": 300,
+   "y": 110,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "q0"
+  },
+  {
+   "id": "mwd12mxv10",
+   "kind": "label",
+   "x": 300,
+   "y": 130,
+   "rot": 2,
+   "mirror": false,
+   "name": "",
+   "value": "q1"
+  },
+  {
+   "id": "mwd12mxv15",
+   "kind": "label",
+   "x": 460,
+   "y": 120,
+   "rot": 0,
+   "mirror": false,
+   "name": "",
+   "value": "x"
+  }
+ ],
+ "wires": [
+  {
+   "id": "mwd12mxu3",
+   "a": {
+    "x": 0,
+    "y": 10
+   },
+   "b": {
+    "x": 80,
+    "y": 10
+   }
+  },
+  {
+   "id": "mwd12mxv7",
+   "a": {
+    "x": 60,
+    "y": -10
+   },
+   "b": {
+    "x": 80,
+    "y": -10
+   }
+  },
+  {
+   "id": "mwd12mxv9",
+   "a": {
+    "x": 160,
+    "y": -10
+   },
+   "b": {
+    "x": 210,
+    "y": -10
+   }
+  },
+  {
+   "id": "mwd12mxvc",
+   "a": {
+    "x": 160,
+    "y": 10
+   },
+   "b": {
+    "x": 210,
+    "y": 10
+   }
+  },
+  {
+   "id": "mwd12mxvh",
+   "a": {
+    "x": 300,
+    "y": -10
+   },
+   "b": {
+    "x": 340,
+    "y": -10
+   }
+  },
+  {
+   "id": "mwd12mxvk",
+   "a": {
+    "x": 300,
+    "y": 10
+   },
+   "b": {
+    "x": 340,
+    "y": 10
+   }
+  },
+  {
+   "id": "mwd12mxvm",
+   "a": {
+    "x": 420,
+    "y": -10
+   },
+   "b": {
+    "x": 470,
+    "y": -10
+   }
+  },
+  {
+   "id": "mwd12mxvp",
+   "a": {
+    "x": 420,
+    "y": 10
+   },
+   "b": {
+    "x": 470,
+    "y": 10
+   }
+  },
+  {
+   "id": "mwd12mxvy",
+   "a": {
+    "x": 300,
+    "y": 110
+   },
+   "b": {
+    "x": 350,
+    "y": 110
+   }
+  },
+  {
+   "id": "mwd12mxv11",
+   "a": {
+    "x": 300,
+    "y": 130
+   },
+   "b": {
+    "x": 350,
+    "y": 130
+   }
+  },
+  {
+   "id": "mwd12mxv13",
+   "a": {
+    "x": 410,
+    "y": 120
+   },
+   "b": {
+    "x": 460,
+    "y": 120
+   }
+  }
+ ],
+ "texts": [
+  {
+   "id": "mwd12mxv16",
+   "x": -20,
+   "y": 180,
+   "text": "* digital parts: value vdd=<logic high> tpd=<delay>\n.tran 10n 8u"
+  },
+  {
+   "id": "mwd12mxv17",
+   "x": -20,
+   "y": 240,
+   "text": ".plot tran v(clk) v(q0) v(q1) ; Clock and counter bits\n.plot tran v(x) v(avg) ; q0 XOR q1, and q1 through the RC filter"
+  }
+ ]
+}
