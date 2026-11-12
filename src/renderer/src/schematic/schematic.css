@@ -99,3 +99,4 @@
 
 /* a part's name and value labels can each be dragged on their own (Part.lo, Part.vo) */
 .sch .part .lbl text { cursor: move; }
+.sch .part .lbl.on text { fill: var(--hl); }

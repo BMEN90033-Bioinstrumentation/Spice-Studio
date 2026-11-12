@@ -106,7 +106,8 @@ function bounds(s: Sheet): Box | null {
 // Name/value text, drawn unrotated beside the part.
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance
 const off = (o?: Pt) => (o ? `translate(${o.x} ${o.y})` : undefined)
-function Texts({ p }: { p: Part }) {
+function Texts({ p, sel }: { p: Part; sel?: Set<string> }) {
+  const lc = (k: string) => (sel?.has(`${p.id}:${k}`) ? 'lbl on' : 'lbl')
   if (p.kind === 'gnd') return null
   if (p.kind === 'bustap') { // member name just past the wire end, away from the bus
     const t = xform(p, { x: 13, y: 13 }), dx = t.x - p.x, dy = t.y - p.y
@@ -125,9 +126,9 @@ function Texts({ p }: { p: Part }) {
   return (
     <>
       {/* each label can be dragged on its own: data-l names the offset field it moves (Part.lo / Part.vo) */}
-      <g className="lbl" data-l="lo" transform={off(p.lo)}><text className="n" x={n[0]} y={n[1]} textAnchor={anchor}>{p.name}</text></g>
+      <g className={lc('lo')} data-l="lo" transform={off(p.lo)}><text className="n" x={n[0]} y={n[1]} textAnchor={anchor}>{p.name}</text></g>
       {/* long values (PULSE(...)) are truncated on canvas; full text in the inspector + tooltip */}
-      <g className="lbl" data-l="vo" transform={off(p.vo)}>
+      <g className={lc('vo')} data-l="vo" transform={off(p.vo)}>
         <text x={v[0]} y={v[1]} textAnchor={anchor}>
           <title>{p.sheet ?? p.value}</title>
           {val.length > 16 ? val.slice(0, 15) + '…' : val}
@@ -589,15 +590,17 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     }
     if (typeof tool === 'object') return commit({ ...s, parts: [...s.parts, newPart(s, tool.place, p.x, p.y, ghost.rot, ghost.mirror, tool.extra)] })
     e.currentTarget.setPointerCapture(e.pointerId)
-    const id = (e.target as Element).closest('[data-id]')?.getAttribute('data-id')
-    if (!id) {
+    const pid = (e.target as Element).closest('[data-id]')?.getAttribute('data-id')
+    if (!pid) {
       if (!e.shiftKey) setSel(new Set())
       drag.current = { t: 'box', a: w, base: e.shiftKey ? sel : new Set() }
       return
     }
     const lk = e.shiftKey ? null : ((e.target as Element).closest('.lbl')?.getAttribute('data-l') as 'lo' | 'vo' | null | undefined)
-    const lp = lk ? s.parts.find((q) => q.id === id) : undefined
-    if (lk && lp) return void (drag.current = { t: 'lbl', id: lp.id, k: lk, from: w, base: s, lo: lp[lk] ?? { x: 0, y: 0 }, moved: false })
+    const lp = lk ? s.parts.find((q) => q.id === pid) : undefined
+    const lid = lk && lp ? `${lp.id}:${lk}` : null // a label's selection id (box select picks labels up too)
+    if (lk && lp && !sel.has(lid!)) return void (drag.current = { t: 'lbl', id: lp.id, k: lk, from: w, base: s, lo: lp[lk] ?? { x: 0, y: 0 }, moved: false })
+    const id = lid ?? pid
     let next = sel
     if (e.shiftKey) {
       next = new Set(sel)
@@ -632,8 +635,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       if (same(dd, d.d)) return
       d.d = dd // each frame recomputed from the drag-start snapshot, so no drift
       const r = remap(d.base, d.sel, (q) => ({ ...q, ...add(q, dd) }), (q) => add(q, dd))
+      const lab = (q: Part, k: 'lo' | 'vo') => { const o = add(q[k] ?? { x: 0, y: 0 }, dd); return o.x || o.y ? o : undefined }
       live({
-        ...r, texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)),
+        ...r, parts: r.parts.map((q) => (d.sel.has(q.id) || !(d.sel.has(q.id + ':lo') || d.sel.has(q.id + ':vo')) ? q
+          : { ...q, ...(d.sel.has(q.id + ':lo') && { lo: lab(q, 'lo') }), ...(d.sel.has(q.id + ':vo') && { vo: lab(q, 'vo') }) })),
+        texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)),
         ...(r.draw && { draw: r.draw.map((x) => (d.sel.has(x.id) ? moveD(x, dd) : x)) }),
         ...(r.buses && { buses: r.buses.map((w) => (d.sel.has(w.id) ? { ...w, a: add(w.a, dd), b: add(w.b, dd) } : w)) })
       })
@@ -662,7 +668,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         ...(s.draw ?? []).filter((x) => corners(dbox(x)).every(inside)),
         ...(s.buses ?? []).filter((w) => inside(w.a) && inside(w.b))
       ]
-      setSel(new Set([...d.base, ...hits.map((i) => i.id)]))
+      const labels = [...(svg.current?.querySelectorAll('.part .lbl') ?? [])].flatMap((g) => {
+        const r = g.getBoundingClientRect(), id = g.closest('[data-id]')?.getAttribute('data-id')
+        return id && r.width && inside(world({ clientX: r.left, clientY: r.top })) && inside(world({ clientX: r.right, clientY: r.bottom })) ? [`${id}:${g.getAttribute('data-l')}`] : []
+      })
+      setSel(new Set([...d.base, ...hits.map((i) => i.id), ...labels]))
     } else if (d?.t === 'lbl') {
       if (d.moved) commit(cur.current, undefined, d.base)
       else setSel(new Set([d.id]))
@@ -842,7 +852,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               </g>
               {p.kind === 'block' && !p.sym && <PinNames part={p} at={p} />}
               {p.sym && <SymTexts part={p} at={p} />}
-              <Texts p={p} />
+              <Texts p={p} sel={sel} />
             </g>
           ))}
           {sheet.wires.map((w) => (
