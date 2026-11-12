@@ -112,7 +112,30 @@ function fit(f: FPart, nets: Nets): { part: Pick<Part, 'x' | 'y' | 'rot' | 'mirr
   return { part: best!.at, plan: best!.plan }
 }
 
+// Imported files are untrusted. A .control … .endc block runs ngspice commands at Run (shell, system, file writes):
+// comment it out, line by line, so it is kept but inert (an unterminated .control too). .include / .lib stay as
+// written; those reaching outside the project (absolute path, ..) are named in the report.
+export function defang(texts: { text: string }[], report: string[]): void {
+  for (const t of texts) {
+    let on = false, n = 0
+    t.text = t.text.split('\n').map((l) => {
+      if (/^\s*\.control\b/i.test(l)) (on = true), n++
+      const out = on ? '* ' + l : l
+      if (on && /^\s*\.endc\b/i.test(l)) on = false
+      return out
+    }).join('\n')
+    for (let i = 0; i < n; i++) report.push('A .control block was disabled (turned into comment lines): it runs ngspice commands, which can include shell commands, when you press Run. Check it, then remove the "* " prefixes if you trust it')
+    for (const m of t.text.matchAll(/^\s*\.(lib|inc\w*)\s+(.+?)\s*$/gim)) {
+      const path = m[2].replace(/^["']|["']$/g, '')
+      report.push(/^([\\/~]|[a-z]:[\\/])/i.test(path) || /(^|[\\/])\.\.([\\/]|$)/.test(path)
+        ? `".${m[1]} ${m[2]}" reads a file outside the project folder: check it before running`
+        : `".${m[1]} ${m[2]}" kept: ngspice must find that file`)
+    }
+  }
+}
+
 function build(f: Foreign, what: string): Imported {
+  defang(f.texts, f.report)
   const s: Sheet = { ...emptySheet(), draw: [] }
   const named = new Map<string, number>()
   const nm = (n: string, kind: Kind, keep = false) => {
@@ -264,7 +287,6 @@ export function importAsc(text: string, grid = 16): Imported {
     if (one && si(one[2]) > 0) return [`${one[1]}${+(si(one[2]) / 1000).toPrecision(3)} ${one[2]}`]
     return [x]
   }).join('\n') })).filter((t) => t.text.trim())
-  for (const t of f.texts) for (const m of t.text.matchAll(/^\s*\.(lib|inc\w*)\s+(.+)$/gim)) f.report.push(`Directive ".${m[1]} ${m[2].trim()}" kept: the file must be found by ngspice`)
   for (const [w, n] of skipped) f.report.push(`${n} ${w}${n > 1 ? 's' : ''} not converted`)
   if (sn.merged && grid > 2) return importAsc(text, grid / 2)
   sn.report(f, `${grid}-unit`)

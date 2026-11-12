@@ -107,6 +107,8 @@ What is converted:
 - SPICE directives (LTspice `!` text, KiCad text starting with `.`) become directive cards. LTspice's `.tran <stop>` gets a step, and `startup` and `.backanno` are removed. Comments become text notes; lines, rectangles and circles become shapes.
 - A transistor or diode whose model name matches a built-in part (2N3904, 1N4148…) uses that part. KiCad source settings (`Sim.Type`, `Sim.Params`, or the older `Spice_Model`) become the source's value.
 
+An imported file can carry commands, so the import is careful with them. A `.control … .endc` block runs ngspice commands when you press Run, and those can include shell commands. Each one is turned into comment lines (`* ` in front of every line) and listed in the report; remove the `* ` yourself once you have read it and trust it. `.include` and `.lib` lines are kept as written, and the report points out any that read a file outside the project folder (an absolute path or `..`).
+
 Anything else becomes a **placeholder**: a block drawn with a red dashed outline, its value starting with `?`. KiCad placeholders keep their pins where the original pins were; LTspice placeholders have no pins, because an `.asc` file does not say where a symbol's pins are. The netlist stops with an error until you replace every placeholder. After the import, a report lists what was not converted or was converted with a change. Buses, hierarchical sheets and arcs are not converted.
 
 ## Notes, shapes and the title block

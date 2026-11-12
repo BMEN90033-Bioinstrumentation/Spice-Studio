@@ -98,3 +98,21 @@ test('LTspice directives ngspice rejects are fixed up and reported', () => {
   assert.deepEqual(r.sheet.texts.map((t) => t.text), ['.tran 0.000025 25m\n.op'])
   assert.ok(r.report.some((l) => /startup/.test(l)))
 })
+
+test('imported .control blocks are commented out (untrusted file), outside .include/.lib paths reported', () => {
+  const r = importAsc(fx('control.asc'))
+  const text = netlist(r.sheet, 'x', lib).text
+  assert.doesNotMatch(text, /^\s*\.control/im) // an active .control would run its shell/system lines at Run
+  assert.doesNotMatch(text, /^\s*(shell|system|run)\b/im)
+  assert.match(text, /^\* \.CONTROL\n\* run\n\* shell touch \/tmp\/pwned\n\* \.endc$/m)
+  assert.match(text, /^\* \.control\n\* system rm -rf ~$/m) // unterminated
+  assert.match(text, /^\.op$/m)
+  assert.equal(r.report.filter((l) => /\.control block was disabled/.test(l)).length, 2)
+  assert.ok(r.report.some((l) => l.startsWith('".include /etc/models.lib" reads a file outside')))
+  assert.ok(r.report.some((l) => l.startsWith('".lib ../shared/opamps.lib" reads a file outside')))
+  assert.ok(r.report.some((l) => l.startsWith('".inc local.lib" kept')))
+  // KiCad text directives go through the same check
+  const k = importKicad('(kicad_sch (version 20231120) (lib_symbols) (text ".tran 1u 1m\\n.control\\nshell echo hi\\n.endc" (at 10 10 0)))')
+  assert.deepEqual(k.sheet.texts.map((t) => t.text), ['.tran 1u 1m\n* .control\n* shell echo hi\n* .endc'])
+  assert.ok(k.report.some((l) => /\.control block was disabled/.test(l)))
+})
