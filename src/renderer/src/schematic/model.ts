@@ -18,7 +18,8 @@ export interface Part {
   pins?: { name: string; x: number; y: number }[] // per-instance pins (blocks), local coords; overrides the symbol's
   size?: { w: number; h: number } // block body, centred on origin
   lib?: string // library entry id, e.g. 'std:2N3904'
-  lo?: Pt // name/value label dragged away from its default spot: offset in sheet units
+  lo?: Pt // name label dragged away from its default spot: offset in sheet units
+  vo?: Pt // the same for the value label
   sym?: Drawing[] // custom library symbol (symbol editor): its graphics in local coords; its pins are in `pins`
 }
 export interface Wire {
@@ -251,6 +252,7 @@ export function parseSheet(text: string): Sheet {
     opt('sheet', (v) => typeof v === 'string')
     opt('lib', (v) => typeof v === 'string')
     opt('lo', pt)
+    opt('vo', pt)
     opt('size', (v) => num(v?.w) && num(v?.h))
     opt('pins', (v) => Array.isArray(v) && v.every((q: any) => pt(q) && typeof q.name === 'string'))
     opt('sym', (v) => Array.isArray(v) && v.every(okDrawing))

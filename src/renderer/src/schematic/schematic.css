@@ -97,5 +97,5 @@
   .sch .bjn { fill: #2f6fb0; }
 }
 
-/* a part's name/value label can be dragged on its own (Part.lo) */
+/* a part's name and value labels can each be dragged on their own (Part.lo, Part.vo) */
 .sch .part .lbl text { cursor: move; }

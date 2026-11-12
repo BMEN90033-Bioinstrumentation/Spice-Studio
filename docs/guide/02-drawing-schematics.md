@@ -85,7 +85,7 @@ The four small buttons in the toolbar place a ground, a power flag, a net label 
 
 Double-click a part to open its properties in a popup beside it (or right-click it, or select it and press Enter). Edit **Name** and **Value** there. Esc, or a click elsewhere, closes the popup.
 
-If a part's name and value sit on top of something else, drag the text to move it; the part stays where it is. The text moves in half-grid steps and the position is saved with the sheet. **Reset label position** in the part's popup puts it back. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
+If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
 
 ![The inspector for V1, with the Waveform… button](images/02-inspector.png)
 

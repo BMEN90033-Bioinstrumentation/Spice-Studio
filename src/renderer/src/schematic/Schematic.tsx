@@ -58,7 +58,7 @@ type Drag =
   | { t: 'pan'; cx: number; cy: number; v: View }
   | { t: 'move'; from: Pt; base: Sheet; sel: Set<string>; d: Pt; click?: string }
   | { t: 'box'; a: Pt; base: Set<string> }
-  | { t: 'lbl'; id: string; from: Pt; base: Sheet; lo: Pt; moved: boolean } // dragging a part's name/value label
+  | { t: 'lbl'; id: string; k: 'lo' | 'vo'; from: Pt; base: Sheet; lo: Pt; moved: boolean } // dragging a part's name or value label
   | { t: 'diff'; net: string; a: Pt; cx: number; cy: number; click: ProbeTarget | null }
 
 const KEYS = Object.fromEntries(Object.entries(SYMBOLS).flatMap(([k, d]) => (d.key ? [[d.key, k]] : []))) as Record<string, Kind>
@@ -105,6 +105,7 @@ function bounds(s: Sheet): Box | null {
 
 // Name/value text, drawn unrotated beside the part.
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance
+const off = (o?: Pt) => (o ? `translate(${o.x} ${o.y})` : undefined)
 function Texts({ p }: { p: Part }) {
   if (p.kind === 'gnd') return null
   if (p.kind === 'bustap') { // member name just past the wire end, away from the bus
@@ -123,12 +124,15 @@ function Texts({ p }: { p: Part }) {
   const val = p.sheet ? sheetName(p.sheet) : p.value
   return (
     <>
-      <text className="n" x={n[0]} y={n[1]} textAnchor={anchor}>{p.name}</text>
+      {/* each label can be dragged on its own: data-l names the offset field it moves (Part.lo / Part.vo) */}
+      <g className="lbl" data-l="lo" transform={off(p.lo)}><text className="n" x={n[0]} y={n[1]} textAnchor={anchor}>{p.name}</text></g>
       {/* long values (PULSE(...)) are truncated on canvas; full text in the inspector + tooltip */}
-      <text x={v[0]} y={v[1]} textAnchor={anchor}>
-        <title>{p.sheet ?? p.value}</title>
-        {val.length > 16 ? val.slice(0, 15) + '…' : val}
-      </text>
+      <g className="lbl" data-l="vo" transform={off(p.vo)}>
+        <text x={v[0]} y={v[1]} textAnchor={anchor}>
+          <title>{p.sheet ?? p.value}</title>
+          {val.length > 16 ? val.slice(0, 15) + '…' : val}
+        </text>
+      </g>
     </>
   )
 }
@@ -591,8 +595,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       drag.current = { t: 'box', a: w, base: e.shiftKey ? sel : new Set() }
       return
     }
-    const lp = !e.shiftKey && (e.target as Element).closest('.lbl') ? s.parts.find((q) => q.id === id && !isFlag(q.kind)) : undefined
-    if (lp) return void (drag.current = { t: 'lbl', id: lp.id, from: w, base: s, lo: lp.lo ?? { x: 0, y: 0 }, moved: false })
+    const lk = e.shiftKey ? null : ((e.target as Element).closest('.lbl')?.getAttribute('data-l') as 'lo' | 'vo' | null | undefined)
+    const lp = lk ? s.parts.find((q) => q.id === id) : undefined
+    if (lk && lp) return void (drag.current = { t: 'lbl', id: lp.id, k: lk, from: w, base: s, lo: lp[lk] ?? { x: 0, y: 0 }, moved: false })
     let next = sel
     if (e.shiftKey) {
       next = new Set(sel)
@@ -614,7 +619,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       const h = GRID / 2, lo = { x: d.lo.x + Math.round((w.x - d.from.x) / h) * h, y: d.lo.y + Math.round((w.y - d.from.y) / h) * h } // half-grid steps
       if (!d.moved && same(lo, d.lo)) return
       d.moved = true
-      live({ ...d.base, parts: d.base.parts.map((q) => (q.id === d.id ? { ...q, lo: lo.x || lo.y ? lo : undefined } : q)) })
+      live({ ...d.base, parts: d.base.parts.map((q) => (q.id === d.id ? { ...q, [d.k]: lo.x || lo.y ? lo : undefined } : q)) })
     }
     else if (d.t === 'diff') {
       if (Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 4) return
@@ -837,7 +842,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               </g>
               {p.kind === 'block' && !p.sym && <PinNames part={p} at={p} />}
               {p.sym && <SymTexts part={p} at={p} />}
-              <g className="lbl" transform={p.lo ? `translate(${p.lo.x} ${p.lo.y})` : undefined}><Texts p={p} /></g>
+              <Texts p={p} />
             </g>
           ))}
           {sheet.wires.map((w) => (
@@ -950,7 +955,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {entry && <div className={D}>{entry.description}</div>}
           {entry?.group && <div className={D}>From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
           {one.lib && !entry && <div className={cn(D, 'text-warn')}>Unknown library part {one.lib}</div>}
-          {one.lo && <InspBtn onClick={() => commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === one.id ? { ...q, lo: undefined } : q)) })}>Reset label position</InspBtn>}
+          {(one.lo || one.vo) && <InspBtn onClick={() => commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === one.id ? { ...q, lo: undefined, vo: undefined } : q)) })}>Reset label positions</InspBtn>}
           {!isFlag(one.kind) && (
             <Label className={FLD}>Name
               <Input className={cn('h-7 px-2', MONO)} value={one.name} spellCheck={false} onChange={(e) => edit(one, 'name', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
