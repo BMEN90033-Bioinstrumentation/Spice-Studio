@@ -77,13 +77,13 @@ export function Preferences() {
             className={cn('h-9 justify-start px-2 font-normal text-muted-foreground', id === tab && 'bg-accent font-medium text-foreground')}>{name}</Button>
         ))}
       </nav>
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      <div className="min-w-0 flex-1 overflow-y-auto">{/* not <main>: style.css lays every <main> out as the editor's two-column grid */}
         <div className="h-11 [-webkit-app-region:drag]" />
         <div className="max-w-[760px] px-10 pb-12">
           <h2 className="mb-5 text-lg font-semibold">{title}</h2>
           {tab === 'keys' ? <Shortcuts /> : tab === 'about' ? <About info={info} /> : <TabCtx value={tab}><PreferencesPanel /></TabCtx>}
         </div>
-      </main>
+      </div>
     </div>
   )
 }
