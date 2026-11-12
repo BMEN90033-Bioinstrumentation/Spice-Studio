@@ -8,7 +8,7 @@ The screenshots in this chapter use [examples/CE-Amplifier](examples/CE-Amplifie
 
 After a run, the results panel on the right has:
 
-- **Tabs**, one per analysis (*Operating Point*, *Transient Analysis*, *AC Analysis*, *DC transfer characteristic*, *Noise…*) in the order of your analysis directives, plus **Measurements** when the deck has `.meas` lines. The first tab is shown after a run.
+- **Tabs**, one per analysis (*Operating Point*, *Transient Analysis*, *AC Analysis*, *DC transfer characteristic*, *Noise…*, *Transfer Function*, *Sensitivity Analysis*, *Pole-Zero Analysis*, *DISTORTION…*, *SP Analysis*) in the order of your analysis directives, plus **Measurements** when the deck has `.meas` lines and **Fourier** when it has `.four` lines. The first tab is shown after a run.
 - **The vector list** on the left of the plot: **Voltages**, **Currents** and **Expressions**. Tick a box to plot that vector. The first few voltages are ticked for you. **Search vectors** at the top filters the list by name (`ecg`, `i(d1)`, `x3`); **Enter** ticks the first match, **Esc** clears the search.
 - **The plot.** Voltages and currents get separate, titled y axes (currents on the right), so a milliamp trace isn't flattened next to a 10 V one. The legend under it names each trace and shows its value under the mouse.
 - **The console** under the plot: the netlist that was run and ngspice's output.
@@ -21,6 +21,18 @@ Plot controls:
 - The legend under the plot shows the values under the mouse.
 
 An analysis that produces a single point, such as `.op`, is shown as a table instead of a plot.
+
+### Tables for `.tf`, `.sens` and `.pz`
+
+These results are numbers rather than waveforms, so their tabs show a table in place of the plot. With a sweep there is one column per run (for `.pz`, a **Run** column).
+
+- **Transfer Function**: the gain (output over input source; no unit for V/V or A/A, Ω or S when the kinds differ), the input resistance at the source and the output resistance. A capacitor-coupled input shows a huge input resistance (such as `1e+20 Ω`): at DC the input is open.
+- **Sensitivity Analysis** (DC): one row per part value or model parameter that moves the output, largest first. `r1` is the change per ohm of R1, `r1_m` the change per unit of its multiplier `m`. Parameters with no effect are left out. An AC sensitivity (`.sens … ac …`) is plotted against frequency instead; at a single frequency (`ac lin 1 1k 1k`) it is a table of magnitude ∠ phase.
+- **Pole-Zero Analysis**: each pole and zero with its real and imaginary parts in rad/s, its natural frequency f = |s|/2π and, for a complex pair, Q.
+
+### A DC sweep with two sources
+
+`.dc V1 0 5 0.05 V2 0 2 0.5` sweeps V1 for each value of V2. The plot shows a family of curves, one per V2 value, shaded light to dark like a [sweep](06-sweeps.md); the legend names each one (`V(out) · V2=500m`). Set it up with **Second source** on the DC sweep tab ([chapter 4](04-simulating.md#the-simulation-setup-dialog)).
 
 ### Choosing the plots with `.plot`
 
@@ -131,9 +143,15 @@ Some useful forms:
 .meas ac fpeak WHEN vdb(out)=-3 FALL=1
 ```
 
-ngspice reports measurements for one analysis type only. If the deck has both `.tran` and `.ac`, only the `tran` measurements appear. Put `.ac` measurements in a separate project, or remove the `.tran` line while you need them.
+Each measurement is read from its own analysis, so `.meas tran`, `.meas ac` and `.meas dc` lines can share a deck with each other and with `.tf`, `.sens`, `.pz` or `.disto`. One exception: when a measured analysis line uses a `{parameter}` or a quoted expression (such as `.tran 10u {tstop}` or `.tran 10u 'tstop'`), ngspice reports only one analysis type's measurements. Write that line with plain numbers if you need both.
 
 With a sweep or Monte Carlo run there is one column per run, plus **mean**, **σ**, **min** and **max** when there are more than two runs ([chapter 6](06-sweeps.md)).
+
+## Fourier analysis and THD (`.four`)
+
+`.four 1k v(out) v(in)` makes ngspice analyse the transient result at a 1 kHz fundamental, over its last period. After a run, the **Fourier** tab has one table per output: for each harmonic its frequency, magnitude, phase, and the magnitude and phase relative to the fundamental. The heading shows the total harmonic distortion (THD).
+
+The transient must cover at least one period of the fundamental. For a clean spectrum, let the circuit settle first (a longer stop time) and set a small **Max step** on the `.tran`. With a sweep there is one table per output and run.
 
 ## The pop-out window
 

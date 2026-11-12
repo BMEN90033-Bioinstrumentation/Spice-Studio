@@ -19,6 +19,7 @@ function element(t: string[]): Scope['els'][number] | null {
     case 'r': case 'd': case 'b':
       return { ref, dc: [two], nets: two }
     case 'v': case 'l': case 'h':
+      if (c === 'v' && t.some((s) => /^portnum$/i.test(s))) return { ref, dc: [two], nets: two } // .sp port: z0 in series, like a resistor
       return { ref, dc: [two], vdef: [two[0], two[1]], nets: two }
     case 'c': case 'i': case 'f':
       return { ref, dc: [], nets: two }

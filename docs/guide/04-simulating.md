@@ -2,7 +2,7 @@
 
 [Guide index](README.md) · Previous: [Component reference](03-components.md) · Next: [Reading results](05-results.md)
 
-A simulation needs at least one **analysis directive** on the sheet: `.op`, `.tran`, `.ac`, `.dc` or `.noise`. You can type them into a directive card ([chapter 2](02-drawing-schematics.md#spice-directives)) or build them in the Simulation setup dialog.
+A simulation needs at least one **analysis directive** on the sheet: `.op`, `.tran`, `.ac`, `.dc`, `.noise`, `.tf`, `.sens`, `.pz`, `.disto` or `.sp`. You can type them into a directive card ([chapter 2](02-drawing-schematics.md#spice-directives)) or build them in the Simulation setup dialog.
 
 ## The Simulation setup dialog
 
@@ -21,13 +21,28 @@ Where the line goes:
 |---|---|---|
 | Transient | `.tran step stop [start [maxstep]] [uic]` | **Stop time**, **Time step** (output spacing), optional **Start time** (save from this time), optional **Max step** (largest internal step), **Use initial conditions (UIC)** (skip the operating point and start from `.ic` values) |
 | AC sweep | `.ac dec\|oct\|lin points fstart fstop` | **Sweep type** (Decade, Octave, Linear), points per decade/octave or total points, **Start frequency**, **Stop frequency**. Needs an `AC` magnitude on a source |
-| DC sweep | `.dc source start stop increment` | **Source** (a V or I source on the sheet), **Start value**, **Stop value**, **Increment** |
+| DC sweep | `.dc source start stop increment [source2 start2 stop2 increment2]` | **Source** (a V or I source on the sheet), **Start value**, **Stop value**, **Increment**, and an optional **Second source** with its own start, stop and increment for a family of curves |
 | Noise | `.noise v(out[,ref]) source dec\|oct\|lin points fstart fstop` | **Output node**, **Reference node** (ground by default), **Input source**, then the frequency sweep |
 | Operating point | `.op` | none. Solves the DC bias with capacitors open and inductors shorted |
+| Transfer function | `.tf v(out[,ref]) source` or `.tf i(Vx) source` | **Output** (a node voltage, or the current through a voltage source), **Input source** |
+| Sensitivity | `.sens v(out[,ref])` or `.sens v(out) ac dec\|oct\|lin points fstart fstop` | **Output**, **Analysis** (DC, or AC with a frequency sweep) |
+| Pole-zero | `.pz in inref out outref vol\|cur pz\|pol\|zer` | **Input node** and reference, **Output node** and reference, **Transfer function** (V(out)/V(in) or V(out)/I(in)), **Find** (poles and zeros, poles, zeros) |
+| Distortion | `.disto dec\|oct\|lin points fstart fstop [f2/f1]` | The frequency sweep, optional **F2/F1 ratio** (0 to 1) for intermodulation |
+| S-parameters | `.sp dec\|oct\|lin points fstart fstop [1]` | The frequency sweep, **Noise correlation** (writes the `1`) |
+| Fourier (THD) | `.four freq v(out) …` | **Fundamental frequency**, **Outputs** (click the nets to analyse) |
 
 ![The AC sweep tab](images/04-analysis-ac.png)
 
 A sheet can hold several analyses; each gives its own results tab. If the sheet has no analysis at all, the netlist warns that ngspice has nothing to run.
+
+### Notes on the less common analyses
+
+- **Transfer function** (`.tf`) works on the DC operating point: you get the small-signal gain from the input source to the output, the resistance the source sees and the resistance at the output, as a table.
+- **Sensitivity** (`.sens`) tells you how much the output moves for a unit change of every part value and model parameter. DC sensitivity is a table, largest first; AC sensitivity is plotted against frequency. ngspice stops with an internal error on `.sens` when the circuit has `.sp` port sources, so keep the two in separate projects.
+- **Pole-zero** (`.pz`) lists the poles and zeros of the transfer function between the two node pairs, in rad/s, with the natural frequency and Q. Not every circuit has finite zeros; an RC low-pass, for example, has only a pole.
+- **Distortion** (`.disto`) needs `DISTOF1` on the input source value, and `DISTOF2` as well if you set an F2/F1 ratio, for example `DC 0 AC 1 DISTOF1 0.1 DISTOF2 0.1`. Without them every result is 0. You get one tab per harmonic (2nd, 3rd) or, with a ratio, per intermodulation product.
+- **S-parameters** (`.sp`) needs one voltage source per port with `portnum` and `z0` in its value, for example `dc 0 ac 1 portnum 1 z0 50` and `dc 0 ac 0 portnum 2 z0 50`. Without a port ngspice stops with *No RF Port is present* (some ngspice 47 builds need at least two ports; the bundled engine accepts one). The results tab plots `S_1_1` to `S_2_2` by default; the Y and Z parameters are in the vector list.
+- **Fourier** (`.four`) is not an analysis of its own: it analyses the `.tran` result over the last period of the fundamental, so the transient must run for at least one period. The dialog asks for a plain number as the frequency (a `{parameter}` doesn't reach the Fourier step) and for a `.tran` on the sheet. If the run is too short, ngspice's error shows in the console under `--- .four ---` (or `--- .meas ---`). The results go to the **Fourier** tab ([chapter 5](05-results.md#fourier-analysis-and-thd-four)). It shows 10 harmonics; add `nfreqs=20` under **Other options** for more.
 
 ## Simulation options (`.options`)
 
@@ -49,6 +64,15 @@ The **Options** tab (also **Simulate › Simulation Options…**, or **Edit opti
 | Other options | anything | Kept as typed, e.g. `rshunt=1e12 cshunt=1e-12` |
 
 The sheet keeps one `.options` line: Apply replaces it (or adds a card if there is none).
+
+## Initial conditions and nodesets (`.ic`, `.nodeset`)
+
+The **Initial conditions** and **Nodeset** tabs (also **Simulate › Initial Conditions…**, or **Edit initial conditions…** / **Edit nodeset…** on a card that holds the line) write one `.ic` or `.nodeset` line. Each row is a net from the sheet and a voltage; **Add net** adds a row and **×** removes one.
+
+- `.ic v(out)=2` sets node voltages at the start of a transient run. With **Use initial conditions (UIC)** on the `.tran`, they are the starting values. Without UIC, ngspice holds those nodes at the given voltages while it solves the operating point, then lets them go.
+- `.nodeset v(q)=5` gives the operating-point solver a starting guess. Use it to choose the state of a flip-flop or latch, or to help a circuit that won't converge. The answer is still a real solution of the circuit.
+
+As with `.options`, the sheet keeps one line of each: Apply replaces it, or adds a card if there is none. Entries the form can't show (such as `v(a,b)=1`) are kept as typed.
 
 ## Run and Stop
 

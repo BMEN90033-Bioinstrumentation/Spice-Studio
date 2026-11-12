@@ -30,6 +30,7 @@ import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
+import { plotRuns, startSel } from './sim/results'
 import { expandSweep } from './sim/sweep'
 import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -76,7 +77,7 @@ function tabsOf(runs: Run[]): Tab[] {
   return [...(maps[0] ?? [])].map(([key, p]) => ({
     key,
     name: p.plotname,
-    runs: runs.flatMap((r, i) => (maps[i].has(key) ? [{ label: r.label, plot: maps[i].get(key)! }] : [])),
+    runs: runs.flatMap((r, i) => (maps[i].has(key) ? plotRuns(r.label, maps[i].get(key)!, r.netlist, +key.slice(key.lastIndexOf('#') + 1)) : [])), // nested .dc: a run per outer value
     panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name))
   })).sort((a, b) => analysisPos(runs[0].netlist, a.name) - analysisPos(runs[0].netlist, b.name))
 }
@@ -539,7 +540,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
         tabs.flatMap(({ key, runs: [{ plot }], panes }) => {
           const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
           const keep = (k: string) => prev[k]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
-          const defs = panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]
+          const defs = panes?.length ? panes.map((p) => p.sel) : [startSel(plot) ?? defaultSel(plot)]
           return defs.map((d, i) => { const k = paneKey(key, i), kept = keep(k); return [k, kept?.length ? kept : d] })
         })
       )

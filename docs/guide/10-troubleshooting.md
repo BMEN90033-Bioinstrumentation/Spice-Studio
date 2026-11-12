@@ -10,7 +10,7 @@
 
 1. Warnings from the netlister and the rules check (`Warning: …`, `Error: …`).
 2. `--- netlist ---`: the exact netlist sent to ngspice.
-3. `--- ngspice ---`: everything ngspice printed. With a sweep, each run has its own `--- run R=1k ---` section. With `.meas`, a `--- .meas ---` section follows.
+3. `--- ngspice ---`: everything ngspice printed. With a sweep, each run has its own `--- run R=1k ---` section. With `.meas`, a `--- .meas ---` section follows (`--- .four ---` when the deck has `.four` but no `.meas`).
 
 Warnings are yellow and errors red. When a line names a part or net on the schematic, the part is shown in red and clicking the line selects it on the top sheet.
 
