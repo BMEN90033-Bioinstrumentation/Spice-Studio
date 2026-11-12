@@ -205,9 +205,9 @@ export function defang(texts: { text: string }[], report: string[]): void {
         else if (!(off(ls[j]) || !ls[j].trim())) break
       }
       const logical = lines.map((j) => ls[j].replace(/^\s*\+/, ' ')).join(' ').replace(/;.*$/, '')
-      const m = /^\s*\.c?model\S*\s+(\S+)\s*(.*)$/is.exec(logical)
-      const rest = m?.[2].trim() ?? '', ako = /^ako:\s*([^\s(]+)\s*([^\s(]*)/i.exec(rest)
-      models.push({ t, lines, name: m?.[1] ?? '', type: (ako ? ako[2] : /^([^\s(]*)/.exec(rest)![1]).toLowerCase(), ako: ako?.[1], head: l.trim() })
+      const m = /^\s*\.c?model[^\s(),=]*[\s(),=]+([^\s(),=]+)[\s(),=]*(.*)$/is.exec(logical) // ngspice also splits a model card at ( ) , =
+      const rest = m?.[2].trim() ?? '', ako = /^ako:\s*([^\s(),=]+)\s*([^\s(),=]*)/i.exec(rest)
+      models.push({ t, lines, name: m?.[1] ?? '', type: (ako ? ako[2] : /^([^\s(),=]*)/.exec(rest)![1]).toLowerCase(), ako: ako?.[1], head: l.trim() })
     })
   }
   const byName = new Map(models.map((m) => [m.name.toLowerCase(), m]))

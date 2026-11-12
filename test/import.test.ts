@@ -245,5 +245,12 @@ test('defang: the model allowlist on its own', () => {
   assert.equal(run('.CMODEL proc\n+ D_PROCESS (process_file="x")').text, '* .CMODEL proc\n* + D_PROCESS (process_file="x")')
   assert.equal(run('.subckt s a\n.cmodel src filesource (file="secret.txt")\n.ends').text, '.subckt s a\n* .cmodel src filesource (file="secret.txt")\n.ends')
   assert.equal(run('.cmodel d1 D(IS=1n)').rep.length, 0)
+  // ngspice splits a model card at ( ) , = too, so the name can follow the keyword without a space
+  for (const sep of ['(', ')', ',', '='])
+    assert.match(run(`.cmodel${sep}proc d_process d (process_file="/usr/bin/touch")`).text, /^\* \.cmodel/, sep)
+  assert.match(run('.cmodel proc,d_process d (process_file="x")').text, /^\* /)
+  assert.match(run('.cmodel proc=d_process d (process_file="x")').text, /^\* /)
+  assert.match(run('.cmodel proc (d_process d process_file="x")').text, /^\* /)
+  assert.equal(run('.model D1 D(IS=1n)\n.model q1 npn (bf=100)\n.model m1 nmos level=1').rep.length, 0)
   assert.equal(run('.model r1 R(TC1=0)\n.model c1 C(cap=1p)\n.model t1 txl(r=1)\n.model n1 nsoi(level=10)').rep.length, 0)
 })
