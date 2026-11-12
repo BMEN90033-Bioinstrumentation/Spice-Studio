@@ -23,6 +23,7 @@ import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
 import { TEMPLATES } from './schematic/templates'
+import { annotate } from './schematic/annotate'
 import { blame, currentVectors, findVector, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
@@ -692,6 +693,13 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     if (p) setStatus(`Exported ${base(p)}`)
   }
 
+  // Tools › Annotate Project: renumber every sheet, top sheet first (undoable per open sheet)
+  function annotateProject() {
+    const r = annotate(files.map(live))
+    files.forEach((f, i) => r.sheets[i] !== live(f) && put(f, r.sheets[i]))
+    setStatus(r.renamed ? `Renumbered ${r.renamed} part${r.renamed === 1 ? '' : 's'}` : 'Already numbered in order')
+  }
+
   // menu + shortcuts (commands.ts); the canvas' own commands come from the active Schematic
   const lastSheet = useRef(top)
   if (isSch) lastSheet.current = view
@@ -707,7 +715,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     { id: 'sim.run', keys: 'Mod+Enter', run, enabled: () => !running && (isSch ? live(top).parts.length > 0 : /\S/.test(text.current)) },
     { id: 'sim.stop', keys: 'Mod+.', run: stop, enabled: () => running },
     { id: 'sim.viewNetlist', run: peek, enabled: () => isSch && canPeek },
-    { id: 'tools.library', run: () => (isSch && snap(view), bump(), go('library')) }
+    { id: 'tools.library', run: () => (isSch && snap(view), bump(), go('library')) },
+    { id: 'tools.annotateProject', run: annotateProject, enabled: () => !!proj }
   ])
 
   const name = isSch ? (proj ? view : (base(schPath) ?? 'untitled.nsch')) : (base(path) ?? 'untitled.cir')

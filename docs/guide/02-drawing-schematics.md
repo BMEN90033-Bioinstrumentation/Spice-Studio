@@ -89,6 +89,12 @@ Directives are lines of SPICE text that go into the netlist as written: analyses
 
 Double-click a card to edit it again. If the card holds a single analysis line, the inspector offers **Edit as analysis…**; if it holds an `.options` line, **Edit options…**. Both open the forms described in [chapter 4](04-simulating.md).
 
+## Renumbering parts
+
+After a lot of copying and deleting, part names end up out of order (R7 next to R2). **Tools → Annotate Sheet** renumbers the parts on the current sheet: each prefix (R, C, Q, X…) counts from 1 in reading order, top to bottom, then left to right. **Tools → Annotate Project** does every sheet in a project, top sheet first, and keeps counting from one sheet to the next so every name in the project is different.
+
+References to a renamed part follow it: `i(R1)` and `@R1[i]` in directive cards, `.dc V1 …`, the V source named by an F, H or W part, and the inductors named by a K part. Node names such as `v(R1)` and net labels are left alone. A name that does not end in a number (`Rload`) is not changed, and a name already used by an element line in a directive card is skipped. Both commands can be undone with ⌘Z.
+
 ## Notes, shapes and the title block
 
 Annotations explain a drawing. They are never written to the netlist, even when a note looks like SPICE.

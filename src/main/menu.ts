@@ -127,7 +127,7 @@ function template(recents: Recent[]): Item[] {
     sep,
     cmd('sim.viewNetlist', 'View Generated Netlist')
   ]
-  const tools: Item[] = [cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
+  const tools: Item[] = [cmd('tools.annotateSheet', 'Annotate Sheet'), cmd('tools.annotateProject', 'Annotate Project'), sep, cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
   const help: Item[] = [
     cmd('help.shortcuts', 'Keyboard Shortcuts', 'CmdOrCtrl+/'),
     ...(mac ? [] : [cmd('help.about', 'About Spice Studio')]),

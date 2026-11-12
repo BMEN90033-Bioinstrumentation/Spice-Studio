@@ -2,6 +2,7 @@ import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef
 import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
+import { annotate } from './annotate'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
 import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
@@ -464,6 +465,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'place.note', run: () => use('note') },
     ...SHAPES.map(({ t }) => ({ id: 'place.' + t, run: () => use(t) })),
     { id: 'place.titleBlock', run: toggleTitle, checked: () => !!titleOf(cur.current) },
+    { id: 'tools.annotateSheet', run: () => { const r = annotate([cur.current]); if (r.renamed) commit(r.sheets[0]) }, enabled: () => cur.current.parts.length > 0 },
     { id: 'place.fromLibrary', run: () => (toggleLib(true), setTimeout(() => search.current?.focus())) },
     ...(['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'npn', 'pnp', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port',
       'power', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi', 'sw', 'csw', 'tline', 'xfmr', 'kcouple'] as Kind[]).map((k) => ({ id: 'place.' + k, run: () => use({ place: k, title: SYMBOLS[k].title }) })),
