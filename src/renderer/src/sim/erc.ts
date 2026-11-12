@@ -152,9 +152,11 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
         const path = vpath(vedges, a, b).sort((x, y) => vedges.indexOf(x) - vedges.indexOf(y)) // netlist order
         const refs = [...path.map((x) => x.ref), e.ref]
         const nets = [...new Set([a, b, ...path.flatMap((x) => [x.a, x.b])])].map((n) => spell.get(n)!)
-        errors.push({ message: refs.some((r) => digital.has(r))
-          ? `Digital outputs fight: ${refs.join(', ')} drive ${nets.filter((n) => n !== '0').length > 1 ? 'the nets' : 'the same net'} ${nets.filter((n) => n !== '0').join(', ')} (an output is a voltage source; ngspice can't solve two in parallel)`
-          : `Loop of voltage sources / inductors: ${refs.join(', ')} (a short circuit at DC)`, refs, nets })
+        const dig = refs.filter((r) => digital.has(r)), other = refs.filter((r) => !digital.has(r)), on = nets.filter((n) => n !== '0')
+        errors.push({ message: dig.length > 1
+          ? `Digital outputs fight: ${dig.join(', ')} drive ${on.length > 1 ? 'the nets' : 'the same net'} ${on.join(', ')}${other.length ? ` (also through ${other.join(', ')})` : ''} (an output is a voltage source; ngspice can't solve two in parallel)`
+          : dig.length ? `Digital output of ${dig[0]} is shorted at DC through ${other.join(', ')} on ${on.join(', ')} (a voltage source or inductor across an output)`
+            : `Loop of voltage sources / inductors: ${refs.join(', ')} (a short circuit at DC)`, refs, nets })
       }
       vedges.push({ a, b, ref: e.ref })
     }

@@ -127,6 +127,7 @@ test('ERC: two digital outputs on one net is an error (ngspice: singular matrix)
   assert.match(e.errors[0].message, /^Digital outputs fight: XU1, XU2 drive the same net out/)
   assert.deepEqual(e.errors[0].refs, ['XU1', 'XU2'])
   // a hand-written dac_bridge output on a V source's net
-  const hand = '* x\nV1 y 0 DC 1\nA1 [d] [y] dac\n.model dac dac_bridge\n.tran 1n 10n\n.end\n'
-  assert.match(erc(hand).errors[0]?.message ?? '', /Digital outputs fight: V1, A1/)
+  const hand = (el: string) => erc(`* x\n${el}\nA1 [d] [y] dac\n.model dac dac_bridge\n.tran 1n 10n\n.end\n`).errors.map((e) => e.message)
+  assert.deepEqual(hand('V1 y 0 DC 1'), ['Digital output of A1 is shorted at DC through V1 on y (a voltage source or inductor across an output)'])
+  assert.deepEqual(hand('L1 y 0 1m'), ['Digital output of A1 is shorted at DC through L1 on y (a voltage source or inductor across an output)'])
 })
