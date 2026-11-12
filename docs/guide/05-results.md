@@ -128,7 +128,7 @@ Every whole period in the run is drawn over the others, up to 2,000; with more, 
 2. Each slider covers a decade either side of the value on a log scale. Edit the minimum and maximum, or untick **log** for a linear scale.
 3. Move the slider. The app runs the simulation again a moment after you stop moving it, and stops a run that is still going if you move it again.
 
-The plot updates in place: the zoom, the cursors and the ticked traces stay as they are. Every run while the sliders are open uses the slider values, and the console starts with a `Tuned:` line listing them. The values are not written back to the schematic. Remove a slider (**×**) to go back to the netlist value. Closing the row goes back to all the netlist values and runs the simulation once more with them, so the plot matches the schematic again. The sliders stay in use if you pop the results out or dock them.
+The plot updates in place: the zoom, the cursors and the ticked traces stay as they are. Every run while the sliders are open uses the slider values, and the console starts with a `Tuned:` line listing them. The values are not written back to the schematic. Remove a slider (**×**) to go back to the netlist value. Closing the row goes back to all the netlist values and runs the simulation once more with them, so the plot matches the schematic again. The sliders, with their ranges, stay in use if you pop the results out or dock them. If you press **Stop** during a tuning run, the plot keeps the last run that finished.
 
 ## FFT
 

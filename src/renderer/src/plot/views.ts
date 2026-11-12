@@ -18,13 +18,18 @@ export function gamma(zr: number, zi: number, z0: number): [number, number] {
   return [(ar * br + zi * zi) / d, (zi * br - ar * zi) / d]
 }
 
-// ≈ count round-numbered ticks covering [lo, hi]
+// ≈ count round-numbered ticks covering [lo, hi]. Bounded loop: a span far below the values' precision (1e9 ± 1e-7)
+// can't add up step by step.
 export function ticks(lo: number, hi: number, count = 6): number[] {
-  if (!(hi > lo)) return [lo]
+  if (!(hi > lo && Number.isFinite(lo) && Number.isFinite(hi))) return Number.isFinite(lo) ? [lo] : []
   const raw = (hi - lo) / count, p = 10 ** Math.floor(Math.log10(raw)), step = p * ([1, 2, 5, 10].find((m) => m * p >= raw) ?? 10)
-  const out: number[] = []
-  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(Math.abs(v) < step * 1e-9 ? 0 : v)
-  return out
+  const out = new Set<number>(), i0 = Math.ceil(lo / step)
+  for (let j = 0; j <= Math.min(1000, 2 * Math.ceil(count) + 2); j++) {
+    const v = (i0 + j) * step
+    if (v > hi + step * 1e-9) break
+    out.add(Math.abs(v) < step * 1e-9 ? 0 : v)
+  }
+  return [...out]
 }
 
 // Smith chart grid: constant-resistance circles and constant-reactance arcs (normalised to Z0), as Γ-plane polylines

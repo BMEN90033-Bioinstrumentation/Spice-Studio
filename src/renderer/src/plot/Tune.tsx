@@ -17,10 +17,12 @@ export type TuneHost = { netlist: string; knobs: Knob[]; running: boolean; set: 
 type Slider = Knob & { min: number; max: number; log: boolean; text: [string, string] }
 const DEBOUNCE = 150 // ms after the last slider move
 const id = (k: Knob) => `${k.kind}:${k.name.toLowerCase()}`
+const RANGES = new Map<string, Pick<Slider, 'min' | 'max' | 'log' | 'text'>>() // each slider's range, for reopening (pop-out/dock)
 
 // swept: .step params (sliding them would change nothing)
 export function Tune({ host, swept, hidden, onClose }: { host: TuneHost; swept: string[]; hidden?: boolean; onClose: () => void }) {
-  const slider = (k: Knob): Slider => { const r = range(k.value); return { ...k, ...r, text: [eng(r.min), eng(r.max)] } }
+  const slider = (k: Knob): Slider => { const r = RANGES.get(id(k)), d = range(k.value); return { ...k, ...(r ?? { ...d, text: [eng(d.min), eng(d.max)] }) } }
+  const put = (next: Slider[]) => (next.forEach(({ min, max, log, text, ...k }) => RANGES.set(id(k), { min, max, log, text })), setKs(next))
   const [ks, setKs] = useState<Slider[]>(() => host.knobs.map(slider)) // reopened in the pop-out: the values in use
   const avail = useMemo(() => knobs(host.netlist).filter((k) => !ks.some((s) => id(s) === id(k)) && !(k.kind === 'param' && swept.includes(k.name.toLowerCase()))), [host.netlist, ks, swept.join()])
   const latest = useRef(host), pending = useRef<Knob[] | null>(null), timer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -39,7 +41,7 @@ export function Tune({ host, swept, hidden, onClose }: { host: TuneHost; swept: 
   useEffect(() => { if (!host.running) fire() }, [host.running])
   useEffect(() => () => clearTimeout(timer.current), [])
   const commit = (next: Slider[], now = false) => {
-    setKs(next)
+    put(next)
     pending.current = next.map(({ kind, name, value }) => ({ kind, name, value }))
     clearTimeout(timer.current)
     timer.current = setTimeout(fire, now ? 0 : DEBOUNCE)
@@ -47,11 +49,11 @@ export function Tune({ host, swept, hidden, onClose }: { host: TuneHost; swept: 
   const upd = (i: number, p: Partial<Slider>) => {
     const next = ks.map((s, j) => (j === i ? { ...s, ...p } : s))
     if (next[i].value !== ks[i].value) commit(next)
-    else setKs(next)
+    else put(next)
   }
   const add = (key: string) => {
     const k = avail.find((a) => id(a) === key)
-    if (k) setKs([...ks, slider(k)]) // same value as the netlist: nothing to re-run
+    if (k) put([...ks, slider(k)]) // same value as the netlist: nothing to re-run
   }
   // closing: back to the netlist values, re-run if sliders had changed anything (the strip stays mounted to see it through)
   const close = () => {
@@ -65,7 +67,7 @@ export function Tune({ host, swept, hidden, onClose }: { host: TuneHost; swept: 
     const s = ks[i], text: [string, string] = [...s.text]
     text[which] = t
     const min = spiceValue(text[0]), max = spiceValue(text[1])
-    if (isNaN(min) || isNaN(max) || !(max > min) || (s.log && !(min > 0))) return setKs(ks.map((x, j) => (j === i ? { ...x, text } : x)))
+    if (isNaN(min) || isNaN(max) || !(max > min) || (s.log && !(min > 0))) return put(ks.map((x, j) => (j === i ? { ...x, text } : x)))
     upd(i, { text, min, max, value: Math.min(max, Math.max(min, s.value)) })
   }
   const bad = (s: Slider) => { const a = spiceValue(s.text[0]), b = spiceValue(s.text[1]); return isNaN(a) || isNaN(b) || !(b > a) || (s.log && !(a > 0)) }

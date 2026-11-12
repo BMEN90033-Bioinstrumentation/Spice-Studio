@@ -1,5 +1,5 @@
 // Plot tabs + plot + console. Presentational: the workspace owns the state; rendered docked or inside the pop-out window.
-import { useState, type ReactNode } from 'react'
+import { Component, useState, type ReactNode } from 'react'
 import { ChartColumn, SlidersHorizontal } from 'lucide-react'
 import { eng, Plot, type PlotRun } from '../Plot'
 import { Histogram } from '../plot/Histogram'
@@ -20,6 +20,23 @@ const TabBtn = ({ on, onClick, children }: { on: boolean; onClick: () => void; c
     {children}
   </Button>
 )
+
+// a view that throws while drawing shows a plain message instead of blanking the app; new results (reset) try again
+class Guard extends Component<{ children: ReactNode; reset?: unknown }, { err: Error | null }> {
+  state = { err: null as Error | null }
+  static getDerivedStateFromError = (err: Error) => ({ err })
+  componentDidUpdate(prev: { reset?: unknown }) { if (prev.reset !== this.props.reset && this.state.err) this.setState({ err: null }) }
+  render() {
+    const { err } = this.state
+    if (!err) return this.props.children
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center text-xs text-muted-foreground">
+        <span>This view failed to draw: <span className="text-err">{err.message}</span></span>
+        <Button size="xs" variant="outline" onClick={() => this.setState({ err: null })}>Try again</Button>
+      </div>
+    )
+  }
+}
 
 export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[] }
 // sels key of a tab's pane i (.plot lines stack several charts); pane 0 is the tab's own key, so probing lands there
@@ -53,7 +70,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
         )}
         {actions && <span className="ml-auto flex shrink-0 items-center gap-1 pl-2">{actions}</span>}
       </nav>
-      {tune && <Tune host={tune} swept={steppedNames(tabs[0]?.runs.map((r) => r.label) ?? [])} hidden={!tuning} onClose={() => setTuning(false)} />}
+      {tune && <Guard><Tune host={tune} swept={steppedNames(tabs[0]?.runs.map((r) => r.label) ?? [])} hidden={!tuning} onClose={() => setTuning(false)} /></Guard>}
       <div className="plotarea">
         {cur && (
           <div className="plotpanes">
@@ -63,14 +80,14 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
                 <div key={k} className="plotpane">
                   {p?.title && <h3 className="panetitle">{p.title}</h3>}
                   <div className="panebody">
-                    <Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} hold={tuning} />
+                    <Guard reset={cur.runs}><Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} hold={tuning} /></Guard>
                   </div>
                 </div>
               )
             })}
           </div>
         )}
-        {showMeas && <Measurements meas={meas!} />}
+        {showMeas && <Guard reset={meas}><Measurements meas={meas!} /></Guard>}
       </div>
       <pre className="console">
         {log.map((l, i) => {

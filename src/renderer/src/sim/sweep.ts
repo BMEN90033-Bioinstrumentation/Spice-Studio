@@ -3,7 +3,8 @@ import { spiceValue } from './analysis.ts'
 import { parseMeas } from './meas.ts'
 
 export interface Step { param: string; values: number[]; temp?: true } // temp: `.step temp …` (param 'temp')
-export interface SweepRun { label: string; netlist: string } // "R=1k", "R=1k, T=25", "run 3", "R+ C−"; '' when no .step/.mc/.wc
+// label: "R=1k", "R=1k, T=25", "run 3", "R+ C−"; '' when no .step/.mc/.wc. skip: don't run it, log the label (.wc)
+export interface SweepRun { label: string; netlist: string; skip?: boolean }
 // note: a line for the log (.wc says what it ran); observe: called with each finished run's log, in order (.wc's
 // sensitivity fallback picks its last corners from the earlier runs' .meas results, so those runs' fields are getters)
 export interface Sweep { runs: SweepRun[]; errors: string[]; note?: string; observe?: (log: string) => void }
@@ -105,7 +106,7 @@ function monteCarlo(netlist: string): { runs: SweepRun[]; errors: string[] } {
 // Tolerances, written as for .mc: gauss(nom, rel, sigma) / unif(nom, rel) vary by ±rel·nom at their limit,
 // agauss(nom, abs, sigma) / aunif(nom, abs) / limit(nom, abs) by ±abs; sunif(0) by ±1 and sgauss(0) by ±3 (3σ). Each call
 // in the deck is one toleranced value, named after its .param (R), its element (R1) or its .model parameter (QN.BF).
-// Only calls in .param lines or inside {…} count (a B-source's own functions don't); text after ; is a comment.
+// Only calls in .param lines or inside {…} or '…' count (a B-source's own functions don't); text after ; is a comment.
 export type Tol = { name: string; line: number; start: number; end: number; nom: string; dev: string; rel: boolean }
 const ARGS: Record<string, [number, number]> = { gauss: [2, 3], agauss: [2, 3], unif: [2, 2], aunif: [2, 2], limit: [2, 2], sgauss: [1, 1], sunif: [1, 1] }
 export function tolerances(lines: string[]): Tol[] {
@@ -125,7 +126,7 @@ export function tolerances(lines: string[]): Tol[] {
         else if (l[i] === ',' && !d) args.push(l.slice(a, i)), (a = i + 1)
       }
       const f = m[1].toLowerCase(), [lo, hi] = ARGS[f], pre = l.slice(0, m.index)
-      const braced = pre.split('{').length > pre.split('}').length
+      const braced = pre.split('{').length > pre.split('}').length || pre.split("'").length % 2 === 0 // inside {…} or '…'
       if (end < 0 || args.length < lo || args.length > hi || !(param || braced)) continue
       const assigned = /([a-z_]\w*)\s*=[^=]*$/i.exec(cont ? pre.replace(/^\s*\+/, '') : pre)?.[1]
       let name = !/^\./.test(head[0] ?? '') ? head[0] : /^\.model$/i.test(head[0]) && assigned ? `${head[1]}.${assigned}` : (assigned ?? `tol${out.length + 1}`)
@@ -177,8 +178,9 @@ function worstCase(netlist: string): Sweep {
     const a = val(0, m), d = tols.map((_, j) => { const b = val(1 + j, m); return a == null || b == null ? null : b < a ? -1 : 1 })
     return d.includes(null) ? null : (d as number[])
   }
-  // a corner that can't be picked has no netlist: the run loop skips it and logs its label
+  // a corner that can't be picked is marked skip: the run loop logs its label and doesn't run it
   const pick = (m: string, s: 1 | -1) => ({
+    get skip() { return !dir(m) },
     get label() { const d = dir(m); return `${s > 0 ? 'max' : 'min'} ${m}: ${d ? label(d.map((x) => x * s)) : `skipped, ${m} has no value in the nominal or a sensitivity run (see their logs)`}` },
     get netlist() { const d = dir(m); return d ? at(d.map((x) => x * s)) : '' }
   })

@@ -511,7 +511,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     try {
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
-        if (!s.netlist) { out += `--- ${s.label} ---\n`; continue } // .wc: a corner it couldn't pick (sim/sweep.ts)
+        if (s.skip) { out += `--- ${s.label} ---\n`; continue } // .wc: a corner it couldn't pick (sim/sweep.ts)
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
         const r = await window.api.runSim(s.netlist, dir, opts)
         // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
@@ -525,7 +525,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     } finally {
       setRunning(false)
     }
-    if (stopped === 'user' && superseded.current) return setStatus('Stopped: the tuning sliders moved') // the run that follows replaces the results
+    // tuning: a run a slider move stopped is replaced by the next one; one the user stopped keeps the last plot
+    if (stopped === 'user' && (superseded.current || (tuned.current.length && !done.length))) return setStatus(superseded.current ? 'Stopped: the tuning sliders moved' : 'Stopped: the plot shows the last finished run')
     const mt = done.map((r) => ({ label: r.label, rows: parseMeas(r.result.log) }))
     setMeas(mt.some((r) => r.rows.length) ? mt : null)
     // ngspice logs gmin/source stepping warnings on runs it rescued (noise), but a singular matrix result is never trustworthy

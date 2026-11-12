@@ -201,11 +201,13 @@ test('tolerances: comments, continuation lines, B-source functions, sgauss/sunif
     '+ {agauss(1n,0.1n,3)}', // continues C1
     'B1 out 0 V=limit(v(in), 0, 5)', // the B-source's own limit(), not a tolerance
     'B2 out 0 V={limit(1,0.1)}*v(in)', // braced, two arguments: a tolerance
+    "R3 a b 'gauss(2k,0.1,3)'", // single quotes work like braces in ngspice
     '.param T={1k*(1+0.05*sgauss(0))} U={sunif(0)}'
   ])
-  assert.deepEqual(t.map((x) => [x.name, x.nom, x.dev, x.rel]), [['R1', '1k', '0.05', true], ['R2', '1k', '0.1', true], ['B', '5', '1', false], ['C1', '1n', '0.1n', false], ['B2', '1', '0.1', false], ['T', '0', '3', false], ['U', '0', '1', false]])
+  assert.deepEqual(t.map((x) => [x.name, x.nom, x.dev, x.rel]), [['R1', '1k', '0.05', true], ['R2', '1k', '0.1', true], ['B', '5', '1', false], ['C1', '1n', '0.1n', false], ['B2', '1', '0.1', false], ['R3', '2k', '0.1', true], ['T', '0', '3', false], ['U', '0', '1', false]])
   assert.deepEqual(atCorner(['.param T={1k*(1+0.05*sgauss(0))}'], tolerances(['.param T={1k*(1+0.05*sgauss(0))}']), [1]), ['.param T={1k*(1+0.05*((0)+(3)))}'])
   assert.equal(expandSweep('* x\nR1 1 0 {gauss(1k,0.05,3)} ; {gauss(1,1,1)}\n.wc\n.op\n.end\n').runs.length, 3) // nominal + 2 corners, not 4
+  assert.equal(expandSweep("* x\nR1 1 0 'gauss(1k,0.05,3)'\n.wc\n.op\n.end\n").runs[2].netlist, "* x\nR1 1 0 '((1k)*(1+(0.05)))'\n.op\n.end\n")
 })
 
 test('.wc fallback: unknown measurement names are an error; a measurement without values skips its corners', () => {
@@ -215,8 +217,7 @@ test('.wc fallback: unknown measurement names are an error; a measurement withou
   const sw = expandSweep(deck('.wc vo'))
   for (let k = 0; k < 10; k++) sw.observe!('no measurements printed\n') // e.g. a .meas op, which this app's batch run never prints
   assert.match(sw.runs[10].label, /^max vo: skipped, vo has no value/)
-  assert.equal(sw.runs[10].netlist, '')
-  assert.equal(sw.runs[11].netlist, '')
+  assert.deepEqual([sw.runs[10].skip, sw.runs[11].skip, sw.runs[0].skip], [true, true, undefined])
 })
 
 test('.wc fallback through ngspice: picked corners give the extreme measurements (skipped if ngspice missing)', (t) => {
@@ -237,4 +238,11 @@ test('.wc fallback through ngspice: picked corners give the extreme measurements
   assert.equal(sw.runs[11].label, 'min vo: R1+ R2+ R3+ R4+ R5+ R6− R7− R8− R9−')
   assert.equal(Math.max(...vo), vo[10]), assert.equal(Math.min(...vo), vo[11])
   assert.ok(Math.abs(vo[10] - (4 * 1100) / (5 * 900 + 4 * 1100)) < 1e-5, String(vo[10])) // R0 (1 mΩ) neglected
+})
+
+test('a single-quoted tolerance corner runs in ngspice (skipped if ngspice missing)', (t) => {
+  const r = expandSweep("* q\nV1 1 0 1\nR1 1 0 'gauss(1k,0.1,3)'\n.wc\n.op\n.end\n").runs
+  const i = ngspiceI(t, r[2].netlist) // R1+
+  if (i === null) return
+  assert.ok(Math.abs(i * 1100 - 1) < 1e-5, String(i))
 })

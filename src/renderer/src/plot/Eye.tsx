@@ -20,10 +20,12 @@ export function Eye({ traces, period, offset, unit, name, onChart }: {
       for (const y of f.segs) segs.push({ y, color: tr.color })
     }
     const count = segs.length < total ? `the first ${segs.length} of ${total} periods` : `${total} period${total === 1 ? '' : 's'}`
-    const u = new uPlot(
+    const size = () => ({ width: Math.max(0, el.clientWidth - 16), height: Math.max(0, el.clientHeight - 8) })
+    let u: uPlot
+    try {
+      u = new uPlot(
       {
-        width: el.clientWidth - 16,
-        height: el.clientHeight - 8,
+        ...size(),
         legend: { show: false },
         cursor: { drag: { x: true, y: true, uni: 20 }, points: { show: false } },
         scales: { x: { time: false } },
@@ -35,9 +37,13 @@ export function Eye({ traces, period, offset, unit, name, onChart }: {
       },
       [t, ...segs.map((s) => s.y)],
       (u, init) => (el.appendChild(u.root), init()) // see Plot.tsx: pop-out window elements
-    )
+      )
+    } catch (e) {
+      el.textContent = `The eye diagram failed to draw: ${(e as Error).message}` // keep the sidebar usable
+      return () => void (el.textContent = '')
+    }
     onChart(u)
-    const ro = new (el.ownerDocument.defaultView ?? window).ResizeObserver(() => u.setSize({ width: el.clientWidth - 16, height: el.clientHeight - 8 }))
+    const ro = new (el.ownerDocument.defaultView ?? window).ResizeObserver(() => u.setSize(size()))
     ro.observe(el)
     return () => (ro.disconnect(), u.destroy(), onChart(null))
   }, [traces, period, offset])

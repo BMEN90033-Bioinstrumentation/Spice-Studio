@@ -125,7 +125,7 @@ C1 out 0 {unif(1u,0.1)}
 .meas tran t50 WHEN v(out)=0.5 RISE=1
 ```
 
-Each `gauss`, `agauss`, `unif`, `aunif` or `limit` call is one toleranced value. Its limits are nom × (1 ± rel) for `gauss` and `unif`, and nom ± abs for `agauss`, `aunif` and `limit`. `sunif(0)` counts as ±1 and `sgauss(0)` as ±3 (three standard deviations). Each value is named after its `.param` (`R`), its part (`C1`) or its model parameter (`QN.BF`), also on `+` continuation lines. Only calls in a `.param` line or inside `{…}` count, so a B-source's own functions are left alone, and text after `;` is a comment.
+Each `gauss`, `agauss`, `unif`, `aunif` or `limit` call is one toleranced value. Its limits are nom × (1 ± rel) for `gauss` and `unif`, and nom ± abs for `agauss`, `aunif` and `limit`. `sunif(0)` counts as ±1 and `sgauss(0)` as ±3 (three standard deviations). Each value is named after its `.param` (`R`), its part (`C1`) or its model parameter (`QN.BF`), also on `+` continuation lines. Only calls in a `.param` line or inside `{…}` or `'…'` count, so a B-source's own functions are left alone, and text after `;` is a comment.
 
 With up to 8 toleranced values, the app runs the nominal circuit and then every combination of low and high limits: 2ⁿ corners, labelled like `C1− R+`. The runs are overlaid on the plot like other sweeps. On the **Measurements** tab, **min** and **max** are the worst-case values, with the corner that gave each written under it (the mean and σ columns are left out). In the example above, t50 is 693.6 µs nominal, 593.1 µs at `C1− R−` and 801.1 µs at `C1+ R+`.
 
