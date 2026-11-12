@@ -12,8 +12,9 @@ import { FormDialog, NumField, fieldGrid } from './AnalysisDialog.tsx'
 
 const muted = 'text-xs text-muted-foreground'
 
-type Fn = Exclude<TranKind, 'none' | 'pwl'>
-const KINDS: [TranKind, string][] = [['none', 'None (DC only)'], ['pulse', 'Pulse'], ['sin', 'Sine'], ['exp', 'Exponential'], ['pwl', 'Piecewise linear'], ['sffm', 'FM (SFFM)'], ['am', 'AM']]
+type Fn = Exclude<TranKind, 'none' | 'pwl' | 'pwlfile' | 'wav'>
+const isFile = (k: TranKind) => k === 'pwlfile' || k === 'wav'
+const KINDS: [TranKind, string][] = [['none', 'None (DC only)'], ['pulse', 'Pulse'], ['sin', 'Sine'], ['exp', 'Exponential'], ['pwl', 'Piecewise linear'], ['sffm', 'FM (SFFM)'], ['am', 'AM'], ['pwlfile', 'PWL from a file (CSV / text)'], ['wav', 'WAV file']]
 // field name -> [label, unit kind]: y = the source's unit (V/A), s, Hz, …
 const NAMES: Record<string, [string, string]> = {
   V1: ['Initial value', 'y'], V2: ['Pulsed value', 'y'], VO: ['Offset', 'y'], VA: ['Amplitude', 'y'], TD: ['Delay', 's'], TR: ['Rise time', 's'],
@@ -43,6 +44,8 @@ export function SourceDialog({ name, unit, value, onApply, onClose }: {
   const [rows, setRows] = useState<Row[]>(() => pw ? pw.args.filter((_, i) => i % 2 === 0).map((t, i) => ({ t, v: pw.args[2 * i + 1] }))
     : [{ t: '0', v: '0' }, { t: '1m', v: '1' }, { t: '2m', v: '0' }])
   const [rep, setRep] = useState(pw?.r ?? ''), [td, setTd] = useState(pw?.td ?? '')
+  const fi = init && isFile(init.tran.kind) ? init.tran.args : null
+  const [file, setFile] = useState(fi?.[0] ?? ''), [chan, setChan] = useState(fi?.[1] ?? '0')
   const uid = useId()
 
   // build the Source + collect errors
@@ -62,6 +65,11 @@ export function SourceDialog({ name, unit, value, onApply, onClose }: {
       chk(rep, 'Repeat from'), chk(td, 'Delay')
       if (rep.trim() && !ts.includes(spiceValue(rep))) errs.push('Repeat from must be one of the point times')
       ;(a = rs.flatMap((x) => [x.t.trim(), x.v.trim()])), (r = rep.trim() || undefined), (d = td.trim() || undefined)
+    } else if (isFile(kind)) {
+      if (!file.trim()) errs.push('Choose a file')
+      if (file.includes('"')) errs.push('The file name can\'t contain "')
+      if (kind === 'wav' && !/^\d+$/.test(chan.trim())) errs.push('Channel must be 0 (left), 1 (right), …')
+      a = kind === 'wav' ? [file.trim(), chan.trim()] : [file.trim()]
     } else if (kind !== 'none') {
       const f = args[kind].map((v) => v.trim())
       f.forEach((v, i) => chk(v, `${NAMES[FIELDS[kind][i]][0]} (${FIELDS[kind][i]})`))
@@ -121,6 +129,15 @@ export function SourceDialog({ name, unit, value, onApply, onClose }: {
               {field('r', 'Repeat from (r=)', 's', rep, setRep, 'no repeat')}
               {field('td', 'Delay (td=)', 's', td, setTd, '0')}
             </div>
+          </> : isFile(kind) ? <>
+            <div className="grid gap-1.5">
+              <Label htmlFor={uid + 'f'} className={muted}>{kind === 'wav' ? 'WAV file (full scale = ±1 ' + unit + ')' : 'Time/value file: two columns, one point per line'}</Label>
+              <div className="flex gap-1.5">
+                <Input id={uid + 'f'} className={cell} value={file} spellCheck={false} placeholder={kind === 'wav' ? 'input.wav' : 'drive.csv'} onChange={(e) => setFile(e.target.value)} />
+                <Button variant="outline" size="sm" className="h-8" onClick={async () => { const p = await window.api.pickSourceFile(kind === 'wav' ? 'wav' : 'pwl'); if (p) setFile(p) }}>Browse…</Button>
+              </div>
+            </div>
+            {kind === 'wav' && <div className={fieldGrid}>{field('ch', 'Channel (0 = left)', '', chan, setChan, '0')}</div>}
           </> : kind !== 'none' && (
             <div className={fieldGrid}>
               {FIELDS[kind].map((f, i) => field(f, `${NAMES[f][0]} (${f})`, u(NAMES[f][1]), args[kind][i],
@@ -138,6 +155,7 @@ const fmt = (v: number) => (Math.abs(v) >= 1e4 || (v !== 0 && Math.abs(v) < 1e-2
 // ~2 periods (or the PWL span) of the waveform. ponytail: 400 uniform samples, so sub-sample edges look vertical
 function Preview({ src, unit }: { src: Source; unit: string }) {
   if (src.tran.kind === 'none') return null
+  if (isFile(src.tran.kind)) return <p className={muted}>The file is read when you run the simulation. A relative path is relative to the project folder.</p>
   const T = previewSpan(src), N = 400, ctx = { step: T / 1000, stop: T }
   const ys = Array.from({ length: N + 1 }, (_, i) => evalTran(src, (T * i) / N, ctx))
   if (ys.some((y) => !isFinite(y))) return <p className={muted}>No preview: {src.tran.kind === 'am' ? 'AM is not previewed' : 'some values are parameters'}.</p>

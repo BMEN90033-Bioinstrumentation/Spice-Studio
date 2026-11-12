@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { SimResult } from '../main/index'
+import type { LiveChunk, RawPlot } from '../main/rawfile'
 import type { Pack } from '../main/userlib'
 import type { ImportedLib } from '../renderer/src/library/library'
 import type { Filter, SimOptions } from '../renderer/src/contracts'
@@ -16,9 +17,17 @@ const on = <T>(ch: string, cb: (x: T) => void) => {
   return () => void ipcRenderer.off(ch, h)
 }
 
+let liveId = 0
 const api = {
-  runSim: (netlist: string, baseDir?: string, opts?: SimOptions): Promise<SimResult> => inv('sim:run', netlist, baseDir, opts),
+  // onLive: the rawfile's new points a few times a second while ngspice runs (main/live.ts, renderer sim/live.ts)
+  runSim: (netlist: string, baseDir?: string, opts?: SimOptions, onLive?: (c: LiveChunk[]) => void): Promise<SimResult> => {
+    if (!onLive) return inv('sim:run', netlist, baseDir, opts)
+    const id = ++liveId, off = on<{ id: number; c: LiveChunk[] }>('sim:live', (m) => m.id === id && onLive(m.c))
+    return inv('sim:run', netlist, baseDir, opts, id).finally(off)
+  },
   stopSim: (): Promise<void> => inv('sim:stop'), // kills the running ngspice; its runSim resolves with stopped: 'user'
+  openRaw: (): Promise<{ path: string; plots: RawPlot[] } | null> => inv('raw:open'),
+  pickSourceFile: (kind: 'pwl' | 'wav'): Promise<string | null> => inv('source:pick', kind),
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {

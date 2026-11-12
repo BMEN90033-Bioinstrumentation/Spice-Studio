@@ -4,6 +4,7 @@ const R = new URL('../../../src/renderer/src', import.meta.url).href
 const { blockShape, emptySheet, newPart, pins, route, sheetPorts, uid, unconnectedPins } = await import(R + '/schematic/model.ts')
 const { netlist } = await import(R + '/schematic/netlist.ts')
 const { BUNDLED, resolver } = await import(R + '/library/library.ts')
+const { digitalCounter } = await import(R + '/schematic/digitalExample.ts')
 import { mkdirSync, writeFileSync } from 'node:fs'
 
 type P = [number, number]
@@ -341,6 +342,8 @@ ex['Diode-TempSweep'] = {
   })
   ex['Hier-Filter'] = { 'main.nsch': main, 'filter.nsch': filter }
 }
+
+ex['Digital-Counter'] = { 'main.nsch': digitalCounter() }
 
 const base = process.argv[2]
 const lib = resolver(BUNDLED)

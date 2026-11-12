@@ -81,6 +81,12 @@ As with `.options`, the sheet keeps one line of each: Apply replaces it, or adds
 
 Each run is a separate ngspice process, so a crash or a hang can't take the app down. The status bar shows the progress (`Running 3/20 (run 3)…`) and then `Done in … s`, `Failed …`, `Stopped …` or `Timed out after … s`.
 
+### Live results
+
+You don't have to wait for a long run to finish. A few times a second the plots fill in with the points ngspice has computed so far, for transient, AC and DC sweeps, and the status bar shows how far the run has got (`Running… 45%`, from the analysis line's stop time or frequency). You can tick vectors, zoom and place cursors while it runs.
+
+If you stop a run, or it times out, the points computed before that are kept in the plots, so you can stop a long transient as soon as you have seen enough.
+
 **View netlist** in the header (or **Simulate › View Generated Netlist**) shows the netlist the app will send, without running it.
 
 ## Run settings

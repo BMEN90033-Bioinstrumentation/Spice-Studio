@@ -3,9 +3,12 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path'
+import { basename, delimiter, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { inside, safeName } from './paths'
-import { parseRaw, type RawPlot } from './rawfile'
+import { parseRaw, type LiveChunk, type RawPlot } from './rawfile'
+import { watchRaw } from './live'
+import { readCapped } from './srcfile'
+import { expandFileSources, MAX_FILE_BYTES } from '../renderer/src/sim/filesrc'
 import type { SimOptions, Stopped } from '../renderer/src/contracts'
 import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
@@ -16,7 +19,7 @@ export interface SimResult {
   ok: boolean
   log: string
   plots: RawPlot[]
-  stopped?: Stopped // killed by sim:stop or the timeout; plots are dropped (a cut-off rawfile)
+  stopped?: Stopped // killed by sim:stop or the timeout; plots = the whole points written before that
 }
 
 // ngspice: NGSPICE_PATH > bundled (packaged: Resources/ngspice; dev: vendor/ngspice/<platform>-<arch>) > Homebrew > PATH.
@@ -76,13 +79,19 @@ const COMPAT = ['ps', 'lt', 'ltps', 'kicad']
 // cwd = baseDir so relative .include/.lib resolve next to the user's file (ngspice resolves them against cwd).
 // compat: -D ngbehavior=ps|lt|ltps|kicad (ngspice-47 batch mode accepts it and logs "Compatibility modes selected: ps";
 // ps/lt apply to .include/.lib content, e.g. a PSpice VSWITCH model in an included subckt only parses with ps).
-async function runSim(netlist: string, baseDir?: string, opts?: SimOptions): Promise<SimResult> {
+// live: called a few times a second with the points ngspice has added to the rawfile (main/live.ts)
+async function runSim(netlist: string, baseDir?: string, opts?: SimOptions, live?: (c: LiveChunk[]) => void): Promise<SimResult> {
   const e = engine()
   if (!e) return { ok: false, log: NO_NGSPICE, plots: [] }
+  const proj = baseDir && existsSync(baseDir) ? baseDir : undefined
+  // PWL file= / wavefile= sources become inline PWL (sim/filesrc.ts), paths relative to the project folder
+  const fs = await expandFileSources(netlist, (p) => readCapped(resolve(proj ?? tmpdir(), p), MAX_FILE_BYTES))
+  if (fs.errors.length) return { ok: false, log: fs.errors.map((x) => 'Error: ' + x).join('\n'), plots: [] }
+  netlist = fs.text
   const dir = await mkdtemp(join(tmpdir(), 'ngspice-'))
   const cir = join(dir, 'circuit.cir')
   const raw = join(dir, 'out.raw')
-  const cwd = baseDir && existsSync(baseDir) ? baseDir : dir
+  const cwd = proj ?? dir
   const base = ['-b', '-n', ...(COMPAT.includes(opts?.compat as string) ? ['-D', `ngbehavior=${opts!.compat}`] : [])]
   let stopped: Stopped | undefined, child: ChildProcess | undefined
   const stop = (why: Stopped) => {
@@ -92,10 +101,15 @@ async function runSim(netlist: string, baseDir?: string, opts?: SimOptions): Pro
   active = stop
   const secs = Number(opts?.timeoutS)
   const timer = secs > 0 && isFinite(secs) ? setTimeout(() => stop('timeout'), secs * 1000) : undefined
-  const cut = (log: string): SimResult => ({ ok: false, log: log + (stopped === 'user' ? '\nStopped.' : `\nTimed out after ${secs} s.`), plots: [], stopped })
+  const cut = async (log: string): Promise<SimResult> => ({
+    ok: false, log: log + (stopped === 'user' ? '\nStopped.' : `\nTimed out after ${secs} s.`), stopped,
+    plots: await readFile(raw).then((b) => parseRaw(b, true), () => []) // what ngspice wrote before it was killed
+  })
   try {
     await writeFile(cir, netlist.endsWith('\n') ? netlist : netlist + '\n')
+    const unwatch = live && watchRaw(raw, live)
     let { code, log } = await run(e, [...base, '-r', raw, cir], cwd, (p) => (child = p))
+    await unwatch?.()
     if (stopped) return cut(log)
     // .meas: a second, rawfile-less pass (see measDeck); only its measurement section goes in the log
     const md = code === 0 ? measDeck(netlist) : null
@@ -151,7 +165,8 @@ ipcMain.handle('export:pdf', async (_e, svg: string, defaultName: string, mode: 
   }
 })
 
-ipcMain.handle('sim:run', (_e, netlist: string, baseDir?: string, opts?: SimOptions) => runSim(netlist, baseDir, opts))
+ipcMain.handle('sim:run', (e, netlist: string, baseDir?: string, opts?: SimOptions, live?: number) =>
+  runSim(netlist, baseDir, opts, typeof live === 'number' ? (c) => e.sender.isDestroyed() || e.sender.send('sim:live', { id: live, c }) : undefined))
 ipcMain.handle('sim:stop', () => active?.('user'))
 app.on('will-quit', () => active?.('user'))
 
@@ -170,6 +185,23 @@ ipcMain.handle('file:open', async () => {
   })
   if (r.canceled || !r.filePaths[0]) return null
   return { path: r.filePaths[0], text: await readFile(r.filePaths[0], 'utf8') }
+})
+
+// File > Open Raw File…: an existing ngspice / LTspice .raw, shown in the plots panel without running anything
+ipcMain.handle('raw:open', async () => {
+  const r = await dialog.showOpenDialog({ filters: [{ name: 'SPICE raw files', extensions: ['raw'] }, { name: 'All', extensions: ['*'] }], properties: ['openFile'] })
+  if (r.canceled || !r.filePaths[0]) return null
+  return { path: r.filePaths[0], plots: parseRaw(await readFile(r.filePaths[0])) }
+})
+// source dialog Browse…: a data / WAV file, relative to the open project's folder when it's inside it
+ipcMain.handle('source:pick', async (_e, kind: 'pwl' | 'wav') => {
+  const r = await dialog.showOpenDialog({
+    filters: [kind === 'wav' ? { name: 'WAV audio', extensions: ['wav'] } : { name: 'Time/value data', extensions: ['csv', 'txt', 'dat', 'pwl'] }, { name: 'All', extensions: ['*'] }],
+    properties: ['openFile']
+  })
+  const p = r.canceled ? undefined : r.filePaths[0]
+  const d = p && [...projects].filter((d) => p.startsWith(d + sep)).sort((a, b) => b.length - a.length)[0]
+  return !p ? null : d ? relative(d, p).split(sep).join('/') : p
 })
 
 ipcMain.handle('file:save', async (_e, text: string, path: string | null, kind: 'cir' | 'nsch') => {

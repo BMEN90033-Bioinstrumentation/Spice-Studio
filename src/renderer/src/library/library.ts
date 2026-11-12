@@ -3,9 +3,10 @@
 import { isFlag, SYMBOLS, type Kind } from '../schematic/symbols.ts'
 import { blockShape, type Part, type Sheet } from '../schematic/model.ts'
 import type { Project } from '../project/project.ts'
+import { DIGITAL_PARTS } from '../schematic/digital.ts'
 
 export type Category = 'Passives' | 'Sources' | 'Controlled sources' | 'Switches' | 'Diodes' | 'BJTs' | 'JFETs' | 'MOSFETs' | 'Op-amps' | 'Comparators'
-  | 'Regulators' | 'References' | 'Optocouplers' | 'Timers' | 'Subcircuits'
+  | 'Regulators' | 'References' | 'Optocouplers' | 'Timers' | 'Subcircuits' | 'Digital'
 export interface LibEntry {
   id: string
   name: string
@@ -232,7 +233,7 @@ export function resolver(entries: LibEntry[]): (id: string) => LibEntry | undefi
 
 // ---------------------------------------------------------------------------------------------- packs
 
-export const CATEGORIES: Category[] = ['Passives', 'Sources', 'Controlled sources', 'Switches', 'Diodes', 'BJTs', 'JFETs', 'MOSFETs', 'Op-amps', 'Comparators', 'Regulators', 'References', 'Optocouplers', 'Timers', 'Subcircuits']
+export const CATEGORIES: Category[] = ['Passives', 'Sources', 'Controlled sources', 'Switches', 'Diodes', 'BJTs', 'JFETs', 'MOSFETs', 'Op-amps', 'Comparators', 'Regulators', 'References', 'Optocouplers', 'Timers', 'Subcircuits', 'Digital']
 export interface PackLibs { id: string; name: string; dir: string; compat?: string; enabled: boolean; libs: ImportedLib[]; texts: Record<string, string> }
 // short provenance tag on panel rows: 'Qucs-S community parts' -> 'Qucs-S'
 export const packTag = (name: string) => name.trim().split(/\s+/)[0] || name
@@ -588,5 +589,6 @@ export const BUNDLED: LibEntry[] = [
     { Vref: '2.495 V', Zka: '~0.2 Ω', Iref: '~2 µA' }, TL431),
   subckt('7805', 'block', 'Regulators', ['in', 'gnd', 'out'],
     '5 V linear regulator (7805-style, self-written): 5 V ±2 %, dropout ≈ 2 V @ 1 A, current limit ≈ 2.4 A, quiescent 4.5 mA. No thermal shutdown',
-    { Vout: '5 V', Dropout: '~2 V @ 1 A', Ilimit: '~2.4 A', Iq: '4.5 mA' }, REG7805)
+    { Vout: '5 V', Dropout: '~2 V @ 1 A', Ilimit: '~2.4 A', Iq: '4.5 mA' }, REG7805),
+  ...DIGITAL_PARTS // XSPICE gates and flip-flop (schematic/digital.ts)
 ]

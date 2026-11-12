@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { SimResult } from '../../main/index'
 import type { OsOpen } from '../../preload/index'
 import type { RawPlot } from '../../main/rawfile'
-import { isExpr, type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
+import { type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
 import { useCommands } from './commands'
@@ -32,6 +32,7 @@ import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { plotRuns, startSel } from './sim/results'
 import { expandSweep } from './sim/sweep'
+import { keepSel, liveRun, progress } from './sim/live'
 import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -93,7 +94,7 @@ function autoCompat(sheets: Sheet[], lib: (id: string) => LibEntry | undefined):
 type Route = 'home' | 'editor' | 'library'
 export type Session = (
   | { kind: 'project'; dir: string; file: string /* .nsproj, relative */; project: Project; sheets: Record<string, Sheet>; libTexts: Record<string, string>; warn: string }
-  | { kind: 'loose'; path: string | null; sheet: Sheet }
+  | { kind: 'loose'; path: string | null; sheet: Sheet; raw?: { path: string; plots: RawPlot[] } }
 ) & { net?: { path: string | null; text: string }; rid?: string; dirty?: string[] } // rid/dirty: restored from a recovery copy (Recovery.tsx); dirty 'net' = the netlist
 
 const LOOSE = 'untitled.nsch' // the single sheet's key in loose-file mode
@@ -203,6 +204,7 @@ function App() {
     { id: 'file.newProject', keys: 'Mod+N', run: () => leaving.guard(() => (setSession(null), setRoute('home'), setForm(true))) },
     { id: 'file.openProject', keys: 'Mod+O', run: () => leaving.guard(() => open()) },
     { id: 'file.openFile', keys: 'Mod+Shift+O', run: () => leaving.guard(openFile) },
+    { id: 'file.openRaw', run: () => leaving.guard(() => start(async () => { const r = await window.api.openRaw(); return r && { kind: 'loose', path: null, sheet: emptySheet(), raw: r } })) }, // a Workspace has its own
     { id: 'file.openRecent', run: (f) => f && leaving.guard(() => open(f)) }, // menu id 'file.openRecent:<file>'
     ...(session ? [] : [{ id: 'tools.library', run: () => setRoute('library') }, ...(route === 'library' ? [{ id: 'view.home', run: () => setRoute('home') }] : [])])
   ])
@@ -477,6 +479,21 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
   }
   const stop = () => ((stopReq.current = true), window.api.stopSim())
+  // tabs with no usable selection get the default one (live results and opened raw files; run() does its own pass at the end)
+  const fillSels = (rs: Run[]) => setSels((prev) => {
+    const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) =>
+      (panes?.length ? panes.map((p) => p.sel) : [startSel(plot) ?? defaultSel(plot)]).map((d, i) => [paneKey(key, i), d] as const).filter(([k]) => !keepSel(prev[k], plot.vars).length))
+    return add.length ? { ...prev, ...Object.fromEntries(add) } : prev
+  })
+  // File > Open Raw File…: an existing ngspice / LTspice .raw in the plots panel, nothing simulated
+  async function openRaw(r?: { path: string; plots: RawPlot[] } | null) {
+    r ??= await window.api.openRaw().catch((e) => (setStatus(`Can't open that raw file: ${msg(e)}`), null))
+    if (!r) return
+    const rs = [{ label: '', result: { ok: true, log: '', plots: r.plots }, netlist: '' }]
+    setRuns(rs), fillSels(rs), setLog(`Opened ${r.path}\n`), setBlamed([]), setMeas(null), setDiag([])
+    setStatus(`Opened ${base(r.path)}: ${r.plots.map((p) => p.plotname).join(', ') || 'no plots'}`)
+  }
+  useEffect(() => void (session.kind === 'loose' && session.raw && openRaw(session.raw)), [])
 
   async function run() {
     if (running) return
@@ -517,11 +534,21 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
-        const r = await window.api.runSim(s.netlist, dir, opts)
+        // live: the plots fill in while ngspice runs (sim/live.ts), with progress in the status bar
+        const lv = liveRun()
+        const r = await window.api.runSim(s.netlist, dir, opts, (c) => {
+          lv.add(c)
+          const plots = lv.plots(), last = plots.at(-1)
+          if (!last || last.points < 2) return
+          const pc = progress(last, s.netlist)
+          setStatus(`${n > 1 ? `Running ${i + 1}/${n} (${s.label})` : 'Running'}…${pc == null ? '' : ` ${Math.floor(pc * 100)}%`}`)
+          const rs = [...done, { label: s.label, result: { ok: true, log: '', plots }, netlist: s.netlist }]
+          setRuns(rs), fillSels(rs)
+        })
         // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
         const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
         out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
-        if ((stopped = r.stopped)) break // keep the runs completed so far, drop the cut-off one
+        if ((stopped = r.stopped)) { if (r.plots.length) done.push({ label: s.label, result: r, netlist: s.netlist }); break } // keep what the cut-off run computed too
         done.push({ label: s.label, result: r, netlist: s.netlist })
         if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
       }
@@ -538,8 +565,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setSels((prev) =>
       Object.fromEntries(
         tabs.flatMap(({ key, runs: [{ plot }], panes }) => {
-          const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
-          const keep = (k: string) => prev[k]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
+          const keep = (k: string) => keepSel(prev[k], plot.vars) // keep the user's picks when the vectors still exist
           const defs = panes?.length ? panes.map((p) => p.sel) : [startSel(plot) ?? defaultSel(plot)]
           return defs.map((d, i) => { const k = paneKey(key, i), kept = keep(k); return [k, kept?.length ? kept : d] })
         })
@@ -711,6 +737,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     { id: 'file.saveAs', keys: 'Mod+Shift+S', run: () => (isSch ? saveSheets(true) : saveNet(true)), enabled: () => !(proj && isSch) }, // projects save in place
     { id: 'file.closeProject', run: () => leave(onClose), enabled: () => !!proj },
     { id: 'file.exportNetlist', run: exportNet },
+    { id: 'file.openRaw', run: () => void openRaw(), enabled: () => !running },
     { id: 'view.home', run: () => leave(onClose) },
     { id: 'view.schematic', run: toSheet, checked: () => route === 'editor' && isSch },
     { id: 'view.netlist', run: () => (go('editor'), switchTo('net')), checked: () => route === 'editor' && !isSch },

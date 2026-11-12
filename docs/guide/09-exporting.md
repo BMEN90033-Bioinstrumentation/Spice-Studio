@@ -18,6 +18,10 @@ Each plot has **PNG**, **SVG** and **CSV** buttons at the right of the hint line
 
 The file name is suggested from the analysis, e.g. `transient.png`, or `transient-fft.csv` for an FFT.
 
+### Plots as sound (WAV)
+
+Transient plots also have a **WAV** button (**File › Export › Plot as WAV…**). It saves the ticked traces as a 16-bit, 44.1 kHz `.wav` file with one channel per trace, resampled from the simulation's time points. ±1 V (or ±1 A) is full scale, the same as a WAV file source, so a signal can go from a WAV source through your circuit and back to a WAV file at the same level. If a trace goes beyond ±1, all channels are scaled down together to fit, and the hint line says what full scale was used. With sweep runs, only the first run is saved.
+
 ## Schematics
 
 With a sheet on screen:

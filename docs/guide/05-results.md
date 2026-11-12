@@ -34,6 +34,10 @@ These results are numbers rather than waveforms, so their tabs show a table in p
 
 `.dc V1 0 5 0.05 V2 0 2 0.5` sweeps V1 for each value of V2. The plot shows a family of curves, one per V2 value, shaded light to dark like a [sweep](06-sweeps.md); the legend names each one (`V(out) · V2=500m`). Set it up with **Second source** on the DC sweep tab ([chapter 4](04-simulating.md#the-simulation-setup-dialog)).
 
+### Opening a raw file
+
+**File › Open Raw File…** shows the results in an existing `.raw` file without running anything: one written by ngspice (`ngspice -b -r out.raw`, `write` in a `.control` block, binary or ASCII) or by LTspice. Each plot in the file gets a tab, and the plot tools (cursors, expressions, FFT, export) work as usual. From the Home page it opens in an untitled workspace; in an open project it replaces the results panel's contents until the next run.
+
 ### Choosing the plots with `.plot`
 
 Put `.plot` lines in a directive to pick what is plotted after each run. Each line becomes its own chart, stacked in the analysis's tab, so signals of very different sizes (millivolts at the electrodes, volts after the amplifier) each get a readable scale:

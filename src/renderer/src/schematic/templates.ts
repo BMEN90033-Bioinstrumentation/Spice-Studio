@@ -2,6 +2,7 @@
 // Library parts reference bundled entry ids (resolved by the netlister through NetCtx.lib).
 import { blockShape, emptySheet, exampleSheet, newPart, route, sheetPorts, uid, type Part, type Pt, type Sheet } from './model.ts'
 import type { Kind } from './symbols.ts'
+import { digitalCounter } from './digitalExample.ts'
 
 export interface Template { id: string; name: string; description: string; sheets: Record<string, Sheet> }
 
@@ -117,5 +118,6 @@ export const TEMPLATES: Template[] = [
   {
     id: 'hier', name: 'Hierarchical filter', description: 'Two instances of a reusable RC block (filter.nsch) in cascade.',
     sheets: { 'main.nsch': hierMain(filter), 'filter.nsch': filter }
-  }
+  },
+  { id: 'digital', name: 'Digital counter (mixed-signal)', description: 'XSPICE D flip-flops as a 2-bit counter, an XOR gate and an RC filter on a 1 MHz clock.', sheets: { 'main.nsch': digitalCounter() } }
 ]

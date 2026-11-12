@@ -9,7 +9,8 @@ import { evalTran, parseSource, previewSpan, sourceText } from '../src/renderer/
 const CANON = [
   '0', '5', '{vcc}', 'DC 0 AC 1 0 PULSE(0 1 0 1u 1u 5m 10m)', 'AC 1', 'DC 1 AC 1 90', 'PULSE(0 5 1m 1n 1n 1m 2m 3)',
   'SIN(0 1 1k)', 'SIN(0.5 1 1k 1m 100 90)', 'EXP(0 1 1u 10u 50u 20u)', 'PWL(0 0 1m 1 2m 0)', 'PWL(0 0 1m 1 2m 0) r=0 td=0.5m',
-  'SFFM(0 1 10k 2 1k)', 'AM(1 0.5 1k 10k 0)', 'DC 2 SIN(0 {amp} 50)'
+  'SFFM(0 1 10k 2 1k)', 'AM(1 0.5 1k 10k 0)', 'DC 2 SIN(0 {amp} 50)',
+  'PWL file="drive.csv"', 'wavefile="in.wav" chan=1', 'DC 0 AC 1 wavefile="my audio/a b.wav" chan=0'
 ]
 
 test('canonical source values round-trip', () => {
@@ -29,11 +30,15 @@ test('sloppy but complete values are canonicalised', () => {
   assert.equal(sourceText(parseSource('pulse (0, 1, 0, 1u)  ac 1')!), 'AC 1 PULSE(0 1 0 1u)')
   assert.equal(sourceText(parseSource('Sin(0 1 1k) DC 1')!), 'DC 1 SIN(0 1 1k)')
   assert.equal(sourceText(parseSource('PWL(0 0 1 1) TD=2')!), 'PWL(0 0 1 1) td=2')
+  assert.equal(sourceText(parseSource('pwl FILE=data.txt')!), 'PWL file="data.txt"')
+  assert.equal(sourceText(parseSource('WaveFile=x.wav')!), 'wavefile="x.wav" chan=0')
+  assert.deepEqual(parseSource('wavefile="a.wav" chan=1')!.tran, { kind: 'wav', args: ['a.wav', '1'] })
+  assert.ok(isNaN(evalTran(parseSource('PWL file="x.csv"')!, 0))) // read at run time: no preview
 })
 
 test('values it cannot fully parse come back null (dialog keeps the raw text)', () => {
   for (const s of ['DC', 'AC', 'DC 1 DC 2', 'PULSE 0 1 0 1u', 'PULSE(0)', 'PULSE(0 1 0 1 1 1 1 1 1)', 'SIN(0 1) SIN(0 1)',
-    'PWL(0 0 1)', 'PWL file="x.txt"', 'PWL(0 0 1 1) r = 0', 'TRNOISE(0 1n 0 0)', 'DISTOF1 1', 'DC 1 AC 1 DISTOF1 0.1',
+    'PWL(0 0 1)', 'PWL file="x.txt" PWL(0 0 1 1)', 'PWL file=', 'wavefile=""', 'PWL(0 0 1 1) r = 0', 'TRNOISE(0 1n 0 0)', 'DISTOF1 1', 'DC 1 AC 1 DISTOF1 0.1',
     'PULSE(0 {a b} 1)', 'PULSE(0 {max(1,2)})', 'SIN(0 1 1k', 'R=1k', '1 2', 'PULSE(0 1) r=1', 'value={x}'])
     assert.equal(parseSource(s), null, s)
 })
