@@ -1,10 +1,12 @@
 // Shared symbol renderer: canvas parts, library panel minis and the library viewer's large preview.
-// Normal kinds draw from SYMBOLS; 'block' draws a box from part.size with stubs out to part.pins.
+// Normal kinds draw from SYMBOLS; 'block' draws a box from part.size with stubs out to part.pins; a part with a custom
+// symbol (part.sym, from the symbol editor) draws its shapes, whatever its kind.
 import { xform, type Part, type Pt } from '../schematic/model'
 import { SYMBOLS, type Kind, type SymbolDef } from '../schematic/symbols'
+import { dbox, shapePath, type Shape as Drawn } from '../schematic/drawings'
 
 export type Box = { x0: number; y0: number; x1: number; y1: number }
-export type Shape = Partial<Pick<Part, 'pins' | 'size'>>
+export type Shape = Partial<Pick<Part, 'pins' | 'size' | 'sym'>>
 type Orient = Pick<Part, 'x' | 'y' | 'rot' | 'mirror'>
 const ID: Orient = { x: 0, y: 0, rot: 0, mirror: false }
 
@@ -35,6 +37,11 @@ const symPins = (kind: Kind, p?: Shape) => p?.pins ?? SYMBOLS[kind].pins
 
 // Local (unrotated) bounding box, padded by 3.
 export function localBox(kind: Kind, p?: Shape): Box {
+  if (p?.sym) {
+    const bs = [...p.sym.map(dbox), ...(p.pins ?? []).map((q) => ({ x0: q.x, y0: q.y, x1: q.x, y1: q.y }))]
+    if (!bs.length) return { x0: -3, y0: -3, x1: 3, y1: 3 }
+    return { x0: Math.min(...bs.map((b) => b.x0)) - 3, y0: Math.min(...bs.map((b) => b.y0)) - 3, x1: Math.max(...bs.map((b) => b.x1)) + 3, y1: Math.max(...bs.map((b) => b.y1)) + 3 }
+  }
   if (kind !== 'block') return BOX[kind]
   const { w, h } = body(p), ps = symPins(kind, p)
   const xs = [-w / 2, w / 2, ...ps.map((q) => q.x)], ys = [-h / 2, h / 2, ...ps.map((q) => q.y)]
@@ -53,6 +60,15 @@ const shade = (d: string) => (d.match(/M[^M]*Z/g) ?? []).join('')
 
 // Paths in local coords; caller supplies the transform. Stroke/fill styling via CSS (.sym / .symp).
 export function SymBody({ kind, part }: { kind: Kind; part?: Shape }) {
+  if (part?.sym) {
+    const ps = part.sym.filter((d): d is Drawn => 'a' in d).map(shapePath)
+    return (
+      <>
+        <path d={ps.map((x) => x.path).join('')} />
+        {ps.some((x) => x.fill) && <path className="f" d={ps.map((x) => x.fill).join('')} />}
+      </>
+    )
+  }
   if (kind === 'block') {
     const { w, h } = body(part)
     const stubs = symPins(kind, part).map((q) => { const { e } = edge(q, w, h); return `M${q.x} ${q.y}L${e.x} ${e.y}` }).join('')
@@ -86,20 +102,30 @@ export function PinNames({ part, at, fs = 7 }: { part: Shape; at: Orient; fs?: n
   return <>{(part.pins ?? []).map((q, i) => { const { e, n } = edge(q, w, h); return anchor(at, e, n, 3, fs, (q as { name?: string }).name ?? '', i, 'pn') })}</>
 }
 
+// A custom symbol's text, drawn in world space (upright) for a part at `at`.
+export function SymTexts({ part, at }: { part: Shape; at: Orient }) {
+  return <>{(part.sym ?? []).map((d, i) => {
+    if (d.t !== 'note') return null
+    const q = xform(at, { x: d.x, y: d.y }), fs = d.size ?? 7
+    return <text key={i} className="pn" x={q.x} y={q.y + fs * 0.85} fontSize={fs}>{d.text}</text>
+  })}</>
+}
+
 // Standalone <svg>: 'small' = mini icon, 'large' = viewer preview with pin names and numbers.
 export function SymbolPreview({ kind, part, size }: { kind: Kind; part?: Shape; size: 'small' | 'large' }) {
   const b = localBox(kind, part), big = size === 'large'
   const pad = big ? 34 : 2, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2
   const s = Math.max(b.x1 - b.x0, b.y1 - b.y0, big ? 90 : 50) + 2 * pad
-  const names = kind === 'block' ? (part?.pins ?? []).map((q) => (q as { name?: string }).name ?? '') : SYMBOLS[kind].pinNames ?? []
+  const names = kind === 'block' || part?.sym ? (part?.pins ?? []).map((q) => (q as { name?: string }).name ?? '') : SYMBOLS[kind].pinNames ?? []
   return (
     <svg className={`symp ${size}`} viewBox={`${cx - s / 2} ${cy - s / 2} ${s} ${s}`} aria-hidden="true">
       <g className="sym"><SymBody kind={kind} part={part} /></g>
-      {big && kind === 'block' && part && <PinNames part={part} at={ID} fs={6} />}
+      {big && kind === 'block' && part && !part.sym && <PinNames part={part} at={ID} fs={6} />}
+      {part?.sym && <SymTexts part={part} at={ID} />}
       {big && symPins(kind, part).map((q, i) => {
         // outward direction: away from the box centre along the dominant axis
         const dx = q.x - cx, dy = q.y - cy, n = Math.abs(dx) >= Math.abs(dy) ? { x: Math.sign(dx) || 1, y: 0 } : { x: 0, y: Math.sign(dy) || 1 }
-        const label = kind !== 'block' && names[i] ? `${i + 1} ${names[i]}` : String(i + 1)
+        const label = (kind !== 'block' || part?.sym) && names[i] ? `${i + 1} ${names[i]}` : String(i + 1)
         return (
           <g key={i}>
             <circle className="pin" cx={q.x} cy={q.y} r={1.6} />

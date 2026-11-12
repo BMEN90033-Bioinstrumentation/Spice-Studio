@@ -1,7 +1,7 @@
 // Schematic -> SPICE netlist. Pure TS, follows the connectivity rules in model.ts.
 // Hierarchy: blocks (Part.sheet) become `.subckt` definitions of their sheets, library parts
 // (Part.lib) pull in their .model / .subckt text once.
-import { key, onSegment, pins, sheetPorts, type Part, type Sheet } from './model.ts'
+import { busMembers, key, onSegment, pins, same, sheetPorts, wiresThrough, type Part, type Pt, type Sheet } from './model.ts'
 import { SYMBOLS, isFlag } from './symbols.ts'
 import { isDigital } from './digital.ts'
 import { si, type LibEntry } from '../library/library.ts'
@@ -33,6 +33,7 @@ const MODELS: Record<string, string> = {
   sw: '.model SW SW(ron=1 roff=1meg vt=0.5 vh=0)',
   csw: '.model CSW CSW(ron=1 roff=1meg it=1m)'
 }
+const LINES = /\r\n?|\n/ // ngspice drops a CR, which could join two words into a keyword: a CR ends the line here
 const ANALYSIS = /^\s*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss|control)\b/im
 
 // state shared across the whole hierarchy
@@ -68,9 +69,11 @@ export function netlist(s: Sheet, title?: string, ctx: NetCtx = {}): NetlistResu
   if (!r.parts) errors.push('Empty schematic: no parts to simulate')
   else if (!g.ground) errors.push('No ground: add a ground symbol (G) to the circuit')
   if (!ANALYSIS.test(r.directives)) warnings.push('No analysis directive (.op, .tran, .ac, .dc, …): ngspice will have nothing to run')
-  const body = s.texts.flatMap((t) => t.text.split('\n').filter((l) => !/^\s*\.end\s*$/i.test(l)))
+  const body = s.texts.flatMap((t) => t.text.split(LINES).filter((l) => !/^\s*\.end\s*$/i.test(l)))
   const glob = g.globals.size ? [`.global ${[...g.globals.values()].join(' ')}`] : []
-  const text = errors.length ? '' : [`* ${title ?? 'schematic'}`, ...glob, ...r.lines, ...body, ...g.libText.values(), ...g.subText, ...g.models, '.end', ''].join('\n')
+  // the title is one comment line, whatever the file or project is called: a line break in it could start a "*#" line,
+  // which ngspice runs as a command
+  const text = errors.length ? '' : [`* ${(title ?? 'schematic').replace(/[\r\n]+/g, ' ')}`, ...glob, ...r.lines, ...body, ...g.libText.values(), ...g.subText, ...g.models, '.end', ''].join('\n')
   return { text, errors, warnings, nets: r.nets, wireNets: r.wireNets, refs: r.refs }
 }
 
@@ -93,15 +96,16 @@ function sheet(s: Sheet, g: Global, file: string | null) {
     const ra = find(a), rb = find(b)
     if (ra !== rb) up.set(ra, rb)
   }
+  const through = wiresThrough(s.wires) // T-junctions: wire ends on another wire's middle
   for (const w of s.wires) {
     union(key(w.a), key(w.b))
-    // ponytail: O(wires²) T-junction scan, same ceiling as model.connections
-    for (const e of [w.a, w.b]) for (const o of s.wires) if (o !== w && onSegment(o, e)) union(key(e), key(o.a))
+    for (const e of [w.a, w.b]) for (const o of through(e)) if (o !== w) union(key(e), key(o.a))
   }
   // a pin joins whatever sits at its point; coincident pins share a key so they join for free
   const flagName = (p: Part) => (p.kind === 'gnd' || /^(0|gnd)$/i.test(p.value) ? '0' : p.value)
+  const onBus = buses(s, err, warn), busLabel = (p: Part) => onBus.has(p.id) // names a bus's members, not a net
   for (const p of s.parts) {
-    if (!isFlag(p.kind)) continue
+    if (!isFlag(p.kind) || busLabel(p)) continue
     if (p.kind !== 'gnd' && BAD.test(p.value)) err(`Invalid net ${p.kind === 'port' ? 'port' : p.kind === 'power' ? 'power flag' : 'label'} "${p.value}": no spaces or =(),{}"' allowed`)
     union(key(pins(p)[0]), '@' + flagName(p).toLowerCase())
     // power flags are global like ground (a subckt's other nets are local to it); labels stay local to their sheet
@@ -112,7 +116,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
 
   // name each net: ground, then (in a sub-sheet) its port, then labels (ngspice is case-insensitive, so compare lowercased)
   const labels = new Map<string, Map<string, string>>() // root -> lower -> display
-  for (const p of s.parts) if (isFlag(p.kind)) {
+  for (const p of s.parts) if (isFlag(p.kind) && !busLabel(p)) {
     const r = find(key(pins(p)[0])), n = flagName(p)
     if (!labels.has(r)) labels.set(r, new Map())
     if (!labels.get(r)!.has(n.toLowerCase())) labels.get(r)!.set(n.toLowerCase(), n)
@@ -157,7 +161,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   const parts = s.parts.filter((p) => !isFlag(p.kind))
   // elements a F/H/W/K value names, checked once every ref is known; directive lines can define elements too
   const named: { ref: string; name: string; what: string }[] = []
-  for (const l of directives.split('\n')) if (/^\s*[a-z]/i.test(l)) seen.add(l.trim().split(/\s+/)[0].toLowerCase())
+  for (const l of directives.split(LINES)) if (/^\s*[a-z]/i.test(l)) seen.add(l.trim().split(/\s+/)[0].toLowerCase())
   const own = new Set<string>() // refs emitted by this sheet's parts (dup check; directive names may repeat)
   for (const p of parts) {
     const { prefix } = SYMBOLS[p.kind]
@@ -193,6 +197,11 @@ function sheet(s: Sheet, g: Global, file: string | null) {
       own.add(r.toLowerCase()), seen.add(r.toLowerCase())
     }
     refs[p.id] = ref
+    // a block that is neither a sheet nor a library part: an imported symbol that wasn't converted (importer.ts)
+    if (p.kind === 'block' && !p.sheet && !p.lib) {
+      err(`${ref}: placeholder for the imported part "${p.value.replace(/^\?/, '')}": replace it with a real part`)
+      continue
+    }
     const value = p.value.trim().replace(/\s+/g, ' ')
     const n = nets[p.id]
     pins(p).forEach((q, i) => {
@@ -252,6 +261,34 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   return { lines, directives, parts: parts.length, nets, wireNets, refs }
 }
 
+// Buses carry names only: segments join at their ends and T's, a bus label (D[0..7]) on a bus gives it members, and a
+// bus tap joins its wire to the member net named by its value (like a net label, so members connect by name across
+// buses and labels). A label named like D[0..7] is a bus label only when it sits on a bus; elsewhere it is an ordinary
+// net label, as it always was. Checks that taps sit on a bus and name one of its members; returns the bus labels' ids.
+function buses(s: Sheet, err: (m: string) => void, warn: (m: string) => void): Set<string> {
+  const bs = s.buses ?? [], up = bs.map((_, i) => i)
+  const g = (i: number): number => (up[i] === i ? i : (up[i] = g(up[i])))
+  bs.forEach((w, i) => bs.forEach((o, j) => {
+    if (i < j && ([w.a, w.b].some((q) => same(q, o.a) || same(q, o.b) || onSegment(o, q)) || [o.a, o.b].some((q) => onSegment(w, q)))) up[g(i)] = g(j)
+  }))
+  const at = (q: Pt) => { const i = bs.findIndex((w) => same(w.a, q) || same(w.b, q) || onSegment(w, q)); return i < 0 ? -1 : g(i) }
+  const members = new Map<number, Set<string>>(), labels = new Map<number, string[]>(), ids = new Set<string>()
+  for (const p of s.parts) {
+    const i = p.kind === 'label' && busMembers(p.value) ? at(pins(p)[0]) : -1
+    if (i < 0) continue
+    ids.add(p.id)
+    members.set(i, new Set([...(members.get(i) ?? []), ...busMembers(p.value)!.map((m) => m.toLowerCase())]))
+    labels.set(i, [...(labels.get(i) ?? []), p.value])
+  }
+  for (const p of s.parts) {
+    if (p.kind !== 'bustap') continue
+    const i = at(p)
+    if (i < 0) warn(`Bus tap "${p.value}" isn't on a bus; it still joins net "${p.value}"`)
+    else if (members.has(i) && !members.get(i)!.has(p.value.toLowerCase())) err(`Bus tap "${p.value}" isn't a member of bus ${labels.get(i)!.join(', ')}`)
+  }
+  return ids
+}
+
 // Transformer value "Lp=1m Ls=100u k=0.999" (any order, case-insensitive); an error message if malformed
 function xfmr(value: string): { lp: string; ls: string; k: string } | string {
   const kv: Record<string, string> = {}
@@ -291,7 +328,7 @@ function block(p: Part, ref: string, n: string[], g: Global, err: (m: string) =>
     // analysis belongs to the top sheet; drop it (and .control blocks) here
     const body: string[] = []
     let ctl = false, dropped = false
-    for (const l of s.texts.flatMap((t) => t.text.split('\n'))) {
+    for (const l of s.texts.flatMap((t) => t.text.split(LINES))) {
       if (/^\s*\.control\b/i.test(l)) ctl = true
       if (ctl || ANALYSIS.test(l)) {
         dropped = true

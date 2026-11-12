@@ -69,6 +69,21 @@ When you place a part from **My libraries** or a pack in a project, the app copi
 
 If two different library files define a model or subcircuit with the same name, the netlist stops with an error: ngspice would quietly use one model for both parts.
 
+## Drawing a symbol for an imported part
+
+An imported part first gets a generic symbol: the one you picked in the import dialog, or a box. You can draw your own instead.
+
+1. Open **Tools › Manage Libraries…** and click **Symbols…** on one of your libraries (under **My libraries** or **This project**). Bundled libraries and packs can't be changed.
+2. Pick the part at the top left, then click **Draw a custom symbol**. You start from a box with one pin per subcircuit pin. **Start from a box** goes back to that box at any time.
+3. Draw with the tools above the grid: **line** (click the start, then each corner; **Esc** or a double-click ends it), **rectangle** and **ellipse** (click two corners), and **text** (click, then type in the box on the right). Everything snaps to the grid.
+4. Place pins with the **pin** tool: click a grid point. Each new pin connects to the next subcircuit pin (for a model, the next of the device's pins, such as C, B and E) that has no pin yet. In the list on the right you can rename a pin and change what it **connects to**.
+5. With the select tool, drag shapes and pins to move them; **Delete** removes the selected one.
+6. Click **Save**. Save stays off while a part has a missing, doubled or off-grid pin; the message at the bottom says which part to fix.
+
+Parts you place from then on use the new symbol on the canvas, in the parts list, in the library viewer and in exported schematics. A part placed earlier keeps its old symbol until you select it and click **Use custom symbol** (or **Update symbol**) in the inspector; wires on its old pins stay where they were. **Use the generic symbol** removes the custom symbol again.
+
+The symbol is saved with the library: in your personal library for **My libraries**, and in the project file for a project library. When a project copies a part from My libraries, the symbol goes with it.
+
 ## Compatibility mode for PSpice and LTspice models
 
 Many vendor models are written for PSpice or LTspice and use syntax or functions that plain ngspice reads differently or rejects. ngspice has compatibility modes for these; the app passes your choice to ngspice as `-D ngbehavior=ps`, `lt`, `ltps` or `kicad`.

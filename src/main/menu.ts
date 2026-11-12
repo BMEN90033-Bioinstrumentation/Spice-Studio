@@ -32,6 +32,7 @@ function template(recents: Recent[]): Item[] {
     cmd('file.openProject', 'Open Project…', 'CmdOrCtrl+O'),
     cmd('file.openFile', 'Open File…', 'CmdOrCtrl+Shift+O'),
     cmd('file.openRaw', 'Open Raw File…'),
+    cmd('file.import', 'Import Schematic…'),
     {
       label: 'Open Recent',
       submenu: recents.length
@@ -95,6 +96,8 @@ function template(recents: Recent[]): Item[] {
   ]
   const place: Item[] = [
     cmd('place.wire', 'Wire', 'W'),
+    cmd('place.bus', 'Bus', 'B'),
+    cmd('place.bustap', 'Bus Tap'),
     sep,
     cmd('place.res', 'Resistor', 'R'),
     cmd('place.cap', 'Capacitor', 'C'),
@@ -113,6 +116,10 @@ function template(recents: Recent[]): Item[] {
     cmd('place.port', 'Sheet Port', 'H'),
     cmd('place.directive', 'SPICE Directive', 'S'),
     sep,
+    cmd('place.note', 'Text Note', 'T'),
+    { label: 'Shape', submenu: [cmd('place.line', 'Line'), cmd('place.arrow', 'Arrow'), cmd('place.rect', 'Rectangle'), cmd('place.ellipse', 'Ellipse')] },
+    check('place.titleBlock', 'Title Block'),
+    sep,
     cmd('place.fromLibrary', 'From Library…', '/')
   ]
   const sim: Item[] = [
@@ -126,7 +133,7 @@ function template(recents: Recent[]): Item[] {
     sep,
     cmd('sim.viewNetlist', 'View Generated Netlist')
   ]
-  const tools: Item[] = [cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
+  const tools: Item[] = [cmd('tools.annotateSheet', 'Annotate Sheet'), cmd('tools.annotateProject', 'Annotate Project'), sep, cmd('tools.library', 'Component Library'), cmd('tools.importLibrary', 'Import Library…'), cmd('tools.manageLibraries', 'Manage Libraries…'), sep, cmd('tools.engineInfo', 'Simulation Engine…')]
   const help: Item[] = [
     cmd('help.shortcuts', 'Keyboard Shortcuts', 'CmdOrCtrl+/'),
     ...(mac ? [] : [cmd('help.about', 'About Spice Studio')]),

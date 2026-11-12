@@ -1,9 +1,13 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, pins, route, remap, same, snap, uid, sheetPorts, unconnectedPins, xform, type Directive, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
+import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
+import { annotate, rewriteRefs, rewriteValue } from './annotate'
+import { importSchematic } from './importer'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
-import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
+import { localBox, PinNames, SymBody, SymbolPreview, SymTexts, type Box } from '../library/Symbol'
+import { symbolFields } from '../library/customSymbol'
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
 import { analysisText, mergeOptions, parseAnalysis, setupKind, type Analysis, type SetupKind } from '../sim/analysis'
 import { AnalysisDialog, type Tab } from '../sim/AnalysisDialog'
@@ -12,8 +16,11 @@ import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { Cpu, Crosshair, FlipHorizontal2, Maximize, MousePointer2, Redo2, RotateCw, Spline, Trash2, Undo2 } from 'lucide-react'
+import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -37,7 +44,14 @@ export interface Overlay {
   blame?: { parts: string[]; nets: string[] }
 }
 
-type Tool = 'select' | 'wire' | 'text' | 'probe' | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+type ShapeTool = 'line' | 'arrow' | 'rect' | 'ellipse'
+type Tool = 'select' | 'wire' | 'bus' | 'text' | 'note' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+const SHAPES: { t: ShapeTool; title: string; icon: ReactNode }[] = [
+  { t: 'line', title: 'Line', icon: <Minus /> }, { t: 'arrow', title: 'Arrow', icon: <MoveUpRight /> },
+  { t: 'rect', title: 'Rectangle', icon: <Square /> }, { t: 'ellipse', title: 'Ellipse', icon: <Circle /> }
+]
+const isShape = (t: Tool): t is ShapeTool => typeof t === 'string' && SHAPES.some((s) => s.t === t)
+const shapeName = (t: ShapeTool) => SHAPES.find((s) => s.t === t)!.title.toLowerCase()
 type View = { x: number; y: number; k: number }
 type Orient = Pick<Part, 'x' | 'y' | 'rot' | 'mirror'>
 type Drag =
@@ -75,12 +89,14 @@ const tbox = (t: Directive): Box => {
 }
 const subset = (s: Sheet, ids: Set<string>, keep = true): Sheet => {
   const f = (i: { id: string }) => ids.has(i.id) === keep
-  return { version: 1, parts: s.parts.filter(f), wires: s.wires.filter(f), texts: s.texts.filter(f) }
+  return { version: 1, parts: s.parts.filter(f), wires: s.wires.filter(f), texts: s.texts.filter(f), draw: (s.draw ?? []).filter(f), buses: (s.buses ?? []).filter(f) }
 }
 const corners = (b: Box) => [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y1 }]
+const count = (s: Sheet) => s.parts.length + s.wires.length + s.texts.length + (s.draw?.length ?? 0) + (s.buses?.length ?? 0)
 
 function bounds(s: Sheet): Box | null {
-  const pts = [...s.parts.flatMap((p) => corners(pbox(p))), ...s.wires.flatMap((w) => [w.a, w.b]), ...s.texts.flatMap((t) => corners(tbox(t)))]
+  const pts = [...s.parts.flatMap((p) => corners(pbox(p))), ...s.wires.flatMap((w) => [w.a, w.b]), ...s.texts.flatMap((t) => corners(tbox(t))),
+    ...(s.draw ?? []).flatMap((d) => corners(dbox(d))), ...(s.buses ?? []).flatMap((w) => [w.a, w.b])]
   if (!pts.length) return null
   return pts.reduce((b, q) => ({ x0: Math.min(b.x0, q.x), y0: Math.min(b.y0, q.y), x1: Math.max(b.x1, q.x), y1: Math.max(b.y1, q.y) }), norm(pts[0], pts[0]))
 }
@@ -89,6 +105,10 @@ function bounds(s: Sheet): Box | null {
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance
 function Texts({ p }: { p: Part }) {
   if (p.kind === 'gnd') return null
+  if (p.kind === 'bustap') { // member name just past the wire end, away from the bus
+    const t = xform(p, { x: 13, y: 13 }), dx = t.x - p.x, dy = t.y - p.y
+    return <text className="n" x={t.x} y={t.y + (dy > 0 ? 6 : 0)} textAnchor={dx > 0 ? 'start' : 'end'}>{p.value}</text>
+  }
   if (p.kind === 'label' || p.kind === 'port' || p.kind === 'power') {
     // text sits past the symbol along its pointing direction: +x for labels/ports, up (-y) for the power bar
     const up = p.kind === 'power', o = xform(p, up ? { x: 0, y: -1 } : { x: 1, y: 0 }), dx = o.x - p.x, dy = o.y - p.y
@@ -134,7 +154,10 @@ const PRINT_CSS = [
   'text{font-family:ui-monospace,Menlo,Consolas,monospace}',
   '.part text{fill:#333;font-size:9px}.part text.n{fill:#000}.part text.pn{fill:#555}',
   '.wire line{stroke:#000;stroke-width:1.2;stroke-linecap:round}.jn{fill:#000}',
-  '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}'
+  '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}',
+  '.drw path{fill:none;stroke:#333;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}.drw .f{fill:#333}.drw .hit,.drw .hitf{display:none}',
+  '.drw text{fill:#222;white-space:pre}.drw.title text{font-size:9px}.drw.title .tt{font-size:13px;font-weight:600}.drw.title .lb{fill:#777;font-size:7px}',
+  '.bus line{stroke:#000;stroke-width:3.5;stroke-linecap:round}.bjn{fill:#000}'
 ].join('')
 
 const typing = (e: KeyboardEvent) => {
@@ -154,11 +177,12 @@ const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_
 const MONO = 'font-mono text-xs md:text-xs text-foreground'
 const InspBtn = (p: ComponentProps<typeof Button>) => <Button size="sm" variant="outline" className="h-7 justify-self-start text-xs" {...p} />
 
-export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic' }: {
+export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic', sheetNo }: {
   active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
   library?: LibEntry[]; browse?: LibEntry[] /* Parts panel list, default library */; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
   libOpen?: boolean; onLibOpen?: (open: boolean) => void // parts panel, controlled by the workspace layout when given
   name?: string // export file stem
+  sheetNo?: string // title block "sheet n of m"
 }) {
   const [sheet, setSheet] = useState(initial)
   const [sel, setSel] = useState<Set<string>>(() => new Set())
@@ -177,7 +201,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [dlg, setDlg] = useState<Tab | 'analysis' | 'edit' | null>(null) // analysis dialog open, on this tab ('edit': rewrite the selected card)
   const [srcDlg, setSrcDlg] = useState(false)
   const [band, setBand] = useState<{ a: Pt; b: Pt } | null>(null) // differential probe rubber band
-  const modal = !!dlg || srcDlg
+  const [report, setReport] = useState<{ title: string; summary: string; lines: string[] } | null>(null) // File › Import Schematic…
+  const modal = !!dlg || srcDlg || !!report
   const [libOwn, setLibOwn] = useState(true)
   const libOpen = libProp ?? libOwn
   const search = useRef<HTMLInputElement>(null)
@@ -302,14 +327,21 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     // ponytail: spice-less generics (std:R…) stay plain parts, no lib id: they netlist identically and survive a missing resolver
     const extra: Partial<Part> = { value: e.value, ...(e.spice ? { lib: e.id } : {}) }
     if (e.kind === 'block') Object.assign(extra, blockPartFields(e))
+    Object.assign(extra, symbolFields(e)) // the custom symbol drawn in the symbol editor, if any
     use({ place: e.kind, title: e.name, id: e.id, extra })
   }
   const picked = () => subset(cur.current, sel)
-  const all = (s: Sheet) => [...s.parts, ...s.wires, ...s.texts].map((i) => i.id)
+  const all = (s: Sheet) => [...s.parts, ...s.wires, ...s.texts, ...(s.draw ?? []), ...(s.buses ?? [])].map((i) => i.id)
   function orient(rot: boolean) {
     const f = <T extends { rot: number; mirror: boolean }>(p: T): T => (rot ? { ...p, rot: (p.rot + 1) % 4 } : { ...p, mirror: !p.mirror })
-    if (typeof tool === 'object') setGhost(f)
-    else if (picked().parts.length) commit(remap(cur.current, sel, f))
+    if (typeof tool === 'object') return setGhost(f)
+    const s = cur.current, k = picked()
+    if (!k.parts.length && !k.draw!.some((d) => 'a' in d) && !k.buses!.length) return
+    const r = k.parts.length ? remap(s, sel, f) : s
+    commit({
+      ...r, ...(r.draw && { draw: r.draw.map((d) => (sel.has(d.id) && 'a' in d ? turnSeg(d, rot) : d)) }),
+      ...(r.buses && { buses: r.buses.map((w) => (sel.has(w.id) ? turnSeg(w, rot) : w)) })
+    })
   }
   function del() {
     if (!sel.size) return
@@ -318,10 +350,19 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
   // Pastes c offset by +20 with fresh ids/names, selects it, and returns what was pasted (so repeated ⌘V cascades).
   function paste(c: Sheet | null): Sheet | null {
-    if (!c || !(c.parts.length + c.wires.length + c.texts.length)) return c
+    if (!c || !count(c)) return c
     const s = cur.current
-    const next: Sheet = { ...s, parts: [...s.parts], wires: [...s.wires], texts: [...s.texts] }
-    const out: Sheet = { version: 1, parts: [], wires: [], texts: [] }
+    const next: Sheet = { ...s, parts: [...s.parts], wires: [...s.wires], texts: [...s.texts], draw: [...(s.draw ?? [])], buses: [...(s.buses ?? [])] }
+    const out: Sheet = { version: 1, parts: [], wires: [], texts: [], draw: [], buses: [] }
+    for (const d of c.draw ?? []) {
+      if (d.t === 'title' && next.draw!.some((x) => x.t === 'title')) continue // one title block per sheet
+      const n = { ...moveD(d, { x: 20, y: 20 }), id: uid() }
+      next.draw!.push(n), out.draw!.push(n)
+    }
+    for (const w of c.buses ?? []) {
+      const n = { id: uid(), a: add(w.a, { x: 20, y: 20 }), b: add(w.b, { x: 20, y: 20 }) }
+      next.buses!.push(n), out.buses!.push(n)
+    }
     const off = (q: Pt) => add(q, { x: 20, y: 20 })
     for (const p of c.parts) {
       const pre = SYMBOLS[p.kind].prefix
@@ -364,9 +405,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else if (k === 'delete' || k === 'backspace') del()
     else if (k === 'w') use('wire')
     else if (k === 's') use('text')
+    else if (k === 't') use('note')
     else if (k === 'p') use('probe')
     else if (k === 'a') setDlg('analysis')
-    else if (k === '/' && tool === 'wire') setVFirst((v) => !v)
+    else if (k === '/' && (tool === 'wire' || tool === 'bus')) setVFirst((v) => !v)
+    else if (k === 'b') use('bus')
     else if (k === '/') toggleLib(true), setTimeout(() => search.current?.focus())
     else if (e.key === 'L') toggleLib()
     else if (k === '+' || k === '=') zoomBy(1.25)
@@ -409,8 +452,18 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
   // menu commands (commands.ts) for the active canvas only; the keys stay in onKey above
   const cut = () => ((clip.current = picked()), del())
-  const some = (s: Sheet | null) => !!s && s.parts.length + s.wires.length + s.texts.length > 0
-  const orientable = () => typeof tool === 'object' || picked().parts.length > 0
+  const some = (s: Sheet | null) => !!s && count(s) > 0
+  const titleOf = (s: Sheet) => s.draw?.find((d) => d.t === 'title')
+  // title block on/off; it goes under the drawing's bottom-right corner
+  function toggleTitle() {
+    const s = cur.current, t = titleOf(s)
+    if (t) return void (commit({ ...s, draw: s.draw!.filter((d) => d !== t) }), setSel(new Set()))
+    const b = bounds(s) ?? { x0: 0, y0: 0, x1: TB.w, y1: 0 }
+    const d: Drawing = { id: uid(), t: 'title', x: snap(b.x1 - TB.w), y: snap(b.y1 + 30), title: name, author: '', date: new Date().toISOString().slice(0, 10), rev: 'A' }
+    commit({ ...s, draw: [...(s.draw ?? []), d] })
+    show([d.id])
+  }
+  const orientable = () => { const k = picked(); return typeof tool === 'object' || k.parts.length > 0 || k.draw!.some((d) => 'a' in d) || k.buses!.length > 0 }
   useCommands(active && !modal ? [
     { id: 'edit.undo', run: undo, enabled: () => hist.current.undo.length > 0 },
     { id: 'edit.redo', run: redo, enabled: () => hist.current.redo.length > 0 },
@@ -427,7 +480,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'view.fit', run: () => fit() },
     { id: 'view.showOp', run: () => setShowOp((v) => !v), enabled: () => !!overlay?.op, checked: () => !!overlay?.op && showOp },
     { id: 'place.wire', run: () => use('wire') },
+    { id: 'place.bus', run: () => use('bus') },
+    { id: 'place.bustap', run: () => use({ place: 'bustap', title: SYMBOLS.bustap.title }) },
     { id: 'place.directive', run: () => use('text') },
+    { id: 'place.note', run: () => use('note') },
+    ...SHAPES.map(({ t }) => ({ id: 'place.' + t, run: () => use(t) })),
+    { id: 'place.titleBlock', run: toggleTitle, checked: () => !!titleOf(cur.current) },
+    { id: 'file.import', run: () => void importFile() },
+    { id: 'tools.annotateSheet', run: () => { const r = annotate([cur.current]); if (r.renamed) commit(r.sheets[0]) }, enabled: () => cur.current.parts.length > 0 },
     { id: 'place.fromLibrary', run: () => (toggleLib(true), setTimeout(() => search.current?.focus())) },
     ...(['res', 'cap', 'ind', 'vsrc', 'isrc', 'diode', 'npn', 'pnp', 'nmos', 'pmos', 'opamp', 'gnd', 'label', 'port',
       'power', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi', 'sw', 'csw', 'tline', 'xfmr', 'kcouple'] as Kind[]).map((k) => ({ id: 'place.' + k, run: () => use({ place: k, title: SYMBOLS[k].title }) })),
@@ -455,12 +515,13 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     svg: exportSvg
   }))
 
-  function wireClick(p: Pt) {
+  // bus: the same, into sheet.buses; it ends on another bus
+  function wireClick(p: Pt, bus = false) {
     if (!start) return setStart(p)
     if (same(p, start)) return
-    const s = cur.current
-    const hit = s.parts.some((q) => pins(q).some((r) => same(r, p))) || s.wires.some((w) => same(w.a, p) || same(w.b, p) || onSegment(w, p))
-    commit({ ...s, wires: [...s.wires, ...route(start, p, vFirst)] })
+    const s = cur.current, on = (w: { a: Pt; b: Pt }) => same(w.a, p) || same(w.b, p) || onSegment({ id: '', ...w }, p)
+    const hit = bus ? (s.buses ?? []).some(on) : s.parts.some((q) => pins(q).some((r) => same(r, p))) || s.wires.some(on)
+    commit(bus ? { ...s, buses: [...(s.buses ?? []), ...route(start, p, vFirst)] } : { ...s, wires: [...s.wires, ...route(start, p, vFirst)] })
     setStart(hit ? null : p)
   }
 
@@ -479,7 +540,21 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       drag.current = { t: 'diff', net, a: w, cx: e.clientX, cy: e.clientY, click: t }
       return e.currentTarget.setPointerCapture(e.pointerId)
     }
-    if (tool === 'wire') return wireClick(p)
+    if (tool === 'wire' || tool === 'bus') return wireClick(p, tool === 'bus')
+    if (isShape(tool)) {
+      if (!start) return setStart(p)
+      if (same(p, start)) return
+      commit({ ...s, draw: [...(s.draw ?? []), { id: uid(), t: tool, a: start, b: p }] })
+      return setStart(tool === 'line' ? p : null) // lines chain into a polyline until Esc / double-click
+    }
+    if (tool === 'note') {
+      const d: Drawing = { id: uid(), t: 'note', x: p.x, y: p.y, text: 'Note' }
+      commit({ ...s, draw: [...(s.draw ?? []), d] })
+      setSel(new Set([d.id]))
+      use('select')
+      setTimeout(() => ta.current?.select())
+      return
+    }
     if (tool === 'text') {
       const t = { id: uid(), x: p.x, y: p.y, text: '.op' }
       commit({ ...s, texts: [...s.texts, t] })
@@ -524,7 +599,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       if (same(dd, d.d)) return
       d.d = dd // each frame recomputed from the drag-start snapshot, so no drift
       const r = remap(d.base, d.sel, (q) => ({ ...q, ...add(q, dd) }), (q) => add(q, dd))
-      live({ ...r, texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)) })
+      live({
+        ...r, texts: r.texts.map((t) => (d.sel.has(t.id) ? { ...t, ...add(t, dd) } : t)),
+        ...(r.draw && { draw: r.draw.map((x) => (d.sel.has(x.id) ? moveD(x, dd) : x)) }),
+        ...(r.buses && { buses: r.buses.map((w) => (d.sel.has(w.id) ? { ...w, a: add(w.a, dd), b: add(w.b, dd) } : w)) })
+      })
     }
   }
   function up(e: RPE<SVGSVGElement>) {
@@ -546,7 +625,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       const hits = [
         ...s.parts.filter((p) => corners(pbox(p)).every(inside)),
         ...s.wires.filter((w) => inside(w.a) && inside(w.b)),
-        ...s.texts.filter((t) => corners(tbox(t)).every(inside))
+        ...s.texts.filter((t) => corners(tbox(t)).every(inside)),
+        ...(s.draw ?? []).filter((x) => corners(dbox(x)).every(inside)),
+        ...(s.buses ?? []).filter((w) => inside(w.a) && inside(w.b))
       ]
       setSel(new Set([...d.base, ...hits.map((i) => i.id)]))
     } else if (d?.t === 'move') {
@@ -556,13 +637,47 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
 
   function dbl(e: RME) {
-    if (tool === 'wire') return setStart(null)
+    if (tool === 'wire' || tool === 'bus' || isShape(tool)) return setStart(null)
     // pointer capture from pointerdown retargets dblclick to the <svg>: hit-test the point instead
     const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id')
     const p = cur.current.parts.find((q) => q.id === id)
     if (p?.sheet && onOpenSheet) return onOpenSheet(p.sheet)
     ta.current?.focus()
   }
+  // File › Import Schematic…: the converted sheet goes to the right of the drawing, selected; clashing names get the next free one
+  async function importFile() {
+    const f = await window.api.importFile()
+    if (!f) return
+    const file = f.path.split(/[\\/]/).pop()!
+    let r: ReturnType<typeof importSchematic>
+    try {
+      r = importSchematic(f.path, f.text)
+    } catch (e) {
+      return setReport({ title: `Can't import ${file}`, summary: String((e as Error)?.message ?? e), lines: [] })
+    }
+    const s = cur.current, b = bounds(s), ib = bounds(r.sheet), d0 = b && ib ? { x: snap(b.x1 + 80 - ib.x0), y: snap(b.y0 - ib.y0) } : { x: 0, y: 0 }
+    const d = Number.isFinite(d0.x) && Number.isFinite(d0.y) ? d0 : { x: 0, y: 0 }
+    const next: Sheet = { ...s, parts: [...s.parts] }, ren = new Map<string, string>()
+    for (const p of r.sheet.parts) {
+      const clash = p.name && next.parts.some((q) => q.name.toLowerCase() === p.name.toLowerCase()), name = clash ? nextName(next, p.name.replace(/\d+$/, '')) : p.name
+      if (clash) ren.set(p.name.toLowerCase(), name)
+      next.parts.push({ ...p, ...add(p, d), name })
+    }
+    const m = r.sheet
+    if (ren.size) next.parts = next.parts.map((p, i) => (i < s.parts.length || isFlag(p.kind) ? p : { ...p, value: rewriteValue(p, ren) }))
+    next.wires = [...s.wires, ...m.wires.map((w) => ({ ...w, a: add(w.a, d), b: add(w.b, d) }))]
+    next.texts = [...s.texts, ...m.texts.map((t) => ({ ...t, ...add(t, d), text: rewriteRefs(t.text, ren) }))]
+    if (m.draw?.length) next.draw = [...(s.draw ?? []), ...m.draw.map((x) => moveD(x, d))]
+    try {
+      parseSheet(JSON.stringify(next)) // the sheet must save and load again; otherwise nothing is changed
+    } catch (e) {
+      return setReport({ title: `Can't import ${file}`, summary: `The converted drawing is not valid (${(e as Error).message}); your sheet was not changed.`, lines: r.report })
+    }
+    commit(next)
+    show(all(m))
+    setReport({ title: `Imported ${file}`, summary: r.summary, lines: r.report })
+  }
+
   // re-fit a sheet block's pins to the sheet's current ports (wires on surviving pins follow by name)
   const updateBlock = (p: Part, ports: string[]) => commit(reshapeBlocks(cur.current, new Set([p.id]), ports))
 
@@ -593,7 +708,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function exportSvg(): string {
     const g = svg.current!.querySelector(':scope > g')!.cloneNode(true) as SVGGElement
     g.removeAttribute('transform')
-    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .band, title').forEach((e) => e.remove())
+    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .hitf, .band, title').forEach((e) => e.remove())
     g.querySelectorAll('[data-id]').forEach((e) => e.removeAttribute('data-id'))
     g.querySelectorAll('.on, .hl, .blame').forEach((e) => e.classList.remove('on', 'hl', 'blame'))
     // crop: bounds() plus the part labels, estimated like the cards (monospace, char = 0.6em)
@@ -608,14 +723,19 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       `<style>${PRINT_CSS}</style><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff"/>${new XMLSerializer().serializeToString(g)}</svg>`
   }
 
-  const dots = useMemo(() => ({ j: junctions(sheet), nc: unconnectedPins(sheet) }), [sheet])
+  const dots = useMemo(() => ({ j: junctions(sheet), nc: unconnectedPins(sheet), b: sheet.buses?.length ? junctions({ ...sheet, parts: [], wires: sheet.buses }) : [] }), [sheet])
   const placing = typeof tool === 'object' ? tool : null
   const one = sel.size === 1 ? sheet.parts.find((p) => sel.has(p.id) && p.kind !== 'gnd') : undefined
   const entry = one?.lib ? library.find((e) => e.id === one.lib) : undefined
+  // the library's custom symbol, when this part doesn't use it (yet) or uses an older version
+  const symNow = entry && symbolFields(entry), symFresh = symNow && JSON.stringify(symNow) !== JSON.stringify({ pins: one!.pins, sym: one!.sym }) ? symNow : undefined
   const blockSheet = one?.sheet ? sheets.find((x) => x.file === one.sheet) : undefined
   const ports = blockSheet && sheetPorts(blockSheet.sheet)
   const stale = ports && ports.join('\0') !== (one!.pins ?? []).map((q) => q.name).join('\0') ? ports : undefined
   const dir = sel.size === 1 ? sheet.texts.find((t) => sel.has(t.id)) : undefined
+  const drw = sel.size === 1 ? sheet.draw?.find((d) => sel.has(d.id) && (d.t === 'note' || d.t === 'title')) : undefined
+  const editDraw = (d: Drawing, f: string, v: string | number) =>
+    commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === d.id ? ({ ...x, [f]: v } as Drawing) : x)) }, `edit:${d.id}:${f}`)
   const dirA = dir ? parseAnalysis(dir.text.trim()) : null
   const hovNet = hov && 'net' in hov ? hov.net : null, hovPart = hov && 'partId' in hov ? hov.partId : null
   const blamed = new Set(overlay?.blame?.parts)
@@ -647,6 +767,16 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
     : tool === 'text'
       ? 'Click to place a SPICE directive · Esc returns to select'
+      : tool === 'note'
+      ? 'Click to place a text note (not part of the netlist) · Esc returns to select'
+      : isShape(tool)
+      ? start
+        ? `Click to finish the ${shapeName(tool)}${tool === 'line' ? ' and start the next segment · double-click or Esc ends' : ' · Esc cancels'}`
+        : `Click where the ${shapeName(tool)} starts · Esc returns to select`
+      : tool === 'bus'
+      ? start
+        ? 'Click to add a corner · click a bus to join it · / flips the corner · double-click or Esc ends'
+        : 'Click to start a bus · name it with a net label such as D[0..7] · bus taps break out its members'
       : tool === 'wire'
       ? start
         ? 'Click to add a corner · click a pin or wire to finish · / flips the corner · double-click or Esc ends'
@@ -666,13 +796,15 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </defs>
         <rect width="100%" height="100%" fill={`url(#${gridId})`} />
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
+          {sheet.draw?.map((d) => <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} sheetNo={sheetNo} />)}
           {sheet.parts.map((p) => (
-            <g key={p.id} data-id={p.id} className={`part${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
+            <g key={p.id} data-id={p.id} className={`part${p.kind === 'block' && !p.sheet && !p.lib ? ' ph' : ''}${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
               <g className="sym" transform={tf(p)}>
                 <Hit b={localBox(p.kind, p)} />
                 <SymBody kind={p.kind} part={p} />
               </g>
-              {p.kind === 'block' && <PinNames part={p} at={p} />}
+              {p.kind === 'block' && !p.sym && <PinNames part={p} at={p} />}
+              {p.sym && <SymTexts part={p} at={p} />}
               <Texts p={p} />
             </g>
           ))}
@@ -682,18 +814,29 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               <line x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
             </g>
           ))}
+          {sheet.buses?.map((w) => (
+            <g key={w.id} data-id={w.id} className={`bus${sel.has(w.id) ? ' on' : ''}`}>
+              <line className="hit" x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
+              <line x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
+            </g>
+          ))}
+          {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
           {dots.j.map((q) => <circle key={`j${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
           {dots.nc.map((q, i) => <rect key={i} className="nc" x={q.x - 2} y={q.y - 2} width={4} height={4} />)}
           {placing && cursor && (
             <g className="ghost">
               <g className="sym" transform={tf({ ...ghost, ...cursor })}><SymBody kind={placing.place} part={placing.extra} /></g>
-              {placing.place === 'block' && placing.extra && <PinNames part={placing.extra} at={{ ...ghost, ...cursor }} />}
+              {placing.place === 'block' && placing.extra && !placing.extra.sym && <PinNames part={placing.extra} at={{ ...ghost, ...cursor }} />}
+              {placing.extra?.sym && <SymTexts part={placing.extra} at={{ ...ghost, ...cursor }} />}
             </g>
           )}
           {tool === 'text' && cursor && <Card t={{ id: '', ...cursor, text: '.op' }} cls="ghost" />}
-          {tool === 'wire' && cursor && (
-            <g className="preview">
+          {tool === 'note' && cursor && <DrawingEl d={{ id: '', t: 'note', ...cursor, text: 'Note' }} cls="ghost" />}
+          {isShape(tool) && cursor && (start ? <DrawingEl d={{ id: '', t: tool, a: start, b: cursor }} cls="ghost" />
+            : <g className="preview"><circle cx={cursor.x} cy={cursor.y} r={2.5} /></g>)}
+          {(tool === 'wire' || tool === 'bus') && cursor && (
+            <g className={`preview${tool === 'bus' ? ' bus' : ''}`}>
               {start && route(start, cursor, vFirst).map((w, i) => <line key={i} x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />)}
               <circle cx={cursor.x} cy={cursor.y} r={2.5} />
             </g>
@@ -725,6 +868,22 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             </Tip>
           ))}
         </ToggleGroup>
+        <DropdownMenu>
+          <Tip label="Draw: text, shapes, title block, buses">
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-sm" aria-label="Draw" className={cn('size-7 text-muted-foreground', (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /></Button>
+            </DropdownMenuTrigger>
+          </Tip>
+          <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>T</DropdownMenuShortcut></DropdownMenuItem>
+            {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => use('bus')}><Spline className="stroke-[3]" />Bus<DropdownMenuShortcut>B</DropdownMenuShortcut></DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => use({ place: 'bustap', title: SYMBOLS.bustap.title })}><SymbolPreview kind="bustap" size="small" />Bus tap</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem checked={!!titleOf(sheet)} onSelect={toggleTitle}><PanelBottom className="text-muted-foreground" />Title block</DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Sep />
         {QUICK.map((k) => {
           const on = placing?.place === k && !placing.id
@@ -779,6 +938,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
                 <Input className={cn('h-7 px-2', MONO)} value={one.value} spellCheck={false} onChange={(e) => edit(one, 'value', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
               </Label>
               {isSrc(one) && <Tip label="Edit DC, AC and the transient waveform"><InspBtn onClick={() => setSrcDlg(true)}>Waveform…</InspBtn></Tip>}
+              {symFresh && (
+                <Tip label="Draw this part with the library's custom symbol (wires on its old pins stay where they are)">
+                  <InspBtn onClick={() => commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === one.id ? { ...q, ...symFresh } : q)) })}>{one.sym ? 'Update symbol' : 'Use custom symbol'}</InspBtn>
+                </Tip>
+              )}
             </>
           )}
         </div>
@@ -798,12 +962,57 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </div>
       )}
 
+      {drw?.t === 'note' && (
+        <div className={INSP} key={drw.id}>
+          <Label className={FLD}>Text note (not netlisted)
+            <Textarea ref={ta} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
+              className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
+              onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
+          </Label>
+          <Label className={FLD}>Size
+            <Select value={String(drw.size ?? NOTE)} onValueChange={(v) => editDraw(drw, 'size', +v)}>
+              <SelectTrigger size="sm" className="h-7 w-full text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>{NOTE_SIZES.map(([l, v]) => <SelectItem key={v} value={String(v)}>{l}</SelectItem>)}</SelectContent>
+            </Select>
+          </Label>
+        </div>
+      )}
+      {drw?.t === 'title' && (
+        <div className={INSP} key={drw.id}>
+          <div className="text-xs font-semibold">Title block</div>
+          {(['title', 'author', 'date', 'rev'] as const).map((f) => (
+            <Label key={f} className={FLD}>{f === 'rev' ? 'Revision' : f[0].toUpperCase() + f.slice(1)}
+              <Input className="h-7 px-2 text-xs md:text-xs" value={drw[f]} spellCheck={false} onChange={(e) => editDraw(drw, f, e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
+            </Label>
+          ))}
+          <div className={D}>Sheet {sheetNo ?? '1 of 1'} is filled in from the project.</div>
+        </div>
+      )}
+
       <div className="sch-hint text-xs text-muted-foreground">{hint}</div>
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(
         <AnalysisDialog initial={(dlg === 'edit' && dirA) || undefined} sources={sources} nets={[...new Set(Object.values(nl.nets).flat())].filter((n) => n !== '0').sort()}
           onApply={applyAnalysis} options={lineOf('options')} ic={lineOf('ic')} nodeset={lineOf('nodeset')} tran={sheet.texts.some((t) => /^\s*\.tran\b/im.test(t.text))} tab={dlg === 'analysis' || dlg === 'edit' ? undefined : dlg}
           onOptions={(line) => (setDlg(null), putOptions(line, false))} onClose={() => setDlg(null)} />, document.body
+      )}
+      {report && createPortal(
+        <Dialog open onOpenChange={(o) => !o && setReport(null)}>
+          <DialogContent className="sm:max-w-[560px]" onKeyDown={(e) => e.stopPropagation()}>
+            <DialogHeader>
+              <DialogTitle className="text-sm">{report.title}</DialogTitle>
+              <DialogDescription className="text-xs">{report.summary}</DialogDescription>
+            </DialogHeader>
+            {report.lines.length ? (
+              <>
+                <p className="text-xs text-muted-foreground">Not converted, or converted with a change:</p>
+                <ul className="grid max-h-[50vh] list-disc gap-1 overflow-y-auto pl-4 text-xs">{report.lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                <p className="text-xs text-muted-foreground">Placeholders are drawn with a red dashed outline and stop the netlist until you replace them.</p>
+              </>
+            ) : <p className="text-xs text-muted-foreground">Everything was converted.</p>}
+            <DialogFooter><Button size="sm" autoFocus onClick={() => setReport(null)}>OK</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>, document.body
       )}
       {srcDlg && one && isSrc(one) && createPortal(
         <SourceDialog name={one.name} unit={one.kind === 'isrc' ? 'A' : 'V'} value={one.value} onClose={() => setSrcDlg(false)}

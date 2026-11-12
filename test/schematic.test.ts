@@ -153,3 +153,36 @@ test('parseSheet keeps and validates block/library fields', () => {
   assert.throws(() => parseSheet(bad({ sheet: 3 })), /Malformed sheet/)
   assert.throws(() => parseSheet(bad({ lib: null })), /Malformed lib/)
 })
+
+test('annotations: drawings round-trip through parseSheet, old files load without them, netlist ignores them', async () => {
+  const { netlist } = await import('../src/renderer/src/schematic/netlist.ts')
+  const s = exampleSheet()
+  const before = netlist(s).text
+  s.draw = [
+    { id: 'n', t: 'note', x: 0, y: 200, text: '.tran 1 2\nR9 a b 1k', size: 14 },
+    { id: 'l', t: 'line', a: { x: 0, y: 0 }, b: { x: 50, y: 0 } },
+    { id: 'a', t: 'arrow', a: { x: 0, y: 0 }, b: { x: 50, y: 20 } },
+    { id: 'r', t: 'rect', a: { x: -40, y: -80 }, b: { x: 160, y: 60 } },
+    { id: 'e', t: 'ellipse', a: { x: 0, y: 0 }, b: { x: 20, y: 20 } },
+    { id: 't', t: 'title', x: 0, y: 300, title: 'RC', author: 'me', date: '2026-01-01', rev: 'B' }
+  ]
+  assert.deepEqual(parseSheet(JSON.stringify(s)), s)
+  assert.equal(netlist(s).text, before) // a note that looks like SPICE is still only a note
+  const old = parseSheet(JSON.stringify({ version: 1, parts: [], wires: [] }))
+  assert.deepEqual([old.texts, old.draw, old.buses], [[], undefined, undefined])
+  const bad = (d: object) => JSON.stringify({ ...s, draw: [d] })
+  assert.throws(() => parseSheet(bad({ id: 'x', t: 'note', x: 0, y: 0 })), /Malformed drawing/)
+  assert.throws(() => parseSheet(bad({ id: 'x', t: 'blob', a: { x: 0, y: 0 }, b: { x: 1, y: 1 } })), /Malformed drawing/)
+  assert.throws(() => parseSheet(bad({ id: 'x', t: 'title', x: 0, y: 0, title: 'a' })), /Malformed drawing/)
+  assert.throws(() => parseSheet(JSON.stringify({ ...s, buses: [{ id: 'b', a: { x: 0 } }] })), /Malformed buses/)
+})
+
+test('parseSheet keeps note sizes within reason and one title block; turnSeg rotates and mirrors shapes and buses about their centre', async () => {
+  const { turnSeg } = await import('../src/renderer/src/schematic/model.ts')
+  const t = (id: string) => ({ id, t: 'title', x: 0, y: 0, title: id, author: '', date: '', rev: '' })
+  const s = parseSheet(JSON.stringify({ version: 1, parts: [], wires: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: 'x', size: 1e9 }, { id: 'b', t: 'note', x: 0, y: 0, text: 'x', size: -5 }, t('t1'), t('t2')] }))
+  assert.deepEqual(s.draw!.map((d) => (d.t === 'note' ? d.size : d.id)), [72, 4, 't1'])
+  const w = { id: 'w', a: { x: 0, y: 0 }, b: { x: 40, y: 0 } }
+  assert.deepEqual(turnSeg(w, true), { id: 'w', a: { x: 20, y: -20 }, b: { x: 20, y: 20 } })
+  assert.deepEqual(turnSeg({ ...w, b: { x: 40, y: 20 } }, false), { id: 'w', a: { x: 40, y: 0 }, b: { x: 0, y: 20 } })
+})

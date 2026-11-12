@@ -24,7 +24,7 @@ const SHORTCUTS: [string, [string, string][]][] = [
   ['Simulate', [['Run', 'Mod+Enter'], ['Stop', 'Mod+.'], ['Analysis setup', 'A'], ['Probe tool', 'P'], ['Probe from Select', 'Alt+click'], ['Differential probe', 'Alt+drag']]],
   ['View', [['Sheets panel', 'Mod+1'], ['Parts panel', 'Mod+2 · Shift+L'], ['Results panel', 'Mod+3'], ['Search parts', '/'], ['Zoom in / out', '+ · −'], ['Fit to window', 'F'], ['Pan', 'Space+drag · middle-drag']]],
   ['Edit (canvas)', [['Undo', 'Mod+Z'], ['Redo', 'Mod+Shift+Z'], ['Cut / copy / paste', 'Mod+X · Mod+C · Mod+V'], ['Duplicate', 'Mod+D'], ['Select all', 'Mod+A'], ['Add to selection', 'Shift+click'], ['Delete', 'Del · ⌫'], ['Rotate / mirror', 'Ctrl+R · Ctrl+E'], ['Back to Select', 'Esc']]],
-  ['Place', [['Wire', 'W'], ['Flip wire corner', '/ (while wiring)'], ['Resistor / capacitor / inductor', 'R · C · L'], ['Voltage / current source', 'V · I'], ['Diode / NPN / NMOS', 'D · Q · M'], ['Ground / net label / port', 'G · N · H'], ['SPICE directive', 'S']]],
+  ['Place', [['Wire', 'W'], ['Flip wire corner', '/ (while wiring)'], ['Resistor / capacitor / inductor', 'R · C · L'], ['Voltage / current source', 'V · I'], ['Diode / NPN / NMOS', 'D · Q · M'], ['Ground / net label / port', 'G · N · H'], ['SPICE directive', 'S'], ['Text note', 'T'], ['Bus', 'B']]],
   ['Help', [['Keyboard shortcuts', 'Mod+/']]]
 ]
 

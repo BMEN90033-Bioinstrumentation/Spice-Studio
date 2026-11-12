@@ -7,6 +7,7 @@ import { blockShape, sheetPorts, type Sheet } from '../schematic/model'
 import type { Kind } from '../schematic/symbols'
 import { blockPartFields, CATEGORIES, type LibEntry } from './library'
 import { SymbolPreview } from './Symbol'
+import { symbolFields } from './customSymbol'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +39,8 @@ export function useDebounced<T>(v: T, ms = 100): T {
 // one element per kind, reused by every row: React skips identical elements, so minis cost nothing after the first
 const MINI: Partial<Record<Kind, ReactNode>> = {}
 export const mini = (e: LibEntry) =>
-  e.kind === 'block' ? <SymbolPreview kind="block" part={blockPartFields(e)} size="small" /> : (MINI[e.kind] ??= <SymbolPreview kind={e.kind} size="small" />)
+  e.symbol ? <SymbolPreview kind={e.kind} part={symbolFields(e) ?? (e.kind === 'block' ? blockPartFields(e) : undefined)} size="small" /> // custom (symbol editor)
+  : e.kind === 'block' ? <SymbolPreview kind="block" part={blockPartFields(e)} size="small" /> : (MINI[e.kind] ??= <SymbolPreview kind={e.kind} size="small" />)
 
 // Windowed list: fixed per-item heights, only rows within the viewport (+ overscan) are mounted. Rows keep their
 // DOM focus while on screen; focus() on the next row scrolls it into view, so arrow keys still walk the list.

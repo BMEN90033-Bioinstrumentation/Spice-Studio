@@ -5,9 +5,10 @@ import { constants, existsSync, readFileSync, statSync } from 'node:fs'
 import { copyFile, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import { checkPack, PACK_ID } from '../renderer/src/library/library'
+import { validSymbol } from '../renderer/src/library/customSymbol'
 import { inside } from './paths'
 
-type Entry = { name: string; kind: string; category: string; pinMap: number[] }
+type Entry = { name: string; kind: string; category: string; pinMap: number[]; symbol?: unknown } // symbol: symbol editor
 type Lib = { file: string; entries: Entry[]; enabled?: false } // enabled: false = hidden from browsing (Manage Libraries)
 type Prov = { file: string; url: string; sha256: string; retrieved: string }
 export type Pack = {
@@ -65,7 +66,7 @@ ipcMain.handle('userlib:import', async () => {
 })
 ipcMain.handle('userlib:save', async (_e, lib: Lib) => {
   if (!isLib(lib) || !existsSync(inside(FILES(), lib.file))) throw new Error('Bad library mapping')
-  const l: Lib = { file: lib.file, entries: lib.entries.map(({ name, kind, category, pinMap }) => ({ name, kind, category, pinMap })) }
+  const l: Lib = { file: lib.file, entries: lib.entries.map(({ name, kind, category, pinMap, symbol }) => ({ name, kind, category, pinMap, ...(validSymbol(symbol) && { symbol }) })) }
   await saveIndex([...(await index()).filter((x) => x.file !== l.file), l])
 })
 ipcMain.handle('userlib:setEnabled', async (_e, file: unknown, on: unknown) => {

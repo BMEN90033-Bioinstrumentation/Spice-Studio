@@ -203,6 +203,16 @@ ipcMain.handle('source:pick', async (_e, kind: 'pwl' | 'wav') => {
   const d = p && [...projects].filter((d) => p.startsWith(d + sep)).sort((a, b) => b.length - a.length)[0]
   return !p ? null : d ? relative(d, p).split(sep).join('/') : p
 })
+// File › Import Schematic…: LTspice .asc (UTF-16 with a BOM or NULs, else UTF-8, else Latin-1) or KiCad .kicad_sch (UTF-8)
+ipcMain.handle('file:import', async () => {
+  const r = await dialog.showOpenDialog({ filters: [{ name: 'LTspice or KiCad schematic', extensions: ['asc', 'kicad_sch'] }], properties: ['openFile'] })
+  if (r.canceled || !r.filePaths[0]) return null
+  const b = await readFile(r.filePaths[0])
+  let text: string
+  if ((b[0] === 0xff && b[1] === 0xfe) || b.subarray(0, 200).includes(0)) text = b.toString('utf16le').replace(/^\uFEFF/, '')
+  else try { text = new TextDecoder('utf-8', { fatal: true }).decode(b) } catch { text = b.toString('latin1') }
+  return { path: r.filePaths[0], text }
+})
 
 ipcMain.handle('file:save', async (_e, text: string, path: string | null, kind: 'cir' | 'nsch') => {
   if (!path) {

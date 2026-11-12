@@ -9,6 +9,7 @@ export type Kind =
   | 'port' | 'block' | 'opamp5' | 'zener' | 'led' | 'njf' | 'pjf'
   | 'vcvs' | 'vccs' | 'ccvs' | 'cccs' | 'bv' | 'bi' | 'sw' | 'csw' | 'tline' | 'xfmr' | 'kcouple' | 'power' | 'pot' | 'xtal'
   | DigitalKind // XSPICE gates (digital.ts)
+  | 'bustap'
 
 export interface SymbolDef {
   title: string
@@ -182,9 +183,11 @@ export const SYMBOLS: Record<Kind, SymbolDef> = {
     fill: 'M6 0L12 -3V3Z'
   },
   xtal: { title: 'Crystal', prefix: 'Y', value: 'F=10meg', pins: two, path: 'M0 -30V-10M-12 -10H12M0 10V30M-12 10H12M-8 -6H8V6H-8Z' },
-  ...DIGITAL_SYMBOLS
+  ...DIGITAL_SYMBOLS,
+  // bus entry: origin on the bus, pin on the wire; the value names the bus member (D3) and joins that net like a label
+  bustap: { title: 'Bus tap', prefix: '', value: 'D0', pins: [{ x: 10, y: 10 }], path: 'M0 0L10 10' }
 }
 
 export const PALETTE: Kind[] = ['res', 'cap', 'ind', 'pot', 'xtal', 'xfmr', 'kcouple', 'tline', 'vsrc', 'isrc', 'vcvs', 'vccs', 'ccvs', 'cccs', 'bv', 'bi',
   'sw', 'csw', 'diode', 'zener', 'led', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'opamp', 'gnd', 'power', 'label', 'port']
-export const isFlag = (k: Kind) => k === 'gnd' || k === 'label' || k === 'port' || k === 'power' // connect nets, not SPICE elements
+export const isFlag = (k: Kind) => k === 'gnd' || k === 'label' || k === 'port' || k === 'power' || k === 'bustap' // connect nets, not SPICE elements

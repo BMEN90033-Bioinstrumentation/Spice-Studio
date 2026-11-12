@@ -37,8 +37,10 @@ These work when the canvas is active and no text field has focus.
 | D, Q, M | Place diode, NPN transistor, NMOS transistor |
 | G, N, H | Place ground, net label, sheet port |
 | S | Place a SPICE directive |
+| T | Place a text note |
 | W | Wire tool |
-| / (while wiring) | Flip the wire's corner |
+| B | Bus tool |
+| / (while drawing a wire or bus) | Flip the corner |
 | / | Open the Parts panel and search |
 | Shift+L | Show or hide the Parts panel |
 | P | Probe tool |

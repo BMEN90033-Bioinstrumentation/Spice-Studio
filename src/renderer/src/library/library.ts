@@ -4,6 +4,7 @@ import { isFlag, SYMBOLS, type Kind } from '../schematic/symbols.ts'
 import { blockShape, type Part, type Sheet } from '../schematic/model.ts'
 import type { Project } from '../project/project.ts'
 import { DIGITAL_PARTS } from '../schematic/digital.ts'
+import { validSymbol, type CustomSymbol } from './customSymbol.ts'
 
 export type Category = 'Passives' | 'Sources' | 'Controlled sources' | 'Switches' | 'Diodes' | 'BJTs' | 'JFETs' | 'MOSFETs' | 'Op-amps' | 'Comparators'
   | 'Regulators' | 'References' | 'Optocouplers' | 'Timers' | 'Subcircuits' | 'Digital'
@@ -21,9 +22,10 @@ export interface LibEntry {
   source: 'bundled' | 'project' | 'user' | 'pack'
   group?: string // non-bundled: 'Project', 'My library' or the pack's name (panel/browser group header)
   compat?: string // pack dialect hint (e.g. 'ltspice'), carried through; netlister handling comes later
+  symbol?: CustomSymbol // drawn in the symbol editor (customSymbol.ts)
 }
 export interface ImportedLib {
-  file: string; entries: { name: string; kind: Kind; category: Category; pinMap: number[] }[]
+  file: string; entries: { name: string; kind: Kind; category: Category; pinMap: number[]; symbol?: CustomSymbol }[]
   enabled?: false // hidden from the parts lists and search (Manage Libraries); its parts still resolve for netlisting
 }
 export const libOn = (l: { enabled?: boolean }) => l.enabled !== false
@@ -164,7 +166,7 @@ export function entriesFromImport(lib: ImportedLib, text: string, src?: LibSourc
   return lib.entries.flatMap((e): LibEntry[] => {
     const base = {
       id: `${src?.prefix ?? 'proj:'}${lib.file}#${e.name}`, name: e.name, category: e.category, kind: e.kind, value: e.name,
-      source: src?.source ?? ('project' as const), group: src?.group ?? 'Project', ...(src?.compat && { compat: src.compat })
+      source: src?.source ?? ('project' as const), group: src?.group ?? 'Project', ...(src?.compat && { compat: src.compat }), ...(validSymbol(e.symbol) && { symbol: e.symbol })
     }
     const m = models.get(e.name.toLowerCase())
     if (m) return [{ ...base, description: `${m.type} model`, spice: { type: 'model', name: m.name, text: m.text }, params: m.params }]

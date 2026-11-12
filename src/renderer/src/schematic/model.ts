@@ -18,6 +18,7 @@ export interface Part {
   pins?: { name: string; x: number; y: number }[] // per-instance pins (blocks), local coords; overrides the symbol's
   size?: { w: number; h: number } // block body, centred on origin
   lib?: string // library entry id, e.g. 'std:2N3904'
+  sym?: Drawing[] // custom library symbol (symbol editor): its graphics in local coords; its pins are in `pins`
 }
 export interface Wire {
   id: string
@@ -32,11 +33,19 @@ export interface Directive {
   y: number
   text: string
 }
+// Annotations, never netlisted: shapes from a to b, free text notes (size = font size, default 10), and the
+// sheet's title block (one per sheet; "sheet n of m" is filled in when drawn).
+export type Drawing =
+  | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt }
+  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number }
+  | { id: string; t: 'title'; x: number; y: number; title: string; author: string; date: string; rev: string }
 export interface Sheet {
   version: 1
   parts: Part[]
   wires: Wire[]
   texts: Directive[]
+  draw?: Drawing[] // absent in older files
+  buses?: Wire[] // bus segments: connect only to each other (and bus taps / bus labels), never to wires or pins
 }
 
 export const emptySheet = (): Sheet => ({ version: 1, parts: [], wires: [], texts: [] })
@@ -98,6 +107,17 @@ export function onSegment(w: Wire, p: Pt): boolean {
   return Math.min(a.x, b.x) <= p.x && p.x <= Math.max(a.x, b.x) && Math.min(a.y, b.y) <= p.y && p.y <= Math.max(a.y, b.y)
 }
 
+// The wires whose interior contains a point, from an index of the wires by row and column (diagonals scanned)
+export function wiresThrough(ws: Wire[]): (p: Pt) => Wire[] {
+  const rows = new Map<number, Wire[]>(), cols = new Map<number, Wire[]>(), diag: Wire[] = []
+  for (const w of ws) {
+    const m = w.a.y === w.b.y ? rows : w.a.x === w.b.x ? cols : null, k = w.a.y === w.b.y ? w.a.y : w.a.x
+    if (m) (m.get(k) ?? m.set(k, []).get(k)!).push(w)
+    else diag.push(w)
+  }
+  return (p) => [...(rows.get(p.y) ?? []), ...(cols.get(p.x) ?? []), ...diag].filter((w) => onSegment(w, p))
+}
+
 // Connectivity rules (the netlister must follow the same ones):
 //  - wire endpoints and pins connect when they coincide;
 //  - a wire endpoint landing mid-way along another wire connects (T-junction);
@@ -114,9 +134,9 @@ export function connections(s: Sheet): Map<string, { all: number; real: number }
   }
   for (const w of s.wires) add(w.a, 1), add(w.b, 1)
   for (const p of s.parts) for (const q of pins(p)) add(q, 1, isFlag(p.kind))
-  // ponytail: O(wires²) T-junction scan; spatial index if sheets get to thousands of wires
+  const through = wiresThrough(s.wires)
   for (const w of s.wires)
-    for (const e of [w.a, w.b]) if (s.wires.some((o) => o !== w && onSegment(o, e))) add(e, 2)
+    for (const e of [w.a, w.b]) if (through(e).some((o) => o !== w)) add(e, 2)
   return m
 }
 
@@ -139,11 +159,21 @@ export function nextName(s: Sheet, prefix: string): string {
   return prefix + (max + 1)
 }
 
+// Bus label name "D[0..7]" (or D[7..0]) -> its member nets D0..D7; null for an ordinary name
+export function busMembers(v: string): string[] | null {
+  const m = /^([A-Za-z_][\w]*)\[(\d+)\.\.(\d+)\]$/.exec(v.trim())
+  if (!m) return null
+  const a = +m[2], b = +m[3], st = a <= b ? 1 : -1
+  return Math.abs(b - a) > 1023 ? null : Array.from({ length: Math.abs(b - a) + 1 }, (_, i) => m[1] + (a + i * st))
+}
+
 export function newPart(s: Sheet, kind: Kind, x: number, y: number, rot = 0, mirror = false, extra?: Partial<Part>): Part {
   const d = SYMBOLS[kind]
   // new labels/ports get a unique name (n1, n2… / p1, p2…): a shared default would silently join their nets
   const uniq = (pre: string) => nextName({ ...s, parts: s.parts.filter((p) => p.kind === kind).map((p) => ({ ...p, name: p.value })) }, pre)
-  const value = kind === 'label' ? uniq('n') : kind === 'port' ? uniq('p') : d.value
+  // a new bus tap takes the member after the last tap's (D3 -> D4), so a row of taps fans a bus out in order
+  const tap = () => { const v = s.parts.findLast((p) => p.kind === 'bustap')?.value ?? '', m = /^(.*?)(\d+)$/.exec(v); return m ? m[1] + (+m[2] + 1) : d.value }
+  const value = kind === 'label' ? uniq('n') : kind === 'port' ? uniq('p') : kind === 'bustap' ? tap() : d.value
   return { id: uid(), kind, x, y, rot, mirror, name: d.prefix ? nextName(s, d.prefix) : '', value, ...extra }
 }
 
@@ -191,12 +221,25 @@ export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: P
   return { ...s, parts, wires: [...wires, ...added] }
 }
 
+export const NOTE_MIN = 4, NOTE_MAX = 72 // note font sizes kept on load
+// a shape or bus segment turned a quarter clockwise (rot) or mirrored left-right about its own grid-snapped centre;
+// notes and the title block stay as they are (their text reads upright)
+export function turnSeg<T extends { a: Pt; b: Pt }>(w: T, rot: boolean): T {
+  const c = { x: snap((w.a.x + w.b.x) / 2), y: snap((w.a.y + w.b.y) / 2) }
+  const f = (q: Pt): Pt => (rot ? { x: c.x - (q.y - c.y) + 0, y: c.y + (q.x - c.x) + 0 } : { x: 2 * c.x - q.x + 0, y: q.y })
+  return { ...w, a: f(w.a), b: f(w.b) }
+}
+const num = (v: unknown) => typeof v === 'number' && isFinite(v)
+const pt = (p: any) => num(p?.x) && num(p?.y)
+const str = (v: unknown) => typeof v === 'string'
+export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
+  : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
+  : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b))
+
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {
   const s = JSON.parse(text)
   if (s?.version !== 1 || !Array.isArray(s.parts) || !Array.isArray(s.wires)) throw new Error('Not a Spice Studio schematic (.nsch v1)')
-  const num = (v: unknown) => typeof v === 'number' && isFinite(v)
-  const pt = (p: any) => num(p?.x) && num(p?.y)
   for (const p of s.parts) {
     if (!(p?.kind in SYMBOLS)) throw new Error(`Unknown part kind "${p?.kind}"`)
     if (!pt(p) || !num(p.rot) || typeof p.mirror !== 'boolean' || typeof p.name !== 'string' || typeof p.value !== 'string' || typeof p.id !== 'string')
@@ -208,11 +251,20 @@ export function parseSheet(text: string): Sheet {
     opt('lib', (v) => typeof v === 'string')
     opt('size', (v) => num(v?.w) && num(v?.h))
     opt('pins', (v) => Array.isArray(v) && v.every((q: any) => pt(q) && typeof q.name === 'string'))
+    opt('sym', (v) => Array.isArray(v) && v.every(okDrawing))
   }
   for (const w of s.wires) if (!pt(w?.a) || !pt(w?.b) || typeof w.id !== 'string') throw new Error(`Malformed wire ${JSON.stringify(w).slice(0, 80)}`)
   s.texts ??= [] // Phase 2 files predate directives
   if (!Array.isArray(s.texts)) throw new Error('Malformed texts')
   for (const t of s.texts) if (!pt(t) || typeof t.text !== 'string' || typeof t.id !== 'string') throw new Error(`Malformed directive ${JSON.stringify(t).slice(0, 80)}`)
+  if (s.draw !== undefined) {
+    if (!Array.isArray(s.draw)) throw new Error('Malformed draw')
+    for (const d of s.draw) if (!okDrawing(d)) throw new Error(`Malformed drawing ${JSON.stringify(d).slice(0, 80)}`)
+    // one title block per sheet; note sizes within reason
+    s.draw = s.draw.filter((d: Drawing, i: number) => d.t !== 'title' || s.draw.findIndex((x: Drawing) => x.t === 'title') === i)
+    for (const d of s.draw) if (d.t === 'note' && d.size !== undefined) d.size = Math.min(NOTE_MAX, Math.max(NOTE_MIN, d.size))
+  }
+  if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && typeof w.id === 'string'))) throw new Error('Malformed buses')
   return s
 }
 

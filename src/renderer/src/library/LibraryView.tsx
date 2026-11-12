@@ -5,6 +5,7 @@ import { blockPartFields, CATEGORIES as CATS, libKey, suggest, type Category, ty
 import { match, mini, useDebounced, VList } from './LibraryPanel'
 import type { PackInfo } from './sources'
 import { SymbolPreview } from './Symbol'
+import { symbolFields } from './customSymbol'
 import { isUrl, Modal, PackLicence } from '../Help'
 import { runCommand } from '../commands'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -122,7 +123,7 @@ function Detail({ e, packs, onNotice }: { e: LibEntry; packs: PackInfo[]; onNoti
         {pack?.license && <Tip label={pack.license}><Badge variant="outline" className={cn(CHIP, 'max-w-full border-ok/35 text-ok')}><span className="truncate">{pack.license}</span></Badge></Tip>}
       </div>
       <p className="leading-normal">{e.description}</p>
-      <div className="rounded-lg border bg-background p-2 [&_.symp]:text-foreground"><SymbolPreview kind={e.kind} part={e.kind === 'block' ? blockPartFields(e) : undefined} size="large" /></div>
+      <div className="rounded-lg border bg-background p-2 [&_.symp]:text-foreground"><SymbolPreview kind={e.kind} part={symbolFields(e) ?? (e.kind === 'block' ? blockPartFields(e) : undefined)} size="large" /></div>
       <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs [&_code]:font-mono [&_dt]:text-muted-foreground">
         <dt>Value</dt><dd><code>{e.value}</code></dd>
         <dt>Symbol</dt><dd>{SYMBOLS[e.kind].title}</dd>

@@ -29,6 +29,7 @@ const api = {
   openRaw: (): Promise<{ path: string; plots: RawPlot[] } | null> => inv('raw:open'),
   pickSourceFile: (kind: 'pwl' | 'wav'): Promise<string | null> => inv('source:pick', kind),
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
+  importFile: (): Promise<{ path: string; text: string } | null> => inv('file:import'), // LTspice .asc / KiCad .kicad_sch, decoded
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {
     defaultParent: (): Promise<string> => inv('project:defaultParent'),
