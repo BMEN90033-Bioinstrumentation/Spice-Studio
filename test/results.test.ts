@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { stats } from '../src/renderer/src/plot/stats.ts'
 import { fold, gamma, smithGrid, ticks, unwrap } from '../src/renderer/src/plot/views.ts'
-import { knobs, range, toPos, toValue, tunedNote, withKnobs } from '../src/renderer/src/sim/tune.ts'
+import { knobs, range, steppedNames, toPos, toValue, tunedNote, withKnobs } from '../src/renderer/src/sim/tune.ts'
+import { expandSweep, isWorstCase } from '../src/renderer/src/sim/sweep.ts'
 
 const near = (a: number, b: number, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps, `${a} vs ${b}`)
 
@@ -28,6 +29,7 @@ test('stats: mean, sample σ, min/max runs, yield with failed runs, bins', () =>
 test('unwrap: wraps removed, gaps kept', () => {
   assert.deepEqual(unwrap([170, -170, -10, 160, null, -170]), [170, 190, 350, 520, null, 550])
   assert.deepEqual(unwrap([0, -90, -180, 90]), [0, -90, -180, -270])
+  assert.deepEqual(unwrap([0, 180, 0, -180, 0]), [0, 180, 0, -180, 0]) // exact ±180° steps: no drift
 })
 
 test('gamma, ticks, Smith grid', () => {
@@ -43,13 +45,15 @@ test('gamma, ticks, Smith grid', () => {
 
 test('fold: whole periods from the offset, resampled; empty for a bad period', () => {
   const x = Float64Array.from({ length: 101 }, (_, k) => k / 100), y = x.map((t) => t) // y = t on [0, 1]
-  const { t, segs } = fold(x, y, 0.25, 0.1, 6)
+  const { t, segs, total } = fold(x, y, 0.25, 0.1, 6)
+  assert.equal(total, 3)
   ;[0, 0.05, 0.1, 0.15, 0.2, 0.25].forEach((v, i) => near(t[i], v, 1e-15))
   assert.equal(segs.length, 3) // [0.1, 0.35], [0.35, 0.6], [0.6, 0.85]; [0.85, 1.1] runs past the data
   segs.forEach((s, k) => s.forEach((v, i) => near(v, 0.1 + k * 0.25 + t[i], 1e-12)))
   assert.equal(fold(x, y, 0.25, -0.2, 6).segs.length, 3) // offset before the data: periods start at 0.05, 0.3, 0.55 (0.8 runs past)
   assert.equal(fold(x, y, 0, 0).segs.length, 0)
-  assert.equal(fold(x, y, 0.01, 0, 4, 10).segs.length, 10) // capped
+  const capped = fold(x, y, 0.01, 0, 4, 10)
+  assert.deepEqual([capped.segs.length, capped.total], [10, 100]) // capped: the first 10 of 100
 })
 
 const DECK = `* tune
@@ -93,4 +97,12 @@ test('a tuned deck runs in ngspice with the new value (skipped if ngspice missin
   const p = spawnSync('ngspice', ['-b', '-n', join(dir, 'c.cir')], { encoding: 'utf8' })
   if (p.error) return t.skip('ngspice not on PATH')
   near(-Number(/v1#branch\s+(\S+)/.exec(p.stdout)![1]), 1 / 4000, 1e-9)
+})
+
+test('steppedNames: the .step params of a sweep, from its run labels; isWorstCase', () => {
+  const labels = expandSweep('* s\n.param R=1k\n.step param R list 1k 2k\n.step temp list 0 50\nV1 1 0 1\nR1 1 0 {R}\n.op\n.end\n').runs.map((r) => r.label)
+  assert.deepEqual(steppedNames(labels), ['r', 't'])
+  assert.deepEqual(steppedNames(['run 1', 'run 2', 'nominal', 'R1+ C1−', 'max t50: R1+']), [])
+  assert.equal(isWorstCase(['nominal', 'R+']), true)
+  assert.equal(isWorstCase(['run 1', 'run 2']), false)
 })

@@ -103,13 +103,19 @@ function monteCarlo(netlist: string): { runs: SweepRun[]; errors: string[] } {
 }
 
 // Tolerances, written as for .mc: gauss(nom, rel, sigma) / unif(nom, rel) vary by ±rel·nom at their limit,
-// agauss(nom, abs, sigma) / aunif(nom, abs) / limit(nom, abs) by ±abs. Each call in the deck is one toleranced value,
-// named after its .param (R), its element (R1) or its .model parameter (QN.BF).
+// agauss(nom, abs, sigma) / aunif(nom, abs) / limit(nom, abs) by ±abs; sunif(0) by ±1 and sgauss(0) by ±3 (3σ). Each call
+// in the deck is one toleranced value, named after its .param (R), its element (R1) or its .model parameter (QN.BF).
+// Only calls in .param lines or inside {…} count (a B-source's own functions don't); text after ; is a comment.
 export type Tol = { name: string; line: number; start: number; end: number; nom: string; dev: string; rel: boolean }
+const ARGS: Record<string, [number, number]> = { gauss: [2, 3], agauss: [2, 3], unif: [2, 2], aunif: [2, 2], limit: [2, 2], sgauss: [1, 1], sunif: [1, 1] }
 export function tolerances(lines: string[]): Tol[] {
-  const out: Tol[] = [], FN = /\b(agauss|gauss|aunif|unif|limit)\s*\(/gi
-  lines.forEach((l, line) => {
-    if (/^\s*\*/.test(l)) return
+  const out: Tol[] = [], FN = /\b(agauss|gauss|aunif|unif|limit|sgauss|sunif)\s*\(/gi
+  let head: string[] = [] // the first tokens of the logical line ('+' lines continue it)
+  lines.forEach((full, line) => {
+    if (/^\s*\*/.test(full)) return
+    const l = full.replace(/;.*$|\s\$\s.*$/, ''), cont = /^\s*\+/.test(l)
+    if (!cont) head = l.trim().split(/\s+/)
+    const param = /^\.param$/i.test(head[0] ?? '')
     for (const m of l.matchAll(FN)) {
       const args: string[] = []
       let d = 0, a = m.index + m[0].length, end = -1
@@ -118,12 +124,14 @@ export function tolerances(lines: string[]): Tol[] {
         else if (l[i] === ')' && d-- === 0) args.push(l.slice(a, i)), (end = i + 1)
         else if (l[i] === ',' && !d) args.push(l.slice(a, i)), (a = i + 1)
       }
-      if (end < 0 || args.length < 2) continue
-      const pre = l.slice(0, m.index), first = l.trim().split(/\s+/)
-      const assigned = /([a-z_]\w*)\s*=[^=]*$/i.exec(pre)?.[1]
-      let name = !/^\s*\./.test(l) ? first[0] : /^\.model$/i.test(first[0]) && assigned ? `${first[1]}.${assigned}` : (assigned ?? `tol${out.length + 1}`)
+      const f = m[1].toLowerCase(), [lo, hi] = ARGS[f], pre = l.slice(0, m.index)
+      const braced = pre.split('{').length > pre.split('}').length
+      if (end < 0 || args.length < lo || args.length > hi || !(param || braced)) continue
+      const assigned = /([a-z_]\w*)\s*=[^=]*$/i.exec(cont ? pre.replace(/^\s*\+/, '') : pre)?.[1]
+      let name = !/^\./.test(head[0] ?? '') ? head[0] : /^\.model$/i.test(head[0]) && assigned ? `${head[1]}.${assigned}` : (assigned ?? `tol${out.length + 1}`)
       if (out.some((t) => t.name === name)) name += `#${out.length + 1}`
-      out.push({ name, line, start: m.index, end, nom: args[0].trim(), dev: args[1].trim(), rel: !/^(agauss|aunif|limit)$/i.test(m[1]) })
+      const std = f === 'sgauss' || f === 'sunif' // a standard random number: nominal 0
+      out.push({ name, line, start: m.index, end, nom: std ? '0' : args[0].trim(), dev: std ? (f === 'sgauss' ? '3' : '1') : args[1].trim(), rel: f === 'gauss' || f === 'unif' })
     }
   })
   return out
@@ -157,12 +165,23 @@ function worstCase(netlist: string): Sweep {
     return { runs: [nominal, ...corners.map((s) => ({ label: label(s), netlist: at(s) }))], errors: [], note: `Worst case: ${n} toleranced value${n > 1 ? 's' : ''} (${names}): the nominal circuit and all ${2 ** n} corners` }
   }
   const named = wc[0].trim().split(/\s+/).slice(1).map((m) => m.toLowerCase())
-  const meas = named.length ? named : base.flatMap((l) => (/^\s*\.meas(ure)?\s/i.test(l) ? [l.trim().split(/\s+/)[2]?.toLowerCase()].filter(Boolean) : []))
+  const inDeck = base.flatMap((l) => (/^\s*\.meas(ure)?\s/i.test(l) ? [l.trim().split(/\s+/)[2]?.toLowerCase()].filter(Boolean) : []))
+  const unknown = named.filter((m) => !inDeck.includes(m))
+  if (unknown.length) return bad(`.wc ${unknown.join(' ')}: no .meas line named ${unknown.join(', ')}${inDeck.length ? ` (the deck measures ${inDeck.join(', ')})` : ''}`)
+  const meas = named.length ? named : inDeck
   if (!meas.length) return bad(`.wc: ${n} toleranced values need ${2 ** n} corners (more than ${2 ** MAX_WC}). Add a .meas line: the app then picks each measurement's worst corners from its sensitivity to each value`)
   const logs: string[] = [], val = (run: number, m: string) => parseMeas(logs[run] ?? '').find((x) => x.name === m)?.value ?? null
-  // +1: this value at its high limit raises measurement m (from the sensitivity runs; 0 change or a failed .meas counts as +1)
-  const dir = (m: string) => tols.map((_, j) => { const a = val(0, m), b = val(1 + j, m); return a != null && b != null && b < a ? -1 : 1 })
-  const pick = (m: string, s: 1 | -1) => ({ get label() { return `${s > 0 ? 'max' : 'min'} ${m}: ${label(dir(m).map((d) => d * s))}` }, get netlist() { return at(dir(m).map((d) => d * s)) } })
+  // +1: this value at its high limit raises measurement m, −1 lowers it (no change counts as +1); null: m has no value in
+  // the nominal or a sensitivity run (failed, or not printed), so its corners can't be picked
+  const dir = (m: string) => {
+    const a = val(0, m), d = tols.map((_, j) => { const b = val(1 + j, m); return a == null || b == null ? null : b < a ? -1 : 1 })
+    return d.includes(null) ? null : (d as number[])
+  }
+  // a corner that can't be picked has no netlist: the run loop skips it and logs its label
+  const pick = (m: string, s: 1 | -1) => ({
+    get label() { const d = dir(m); return `${s > 0 ? 'max' : 'min'} ${m}: ${d ? label(d.map((x) => x * s)) : `skipped, ${m} has no value in the nominal or a sensitivity run (see their logs)`}` },
+    get netlist() { const d = dir(m); return d ? at(d.map((x) => x * s)) : '' }
+  })
   return {
     runs: [nominal, ...tols.map((t, j) => ({ label: `${t.name}+ alone`, netlist: at(tols.map((_, k) => +(k === j))) })), ...meas.flatMap((m) => [pick(m, 1), pick(m, -1)])],
     errors: [],
@@ -170,6 +189,9 @@ function worstCase(netlist: string): Sweep {
     observe: (log) => void logs.push(log)
   }
 }
+
+// worst-case runs (their measurement statistics are corners, not a distribution: no mean or σ)
+export const isWorstCase = (labels: string[]) => labels[0] === 'nominal' && labels.length > 1
 
 export function expandSweep(netlist: string): Sweep {
   if (netlist.split('\n').some((l) => MC.test(l))) return monteCarlo(netlist)

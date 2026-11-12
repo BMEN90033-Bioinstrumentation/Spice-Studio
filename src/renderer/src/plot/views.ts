@@ -1,11 +1,13 @@
 // Maths for the extra plot views: phase unwrap (Bode), Z → Γ and chart geometry (Nyquist / polar / Smith), eye folding. Pure TS.
 
-// a phase in degrees, unwrapped: a step of more than 180° between neighbouring points is taken as a wrap. Gaps stay null.
+// a phase in degrees, unwrapped: a step of more than 180° between neighbouring points is taken as a wrap (exactly ±180°
+// is left alone, so ties don't drift one way). Gaps stay null.
 export function unwrap(deg: ArrayLike<number | null>): (number | null)[] {
   let off = 0, prev = NaN
   return Array.from(deg, (y) => {
     if (y == null || !Number.isFinite(y)) return null
-    if (Number.isFinite(prev)) off -= 360 * Math.round((y + off - prev) / 360)
+    const d = y + off - prev
+    if (Math.abs(d) > 180) off -= 360 * Math.round(d / 360)
     return (prev = y + off)
   })
 }
@@ -36,15 +38,15 @@ export function smithGrid(): { kind: 'r' | 'x'; v: number; pts: [number, number]
 }
 
 // Eye diagram: y(x) resampled on n points per period (linear interpolation) for every whole period
-// [offset + kT, offset + (k+1)T] inside the data. At most `max` segments (the first ones).
+// [offset + kT, offset + (k+1)T] inside the data. At most `max` segments (the first ones); total: how many there are.
 export function fold(x: ArrayLike<number>, y: ArrayLike<number>, period: number, offset: number, n = 256, max = 2000) {
   const t = Float64Array.from({ length: n }, (_, i) => (i * period) / (n - 1)), segs: Float64Array[] = []
   const x0 = x[0], x1 = x[x.length - 1]
-  if (!(period > 0) || !(x1 > x0)) return { t, segs }
+  if (!(period > 0) || !(x1 > x0)) return { t, segs, total: 0 }
+  const k0 = Math.ceil((x0 - offset) / period - 1e-9), total = Math.max(0, Math.floor((x1 * (1 + 1e-12) - offset) / period) - k0)
   let j = 0
-  for (let k = Math.ceil((x0 - offset) / period - 1e-9); segs.length < max; k++) {
+  for (let k = k0; segs.length < Math.min(max, total); k++) {
     const s = offset + k * period
-    if (s + period > x1 * (1 + 1e-12)) break
     const seg = new Float64Array(n)
     for (let i = 0; i < n; i++) {
       const v = Math.min(x1, s + t[i])
@@ -55,5 +57,5 @@ export function fold(x: ArrayLike<number>, y: ArrayLike<number>, period: number,
     }
     segs.push(seg)
   }
-  return { t, segs }
+  return { t, segs, total }
 }

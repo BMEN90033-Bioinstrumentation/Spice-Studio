@@ -42,6 +42,9 @@ export function withKnobs(netlist: string, ks: Knob[]): string {
   return lines.join('\n')
 }
 
+// .step params, from the run labels expandSweep gives ("R=1k, T=25"): lowercase names
+export const steppedNames = (labels: string[]) => [...new Set(labels.flatMap((l) => l.split(', ').flatMap((p) => /^([^=\s]+)=/.exec(p)?.[1].toLowerCase() ?? [])))]
+
 // for the run log: "Tuned: R=2.2k, C1=10n"
 export const tunedNote = (ks: Knob[]) => `Tuned: ${ks.map((k) => `${k.name}=${eng(k.value)}`).join(', ')}`
 
