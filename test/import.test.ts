@@ -240,5 +240,10 @@ test('defang: the model allowlist on its own', () => {
   assert.equal(run('.model a\n\n+ d_process(process_file="x")').text, '* .model a\n\n* + d_process(process_file="x")') // type on a continuation
   assert.equal(run('.model b ako:zz NPN(BF=1)').rep.length, 1) // an AKO of an unknown model
   assert.equal(run('.model a NPN(BF=1)\n.model b ako:a (BF=2)').rep.length, 0)
+  // ngspice also reads .cmodel as a model card
+  assert.equal(run('.cmodel proc d_process (process_file="/usr/bin/touch")').text, '* .cmodel proc d_process (process_file="/usr/bin/touch")')
+  assert.equal(run('.CMODEL proc\n+ D_PROCESS (process_file="x")').text, '* .CMODEL proc\n* + D_PROCESS (process_file="x")')
+  assert.equal(run('.subckt s a\n.cmodel src filesource (file="secret.txt")\n.ends').text, '.subckt s a\n* .cmodel src filesource (file="secret.txt")\n.ends')
+  assert.equal(run('.cmodel d1 D(IS=1n)').rep.length, 0)
   assert.equal(run('.model r1 R(TC1=0)\n.model c1 C(cap=1p)\n.model t1 txl(r=1)\n.model n1 nsoi(level=10)').rep.length, 0)
 })

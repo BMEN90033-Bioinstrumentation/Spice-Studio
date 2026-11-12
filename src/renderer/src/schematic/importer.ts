@@ -198,14 +198,14 @@ export function defang(texts: { text: string }[], report: string[]): void {
   for (const t of texts) {
     const ls = t.text.split('\n')
     ls.forEach((l, i) => {
-      if (off(l) || !/^\s*\.model/i.test(l)) return
+      if (off(l) || !/^\s*\.c?model/i.test(l)) return
       const lines = [i]
       for (let j = i + 1; j < ls.length; j++) {
         if (/^\s*\+/.test(ls[j])) lines.push(j)
         else if (!(off(ls[j]) || !ls[j].trim())) break
       }
       const logical = lines.map((j) => ls[j].replace(/^\s*\+/, ' ')).join(' ').replace(/;.*$/, '')
-      const m = /^\s*\.model\S*\s+(\S+)\s*(.*)$/is.exec(logical)
+      const m = /^\s*\.c?model\S*\s+(\S+)\s*(.*)$/is.exec(logical)
       const rest = m?.[2].trim() ?? '', ako = /^ako:\s*([^\s(]+)\s*([^\s(]*)/i.exec(rest)
       models.push({ t, lines, name: m?.[1] ?? '', type: (ako ? ako[2] : /^([^\s(]*)/.exec(rest)![1]).toLowerCase(), ako: ako?.[1], head: l.trim() })
     })
