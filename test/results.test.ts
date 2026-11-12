@@ -258,3 +258,12 @@ test('erc: .sp port sources (portnum) are not ideal voltage sources', async () =
   assert.deepEqual(erc(deck).errors, [])
   assert.equal(erc(deck.replace(/portnum/gi, 'x')).errors.length, 1) // plain sources: V1, L1, V2 short each other
 })
+
+test('measDeck: .four arguments that are not plain vector names never become a control command', () => {
+  const deck = (four: string) => measDeck(`t\nV1 a 0 sin(0 1 1k)\nR1 a 0 1k\n.tran 10u 5m\n${four}\n.end\n`)!
+  for (const bad of ['.four 1k `touch marker`', '.four 1k v(a) ; shell touch marker', '.four 1k v(a)\n+ `id`', '.four 1k $(id)', ".four 1k v(a) 'x'", '.four 1k v(a) > /tmp/x', '.four 1k v(a) | sh'])
+    assert.doesNotMatch(deck(bad).split('.control')[1], /`|\$|shell|sh\b|>|\|/, bad)
+  assert.match(deck('.four 1k `id`'), /^echo Error: a \.four line was skipped/m)
+  for (const ok of ['.four 1k v(a)', '.FOUR 1k V(a) v(a,0) i(V1)', '.fourier 1e3 v(x1.out) @r1[i]'])
+    assert.match(deck(ok), /^fourier 1/m, ok)
+})

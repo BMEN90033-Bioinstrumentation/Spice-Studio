@@ -26,7 +26,10 @@ const AN = /^\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss)\b/i
 export const FOUR_MARK = 'Fourier analysis (.four):'
 export function measDeck(netlist: string): string | null {
   const lines = logicalLines(netlist), grab = (re: RegExp) => lines.flatMap((l) => re.exec(l.text)?.[1] ?? [])
-  const four = grab(/^\.four(?:ier)?\s+(.*)/i).map((x) => 'fourier ' + x)
+  // the arguments go into a .control block, where a backquote or $ would run a shell command or expand a variable:
+  // only a frequency and plain vector names (v(a), v(a,b), i(v1), x1.out, @m1[id]) become a command
+  const FOUR_OK = /^[\w.+-]+(\s+(?:[\w.#:+@[\]-]+\(\s*[\w.#:+-]+(?:\s*,\s*[\w.#:+-]+)?\s*\)|[\w.#:+@[\]-]+))+$/
+  const four = grab(/^\.four(?:ier)?\s+(.*)/i).map((x) => (FOUR_OK.test(x.trim()) ? 'fourier ' + x.trim() : 'echo Error: a .four line was skipped: only a frequency and plain vector names are accepted'))
   const types = new Set(grab(/^\.meas(?:ure)?\s+(\w+)/i).map((x) => x.toLowerCase()))
   if (four.length) types.add('tran')
   if (!types.size || lines.some((l) => /^\.control\b/i.test(l.text))) return null
