@@ -50,6 +50,7 @@ function template(recents: Recent[]): Item[] {
         cmd('file.export.plotPng', 'Plot as PNG…'),
         cmd('file.export.plotSvg', 'Plot as SVG…'),
         cmd('file.export.plotCsv', 'Plot Data as CSV…'),
+        cmd('file.export.plotWav', 'Plot as WAV…'),
         sep,
         cmd('file.export.schSvg', 'Schematic as SVG…'),
         cmd('file.export.schPdf', 'Schematic as PDF…')

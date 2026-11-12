@@ -13,6 +13,7 @@ import { useCommands } from './commands'
 import { evalExpr, isCurrent, pretty } from './plot/expr'
 import { fft, nextPow2 } from './plot/fft'
 import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
+import { traceWav } from './sim/wav'
 export { isCurrent, pretty }
 
 const HUES = [199, 36, 123, 0, 291, 54, 174, 340]
@@ -259,23 +260,27 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     })
     return toCsv(fftv ? 'frequency' : scale.name, out.filter((r) => r.cols.length))
   }
-  const save = async (kind: 'png' | 'svg' | 'csv') => {
+  const save = async (kind: 'png' | 'svg' | 'csv' | 'wav') => {
     const u = uref.current
     if (!u) return
     try {
       const marks = [cur.a, cur.b], base = (first.plotname.split(' ')[0] || 'plot').toLowerCase() + (fftv ? '-fft' : '')
-      const data = kind === 'png' ? await toPng(u, marks) : kind === 'svg' ? toSvg(u, marks) : csv()
-      const p = await window.api.exportSave(`${base}.${kind}`, data, [{ name: { png: 'PNG image', svg: 'SVG image', csv: 'CSV' }[kind], extensions: [kind] }])
+      const ts = traces.filter((t) => t.run === 0), w = kind === 'wav' ? traceWav(ts[0].x, ts.map((t) => t.y)) : null // one channel per trace, 44.1 kHz
+      const data = w ? w.wav : kind === 'png' ? await toPng(u, marks) : kind === 'svg' ? toSvg(u, marks) : csv()
+      const p = await window.api.exportSave(`${base}.${kind}`, data, [{ name: { png: 'PNG image', svg: 'SVG image', csv: 'CSV', wav: 'WAV audio' }[kind], extensions: [kind] }])
+      if (p && w) return setNote(`Saved ${p}: ${ts.length} channel${ts.length > 1 ? 's' : ''}, 44.1 kHz, full scale ±${eng(w.scale)}`)
       setNote(p ? `Saved ${p}` : '')
     } catch (e) {
       setNote(`Export failed: ${(e as Error).message}`)
     }
   }
   const chart = first.points >= 2
+  const canWav = canFft && !fftv && traces.some((t) => t.run === 0) // time-domain traces: Export > Plot as WAV
   useCommands(chart ? [
     { id: 'file.export.plotPng', run: () => void save('png'), enabled: () => !!uref.current },
     { id: 'file.export.plotSvg', run: () => void save('svg'), enabled: () => !!uref.current },
-    { id: 'file.export.plotCsv', run: () => void save('csv'), enabled: () => !!uref.current && traces.length > 0 }
+    { id: 'file.export.plotCsv', run: () => void save('csv'), enabled: () => !!uref.current && traces.length > 0 },
+    { id: 'file.export.plotWav', run: () => void save('wav'), enabled: () => !!uref.current && canWav }
   ] : [])
 
   if (!chart) {
@@ -429,7 +434,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
               : 'Drag to zoom · double-click to reset · click: cursor A · ⇧click: cursor B · drag a cursor to move it')}
         </span>
         <span className="flex gap-0.5">
-          {(['png', 'svg', 'csv'] as const).map((k) => (
+          {(['png', 'svg', 'csv', ...(canWav ? ['wav' as const] : [])] as const).map((k) => (
             <Tip key={k} label={`Export ${k.toUpperCase()}`}>
               <Button variant="ghost" size="xs" className="h-5 px-1.5 text-[10px] text-muted-foreground" onClick={() => void save(k)}>{k.toUpperCase()}</Button>
             </Tip>
