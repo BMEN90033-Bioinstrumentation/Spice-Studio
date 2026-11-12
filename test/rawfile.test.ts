@@ -4,7 +4,8 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseRaw } from '../src/main/rawfile.ts'
+import { parseRaw, RawTail, type RawPlot } from '../src/main/rawfile.ts'
+import { watchRaw } from '../src/main/live.ts'
 
 function raw(plotname: string, flags: string, vars: string[], rows: number[][]): Buffer {
   const head =
@@ -52,4 +53,143 @@ test('round-trips a real ngspice run (skipped if ngspice missing)', (t) => {
   const mag = Math.hypot(vout.re[last], vout.im![last])
   const expected = 1 / Math.hypot(1, 2 * Math.PI * f[last] * 1e3 * 1e-6)
   assert.ok(Math.abs(mag - expected) < 1e-3, `|H(${f[last]}Hz)| ${mag} vs ${expected}`)
+})
+
+// ---- ASCII, unpadded, partial, LTspice, live tail ----
+const ngspice = (dir: string, deck: string, env: Record<string, string> = {}, args: string[] = []) => {
+  writeFileSync(join(dir, 'c.cir'), deck)
+  try {
+    execFileSync('ngspice', ['-b', '-n', ...args, join(dir, 'c.cir')], { cwd: dir, stdio: 'ignore', env: { ...process.env, ...env } })
+    return true
+  } catch {
+    return false
+  }
+}
+const RC = '* rc\nV1 in 0 DC 1 AC 1 PULSE(0 1 0 1u 1u 5m 10m)\nR1 in out 1k\nC1 out 0 1u\n'
+const same = (a: RawPlot[], b: RawPlot[]) => {
+  assert.deepEqual(a.map((p) => [p.plotname, p.points, p.complex, p.vars.map((v) => v.name)]), b.map((p) => [p.plotname, p.points, p.complex, p.vars.map((v) => v.name)]))
+  a.forEach((p, i) => p.vars.forEach((v, j) => {
+    const w = b[i].vars[j]
+    for (let k = 0; k < p.points; k++) {
+      assert.ok(Math.abs(v.re[k] - w.re[k]) <= 1e-12 * Math.max(1, Math.abs(w.re[k])), `${p.plotname} ${v.name}[${k}] ${v.re[k]} vs ${w.re[k]}`)
+      if (v.im) assert.ok(Math.abs(v.im[k] - w.im![k]) <= 1e-12 * Math.max(1, Math.abs(w.im![k])))
+    }
+  }))
+}
+
+test('ASCII rawfile (SPICE_ASCIIRAWFILE) matches the binary one (skipped if ngspice missing)', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'rawtest-'))
+  const deck = RC + '.op\n.tran 1m 10m\n.ac dec 5 1 1k\n.end\n'
+  if (!ngspice(dir, deck, {}, ['-r', 'b.raw'])) return t.skip('ngspice not on PATH')
+  ngspice(dir, deck, { SPICE_ASCIIRAWFILE: '1' }, ['-r', 'a.raw'])
+  assert.match(readFileSync(join(dir, 'a.raw'), 'latin1'), /^Values:$/m)
+  const a = parseRaw(readFileSync(join(dir, 'a.raw'))), b = parseRaw(readFileSync(join(dir, 'b.raw')))
+  assert.equal(a.length, 3)
+  same(a, b)
+})
+
+test('unpadded binary (set nopadding) and ASCII written by `write` (skipped if ngspice missing)', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'rawtest-'))
+  const ctl = '.control\ntran 1m 10m\nlet short = vector(5)\nset nopadding\nwrite u.raw\nunset nopadding\nwrite p.raw\nset filetype=ascii\nset nopadding\nwrite ua.raw\nac dec 5 1 1k\nwrite a.raw\n.endc\n.end\n'
+  if (!ngspice(dir, RC + ctl)) return t.skip('ngspice not on PATH')
+  const [u] = parseRaw(readFileSync(join(dir, 'u.raw'))), [p] = parseRaw(readFileSync(join(dir, 'p.raw'))), [ua] = parseRaw(readFileSync(join(dir, 'ua.raw')))
+  assert.match(readFileSync(join(dir, 'u.raw'), 'latin1'), /Flags: real unpadded/)
+  const short = (x: RawPlot) => x.vars.find((v) => v.name === 'short')!.re
+  assert.deepEqual([...short(u).subarray(0, 5)], [0, 1, 2, 3, 4])
+  assert.ok(Number.isNaN(short(u)[5]), 'past its dims: NaN (a gap), not a made-up 0')
+  assert.deepEqual([...short(ua).subarray(0, 5)], [0, 1, 2, 3, 4])
+  for (const x of [u, ua]) same([{ ...x, vars: x.vars.filter((v) => v.name !== 'short') }], [{ ...p, vars: p.vars.filter((v) => v.name !== 'short') }])
+  const [ac] = parseRaw(readFileSync(join(dir, 'a.raw')))
+  assert.equal(ac.complex, true)
+  assert.ok(Math.abs(Math.hypot(ac.vars[2].re[0], ac.vars[2].im![0]) - 1) < 1e-3) // v(out) ≈ 1 at 1 Hz
+})
+
+test('partial: a cut-off plot keeps its whole points; strict parse still throws', () => {
+  const full = raw('Transient Analysis', 'real', ['time time', 'v(a) voltage'], [[0, 1], [1, 2], [2, 3]])
+  const cut = Buffer.from(full.subarray(0, full.length - 12)) // 2.5 points
+  assert.throws(() => parseRaw(cut), /truncated/)
+  assert.equal(parseRaw(cut, true)[0].points, 2)
+  cut.write('No. Points: 0', cut.indexOf('No. Points: 3'), 'latin1') // as ngspice leaves it mid-run
+  const [p] = parseRaw(cut, true)
+  assert.equal(p.points, 2)
+  assert.deepEqual([...p.vars[1].re], [1, 2])
+})
+
+test('LTspice: UTF-16 header, float32 values with a float64 |time|, double flag, fastaccess, ASCII', () => {
+  const head = (flags: string, n: number) => Buffer.from(
+    `Title: * lt\nDate: x\nPlotname: Transient Analysis\nFlags: ${flags}\nNo. Variables: 2\nNo. Points: ${n}\nOffset: 0\nCommand: Linear Technology Corporation LTspice XVII\nVariables:\n\t0\ttime\ttime\n\t1\tV(out)\tvoltage\nBinary:\n`, 'utf16le')
+  const row = (t: number, v: number) => { const b = Buffer.alloc(12); b.writeDoubleLE(t); b.writeFloatLE(v, 8); return b }
+  const [p] = parseRaw(Buffer.concat([head('real forward', 2), row(0, 0.5), row(-1e-3, 1.5)]))
+  assert.deepEqual([...p.vars[0].re], [0, 1e-3])
+  assert.deepEqual([...p.vars[1].re], [0.5, 1.5])
+  assert.equal(p.vars[1].name, 'V(out)')
+  const d = Buffer.alloc(32); [0, 0.25, 1, 0.75].forEach((x, i) => d.writeDoubleLE(x, 8 * i))
+  assert.deepEqual([...parseRaw(Buffer.concat([head('real forward double', 2), d]))[0].vars[1].re], [0.25, 0.75])
+  // fastaccess: all of time, then all of V(out)
+  const f = Buffer.alloc(24); f.writeDoubleLE(0); f.writeDoubleLE(2, 8); f.writeFloatLE(4, 16); f.writeFloatLE(5, 20)
+  const [q] = parseRaw(Buffer.concat([head('real forward fastaccess', 2), f]))
+  assert.deepEqual([[...q.vars[0].re], [...q.vars[1].re]], [[0, 2], [4, 5]])
+  const asc = parseRaw(Buffer.from('Title: x\nPlotname: AC Analysis\nFlags: complex forward\nNo. Variables: 2\nNo. Points: 1\nVariables:\n\t0\tfrequency\tfrequency\n\t1\tV(out)\tvoltage\nValues:\n0\t1.0e+003,0.0\n\t-5.0e-001,2.5e-001\n'))[0]
+  assert.equal(asc.vars[0].re[0], 1000)
+  assert.deepEqual([asc.vars[1].re[0], asc.vars[1].im![0]], [-0.5, 0.25])
+})
+
+test('RawTail: chunks in any sizes decode to the same points; a patched count ends the plot at the next header', () => {
+  const op = raw('Operating Point', 'real', ['v(a) voltage', 'v(b) voltage'], [[1, 2]])
+  const tran = raw('Transient Analysis', 'real', ['time time', 'v(a) voltage'], Array.from({ length: 50 }, (_, i) => [i, i * i]))
+  const ac = raw('AC Analysis', 'complex', ['frequency frequency', 'v(a) voltage'], [[1, 0, 3, 4], [2, 0, 5, 6]])
+  const file = Buffer.concat([op, tran, ac])
+  const want = parseRaw(file)
+  for (const step of [1, 7, 64, 1000, file.length]) {
+    const tail = new RawTail(), rows: number[][] = [[], [], []], heads: string[] = []
+    for (let i = 0; i < file.length; i += step) {
+      const chunk = file.subarray(i, i + step)
+      const at = tail.countAt
+      const count = at >= 0 ? parseInt(file.subarray(at, at + 12).toString(), 10) : 0
+      for (const c of tail.feed(chunk, count)) {
+        if (c.head) heads.push(c.head.plotname)
+        rows[c.plot].push(...c.rows)
+      }
+    }
+    assert.deepEqual(heads, want.map((p) => p.plotname), `step ${step}`)
+    want.forEach((p, i) => {
+      const w = p.complex ? 4 : p.vars.length
+      assert.equal(rows[i].length, p.points * w, `${p.plotname} step ${step}`)
+      p.vars.forEach((v, j) => assert.deepEqual(rows[i].filter((_, k) => k % w === (p.complex ? 2 * j : j)), [...v.re]))
+    })
+  }
+  // mid-run: count 0 and no later header yet -> every whole point so far, then the rest when it arrives
+  const run = Buffer.from(tran), np = run.indexOf('No. Points: 50')
+  run.write('No. Points: 0 ', np, 'latin1')
+  const tail = new RawTail(), body = run.indexOf('Binary:\n') + 8
+  const a = tail.feed(run.subarray(0, body + 8 * 2 * 10 + 5))
+  assert.equal(a[0].rows.length, 20)
+  const b = tail.feed(run.subarray(body + 8 * 2 * 10 + 5))
+  assert.equal(b[0].rows.length, 80)
+})
+
+test('watchRaw: points arrive while ngspice is still running and add up to the final file (skipped if ngspice missing)', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'rawtest-'))
+  const deck = RC + '.op\n.tran 1u 0.5 0 1u\n.end\n'
+  writeFileSync(join(dir, 'c.cir'), deck)
+  const { spawn } = await import('node:child_process')
+  const p = spawn('ngspice', ['-b', '-n', '-r', join(dir, 'o.raw'), join(dir, 'c.cir')], { stdio: 'ignore' })
+  const ok = await new Promise<boolean>((res) => (p.on('error', () => res(false)), p.on('spawn', () => res(true))))
+  if (!ok) return t.skip('ngspice not on PATH')
+  let early = 0, done = false
+  const rows: number[][] = [[], []]
+  const stop = watchRaw(join(dir, 'o.raw'), (cs) => {
+    for (const c of cs) for (let i = 0; i < c.rows.length; i++) rows[c.plot].push(c.rows[i])
+    if (!done && rows[1].length) early++
+  }, 50)
+  await new Promise((res) => p.on('close', res))
+  done = true
+  await new Promise((res) => setTimeout(res, 200))
+  await stop()
+  const [op, tr] = parseRaw(readFileSync(join(dir, 'o.raw')))
+  assert.ok(early >= 2, `live updates before the run ended: ${early}`)
+  assert.equal(rows[0].length, op.vars.length)
+  assert.equal(rows[1].length, tr.points * tr.vars.length)
+  const w = tr.vars.length
+  assert.equal(rows[1][(tr.points - 1) * w + 2], tr.vars[2].re[tr.points - 1])
 })
