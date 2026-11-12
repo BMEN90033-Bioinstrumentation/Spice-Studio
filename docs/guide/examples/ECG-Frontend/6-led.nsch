@@ -4,7 +4,7 @@
   {
    "id": "mvxwdf8baj",
    "kind": "port",
-   "x": 720,
+   "x": 710,
    "y": 30,
    "rot": 2,
    "mirror": false,
@@ -174,7 +174,7 @@
   {
    "id": "mvxwdf8bak",
    "a": {
-    "x": 720,
+    "x": 710,
     "y": 30
    },
    "b": {
