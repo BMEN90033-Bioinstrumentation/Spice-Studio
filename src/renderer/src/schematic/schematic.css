@@ -89,3 +89,10 @@
 .sch .bus.on line:not(.hit) { stroke: var(--sel); }
 .sch .bjn { fill: #5b9bd5; pointer-events: none; }
 .sch .preview.bus line { stroke-width: 4; }
+
+/* light theme: annotations and buses need darker ink on the white canvas */
+@media (prefers-color-scheme: light) {
+  .sch .drw { color: #4a5d73; }
+  .sch .bus line { stroke: #2f6fb0; }
+  .sch .bjn { fill: #2f6fb0; }
+}

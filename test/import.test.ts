@@ -254,3 +254,8 @@ test('defang: the model allowlist on its own', () => {
   assert.equal(run('.model D1 D(IS=1n)\n.model q1 npn (bf=100)\n.model m1 nmos level=1').rep.length, 0)
   assert.equal(run('.model r1 R(TC1=0)\n.model c1 C(cap=1p)\n.model t1 txl(r=1)\n.model n1 nsoi(level=10)').rep.length, 0)
 })
+
+test('import report names any file a file-driven source would read', () => {
+  const r = importAsc('Version 4\nSHEET 1 880 680\nWIRE 0 16 0 0\nFLAG 0 96 0\nFLAG 0 0 a\nSYMBOL voltage 0 0 R0\nSYMATTR InstName V1\nSYMATTR Value PWL file="/etc/passwd"\n')
+  assert.ok(r.report.some((l) => l.includes('/etc/passwd') && l.includes('when you run')), r.report.join('\n'))
+})

@@ -367,6 +367,9 @@ function build(f: Foreign, what: string): Imported {
   const n = f.parts.length
   const summary = `${what}: ${n} part${n === 1 ? '' : 's'}, ${f.flags.length} flag${f.flags.length === 1 ? '' : 's'}, ${s.wires.length} wire${s.wires.length === 1 ? '' : 's'}` +
     (f.holes.length ? `, ${f.holes.length} placeholder${f.holes.length === 1 ? '' : 's'}` : '')
+  // a file-driven source (PWL file=, wavefile=) reads that file at Run: say so, the path came from the imported file
+  for (const x of [...s.parts.map((p) => p.value), ...s.texts.map((t) => t.text)])
+    for (const m of x.matchAll(/\b(?:wave)?file\s*=\s*("[^"]*"|\S+)/gi)) f.report.push(`A source reads the file ${m[1]} when you run: check that path, it came from the imported file`)
   return { sheet: s, report: f.report, summary }
 }
 
