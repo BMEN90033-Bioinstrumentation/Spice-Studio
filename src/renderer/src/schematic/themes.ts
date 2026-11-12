@@ -27,7 +27,9 @@ const RAW: Record<string, { name: string; dark: boolean; c: string }> = {
 }
 
 export const SCH_DEFAULT = 'default' // the app's own colours, following Settings › Theme
-export const SCH_THEMES = Object.entries(RAW).map(([id, t]) => ({ id, name: t.name, dark: t.dark }))
+type Colors = Record<(typeof KEYS)[number], string>
+const colors = (c: string) => Object.fromEntries(c.split(' ').map((v, i) => [KEYS[i], v])) as Colors
+export const SCH_THEMES = Object.entries(RAW).map(([id, t]) => ({ id, name: t.name, dark: t.dark, c: colors(t.c) }))
 export const SCH_THEME_IDS = [SCH_DEFAULT, ...Object.keys(RAW)]
 
 // The canvas' CSS variables for a theme ('' for the default). KiCad themes have no selection / probe colours, so those
@@ -38,7 +40,7 @@ const LIGHT = '--hl:#2563eb;--hl-bg:rgba(37,99,235,.1);--sel:#c2410c;--probe:#a1
 export function schThemeCss(id: string): string {
   const t = RAW[id]
   if (!t) return ''
-  const c = Object.fromEntries(t.c.split(' ').map((v, i) => [KEYS[i], v])) as Record<(typeof KEYS)[number], string>
+  const c = colors(t.c)
   const tag = `color-mix(in srgb,${c.background},${c.reference}` // OP tags and directive cards: a step off the canvas
   return `.sch>svg,.sch>.sch-hint{--bg:${c.background};--line-strong:${c.grid};--sym:${c.component_outline};--sym-body:${c.component_body};` +
     `--text:${c.reference};--dim:${c.value};--wire:${c.wire};--jn:${c.junction};--bus:${c.bus};--note:${c.note};--nc:${c.no_connect};--err:${c.erc_error};` +

@@ -130,6 +130,21 @@ const PathText = ({ path, empty }: { path: string; empty: string }) => (
     <bdi dir="ltr">{path || <span className="font-sans text-muted-foreground">{empty}</span>}</bdi>
   </code>
 )
+// Schematic colours: a small circuit drawn in each theme's colours (Default: the app's own, from the stylesheet)
+type SchColors = Pick<(typeof SCH_THEMES)[number]['c'], 'background' | 'grid' | 'component_outline' | 'component_body' | 'reference' | 'value' | 'wire' | 'junction'>
+const SCH_PREVIEWS: { id: string; name: string; c: SchColors }[] = [{ id: SCH_DEFAULT, name: 'Default', c: { background: 'var(--bg)', grid: 'var(--line-strong)', component_outline: 'var(--sym)',
+  component_body: 'color-mix(in srgb, var(--sym) 14%, transparent)', reference: 'var(--text)', value: 'var(--dim)', wire: 'var(--wire)', junction: 'var(--wire)' } }, ...SCH_THEMES]
+const SchPreview = ({ c, className }: { c: SchColors; className?: string }) => (
+  <svg viewBox="0 0 80 50" className={className} style={{ background: c.background }} fill="none" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {[10, 30, 50, 70].flatMap((x) => [8, 25, 42].map((y) => <circle key={x + ',' + y} cx={x} cy={y} r=".6" fill={c.grid} />))}
+    <path d="M14 25V16H28M48 16H74M64 16V24M64 28V42H14V39" stroke={c.wire} />
+    <path d="M28 16l2-4 4 8 4-8 4 8 4-8 2 4M57 24H71M57 28H71" stroke={c.component_outline} />
+    <circle cx="14" cy="32" r="7" stroke={c.component_outline} fill={c.component_body} />
+    <circle cx="64" cy="16" r="1.8" fill={c.junction} />
+    <text x="38" y="8" textAnchor="middle" fontSize="6" fontFamily="var(--mono)" fill={c.reference}>R1</text>
+    <text x="38" y="29" textAnchor="middle" fontSize="6" fontFamily="var(--mono)" fill={c.value}>10k</text>
+  </svg>
+)
 // number box committed on Enter / blur (each keystroke would be clamped mid-typing)
 function Num({ id, value, unit, min, max, placeholder, onCommit }: { id: string; value?: number; unit: string; min: number; max?: number; placeholder?: string; onCommit: (v: number | undefined) => void }) {
   const [t, setT] = useState(value == null ? '' : String(value))
@@ -229,16 +244,15 @@ function PreferencesPanel() {
             <ToggleGroupItem value="system" className="px-3"><Monitor />System</ToggleGroupItem>
           </ToggleGroup>
         </Row>
-        <Row label="Schematic colours">
-          <Select value={p.schTheme} onValueChange={(schTheme) => setPrefs({ schTheme })}>
-            <SelectTrigger size="sm" className="w-56" aria-label="Schematic colours"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={SCH_DEFAULT}>Default</SelectItem>
-              {SCH_THEMES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Hint>KiCad colour themes by cosmopotamian</Hint>
-        </Row>
+        <Row label="Schematic colours"><Hint>the canvas only. KiCad colour themes by cosmopotamian</Hint></Row>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-3" role="group" aria-label="Schematic colours">
+          {SCH_PREVIEWS.map((t) => (
+            <button key={t.id} type="button" aria-pressed={t.id === p.schTheme} onClick={() => setPrefs({ schTheme: t.id })} className="group grid gap-1.5 rounded-md text-left outline-none">
+              <SchPreview c={t.c} className={cn('rounded-md border group-hover:border-input group-focus-visible:ring-2 group-focus-visible:ring-ring', t.id === p.schTheme && 'border-foreground/70 ring-1 ring-foreground/70 group-hover:border-foreground/70')} />
+              <span className={cn('truncate text-xs', t.id === p.schTheme ? 'font-medium text-foreground' : 'text-muted-foreground group-hover:text-foreground')}>{t.name}</span>
+            </button>
+          ))}
+        </div>
         <Row label="Interface scale">
           <Pick value={String(p.uiScale)} onChange={(v) => setPrefs({ uiScale: +v })} label="Interface scale" options={UI_SCALES.map((v) => [String(v), `${Math.round(v * 100)} %`])} />
           <Hint>makes everything in every window larger or smaller</Hint>
