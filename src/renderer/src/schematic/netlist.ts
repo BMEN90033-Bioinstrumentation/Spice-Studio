@@ -32,7 +32,7 @@ const MODELS: Record<string, string> = {
   sw: '.model SW SW(ron=1 roff=1meg vt=0.5 vh=0)',
   csw: '.model CSW CSW(ron=1 roff=1meg it=1m)'
 }
-const LINES = /\r\n?|\n/ // ngspice splits lines at CR too
+const LINES = /\r\n?|\n/ // ngspice drops a CR, which could join two words into a keyword: a CR ends the line here
 const ANALYSIS = /^\s*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss|control)\b/im
 
 // state shared across the whole hierarchy

@@ -47,7 +47,11 @@ test('LTspice: RC into a transistor; rotations, pin-to-pin joins, flags, directi
 test('LTspice: vendor op-amp -> generic macromodel by pin layout, ideal op-amp, mirrored part, .lib opamp.sub dropped', () => {
   const r = importSchematic('x.asc', fx('opamps.asc'))
   assert.deepEqual(body(r.sheet), ['XU1 0 in vcc vee N001 OA_GENERIC', 'EU2 out 0 0 N001 1e6', 'R1 in 0 10k', '.op'])
-  assert.ok(r.report.some((l) => /U1: LT1001 placed as the generic op-amp model OA_GENERIC/.test(l)))
+  assert.ok(r.report.some((l) => /U1: LT1001 placed as the generic op-amp model OA_GENERIC with its pins matched by position .*check that the supply pins/.test(l)))
+  // LT1008 has a compensation pin where the layout puts V+: never guessed, even fully wired
+  const c = importAsc(fx('lt1008.asc'))
+  assert.deepEqual(c.sheet.parts.filter((p) => p.kind === 'block').map((p) => p.value), ['?lt1008'])
+  assert.ok(!c.report.some((l) => /OA_GENERIC/.test(l)))
 })
 
 test('KiCad: s-expressions, rotation, mirror, power symbols, junction at a crossing, Sim.* source, placeholder, report', () => {
@@ -204,4 +208,37 @@ test('bad coordinates and malformed elements are skipped with a report line; the
   const k = importKicad('(kicad_sch (lib_symbols (symbol "Device:R" (symbol "R_1_1" (pin passive line (length 1) (name "~") (number "1"))))) (symbol (lib_id "Device:R") (at 0 0 0) (property "Reference" "R1" (at 0 0 0))))')
   assert.match(k.report.join('\n'), /symbol was skipped: malformed/)
   assert.throws(() => importSchematic('x.asc', 'Version 4\n' + 'WIRE 0 0 16 0\n'.repeat(20001)), /too large to import/)
+})
+
+test('imported .model lines are kept only for ordinary device types: d_process / d_cosim / filesource disabled, ngspice runs nothing', (t: TestContext) => {
+  const r = importAsc(fx('code-models.asc'))
+  const k = importKicad('(kicad_sch (version 20231120) (lib_symbols) (text ".tran 1n 30n\\na1 [din] clk null [dout] proc\\n.model proc d_process (process_file=\\"/usr/bin/touch\\" process_params=[\\"marker4\\"])" (at 10 10 0)))')
+  const text = netlist(r.sheet, 'x', lib).text
+  const live = (s: string) => s.split('\n').filter((l) => /^\s*\.model/i.test(l))
+  // only allowlisted types stay active (continuations and comment lines in between handled)
+  assert.deepEqual(live(text).map((l) => l.trim().split(/\s+/).slice(0, 2).join(' ')), ['.model D1N4148', '.model QX', '.MODEL M1', '.model S1', '.model Q2', '.model QY'])
+  assert.match(text, /^\.model D1N4148 D\(IS=2\.52n RS=\.568 N=1\.752\)\n\.model QX NPN\(BF=100\) ; inline comment\n\.MODEL M1 NMOS level=1\n\+ VTO=0\.7 KP=110u\n\.model S1 SW\(Ron=1 Roff=1Meg Vt=0\.5\)\n\.model Q2 VDMOS\(Vto=3 Kp=20\)\n\.model QY ako:QX NPN\(BF=50\)$/m)
+  assert.match(text, /^\* \.MODEL proc2 D_PROCESS\n\* \+ \(process_file="\/usr\/bin\/touch"\n\* a comment between\n\* \+ process_params=\["marker2"\]\)$/m)
+  assert.doesNotMatch(text, /^\s*[.+].*(d_process|d_cosim|filesource|process_file)/im)
+  assert.deepEqual(live(k.sheet.texts[0].text), [])
+  for (const name of ['proc d_process', 'proc2 d_process', 'proc3 d_process', 'cs d_cosim', 'src filesource', 'ak ako:proc npn'])
+    assert.ok(r.report.some((l) => l.startsWith(`".model ${name}" was disabled`)), name + '\n' + r.report.join('\n'))
+  assert.ok(k.report.some((l) => l.startsWith('".model proc d_process" was disabled')))
+  // run it: the bundled ngspice loads its code models from SPICE_LIB_DIR
+  const dir = mkdtempSync(join(tmpdir(), 'codemodel-'))
+  writeFileSync(join(dir, 'c.cir'), text.replace(/^\.end$/m, k.sheet.texts[0].text + '\n.end'))
+  const env = NG.includes('vendor') ? { ...process.env, SPICE_LIB_DIR: join(NG, '../../share/ngspice') } : process.env
+  const p = spawnSync(NG, ['-b', '-n', join(dir, 'c.cir')], { cwd: dir, encoding: 'utf8', timeout: 20000, env })
+  if (p.error) return void t.skip('ngspice not found')
+  for (const m of ['marker', 'marker2', 'marker3', 'marker4']) assert.equal(existsSync(join(dir, m)), false, m + ' was created')
+})
+
+test('defang: the model allowlist on its own', () => {
+  const run = (text: string) => { const x = [{ text }], rep: string[] = []; defang(x, rep); return { text: x[0].text, rep } }
+  assert.equal(run('.model a d_source (input_file="x")').text, '* .model a d_source (input_file="x")')
+  assert.equal(run('.modelx a table2d (file="t")').text, '* .modelx a table2d (file="t")') // ngspice matches .model as a prefix
+  assert.equal(run('.model a\n\n+ d_process(process_file="x")').text, '* .model a\n\n* + d_process(process_file="x")') // type on a continuation
+  assert.equal(run('.model b ako:zz NPN(BF=1)').rep.length, 1) // an AKO of an unknown model
+  assert.equal(run('.model a NPN(BF=1)\n.model b ako:a (BF=2)').rep.length, 0)
+  assert.equal(run('.model r1 R(TC1=0)\n.model c1 C(cap=1p)\n.model t1 txl(r=1)\n.model n1 nsoi(level=10)').rep.length, 0)
 })

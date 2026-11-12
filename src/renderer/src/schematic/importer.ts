@@ -158,32 +158,74 @@ function fit(f: FPart, occ: Occ, tgt: string[], labelsOnly: boolean): { part: Pi
   return { part: best!.at, plan: best!.plan }
 }
 
-// Imported files are untrusted: anything that would run a command when you press Run is turned into a comment line.
+// Imported files are untrusted: anything that could run a program or read a file when you press Run is turned into
+// comment lines ("* " in front), each with a report line.
 // - A .control … .endc block runs ngspice commands (shell, system, file writes). Matching is at least as wide as
 //   ngspice's: a line that merely starts with .control opens a block (.controlx too), only a line starting with .endc
 //   closes it (unterminated: to the end of the card).
 // - A file pulled in by .include / .lib (.inc*, .lib*) can hold such a block itself.
 // - ngspice runs any line starting with "*#" as a command, outside .control too; "* #" is an ordinary comment.
-// Line breaks are normalised first (CR, CRLF: ngspice splits on them), and a "+" continuation of a commented line is
-// commented with it.
+// - A .model of any type but the ordinary built-in devices (an allowlist): XSPICE code models such as d_process run
+//   programs, d_cosim loads a library, filesource / d_source / table models read files, and so may whatever comes next.
+//   The model's logical line (its "+" continuations, across comment lines) is judged and commented out whole.
+// ngspice drops CR characters, so a CR inside a word could complete a keyword: CR and CRLF are made line breaks
+// first. A "+" continuation of a commented line is commented with it.
+export const MODEL_TYPES = new Set(['d', 'npn', 'pnp', 'nmos', 'pmos', 'nsoi', 'psoi', 'njf', 'pjf', 'nmf', 'pmf', 'nhfet', 'phfet',
+  'r', 'res', 'c', 'cap', 'l', 'ind', 'sw', 'csw', 'vdmos', 'vdmosn', 'vdmosp', 'ltra', 'urc', 'txl', 'cpl'])
 export function defang(texts: { text: string }[], report: string[]): void {
+  const off = (l: string) => /^\s*\*/.test(l)
   for (const t of texts) {
     let on = false, prev = false
     t.text = t.text.split(/\r\n|\r|\n/).map((l) => {
-      let off = on || (prev && /^\s*\+/.test(l))
-      if (!on && /^\s*\.control/i.test(l)) (on = off = true), report.push('A .control block was disabled (turned into comment lines): it runs ngspice commands, which can include shell commands, when you press Run. After checking it, remove the leading "* " from its lines on the directive card to use it')
+      let cut = on || (prev && /^\s*\+/.test(l))
+      if (!on && /^\s*\.control/i.test(l)) (on = cut = true), report.push('A .control block was disabled (turned into comment lines): it runs ngspice commands, which can include shell commands, when you press Run. After checking it, remove the leading "* " from its lines on the directive card to use it')
       else if (on && /^\s*\.endc/i.test(l)) on = false
-      else if (!off && /^\s*\.(inc|lib)/i.test(l)) {
+      else if (!cut && /^\s*\.(inc|lib)/i.test(l)) {
         const file = l.trim().split(/\s+/).slice(1).join(' ') || '(no file named)'
-        off = true
+        cut = true
         report.push(`"${l.trim()}" was disabled: it reads ${file}, and an imported schematic is untrusted (that file could hold a .control block that runs commands). After checking ${file}, remove the leading "* " on the directive card to use it`)
       }
-      prev = off
-      const out = off ? '* ' + l : l
+      prev = cut
+      const out = cut ? '* ' + l : l
       if (!/^\s*\*#/.test(out)) return out
       report.push(`"${l.trim()}" was disabled: ngspice runs a line starting with *# as a command. It is now an ordinary comment ("* #")`)
       return out.replace(/^(\s*)\*#/, '$1* #')
     }).join('\n')
+  }
+  // .model allowlist: each model's logical line, its name and type (ako:REF borrows REF's type, so REF must pass too)
+  type M = { t: { text: string }; lines: number[]; name: string; type: string; ako?: string; head: string }
+  const models: M[] = []
+  for (const t of texts) {
+    const ls = t.text.split('\n')
+    ls.forEach((l, i) => {
+      if (off(l) || !/^\s*\.model/i.test(l)) return
+      const lines = [i]
+      for (let j = i + 1; j < ls.length; j++) {
+        if (/^\s*\+/.test(ls[j])) lines.push(j)
+        else if (!(off(ls[j]) || !ls[j].trim())) break
+      }
+      const logical = lines.map((j) => ls[j].replace(/^\s*\+/, ' ')).join(' ').replace(/;.*$/, '')
+      const m = /^\s*\.model\S*\s+(\S+)\s*(.*)$/is.exec(logical)
+      const rest = m?.[2].trim() ?? '', ako = /^ako:\s*([^\s(]+)\s*([^\s(]*)/i.exec(rest)
+      models.push({ t, lines, name: m?.[1] ?? '', type: (ako ? ako[2] : /^([^\s(]*)/.exec(rest)![1]).toLowerCase(), ako: ako?.[1], head: l.trim() })
+    })
+  }
+  const byName = new Map(models.map((m) => [m.name.toLowerCase(), m]))
+  const ok = (m: M, seen = new Set<M>()): boolean => {
+    if (seen.has(m)) return false
+    seen.add(m)
+    if (m.ako) { const r = byName.get(m.ako.toLowerCase()); return !!r && ok(r, seen) && (!m.type || MODEL_TYPES.has(m.type)) }
+    return MODEL_TYPES.has(m.type)
+  }
+  const bad = models.filter((m) => !ok(m))
+  for (const m of bad) {
+    report.push(`".model ${m.name} ${m.ako ? 'ako:' + m.ako + ' ' : ''}${m.type || '(no type)'}" was disabled: models other than the ordinary SPICE devices (XSPICE code models and the like) can run programs or read files when you press Run, and an imported schematic is untrusted. After checking it, remove the leading "* " from its lines on the directive card to use it`)
+  }
+  for (const t of texts) {
+    const mine = bad.filter((m) => m.t === t)
+    if (!mine.length) continue
+    const cut = new Set(mine.flatMap((m) => m.lines))
+    t.text = t.text.split('\n').map((l, i) => (cut.has(i) ? '* ' + l : l)).join('\n')
   }
 }
 
@@ -353,6 +395,9 @@ const ASC: Record<string, AscSym> = {
   opamp: { kind: 'opamp', pins: [[32, 64], [-32, 80], [-32, 48]] } // ideal: out, in+, in-
 }
 // 5-pin op-amps (in+ in- V+ V- out): opamp2 and most vendor symbols, or the compact UniversalOpamp2 / LTC layout
+// LTspice OpAmps symbols with a compensation or shutdown pin where a 5-pin layout puts V+ (or 6+ pins on it)
+// ponytail: from LTspice's library as shipped in 2026; a symbol added later is only caught by the wiring check
+const OA_NOT5 = new Set(['lt1008', 'lm108a', 'lm308', 'rh101a', 'ltc6246'])
 const OA5: [number, number][][] = [[[-32, 80], [-32, 48], [0, 32], [0, 96], [32, 64]], [[-32, 16], [-32, -16], [0, -32], [0, 32], [32, 0]]]
 
 // LTspice orientation: R0..R270 (clockwise, like ours), M0..M270 (mirror in x, then rotate)
@@ -420,12 +465,14 @@ export function importAsc(text: string, grid = 16): Imported {
     let sym = ASC[base]
     let value = v, kind = sym?.kind, lib: string | undefined
     if (!sym && (dir === 'opamps' || base === 'opamp2' || base === 'universalopamp2')) {
-      // vendor op-amp: only when all five pins of a known layout are connected in the source; the generic macromodel
-      const lay = OA5.map((p) => p.map(world)).find((p) => p.every(connected))
+      // vendor op-amp: only when all five pins of a known layout are connected in the source; the generic macromodel.
+      // An .asc doesn't say which pin is which, so this is a guess by position: the report says to check the supplies,
+      // and symbols known to have another pin where a layout expects V+ (compensation, shutdown) are never guessed.
+      const lay = OA_NOT5.has(base) ? undefined : OA5.map((p) => p.map(world)).find((p) => p.every(connected))
       const what = s.attr.Value || s.name.split(/[\\/]+/).pop()
       if (lay) {
         f.parts.push({ kind: 'opamp5', name: inst, value: 'OA_GENERIC', lib: 'std:OA_GENERIC', pins: lay, rot, mirror })
-        f.report.push(`${inst || base}: ${what} placed as the generic op-amp model OA_GENERIC (in+ in- V+ V- out matched by position); import the vendor model in Manage Libraries to use it`)
+        f.report.push(`${inst || base}: ${what} placed as the generic op-amp model OA_GENERIC with its pins matched by position (in+ in- V+ V- out): check that the supply pins landed on the supplies. Import the vendor model in Manage Libraries to use it`)
       } else {
         f.holes.push({ name: inst || base, value: base, at: L(s.x, s.y), pins: [] })
         f.report.push(`${inst || base}: ${what} is not a 5-pin op-amp with all its pins wired: placeholder block without pins, replace it and wire it by hand`)

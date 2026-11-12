@@ -39,6 +39,7 @@ test('annotate: whole project numbers on from sheet to sheet; names used by dire
 test('rewriteRefs: only where SPICE reads an element name; transformer and X-prefixed names', () => {
   const m = new Map([['r1', 'R2'], ['x1', 'X3'], ['v1', 'V5'], ['l1', 'L4']])
   assert.equal(rewriteRefs('R1 R10 xR1 i(r1) v(r1) X1.R1 i(X1) 1R1', m), 'R1 R10 xR1 i(R2) v(r1) X1.R1 i(X3) 1R1') // an element line's nodes stay
+  assert.equal(rewriteRefs('.noise v(out, ref) V1 dec 10 1 1k\n.tf v( out , 0 ) V1', m), '.noise v(out, ref) V5 dec 10 1 1k\n.tf v( out , 0 ) V5') // a spaced v( ) is one token
   assert.equal(rewriteRefs('C9 R1 0 1n\n.model R1 D\n.dc V1 0 1 0.1 R1 1 2 1\n.tf v(out) V1\n.noise v(out) V1 dec 10 1 1k\nK2 L1 L9 0.5\nF2 R1 0 V1 2\n.save @r1[i] @x1.q1[ic]', m),
     'C9 R1 0 1n\n.model R1 D\n.dc V5 0 1 0.1 R2 1 2 1\n.tf v(out) V5\n.noise v(out) V5 dec 10 1 1k\nK2 L4 L9 0.5\nF2 R1 0 V5 2\n.save @R2[i] @X3.q1[ic]')
   const s = sheet([['xfmr', 0, 0, 'XF2'], ['xfmr', 0, 50, 'XF1'], ['npn', 100, 0, 'Q2']], ['.save i(LXF2_P) i(LXF1_S) i(XQ2)'])

@@ -12,9 +12,11 @@ const swap = (t: string, map: Map_) => map.get(t.toLowerCase()) ?? t
 const calls = (s: string, map: Map_) =>
   s.replace(/(\bi\(\s*)([A-Za-z_][\w]*)/gi, (_, a: string, n: string) => a + swap(n, map)).replace(/@([A-Za-z_][\w]*)(?=[.[])/g, (_, n: string) => '@' + swap(n, map))
 // rewrite the whitespace-separated tokens at positions `at` of a line (keeping its spacing)
+// (a parenthesised group such as v(out, ref) counts as one token, spaces and all)
+const TOK = /[^\s(]*\([^)]*\)\S*|\S+/g
 function tokens(line: string, at: number[], map: Map_) {
   let i = -1
-  return line.replace(/\S+/g, (t) => (at.includes(++i) && !/^[-+.\d]/.test(t) ? swap(t, map) : t))
+  return line.replace(TOK, (t) => (at.includes(++i) && !/^[-+.\d]/.test(t) ? swap(t, map) : t))
 }
 
 // One directive card's text
@@ -25,7 +27,7 @@ export function rewriteRefs(text: string, map: Map_): string {
     if (!t || t[0] === '*') return l
     let r = l
     if (k === '.dc') r = tokens(l, [1, 5], map)
-    else if (k === '.tf') r = tokens(l, [t.split(/\s+/).length - 1], map)
+    else if (k === '.tf') r = tokens(l, [(t.match(TOK) ?? []).length - 1], map)
     else if (k === '.noise') r = tokens(l, [2], map)
     else if (/^k/.test(k)) r = tokens(l, [1, 2], map) // K1 L1 L2 0.99
     else if (/^[fhw]/.test(k) && !/\bpoly\s*\(/i.test(t)) r = tokens(l, [3], map) // F1 n+ n- V1 2
