@@ -194,3 +194,14 @@ test('a dragged label offset (lo) round-trips and a bad one is rejected', () => 
   assert.throws(() => parseSheet(JSON.stringify({ ...sh, parts: [{ ...sh.parts[0], vo: 3 }] })), /Malformed vo/)
   assert.throws(() => parseSheet(JSON.stringify({ ...sh, parts: [{ ...sh.parts[0], lo: { x: 'a', y: 0 } }] })), /Malformed lo/)
 })
+
+// the orientation rules orient() in Schematic.tsx uses for a multi-selection: pins must land where the sheet-level turn / flip puts them
+test('a part turned or flipped about a sheet point keeps its pins on the turned / flipped points', () => {
+  const c = { x: 40, y: -20 }, q = { x: 10, y: -30 }
+  for (const rot of [0, 1, 2, 3]) for (const mirror of [false, true]) {
+    const p = { x: 100, y: 50, rot, mirror }, w = xform(p, q)
+    const turn = (v: { x: number; y: number }) => ({ x: c.x - (v.y - c.y), y: c.y + (v.x - c.x) }), flip = (v: { x: number; y: number }) => ({ x: 2 * c.x - v.x, y: v.y })
+    assert.deepEqual(xform({ ...p, ...turn(p), rot: (rot + 1) % 4 }, q), turn(w))
+    assert.deepEqual(xform({ ...p, ...flip(p), mirror: !mirror, rot: (4 - rot) % 4 }, q), flip(w))
+  }
+})

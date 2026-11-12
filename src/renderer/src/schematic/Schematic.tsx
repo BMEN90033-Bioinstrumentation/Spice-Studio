@@ -418,6 +418,23 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     const f = <T extends { rot: number; mirror: boolean }>(p: T): T => (rot ? { ...p, rot: (p.rot + 1) % 4 } : { ...p, mirror: !p.mirror })
     if (typeof tool === 'object') return setGhost(f)
     const s = cur.current, k = picked()
+    if (count(k) > 1) {
+      // several things: the selection turns (or flips left-right) as one about its grid-snapped centre, so everything in
+      // it stays joined up; wires leaving the selection stretch after it (remap). Cards and notes stay upright and move.
+      // ponytail: the centre is re-snapped each time, so an odd-sized selection can creep a grid step over four turns
+      const bs = [...k.parts.map(pbox), ...[...k.wires, ...k.buses!].map((w) => norm(w.a, w.b)), ...k.texts.map(tbox), ...k.draw!.map(dbox)]
+      const c = { x: snap((Math.min(...bs.map((b) => b.x0)) + Math.max(...bs.map((b) => b.x1))) / 2), y: snap((Math.min(...bs.map((b) => b.y0)) + Math.max(...bs.map((b) => b.y1))) / 2) }
+      const g = (q: Pt): Pt => (rot ? { x: c.x - (q.y - c.y) + 0, y: c.y + (q.x - c.x) + 0 } : { x: 2 * c.x - q.x + 0, y: q.y })
+      const box = <T extends Pt>(t: T, b: Box): T => { const m = g({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 }); return { ...t, x: snap(t.x + m.x - (b.x0 + b.x1) / 2), y: snap(t.y + m.y - (b.y0 + b.y1) / 2) } }
+      const seg = <T extends { a: Pt; b: Pt }>(w: T): T => ({ ...w, a: g(w.a), b: g(w.b) })
+      // a flip seen from the sheet: the part is mirrored and its turn reversed
+      const r = remap(s, sel, (p) => ({ ...p, ...g(p), ...(rot ? { rot: (p.rot + 1) % 4 } : { mirror: !p.mirror, rot: (4 - (p.rot % 4)) % 4 }) }), g)
+      return commit({
+        ...r, wires: r.wires.filter((w) => !same(w.a, w.b)), texts: r.texts.map((t) => (sel.has(t.id) ? box(t, tbox(t)) : t)),
+        ...(r.draw && { draw: r.draw.map((d) => (!sel.has(d.id) ? d : 'a' in d ? seg(d) : box(d, dbox(d)))) }),
+        ...(r.buses && { buses: r.buses.map((w) => (sel.has(w.id) ? seg(w) : w)) })
+      })
+    }
     if (!k.parts.length && !k.draw!.some((d) => 'a' in d) && !k.buses!.length) return
     const r = k.parts.length ? remap(s, sel, f) : s
     commit({
