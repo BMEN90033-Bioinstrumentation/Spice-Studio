@@ -5,8 +5,10 @@
 .symp path, .symp circle {
   fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round;
 }
-/* list icons: bolder so small details (zener bends, arrows) read; LibraryPanel sizes them 34px */
-.symp.small path, .symp.small circle { stroke-width: 1.5; }
+/* list icons: thinner than the canvas; LibraryPanel sizes them 34px */
+.symp.small path, .symp.small circle { stroke-width: 1; }
+.symp .sym .shade, .symp .sym circle { fill: color-mix(in srgb, currentColor 14%, transparent); }
+.symp .sym .shade { stroke: none; }
 .symp .f, .symp circle.pin { fill: currentColor; }
 .symp circle.pin { stroke: none; fill: var(--hl); }
 .symp text { font-family: var(--mono); fill: var(--dim); stroke: none; }

@@ -2,12 +2,14 @@
 .sch > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; touch-action: none; }
 .sch.draw > svg { cursor: crosshair; }
 .sch.pan > svg { cursor: grab; }
-.sch .dot { fill: #2a2e35; }
+.sch .dot { fill: var(--line-strong); }
 
 .sch .sym path, .sch .sym circle {
   fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke;
   stroke-linecap: round; stroke-linejoin: round;
 }
+.sch .sym .shade, .sch .sym circle { fill: color-mix(in srgb, currentColor 14%, transparent); } /* body shading */
+.sch .sym .shade { stroke: none; }
 .sch .sym .f { fill: currentColor; }
 .sch .sym .hit { fill: transparent; stroke: none; }
 .sch .part { color: var(--sym); }
@@ -52,7 +54,7 @@
 .sch .part.blame .sym { filter: drop-shadow(0 0 3px rgba(255, 107, 107, 0.7)); }
 .sch .wire.blame line:not(.hit) { stroke: var(--err); stroke-width: 3; }
 .sch .op { pointer-events: none; }
-.sch .op rect { fill: rgba(22, 26, 34, 0.88); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sch .op rect { fill: var(--s1); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .sch .op text { fill: var(--probe); font-family: var(--mono); }
 
 /* library panel beside the canvas (width = LIBW in Schematic.tsx) */

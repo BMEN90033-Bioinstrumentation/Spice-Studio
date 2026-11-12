@@ -129,7 +129,7 @@ const optLine = (text: string) => text.split('\n').find(isOptionsLine)
 // export palette: black on white, sizes in world units (the export has no zoom)
 const PRINT_CSS = [
   '.sym path,.sym circle{fill:none;stroke:#000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}',
-  '.sym .f{fill:#000}.part{color:#000}',
+  '.sym .shade,.sym circle{fill:rgba(0,0,0,.07)}.sym .shade{stroke:none}.sym .f{fill:#000}.part{color:#000}',
   'text{font-family:ui-monospace,Menlo,Consolas,monospace}',
   '.part text{fill:#333;font-size:9px}.part text.n{fill:#000}.part text.pn{fill:#555}',
   '.wire line{stroke:#000;stroke-width:1.2;stroke-linecap:round}.jn{fill:#000}',

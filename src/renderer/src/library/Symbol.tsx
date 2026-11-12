@@ -48,16 +48,21 @@ function edge(q: Pt, w: number, h: number): { e: Pt; n: Pt } {
   return { e: q, n: { x: q.x < 0 ? 1 : -1, y: 0 } } // inside the box: label beside it
 }
 
+// closed subpaths (M…Z) of a stroked path: the symbol's body, drawn again as a translucent fill
+const shade = (d: string) => (d.match(/M[^M]*Z/g) ?? []).join('')
+
 // Paths in local coords; caller supplies the transform. Stroke/fill styling via CSS (.sym / .symp).
 export function SymBody({ kind, part }: { kind: Kind; part?: Shape }) {
   if (kind === 'block') {
     const { w, h } = body(part)
     const stubs = symPins(kind, part).map((q) => { const { e } = edge(q, w, h); return `M${q.x} ${q.y}L${e.x} ${e.y}` }).join('')
-    return <path d={`M${-w / 2} ${-h / 2}H${w / 2}V${h / 2}H${-w / 2}Z${stubs}`} />
+    const box = `M${-w / 2} ${-h / 2}H${w / 2}V${h / 2}H${-w / 2}Z`
+    return <><path className="shade" d={box} /><path d={box + stubs} /></>
   }
   const d = SYMBOLS[kind]
   return (
     <>
+      {shade(d.path) && <path className="shade" d={shade(d.path)} />}
       <path d={d.path} />
       {d.fill && <path className="f" d={d.fill} />}
       {d.circle && <circle r={d.circle} />}

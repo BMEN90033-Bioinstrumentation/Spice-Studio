@@ -29,7 +29,7 @@ import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
-import { ArrowUpToLine, ChevronLeft, House, Pencil, Play, Plus, Square, Trash2, X } from 'lucide-react'
+import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -742,6 +742,9 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       <div className="app" hidden={route !== 'editor'}>
         <header>
           <HomeBtn label="Back to the home page" onClick={() => leave(onClose)} />
+          {!proj && <Tip label="Open a schematic or netlist here"><Button variant="ghost" size="sm" onClick={openLoose}><FolderOpen />Open</Button></Tip>}
+          <Tip label={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}><Button variant="ghost" size="sm" onClick={save}><Save />Save</Button></Tip>
+          <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-[18px]" />
           {proj ? (
             <span className="ml-1 font-semibold">{proj.name}</span>
           ) : (
@@ -752,23 +755,21 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           )}
           <span className="text-muted-foreground">{name}{isDirty ? ' •' : ''}</span>
           <div className="ml-auto flex items-center gap-0.5 [-webkit-app-region:no-drag]">
-            <Tip label="Component library"><Button variant="ghost" size="sm" onClick={() => (isSch && snap(view), bump(), go('library'))}>Library</Button></Tip>
+            <Tip label="Component library"><Button variant="ghost" size="sm" onClick={() => (isSch && snap(view), bump(), go('library'))}><BookOpen />Library</Button></Tip>
             {isSch && (
               <Tip label={canPeek ? 'Show the generated netlist in the Netlist editor' : 'The Netlist editor has unsaved edits: save them first (⌘S in Netlist view)'}>
                 <span className="inline-flex">{/* a disabled button gets no pointer events: the span carries the tooltip */}
-                  <Button variant="ghost" size="sm" onClick={peek} disabled={!canPeek}>View netlist</Button>
+                  <Button variant="ghost" size="sm" onClick={peek} disabled={!canPeek}><FileCode />View netlist</Button>
                 </span>
               </Tip>
             )}
-            {!proj && <Tip label="Open a schematic or netlist here"><Button variant="ghost" size="sm" onClick={openLoose}>Open</Button></Tip>}
-            <Tip label={proj && isSch ? 'Save all sheets (⌘S)' : 'Save (⌘S)'}><Button variant="ghost" size="sm" onClick={save}>Save</Button></Tip>
             <Separator orientation="vertical" className="mx-1.5 data-[orientation=vertical]:h-[18px]" />
             <Tip label="Run settings: compatibility mode for vendor models, timeout">
-              <Button variant="ghost" size="sm" aria-expanded={!!simEdit} onClick={() => setSimEdit(simEdit ? null : sim)}>Run settings</Button>
+              <Button variant="ghost" size="sm" aria-expanded={!!simEdit} onClick={() => setSimEdit(simEdit ? null : sim)}><SlidersHorizontal />Run settings</Button>
             </Tip>
             <Tip label={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
-              <Button size="sm" variant={running ? 'destructive' : 'default'} className="ml-1" onClick={running ? stop : run}>
-                {running ? <><Square className="fill-current" />Stop</> : <><Play className="fill-current" />Run</>}
+              <Button size="sm" variant={running ? 'destructive' : 'default'} className={cn('ml-1.5 min-w-[68px] gap-1.5 font-semibold', !running && 'bg-ok text-[#08130d] hover:bg-ok/85')} onClick={running ? stop : run}>
+                {running ? <><Square className="size-3! fill-current" />Stop</> : <><Play className="size-3! fill-current" />Run</>}
               </Button>
             </Tip>
           </div>
