@@ -172,6 +172,16 @@ const TBTN = "h-12 min-w-12 flex-col gap-1 px-2 text-[11px] leading-none font-no
 const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
   <Tip label={label}><Button variant="ghost" size="sm" className={TBTN} aria-label={aria} onClick={onClick} disabled={disabled}>{children}<span>{aria.split(' ')[0]}</span></Button></Tip>
 )
+// Property popups remember, per kind and across sessions, where they were dragged to and the size their text box was
+// dragged to. ponytail: no reset control; clear localStorage 'ngs.pops' (add a Settings button if anyone asks)
+type PopKind = 'part' | 'dir' | 'note' | 'title'
+type Kept = { left?: number; top?: number; w?: string; h?: string }
+const POPS = 'ngs.pops'
+const kept: Partial<Record<PopKind, Kept>> = (() => { try { return JSON.parse(localStorage.getItem(POPS) ?? '{}') ?? {} } catch { return {} } })()
+const keep = (k: PopKind, v: Kept) => { kept[k] = { ...kept[k], ...v }; try { localStorage.setItem(POPS, JSON.stringify(kept)) } catch {} }
+// a text box's own size, once its corner grip has been dragged (the browser writes it to the inline style)
+const keptSize = (k: PopKind) => ({ style: { width: kept[k]?.w, height: kept[k]?.h },
+  onPointerUp: (e: RPE<HTMLTextAreaElement>) => { const { width: w, height: h } = e.currentTarget.style; (w || h) && keep(k, { w, h }) } })
 const INSP = 'sch-insp grid cursor-move gap-2 overflow-y-auto rounded-lg border bg-card p-2.5 text-card-foreground shadow-lg'
 const FLD = 'grid gap-1 text-[11px] font-normal text-muted-foreground'
 const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_code]:text-foreground'
@@ -189,15 +199,16 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [sel, setSel] = useState<Set<string>>(() => new Set())
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
   // the property popup: opened by a double-click on a part, directive, note or title block, placed at that point
-  const [pop, setPop] = useState<{ id: string; left: number; top: number } | null>(null)
-  // beside the element (right of it, or left when there's no room), kept inside the canvas
+  const [pop, setPop] = useState<{ id: string; kind: PopKind; left: number; top: number } | null>(null)
+  // where this kind of popup was last dragged to; otherwise beside the element (right of it, or left when there's no room). Kept inside the canvas
   function openPop(id: string) {
     const el = root.current?.querySelector(`[data-id="${id}"]`)
     if (!el || !root.current) return
     const r = root.current.getBoundingClientRect(), b = el.getBoundingClientRect(), W = 230 // .sch-insp width
     const right = b.right - r.left + 10, left = right + W + 8 <= r.width ? right : b.left - r.left - W - 10
     setSel(new Set([id]))
-    setPop({ id, left: Math.max(8, Math.min(left, r.width - W - 8)), top: Math.max(8, Math.min(b.top - r.top, r.height - 220)) })
+    const d = cur.current.draw?.find((x) => x.id === id), kind: PopKind = cur.current.texts.some((t) => t.id === id) ? 'dir' : d ? (d.t === 'title' ? 'title' : 'note') : 'part', k = kept[kind]
+    setPop({ id, kind, left: Math.max(8, Math.min(k?.left ?? left, r.width - W - 8)), top: Math.max(8, Math.min(k?.top ?? b.top - r.top, r.height - (k?.top == null ? 220 : 60))) })
   }
   useEffect(() => { pop && ta.current?.focus() }, [pop?.id])
   // a popup wider than the 230 px openPop assumed (a directive's is as wide as its text, and grows as you type): back
@@ -209,9 +220,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   // the popup moves by dragging anywhere on it that isn't a control; kept inside the canvas
   function dragPop(e: RPE<HTMLDivElement>) {
     if (!pop || e.button !== 0 || (e.target as Element).closest('input,textarea,button,select,a,[role=combobox]')) return
-    const el = e.currentTarget, box = root.current!, id = pop.id, dx = e.clientX - pop.left, dy = e.clientY - pop.top
-    const mv = (m: PointerEvent) => setPop({ id, left: Math.max(8, Math.min(m.clientX - dx, box.clientWidth - el.offsetWidth - 8)), top: Math.max(8, Math.min(m.clientY - dy, box.clientHeight - 60)) })
-    const end = () => (el.removeEventListener('pointermove', mv), el.removeEventListener('pointerup', end), el.removeEventListener('pointercancel', end))
+    const el = e.currentTarget, box = root.current!, { id, kind } = pop, dx = e.clientX - pop.left, dy = e.clientY - pop.top
+    let at: Kept | undefined
+    const mv = (m: PointerEvent) => setPop({ id, kind, ...(at = { left: Math.max(8, Math.min(m.clientX - dx, box.clientWidth - el.offsetWidth - 8)), top: Math.max(8, Math.min(m.clientY - dy, box.clientHeight - 60)) }) } as NonNullable<typeof pop>)
+    const end = () => (at && keep(kind, at), el.removeEventListener('pointermove', mv), el.removeEventListener('pointerup', end), el.removeEventListener('pointercancel', end))
     el.setPointerCapture(e.pointerId)
     el.addEventListener('pointermove', mv), el.addEventListener('pointerup', end), el.addEventListener('pointercancel', end)
   }
@@ -732,18 +744,20 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       setBox(null)
       const b = norm(d.a, world(e))
       if (b.x1 - b.x0 + b.y1 - b.y0 < 4 / view.k) return
-      const inside = (q: Pt) => q.x >= b.x0 && q.x <= b.x1 && q.y >= b.y0 && q.y <= b.y1
+      // everything the box touches, not only what it encloses. ponytail: by bounding box, so a diagonal wire or line is
+      // caught by a box crossing its bounds without touching the stroke; segment test if that gets in the way
+      const hit = (o: Box) => o.x0 <= b.x1 && b.x0 <= o.x1 && o.y0 <= b.y1 && b.y0 <= o.y1
       const s = cur.current
       const hits = [
-        ...s.parts.filter((p) => corners(pbox(p)).every(inside)),
-        ...s.wires.filter((w) => inside(w.a) && inside(w.b)),
-        ...s.texts.filter((t) => corners(tbox(t)).every(inside)),
-        ...(s.draw ?? []).filter((x) => corners(dbox(x)).every(inside)),
-        ...(s.buses ?? []).filter((w) => inside(w.a) && inside(w.b))
+        ...s.parts.filter((p) => hit(pbox(p))),
+        ...s.wires.filter((w) => hit(norm(w.a, w.b))),
+        ...s.texts.filter((t) => hit(tbox(t))),
+        ...(s.draw ?? []).filter((x) => hit(dbox(x))),
+        ...(s.buses ?? []).filter((w) => hit(norm(w.a, w.b)))
       ]
       const labels = [...(svg.current?.querySelectorAll('.part .lbl') ?? [])].flatMap((g) => {
         const r = g.getBoundingClientRect(), id = g.closest('[data-id]')?.getAttribute('data-id')
-        return id && r.width && inside(world({ clientX: r.left, clientY: r.top })) && inside(world({ clientX: r.right, clientY: r.bottom })) ? [`${id}:${g.getAttribute('data-l')}`] : []
+        return id && r.width && hit(norm(world({ clientX: r.left, clientY: r.top }), world({ clientX: r.right, clientY: r.bottom }))) ? [`${id}:${g.getAttribute('data-l')}`] : []
       })
       setSel(new Set([...d.base, ...hits.map((i) => i.id), ...labels]))
     } else if (d?.t === 'lbl') {
@@ -1077,7 +1091,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <div className={cn(INSP, 'w-max max-w-[calc(100%-16px)] min-w-[230px]')} style={popAt} onPointerDown={dragPop} key={dir.id}>{/* as wide as its longest line, up to the canvas */}
           <Label className={FLD}>SPICE directive
             {/* grows with the text (field-sizing); its corner grip resizes it, and the popup with it */}
-            <Textarea ref={ta} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
+            <Textarea ref={ta} {...keptSize('dir')} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
               className={cn('max-h-[70vh] min-h-[60px] resize overflow-auto px-2 py-1.5 leading-snug whitespace-pre [overflow-wrap:normal]', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </Label>
@@ -1091,7 +1105,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       {drw?.t === 'note' && pop?.id === drw.id && (
         <div className={INSP} style={popAt} onPointerDown={dragPop} key={drw.id}>
           <Label className={FLD}>Text note (not netlisted)
-            <Textarea ref={ta} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
+            <Textarea ref={ta} {...keptSize('note')} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </Label>

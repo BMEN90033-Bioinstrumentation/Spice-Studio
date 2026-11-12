@@ -78,7 +78,7 @@ The four small buttons in the toolbar place a ground, a power flag, a net label 
 ## Selecting, moving and editing
 
 - Click a part, wire or directive to select it. **Shift+click** adds or removes items.
-- Drag on empty canvas to box-select.
+- Drag on empty canvas to box-select: everything the box touches is selected, not only what it encloses.
 - Drag a selection to move it. Wires attached to moved pins follow.
 - **Ctrl+R** / **Ctrl+E** rotate or mirror the selected parts.
 - **Delete** or **⌫** deletes. ⌘X, ⌘C and ⌘V cut, copy and paste (inside the app only), ⌘D duplicates and ⌘A selects all.
