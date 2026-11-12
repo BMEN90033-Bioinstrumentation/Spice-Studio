@@ -111,7 +111,8 @@ export function parseRaw(buf: Uint8Array, partial = false): RawPlot[] {
       lines.push(l)
     }
     const tok = lines.join(' ').split(/[\s,]+/).filter(Boolean)
-    if (eof && buf[buf.length - (u16 ? 2 : 1)] !== 10) tok.pop() // the file stops mid-line: its last number may be cut short
+    // partial (a cut-off file) that stops mid-line: its last number may be cut short. A complete file may just lack the final newline.
+    if (partial && eof && buf[buf.length - (u16 ? 2 : 1)] !== 10) tok.pop()
     const per = 1 + nv * stride, fit = Math.floor(tok.length / per)
     if (partial && !unpadded && (!points || points > fit)) points = fit
     if (points + names.reduce((a, _, v) => a + len(v) * stride, 0) > tok.length) throw truncated()

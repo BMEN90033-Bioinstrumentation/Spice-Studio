@@ -237,15 +237,20 @@ test('cut anywhere: a rawfile truncated at every byte returns or throws at once;
   for (const f of [bin, asc])
     for (let n = 0; n <= f.length; n++) {
       const cut = f.subarray(0, n)
-      quick(`cut ${n}`, () => parseRaw(cut, true))
+      const ok = (plots: RawPlot[]) => { for (const p of plots) for (const v of p.vars) for (const x of v.re) assert.ok([0, 1, 2, 1.25, 2.5, 3.75, 1e-3, 1.234567, 2.345678].includes(x), `cut ${n}: ${x}`) }
+      quick(`cut ${n}`, () => ok(parseRaw(cut, true))) // partial (a stopped run) never invents a value
       let plots: RawPlot[] = []
       try { plots = parseRaw(cut) } catch (e) { assert.match((e as Error).message, /truncated|variables listed/); continue }
-      for (const p of plots) for (const v of p.vars) for (const x of v.re) assert.ok([0, 1, 2, 1.25, 2.5, 3.75, 1e-3, 1.234567, 2.345678].includes(x), `cut ${n}: ${x}`)
+      if (f === bin || cut.at(-1) === 10) ok(plots) // strict reads a final number without its newline as complete (below)
     }
-  // a number cut short at the end of an ASCII file is dropped, not read as 2.3
-  const cut = asc.subarray(0, asc.indexOf('2.345678') + 3)
-  assert.throws(() => parseRaw(cut), /truncated/)
-  assert.equal(parseRaw(cut, true)[0].points, 1)
+  // partial: a number cut short at the end of an ASCII file is dropped, not read as 2.3
+  assert.equal(parseRaw(asc.subarray(0, asc.indexOf('2.345678') + 3), true)[0].points, 1)
+})
+
+test('a complete ASCII rawfile without a final newline parses in strict mode', () => {
+  const f = Buffer.from('Title: t\nPlotname: Transient Analysis\nFlags: real\nNo. Variables: 2\nNo. Points: 2\nVariables:\n\t0\ttime\ttime\n\t1\tv(a)\tvoltage\nValues:\n 0\t0\n\t1.5\n 1\t1e-3\n\t2.5')
+  const [p] = parseRaw(f)
+  assert.deepEqual([p.points, [...p.vars[0].re], [...p.vars[1].re]], [2, [0, 1e-3], [1.5, 2.5]])
 })
 
 test('RawTail: a plot that ended with 0 points does not swallow the next header', () => {
