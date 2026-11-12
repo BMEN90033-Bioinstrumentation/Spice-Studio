@@ -13,6 +13,8 @@ type Shape =
   | { t: 'line'; p: number[]; c: string; w?: number; dash?: boolean } // flat x,y screen points; NaN breaks the line
   | { t: 'dot'; x: number; y: number; r: number; c: string }
   | { t: 'text'; x: number; y: number; s: string; c: string; a?: 'start' | 'middle' | 'end' }
+  | { t: 'clip'; rect?: number[]; circle?: number[] } | { t: 'unclip' } // the shapes between are cut at the chart's edge
+export type Zoom = { f: number; c?: [number, number] } // wheel zoom: factor, and (Nyquist) the centre in data units
 type Pal = { bg: string; grid: string; axis: string; text: string }
 const DARK: Pal = { bg: '#111316', grid: 'rgba(255,255,255,0.1)', axis: 'rgba(255,255,255,0.3)', text: '#a1a1a1' } // ≈ Plot.tsx axis colours
 const LIGHT: Pal = { bg: '#ffffff', grid: '#e3e6ea', axis: '#999999', text: '#333333' } // = export.ts SVG
@@ -30,10 +32,10 @@ function at(x: Float64Array, v: number): [number, number] | null {
   return [i, x[i + 1] === x[i] ? 0 : (v - x[i]) / (x[i + 1] - x[i])]
 }
 
-// shapes for a w×h chart; map: plane -> screen
-function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number, pal: Pal, curs: (number | undefined)[]) {
+// shapes for a w×h chart; pts: each trace's samples on screen, hit: the same with samples outside the chart as NaN
+function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number, pal: Pal, curs: (number | undefined)[], zoom: Zoom = { f: 1 }) {
   const out: Shape[] = [], m = 28
-  let k: number, cx: number, cy: number
+  let k: number, cx: number, cy: number, clip: Shape, inside: (x: number, y: number) => boolean, mid: [number, number] = [0, 0]
   // data bounds (the origin included) and largest magnitude; a loop, not Math.min(...): sweeps have 100k+ points
   let [x0, x1, y0, y1, rmax] = [0, 0, 0, 0, 0]
   for (const tr of traces)
@@ -45,6 +47,8 @@ function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number,
     // equal scales on both axes
     const pad = 0.06 * Math.max(x1 - x0, y1 - y0) || 1
     ;(x0 -= pad), (x1 += pad), (y0 -= pad), (y1 += pad)
+    const [mx, my] = zoom.c ?? [(x0 + x1) / 2, (y0 + y1) / 2], hx = (x1 - x0) / 2 / zoom.f, hy = (y1 - y0) / 2 / zoom.f
+    ;(x0 = mx - hx), (x1 = mx + hx), (y0 = my - hy), (y1 = my + hy), (mid = [mx, my])
     k = Math.min((w - 2 * m - 30) / (x1 - x0), (h - 2 * m) / (y1 - y0))
     ;(cx = m + 30 + ((w - 2 * m - 30) - k * (x1 + x0)) / 2), (cy = m + ((h - 2 * m) + k * (y1 + y0)) / 2)
     const X = (v: number) => cx + k * v, Y = (v: number) => cy - k * v
@@ -52,11 +56,14 @@ function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number,
     for (const v of ticks(x0, x1, (x1 - x0) / step)) out.push({ t: 'line', p: [X(v), Y(y0), X(v), Y(y1)], c: v ? pal.grid : pal.axis }, { t: 'text', x: X(v), y: Y(y0) + 13, s: eng(v), c: pal.text, a: 'middle' })
     for (const v of ticks(y0, y1, (y1 - y0) / step)) out.push({ t: 'line', p: [X(x0), Y(v), X(x1), Y(v)], c: v ? pal.grid : pal.axis }, { t: 'text', x: X(x0) - 4, y: Y(v) + 4, s: eng(v), c: pal.text, a: 'end' })
     out.push({ t: 'text', x: X(x1) - 2, y: Y(0) + 13, s: 'Re', c: pal.text, a: 'end' }, { t: 'text', x: X(0) + 4, y: Y(y1) + 10, s: 'Im', c: pal.text })
-    if (x0 < -1 && x1 > -1) out.push({ t: 'text', x: X(-1), y: Y(0) + 4, s: '+', c: pal.text, a: 'middle' }, { t: 'text', x: X(-1), y: Y(0) - 6, s: '−1', c: pal.text, a: 'middle' })
+    if (x0 < -1 && x1 > -1 && y0 < 0 && y1 > 0) out.push({ t: 'text', x: X(-1), y: Y(0) + 4, s: '+', c: pal.text, a: 'middle' }, { t: 'text', x: X(-1), y: Y(0) - 6, s: '−1', c: pal.text, a: 'middle' })
+    const r = [X(x0), Y(y1), X(x1) - X(x0), Y(y0) - Y(y1)]
+    ;(clip = { t: 'clip', rect: r }), (inside = (x, y) => x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3])
   } else {
-    const st = rmax > 0 ? ticks(0, rmax, 4)[1] : 1, R = kind === 'smith' ? 1 : Math.ceil(rmax / st - 1e-9) * st // outer ring: the next round value
+    const rz = rmax / zoom.f, st = rz > 0 ? ticks(0, rz, 4)[1] : 1, R = kind === 'smith' ? 1 : Math.ceil(rz / st - 1e-9) * st // outer ring: the next round value
     k = (Math.min(w, h) / 2 - m) / R
     ;(cx = w / 2), (cy = h / 2)
+    ;(clip = { t: 'clip', circle: [cx, cy, k * R] }), (inside = (x, y) => Math.hypot(x - cx, y - cy) <= k * R * (1 + 1e-9))
     const P = (re: number, im: number) => [cx + k * re, cy - k * im]
     const circle = (r: number, c: string) => out.push({ t: 'line', p: Array.from({ length: 121 }, (_, i) => P(r * Math.cos((i * Math.PI) / 60), r * Math.sin((i * Math.PI) / 60))).flat(), c })
     if (kind === 'polar') {
@@ -75,10 +82,13 @@ function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number,
         if (g.kind === 'x') { const [a, b] = gamma(0, g.v, 1); out.push({ t: 'text', x: cx + (k + 12) * a, y: cy - (k + 12) * b + 4, s: `${g.v > 0 ? '+' : '−'}j${Math.abs(g.v)}`, c: pal.text, a: 'middle' }) }
       }
       out.push({ t: 'text', x: 6, y: 14, s: `Z0 = ${eng(z0, 'Ω')}`, c: pal.text })
+      if (rmax > 1) out.push({ t: 'text', x: 6, y: 28, s: '|Γ| > 1 in places: cut at the edge', c: pal.text })
     }
   }
   const S = (p: [number, number]): [number, number] => [cx + k * p[0], cy - k * p[1]]
   const pts = traces.map((tr) => Float64Array.from(Array.from(tr.re, (_, i) => S(plane(tr, i, kind, z0))).flat()))
+  const hit = pts.map((p) => p.map((v, i) => (i % 2 ? v : inside(v, p[i + 1]) ? v : NaN)))
+  out.push(clip)
   traces.forEach((tr, i) => out.push({ t: 'line', p: Array.from(pts[i]), c: tr.color, w: 1.5 }))
   // cursor A/B: a dot where each trace is at that frequency, labelled unless there are many traces (sweeps)
   curs.forEach((f, ci) => {
@@ -91,13 +101,23 @@ function scene(kind: CvKind, traces: CTrace[], z0: number, w: number, h: number,
       if (!ti || traces.length <= 8) out.push({ t: 'text', x: x + 6, y: y - 6, s: 'AB'[ci], c: pal.text === LIGHT.text ? '#555' : '#e2e4e8' })
     })
   })
-  return { shapes: out, pts }
+  out.push({ t: 'unclip' })
+  // screen -> data, for zooming about the mouse (Nyquist)
+  return { shapes: out, pts, hit, toData: (x: number, y: number): [number, number] => [(x - cx) / k, (cy - y) / k], mid }
 }
 
 function paint(g: CanvasRenderingContext2D, shapes: Shape[]) {
   g.lineJoin = 'round'
   g.font = '11px ui-sans-serif, system-ui, sans-serif'
   for (const s of shapes) {
+    if (s.t === 'clip') {
+      g.save(), g.beginPath()
+      if (s.rect) g.rect(s.rect[0], s.rect[1], s.rect[2], s.rect[3])
+      else g.arc(s.circle![0], s.circle![1], s.circle![2], 0, 2 * Math.PI)
+      g.clip()
+      continue
+    }
+    if (s.t === 'unclip') { g.restore(); continue }
     g.strokeStyle = g.fillStyle = s.c
     if (s.t === 'text') (g.textAlign = s.a === 'middle' ? 'center' : (s.a ?? 'start')), g.fillText(s.s, s.x, s.y)
     else if (s.t === 'dot') g.beginPath(), g.arc(s.x, s.y, s.r, 0, 2 * Math.PI), g.fill()
@@ -119,6 +139,8 @@ function paint(g: CanvasRenderingContext2D, shapes: Shape[]) {
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 function svgOf(shapes: Shape[]): string[] {
   return shapes.map((s) => {
+    if (s.t === 'clip') return `<defs><clipPath id="cv">${s.rect ? `<rect x="${s.rect[0]}" y="${s.rect[1]}" width="${s.rect[2]}" height="${s.rect[3]}"/>` : `<circle cx="${s.circle![0]}" cy="${s.circle![1]}" r="${s.circle![2]}"/>`}</clipPath></defs><g clip-path="url(#cv)">`
+    if (s.t === 'unclip') return '</g>'
     if (s.t === 'text') return `<text x="${s.x.toFixed(1)}" y="${s.y.toFixed(1)}" fill="${s.c}" text-anchor="${s.a ?? 'start'}">${esc(s.s)}</text>`
     if (s.t === 'dot') return `<circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="${s.r}" fill="${s.c}"/>`
     const runs: string[][] = [[]]
@@ -140,6 +162,7 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
   const box = useRef<HTMLDivElement>(null), cv = useRef<HTMLCanvasElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
   const [hover, setHover] = useState<{ ti: number; i: number } | null>(null)
+  const [zoom, setZoom] = useState<Zoom>({ f: 1 }) // Smith stays at |Γ| ≤ 1
   useEffect(() => {
     const el = box.current!
     const ro = new (el.ownerDocument.defaultView ?? window).ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }))
@@ -147,7 +170,14 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
     return () => ro.disconnect()
   }, [])
   const marks = [curs.a, curs.b]
-  const { shapes, pts } = useMemo(() => scene(kind, traces, z0, size.w, size.h, DARK, marks), [kind, traces, z0, size, curs.a, curs.b])
+  const { shapes, pts, hit, toData, mid } = useMemo(() => scene(kind, traces, z0, size.w, size.h, DARK, marks, zoom), [kind, traces, z0, size, curs.a, curs.b, zoom])
+  // wheel: zoom (Nyquist about the mouse, polar about the origin); double-click: back to the whole data
+  const wheel = (e: React.WheelEvent) => {
+    if (kind === 'smith') return
+    const r = cv.current!.getBoundingClientRect(), q = e.deltaY < 0 ? 1.25 : 0.8, [px, py] = toData(e.clientX - r.left, e.clientY - r.top)
+    setZoom((z) => ({ f: Math.min(1e6, Math.max(1, z.f * q)), c: z.f * q <= 1 ? undefined : [px + (mid[0] - px) / q, py + (mid[1] - py) / q] }))
+  }
+  const units = [...new Set(traces.map((t) => (t.unit === '1' ? '' : t.unit) || 'no unit'))]
   useEffect(() => {
     const c = cv.current!, pr = c.ownerDocument.defaultView?.devicePixelRatio ?? 1
     ;(c.width = size.w * pr), (c.height = size.h * pr)
@@ -158,7 +188,7 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
 
   api.current = {
     svg: () => {
-      const { w, h } = size, { shapes } = scene(kind, traces, z0, w, h, LIGHT, marks), { H, legend } = withLegend(traces, w, h, 7, LIGHT)
+      const { w, h } = size, { shapes } = scene(kind, traces, z0, w, h, LIGHT, marks, zoom), { H, legend } = withLegend(traces, w, h, 7, LIGHT)
       return [`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${H}" viewBox="0 0 ${w} ${H}" font-family="Helvetica, Arial, sans-serif" font-size="11">`, `<rect width="${w}" height="${H}" fill="${LIGHT.bg}"/>`, ...svgOf([...shapes, ...legend]), '</svg>'].join('\n')
     },
     png: async () => {
@@ -180,7 +210,7 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
   const near = (e: React.MouseEvent) => {
     const r = cv.current!.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top
     let best: { ti: number; i: number } | null = null, bd = 144
-    pts.forEach((p, ti) => {
+    hit.forEach((p, ti) => {
       for (let i = 0; i < p.length; i += 2) {
         const d = (p[i] - mx) ** 2 + (p[i + 1] - my) ** 2
         if (d < bd) (bd = d), (best = { ti, i: i / 2 })
@@ -200,7 +230,7 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
   return (
     <div className="flex min-h-0 min-w-0 flex-col px-2 pt-2">
       <div ref={box} className="relative min-h-0 flex-1 cursor-crosshair">
-        <canvas ref={cv} className="absolute inset-0 size-full" onMouseLeave={() => setHover(null)} onMouseMove={(e) => setHover(near(e))}
+        <canvas ref={cv} className="absolute inset-0 size-full" onMouseLeave={() => setHover(null)} onMouseMove={(e) => setHover(near(e))} onWheel={wheel} onDoubleClick={() => setZoom({ f: 1 })}
           onClick={(e) => { const n = near(e); if (n) onCur(e.shiftKey ? 'b' : 'a', traces[n.ti].x[n.i]) }} />
         {!traces.length && <div className="absolute inset-0 grid place-items-center text-xs text-muted-foreground">Tick a complex (AC) vector or expression to plot it here</div>}
         {hv && (
@@ -215,6 +245,7 @@ export function ComplexView({ kind, traces, z0, curs, onCur, xUnit, api }: {
       </div>
       <div className="flex max-h-[66px] flex-wrap gap-x-4 overflow-y-auto py-1 text-xs">
         {traces.map((t, i) => <span key={i} style={{ '--c': t.color } as CSSProperties}><span className="sw" />{t.label}</span>)}
+        {units.length > 1 && <span className="text-muted-foreground">Different units ({units.join(', ')}) share one scale: untick some, or zoom with the wheel</span>}
       </div>
     </div>
   )

@@ -1,39 +1,43 @@
 // Live tuning strip in the results panel: sliders on .param values and R/C/L values. A move re-runs the simulation
 // (debounced); a run still going is stopped first, and the workspace keeps the old plot until the new one arrives.
+// ResultsPanel keeps this mounted (hidden) while closed, so closing can still re-run with the netlist values.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tip } from '@/components/ui/tip'
 import { eng } from '../Plot'
 import { spiceValue } from '../sim/analysis'
 import { knobs, range, STEPS, toPos, toValue, type Knob } from '../sim/tune'
 
-// the workspace's side (main.tsx): the netlist last run; set: the values every run uses from now on; run / cancel: start a
-// run, stop the one going (its results are dropped)
-export type TuneHost = { netlist: string; running: boolean; set: (k: Knob[]) => void; run: () => void; cancel: () => void }
+// the workspace's side (main.tsx): the netlist last run, the values runs use now; set: the values every run uses from now
+// on; run / cancel: start a run (resolves when it ends), stop the one going (its results are dropped)
+export type TuneHost = { netlist: string; knobs: Knob[]; running: boolean; set: (k: Knob[]) => void; run: () => Promise<void> | void; cancel: () => void }
 type Slider = Knob & { min: number; max: number; log: boolean; text: [string, string] }
 const DEBOUNCE = 150 // ms after the last slider move
 const id = (k: Knob) => `${k.kind}:${k.name.toLowerCase()}`
 
-export function Tune({ host, onClose }: { host: TuneHost; onClose: () => void }) {
-  const [ks, setKs] = useState<Slider[]>([])
-  const avail = useMemo(() => knobs(host.netlist).filter((k) => !ks.some((s) => id(s) === id(k))), [host.netlist, ks])
+// swept: .step params (sliding them would change nothing)
+export function Tune({ host, swept, hidden, onClose }: { host: TuneHost; swept: string[]; hidden?: boolean; onClose: () => void }) {
+  const slider = (k: Knob): Slider => { const r = range(k.value); return { ...k, ...r, text: [eng(r.min), eng(r.max)] } }
+  const [ks, setKs] = useState<Slider[]>(() => host.knobs.map(slider)) // reopened in the pop-out: the values in use
+  const avail = useMemo(() => knobs(host.netlist).filter((k) => !ks.some((s) => id(s) === id(k)) && !(k.kind === 'param' && swept.includes(k.name.toLowerCase()))), [host.netlist, ks, swept.join()])
   const latest = useRef(host), pending = useRef<Knob[] | null>(null), timer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const ours = useRef(false) // a run this strip started hasn't ended yet (run() awaits sheet reads before it sets running)
+  const applied = useRef(host.knobs.length > 0) // runs use slider values (not just the netlist's)
   latest.current = host
-  // run the newest values; a run going is stopped first and this fires again when it has ended (running -> false).
-  // ponytail: relies on run() setting running before the next debounced fire (it does, synchronously or after a short sheet read)
+  // run the newest values. A run going is stopped first: ours fires again when its promise ends, the user's when running
+  // turns false. One run at a time, so two quick fires can't start two runs.
   const fire = () => {
     const h = latest.current
     if (!pending.current) return
-    if (h.running) return h.cancel()
-    h.set(pending.current), h.run(), (pending.current = null)
+    if (ours.current || h.running) return h.cancel()
+    h.set(pending.current), (applied.current = pending.current.length > 0), (pending.current = null), (ours.current = true)
+    Promise.resolve(h.run()).finally(() => ((ours.current = false), fire()))
   }
   useEffect(() => { if (!host.running) fire() }, [host.running])
-  // closed (or the results panel popped in/out): later runs use the netlist's values again
-  useEffect(() => () => (clearTimeout(timer.current), latest.current.set([])), [])
+  useEffect(() => () => clearTimeout(timer.current), [])
   const commit = (next: Slider[], now = false) => {
     setKs(next)
     pending.current = next.map(({ kind, name, value }) => ({ kind, name, value }))
@@ -47,9 +51,14 @@ export function Tune({ host, onClose }: { host: TuneHost; onClose: () => void })
   }
   const add = (key: string) => {
     const k = avail.find((a) => id(a) === key)
-    if (!k) return
-    const r = range(k.value)
-    setKs([...ks, { ...k, ...r, text: [eng(r.min), eng(r.max)] }]) // same value as the netlist: nothing to re-run
+    if (k) setKs([...ks, slider(k)]) // same value as the netlist: nothing to re-run
+  }
+  // closing: back to the netlist values, re-run if sliders had changed anything (the strip stays mounted to see it through)
+  const close = () => {
+    clearTimeout(timer.current)
+    if (applied.current) (pending.current = []), fire()
+    else (pending.current = null), latest.current.set([])
+    setKs([]), onClose()
   }
   // min/max typed as SPICE numbers; log needs 0 < min < max
   const setLimit = (i: number, which: 0 | 1, t: string) => {
@@ -62,18 +71,17 @@ export function Tune({ host, onClose }: { host: TuneHost; onClose: () => void })
   const bad = (s: Slider) => { const a = spiceValue(s.text[0]), b = spiceValue(s.text[1]); return isNaN(a) || isNaN(b) || !(b > a) || (s.log && !(a > 0)) }
   const field = 'h-6 w-16 px-1.5 font-mono text-[11px] md:text-[11px]'
   return (
-    <div className="flex max-h-[40vh] flex-col gap-1 overflow-y-auto border-b bg-card px-3 py-2 text-xs">
+    <div hidden={hidden} className="flex max-h-[40vh] flex-col gap-1 overflow-y-auto border-b bg-card px-3 py-2 text-xs">
       <div className="flex items-center gap-2">
         <span className="font-medium">Tune</span>
-        <Select value="" onValueChange={add}>
-          <SelectTrigger size="sm" className="h-6 min-w-44 text-xs" aria-label="Add a slider"><SelectValue placeholder={avail.length ? 'Add a parameter or part…' : 'No .param or R/C/L values to tune'} /></SelectTrigger>
-          <SelectContent>
-            {avail.map((k) => <SelectItem key={id(k)} value={id(k)} className="font-mono text-xs">{k.kind === 'param' ? `.param ${k.name}` : k.name} = {eng(k.value)}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* native <select>: Radix Select positions its list in the opener window, off-screen in the pop-out */}
+        <select value="" onChange={(e) => add(e.target.value)} className={SELECT + ' min-w-44'} aria-label="Add a slider">
+          <option value="" disabled>{avail.length ? 'Add a parameter or part…' : 'No .param or R/C/L values to tune'}</option>
+          {avail.map((k) => <option key={id(k)} value={id(k)}>{k.kind === 'param' ? `.param ${k.name}` : k.name} = {eng(k.value)}</option>)}
+        </select>
         <span className="min-w-0 flex-1 truncate text-muted-foreground">{ks.length ? 'Moving a slider re-runs the simulation' : 'Pick a .param (a number) or a resistor, capacitor or inductor to get a slider'}</span>
         <Tip label="Close the sliders: later runs use the netlist values">
-          <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label="Close tuning" onClick={onClose}><X /></Button>
+          <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label="Close tuning" onClick={close}><X /></Button>
         </Tip>
       </div>
       {ks.map((s, i) => (
@@ -96,3 +104,5 @@ export function Tune({ host, onClose }: { host: TuneHost; onClose: () => void })
     </div>
   )
 }
+// a native <select> dressed like the shadcn inputs
+export const SELECT = 'h-6 rounded-md border border-input bg-transparent px-1.5 text-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30'

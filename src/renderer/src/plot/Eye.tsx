@@ -13,12 +13,13 @@ export function Eye({ traces, period, offset, unit, name, onChart }: {
   const host = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = host.current!, segs: { y: Float64Array; color: string }[] = []
-    let t = new Float64Array([0, period || 1])
+    let t = new Float64Array([0, period || 1]), total = 0
     for (const tr of traces) {
       const f = fold(tr.x, tr.y, period, offset, 256, Math.floor(MAX_SEGS / traces.length))
-      t = f.t
+      ;(t = f.t), (total += f.total)
       for (const y of f.segs) segs.push({ y, color: tr.color })
     }
+    const count = segs.length < total ? `the first ${segs.length} of ${total} periods` : `${total} period${total === 1 ? '' : 's'}`
     const u = new uPlot(
       {
         width: el.clientWidth - 16,
@@ -28,7 +29,7 @@ export function Eye({ traces, period, offset, unit, name, onChart }: {
         scales: { x: { time: false } },
         series: [{}, ...segs.map((s) => ({ stroke: s.color, width: 1 }))],
         axes: [
-          { ...AXIS, label: `Time in period (s) · ${segs.length} period${segs.length === 1 ? '' : 's'} of ${name}`, values: (_u, v) => v.map((x) => eng(x, 's')) },
+          { ...AXIS, label: `Time in period (s) · ${count} of ${name}`, values: (_u, v) => v.map((x) => eng(x, 's')) },
           { ...AXIS, size: 72, label: unit ? `${name} (${unit})` : name, values: (_u, v) => v.map((x) => eng(x, unit)) }
         ]
       },

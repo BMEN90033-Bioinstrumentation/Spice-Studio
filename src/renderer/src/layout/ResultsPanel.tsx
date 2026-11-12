@@ -4,6 +4,8 @@ import { ChartColumn, SlidersHorizontal } from 'lucide-react'
 import { eng, Plot, type PlotRun } from '../Plot'
 import { Histogram } from '../plot/Histogram'
 import { Tune, type TuneHost } from '../plot/Tune'
+import { isWorstCase } from '../sim/sweep'
+import { steppedNames } from '../sim/tune'
 import type { MeasTable } from '../contracts'
 import type { Blame } from '../sim/probe'
 import { Button } from '@/components/ui/button'
@@ -30,7 +32,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
   meas?: MeasTable
   tune?: TuneHost // live tuning sliders (plot/Tune.tsx)
 }) {
-  const [tuning, setTuning] = useState(false)
+  const [tuning, setTuning] = useState(() => !!tune?.knobs.length) // reopened (pop-out) with the sliders in use
   // the Measurements tab is local view state; the plot stays mounted underneath (keeps its cursors and zoom)
   const [onMeas, setOnMeas] = useState(false)
   const hasMeas = !!meas?.some((r) => r.rows.length)
@@ -51,7 +53,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
         )}
         {actions && <span className="ml-auto flex shrink-0 items-center gap-1 pl-2">{actions}</span>}
       </nav>
-      {tune && tuning && <Tune host={tune} onClose={() => setTuning(false)} />}
+      {tune && <Tune host={tune} swept={steppedNames(tabs[0]?.runs.map((r) => r.label) ?? [])} hidden={!tuning} onClose={() => setTuning(false)} />}
       <div className="plotarea">
         {cur && (
           <div className="plotpanes">
@@ -86,11 +88,11 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
   )
 }
 
-// one column per run; with more than 2 runs (Monte Carlo / sweeps / worst case) mean, σ (sample), min and max come first
+// one column per run; with more than 2 runs (Monte Carlo / sweeps / worst case) mean, σ (sample), min and max come first (.wc: min/max only)
 // (each naming the run it came from), and a measurement's histogram button opens its histogram, statistics and yield
 function Measurements({ meas }: { meas: MeasTable }) {
   const names = [...new Set(meas.flatMap((r) => r.rows.map((m) => m.name)))]
-  const stats = meas.length > 2
+  const stats = meas.length > 2, wc = isWorstCase(meas.map((r) => r.label)) // .wc corners: no mean or σ
   const [pick, setPick] = useState<string | null>(null)
   const values = (n: string) => meas.map((r) => r.rows.find((m) => m.name === n)?.value ?? null)
   return (
@@ -104,7 +106,7 @@ function Measurements({ meas }: { meas: MeasTable }) {
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className={TH} />
-            {stats && ['mean', 'σ', 'min', 'max'].map((h) => <TableHead key={h} className={cn(TH, 'text-warn')}>{h}</TableHead>)}
+            {stats && ['mean', 'σ', 'min', 'max'].map((h, i) => (i > 1 || !wc) && <TableHead key={h} className={cn(TH, 'text-warn')} title={h === 'σ' ? 'sample standard deviation (n − 1)' : undefined}>{h}</TableHead>)}
             {meas.map((r, i) => <TableHead key={i} className={TH}>{r.label || 'Value'}</TableHead>)}
           </TableRow>
         </TableHeader>
@@ -124,7 +126,7 @@ function Measurements({ meas }: { meas: MeasTable }) {
                     </Tip>
                   )}
                 </TableCell>
-                {stats && [mean, sd, v.length ? Math.min(...v) : null, v.length ? Math.max(...v) : null].map((x, i) => (
+                {stats && [mean, sd, v.length ? Math.min(...v) : null, v.length ? Math.max(...v) : null].map((x, i) => (i > 1 || !wc) && (
                   <TableCell key={i} className={cn(TD, 'text-warn')}>
                     {eng(x)}
                     {i > 1 && x != null && <div className="ml-auto max-w-40 truncate text-[10px] text-muted-foreground" title={meas[values(n).indexOf(x)]?.label}>{meas[values(n).indexOf(x)]?.label}</div>/* which run: the worst-case corner */}

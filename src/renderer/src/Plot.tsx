@@ -4,7 +4,6 @@ import { ChartColumn, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tip } from '@/components/ui/tip'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -16,6 +15,7 @@ import { fft, nextPow2 } from './plot/fft'
 import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
 import { ComplexView, type CTrace, type CvApi, type CvKind } from './plot/ComplexView'
 import { Eye } from './plot/Eye'
+import { SELECT } from './plot/Tune'
 import { Histogram } from './plot/Histogram'
 import { unwrap } from './plot/views'
 import { spiceValue } from './sim/analysis'
@@ -218,6 +218,20 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
       syncing = false
     }
     let before: Cur = {}
+    // Bode: one legend, under the phase chart, its hover values "dB · °"; the magnitude chart keeps a legend only for traces
+    // the phase chart lacks (real dB expressions)
+    const below = new Set(bodev ? built[1].ser.map((x) => x.label) : [])
+    const topLegend = !bodev || built[0].ser.some((x) => !below.has(x.label))
+    const val = (x: uPlot.Series, u: uPlot, y: number, i: number, idx: number | null) => String((x.value as (u: uPlot, y: number, i: number, idx: number | null) => string)(u, y, i, idx))
+    if (bodev)
+      built[1].ser = built[1].ser.map((x) => ({
+        ...x,
+        value: (u: uPlot, y: number | null, si: number, idx: number | null) => {
+          const own = val(x, u, y!, si, idx), t = us[0], j = t?.series.findIndex((s) => s.label === x.label) ?? -1
+          const ty = y != null && j > 0 && idx != null && t.data[0][idx] === u.data[0][idx] ? t.data[j][idx] : null
+          return ty == null ? own : `${val(t.series[j], t, ty, j, idx)} · ${own}`
+        }
+      }))
     built.forEach(({ yUnit, ser, data, used }, pi) => {
       const yAxes: uPlot.Axis[] = used.map((k, i) => ({
         ...axis, scale: k, size: i ? 84 : 72, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, labelSize: 18,
@@ -237,7 +251,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
           series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => (v == null ? '' : eng(v, xUnit)) }, ...ser],
           axes: [xAxis, ...yAxes],
           cursor: { drag: { x: true, y: true, uni: 20, dist: 4 }, sync }, // dist: a click must not zoom (it places cursor A)
-          legend: { live: true },
+          legend: { live: true, show: pi > 0 || topLegend },
           hooks: { draw: [draw], setScale: [follow] }
         },
         data,
@@ -416,10 +430,11 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
         {eyev && (
           <div className="mb-2 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-xs">
             <span>Trace</span>
-            <Select value={eyeKey} onValueChange={(key) => setEye({ ...eye, key })}>
-              <SelectTrigger size="sm" className="h-7 w-full min-w-0 font-mono text-xs" aria-label="Eye diagram trace"><SelectValue placeholder="Tick a trace" /></SelectTrigger>
-              <SelectContent>{traces.filter((t) => !t.run).map((t) => <SelectItem key={t.key} value={t.key} className="font-mono text-xs">{t.name}</SelectItem>)}</SelectContent>
-            </Select>
+            {/* native <select>: Radix Select lists open off-screen in the pop-out window */}
+            <select value={eyeKey} onChange={(e) => setEye({ ...eye, key: e.target.value })} className={SELECT + ' h-7 w-full min-w-0 font-mono'} aria-label="Eye diagram trace">
+              {!traces.length && <option value="">Tick a trace</option>}
+              {traces.filter((t) => !t.run).map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+            </select>
             <span>Bit period</span>
             <Input className={field} aria-invalid={!!eye.period && !(eyeT > 0)} aria-label="Bit period" placeholder="e.g. 1u" value={eye.period} onChange={(e) => setEye({ ...eye, period: e.target.value })} />
             <span>Offset</span>
@@ -476,7 +491,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
         {draftErr && <div className={bad}>{draftErr}</div>}
       </div>
       {cplxv ? (
-        <ComplexView kind={mode as CvKind} traces={ctraces} z0={z0v > 0 ? z0v : 50} curs={cur} xUnit={xUnit} api={cv}
+        <ComplexView key={mode} kind={mode as CvKind} traces={ctraces} z0={z0v > 0 ? z0v : 50} curs={cur} xUnit={xUnit} api={cv}
           onCur={(k, x) => setCurs((c) => ({ ...c, [view]: { ...c[view], [k]: x } }))} />
       ) : eyev ? (
         eyeT > 0 && !isNaN(eyeOff) && eyeTraces.length ? <Eye traces={eyeTraces} period={eyeT} offset={eyeOff} unit={traces.find((t) => t.key === eyeKey)!.unit} name={traces.find((t) => t.key === eyeKey)!.name} onChart={(u) => (uref.current = u ? [u] : [])} />
@@ -529,7 +544,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
           {note ||
             (fftv
               ? `Hann window · N = ${fftInfo.n} · Δf = ${eng(fftInfo.df, 'Hz')} · ${fftRange ? `${eng(fftRange[0], 's')} – ${eng(fftRange[1], 's')} (cursors A–B)` : 'whole run (place cursors A and B to pick a window)'} · set a fine max step (.tran … 0 tmax) for an accurate spectrum`
-              : cplxv ? `Hover a trace for its frequency and value · click: cursor A · ⇧click: cursor B${cur.a != null ? ` · A = ${eng(cur.a, xUnit)}` : ''}${cur.b != null ? ` · B = ${eng(cur.b, xUnit)}` : ''}`
+              : cplxv ? `Hover a trace for its frequency and value · click: cursor A · ⇧click: cursor B${mode === 'smith' ? '' : ' · wheel: zoom · double-click: reset'}${cur.a != null ? ` · A = ${eng(cur.a, xUnit)}` : ''}${cur.b != null ? ` · B = ${eng(cur.b, xUnit)}` : ''}`
               : eyev ? 'Every bit period from the offset on, drawn over each other · drag to zoom · double-click to reset'
               : 'Drag to zoom · double-click to reset · click: cursor A · ⇧click: cursor B · drag a cursor to move it')}
         </span>

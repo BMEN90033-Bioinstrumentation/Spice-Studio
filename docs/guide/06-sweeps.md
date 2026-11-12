@@ -109,7 +109,7 @@ With more than two runs (`.step`, `.mc` or `.wc`) you can look at how one number
 - **A trace at a moment or frequency:** place cursor A on the plot, then click the chart icon next to the trace in the cursor readout. Moving cursor A updates the histogram.
 - **An operating-point value:** in a `.op` table, click the chart icon next to the vector.
 
-The panel shows a histogram, the number of runs, the mean, σ (sample standard deviation), the minimum and maximum, and which run gave the minimum and the maximum. Type a **low** and/or **high** limit (SPICE numbers such as `680u` or `1.2k`) to get the **yield**: the share of runs inside the limits. A run where the measurement failed counts as out of spec. The limits are drawn on the histogram as red dashed lines; the mean is the solid line.
+The panel shows a histogram, the number of runs, the mean, σ (sample standard deviation, n − 1), the minimum and maximum, and which run gave the minimum and the maximum. For `.wc` runs the mean and σ are left out: the runs are corners, not a random sample. Type a **low** and/or **high** limit (SPICE numbers such as `680u` or `1.2k`) to get the **yield**: the share of runs inside the limits. A run where the measurement failed counts as out of spec. The limits are drawn on the histogram as red dashed lines; the mean is the solid line.
 
 The Measurements table also names, under its **min** and **max** columns, the run each came from.
 
@@ -125,16 +125,16 @@ C1 out 0 {unif(1u,0.1)}
 .meas tran t50 WHEN v(out)=0.5 RISE=1
 ```
 
-Each `gauss`, `agauss`, `unif`, `aunif` or `limit` call is one toleranced value. Its limits are nom × (1 ± rel) for `gauss` and `unif`, and nom ± abs for `agauss`, `aunif` and `limit`. Each value is named after its `.param` (`R`), its part (`C1`) or its model parameter (`QN.BF`).
+Each `gauss`, `agauss`, `unif`, `aunif` or `limit` call is one toleranced value. Its limits are nom × (1 ± rel) for `gauss` and `unif`, and nom ± abs for `agauss`, `aunif` and `limit`. `sunif(0)` counts as ±1 and `sgauss(0)` as ±3 (three standard deviations). Each value is named after its `.param` (`R`), its part (`C1`) or its model parameter (`QN.BF`), also on `+` continuation lines. Only calls in a `.param` line or inside `{…}` count, so a B-source's own functions are left alone, and text after `;` is a comment.
 
-With up to 8 toleranced values, the app runs the nominal circuit and then every combination of low and high limits: 2ⁿ corners, labelled like `C1− R+`. The runs are overlaid on the plot like other sweeps. On the **Measurements** tab, **min** and **max** are the worst-case values, with the corner that gave each written under it. In the example above, t50 is 693.6 µs nominal, 593.1 µs at `C1− R−` and 801.1 µs at `C1+ R+`.
+With up to 8 toleranced values, the app runs the nominal circuit and then every combination of low and high limits: 2ⁿ corners, labelled like `C1− R+`. The runs are overlaid on the plot like other sweeps. On the **Measurements** tab, **min** and **max** are the worst-case values, with the corner that gave each written under it (the mean and σ columns are left out). In the example above, t50 is 693.6 µs nominal, 593.1 µs at `C1− R−` and 801.1 µs at `C1+ R+`.
 
 With more than 8 values the corners would be too many (512 or more), so the app estimates them instead and says so at the top of the console:
 
 1. It runs the nominal circuit, then each value on its own at its high limit, to see which way each measurement moves.
 2. For each measurement, it runs the corner that should give the maximum (every value at the end that raises it) and the one that should give the minimum.
 
-This needs a `.meas` line. List the measurements to use after `.wc`, for example `.wc t50 vpp`; with no names it uses every `.meas` in the deck. The estimate assumes each measurement rises or falls steadily with each value, which holds for most passive tolerances but not, for example, for a value that tunes a filter through a peak.
+This needs a `.meas` line. List the measurements to use after `.wc`, for example `.wc t50 vpp`; with no names it uses every `.meas` in the deck. A name with no `.meas` line is an error. If a measurement has no value in the nominal run or in one of the sensitivity runs (it failed, or ngspice didn't print it), the app can't tell which way it moves: it skips that measurement's two corners and says so in the console (`--- max vo: skipped, … ---`), and the status bar counts fewer runs. The estimate assumes each measurement rises or falls steadily with each value, which holds for most passive tolerances but not, for example, for a value that tunes a filter through a peak.
 
 A toleranced value inside a subcircuit takes the same corner in every instance of that subcircuit. `.wc` can't be combined with `.step` or `.mc`.
 

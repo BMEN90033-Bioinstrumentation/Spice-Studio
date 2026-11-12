@@ -511,6 +511,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     try {
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
+        if (!s.netlist) { out += `--- ${s.label} ---\n`; continue } // .wc: a corner it couldn't pick (sim/sweep.ts)
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
         const r = await window.api.runSim(s.netlist, dir, opts)
         // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
@@ -524,7 +525,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     } finally {
       setRunning(false)
     }
-    if (stopped === 'user' && superseded.current) return // the tuning run that follows replaces the results
+    if (stopped === 'user' && superseded.current) return setStatus('Stopped: the tuning sliders moved') // the run that follows replaces the results
     const mt = done.map((r) => ({ label: r.label, rows: parseMeas(r.result.log) }))
     setMeas(mt.some((r) => r.rows.length) ? mt : null)
     // ngspice logs gmin/source stepping warnings on runs it rescued (noise), but a singular matrix result is never trustworthy
@@ -958,7 +959,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
             </section>
             {panels.results((actions) => (
               <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined}
-                tune={{ netlist: runs?.[0]?.netlist ?? '', running, set: (k) => void (tuned.current = k), run, cancel: () => ((superseded.current = true), stop()) }} />
+                tune={{ netlist: runs?.[0]?.netlist ?? '', knobs: tuned.current, running, set: (k) => void (tuned.current = k), run, cancel: () => ((superseded.current = true), stop()) }} />
             ))}
           </main>
         </div>

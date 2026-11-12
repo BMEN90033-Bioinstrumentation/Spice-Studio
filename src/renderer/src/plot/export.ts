@@ -85,6 +85,7 @@ function items(u: uPlot): (Item & { i: number })[] {
 }
 // plot area in CSS px (uPlot positions .u-over exactly over it)
 const area = (u: uPlot) => ({ l: parseFloat(u.over.style.left), t: parseFloat(u.over.style.top), w: u.over.clientWidth, h: u.over.clientHeight })
+const keyed = (u: uPlot) => (u.legend.show === false ? [] : items(u)) // legend entries: none where the chart hides its legend (Bode magnitude)
 type Ax = uPlot.Axis & { _splits?: number[]; _values?: (string | number | null)[]; _show?: boolean; side?: number }
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 export const LEG = 18 // legend row height
@@ -113,7 +114,7 @@ export function toSvg(u: uPlot | uPlot[], cursors: (number | undefined)[] = []):
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.max(...size.map((s) => s[0]))}" height="${y}">\n${body.join('\n')}\n</svg>`
   }
   const { l, t, w, h } = area(u), W = u.width
-  const legend = legendRows(items(u), W, 7), H = u.height + legend.length * LEG + 6
+  const legend = legendRows(keyed(u), W, 7), H = u.height + legend.length * LEG + 6
   const o: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Helvetica, Arial, sans-serif" font-size="11">`,
     `<rect width="${W}" height="${H}" fill="#ffffff"/>`,
@@ -219,7 +220,7 @@ export async function toPng(u: uPlot | uPlot[], cursors: (number | undefined)[] 
 }
 function paneCanvas(u: uPlot, cursors: (number | undefined)[]): HTMLCanvasElement {
   const src = u.ctx.canvas, pr = src.width / u.width
-  const legend = legendRows(items(u), u.width, 7.5)
+  const legend = legendRows(keyed(u), u.width, 7.5)
   const c = src.ownerDocument.createElement('canvas')
   c.width = src.width, c.height = src.height + Math.round((legend.length * LEG + 6) * pr)
   const g = c.getContext('2d')!
