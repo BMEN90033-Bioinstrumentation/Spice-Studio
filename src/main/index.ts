@@ -176,6 +176,12 @@ ipcMain.handle('file:open', async () => {
   return { path: r.filePaths[0], text: await readFile(r.filePaths[0], 'utf8') }
 })
 
+// File > Open Raw File…: an existing ngspice / LTspice .raw, shown in the plots panel without running anything
+ipcMain.handle('raw:open', async () => {
+  const r = await dialog.showOpenDialog({ filters: [{ name: 'SPICE raw files', extensions: ['raw'] }, { name: 'All', extensions: ['*'] }], properties: ['openFile'] })
+  if (r.canceled || !r.filePaths[0]) return null
+  return { path: r.filePaths[0], plots: parseRaw(await readFile(r.filePaths[0])) }
+})
 
 ipcMain.handle('file:save', async (_e, text: string, path: string | null, kind: 'cir' | 'nsch') => {
   if (!path) {

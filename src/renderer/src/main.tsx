@@ -92,7 +92,7 @@ function autoCompat(sheets: Sheet[], lib: (id: string) => LibEntry | undefined):
 type Route = 'home' | 'editor' | 'library'
 type Session =
   | { kind: 'project'; dir: string; file: string /* .nsproj, relative */; project: Project; sheets: Record<string, Sheet>; libTexts: Record<string, string>; warn: string }
-  | { kind: 'loose'; path: string | null; sheet: Sheet; net?: { path: string; text: string } }
+  | { kind: 'loose'; path: string | null; sheet: Sheet; net?: { path: string; text: string }; raw?: { path: string; plots: RawPlot[] } }
 
 const LOOSE = 'untitled.nsch' // the single sheet's key in loose-file mode
 // Leaving the current session (window close/quit, a file opened from the OS): the mounted Workspace swaps in its
@@ -201,6 +201,7 @@ function App() {
     { id: 'file.newProject', keys: 'Mod+N', run: () => leaving.guard(() => (setSession(null), setRoute('home'), setForm(true))) },
     { id: 'file.openProject', keys: 'Mod+O', run: () => leaving.guard(() => open()) },
     { id: 'file.openFile', keys: 'Mod+Shift+O', run: () => leaving.guard(openFile) },
+    { id: 'file.openRaw', run: () => leaving.guard(() => start(async () => { const r = await window.api.openRaw(); return r && { kind: 'loose', path: null, sheet: emptySheet(), raw: r } })) }, // a Workspace has its own
     { id: 'file.openRecent', run: (f) => f && leaving.guard(() => open(f)) }, // menu id 'file.openRecent:<file>'
     ...(session ? [] : [{ id: 'tools.library', run: () => setRoute('library') }, ...(route === 'library' ? [{ id: 'view.home', run: () => setRoute('home') }] : [])])
   ])
@@ -468,7 +469,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
   }
   const stop = () => ((stopReq.current = true), window.api.stopSim())
-  // tabs with no usable selection get the default one (live results; run() does its own pass at the end)
+  // tabs with no usable selection get the default one (live results and opened raw files; run() does its own pass at the end)
   const fillSels = (rs: Run[]) => setSels((prev) => {
     const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) => {
       const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
@@ -476,6 +477,15 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     })
     return add.length ? { ...prev, ...Object.fromEntries(add) } : prev
   })
+  // File > Open Raw File…: an existing ngspice / LTspice .raw in the plots panel, nothing simulated
+  async function openRaw(r?: { path: string; plots: RawPlot[] } | null) {
+    r ??= await window.api.openRaw().catch((e) => (setStatus(`Can't open that raw file: ${msg(e)}`), null))
+    if (!r) return
+    const rs = [{ label: '', result: { ok: true, log: '', plots: r.plots }, netlist: '' }]
+    setRuns(rs), fillSels(rs), setLog(`Opened ${r.path}\n`), setBlamed([]), setMeas(null), setDiag([])
+    setStatus(`Opened ${base(r.path)}: ${r.plots.map((p) => p.plotname).join(', ') || 'no plots'}`)
+  }
+  useEffect(() => void (session.kind === 'loose' && session.raw && openRaw(session.raw)), [])
 
   async function run() {
     if (running) return
@@ -720,6 +730,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     { id: 'file.saveAs', keys: 'Mod+Shift+S', run: () => (isSch ? saveSheets(true) : saveNet(true)), enabled: () => !(proj && isSch) }, // projects save in place
     { id: 'file.closeProject', run: () => leave(onClose), enabled: () => !!proj },
     { id: 'file.exportNetlist', run: exportNet },
+    { id: 'file.openRaw', run: () => void openRaw(), enabled: () => !running },
     { id: 'view.home', run: () => leave(onClose) },
     { id: 'view.schematic', run: toSheet, checked: () => route === 'editor' && isSch },
     { id: 'view.netlist', run: () => (go('editor'), switchTo('net')), checked: () => route === 'editor' && !isSch },

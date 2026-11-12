@@ -31,6 +31,7 @@ function template(recents: Recent[]): Item[] {
     cmd('file.newProject', 'New Project…', 'CmdOrCtrl+N'),
     cmd('file.openProject', 'Open Project…', 'CmdOrCtrl+O'),
     cmd('file.openFile', 'Open File…', 'CmdOrCtrl+Shift+O'),
+    cmd('file.openRaw', 'Open Raw File…'),
     {
       label: 'Open Recent',
       submenu: recents.length

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { SimResult } from '../main/index'
-import type { LiveChunk } from '../main/rawfile'
+import type { LiveChunk, RawPlot } from '../main/rawfile'
 import type { Pack } from '../main/userlib'
 import type { ImportedLib } from '../renderer/src/library/library'
 import type { Filter, SimOptions } from '../renderer/src/contracts'
@@ -24,6 +24,7 @@ const api = {
     return inv('sim:run', netlist, baseDir, opts, id).finally(off)
   },
   stopSim: (): Promise<void> => inv('sim:stop'), // kills the running ngspice; its runSim resolves with stopped: 'user'
+  openRaw: (): Promise<{ path: string; plots: RawPlot[] } | null> => inv('raw:open'),
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {
