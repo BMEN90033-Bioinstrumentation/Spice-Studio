@@ -29,6 +29,7 @@ import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
+import { liveRun, progress } from './sim/live'
 import { ArrowUpToLine, ChevronLeft, House, Pencil, Play, Plus, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -467,6 +468,14 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
   }
   const stop = () => ((stopReq.current = true), window.api.stopSim())
+  // tabs with no usable selection get the default one (live results; run() does its own pass at the end)
+  const fillSels = (rs: Run[]) => setSels((prev) => {
+    const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) => {
+      const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
+      return (panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]).map((d, i) => [paneKey(key, i), d] as const).filter(([k]) => !prev[k]?.some((v) => has.has(v)))
+    })
+    return add.length ? { ...prev, ...Object.fromEntries(add) } : prev
+  })
 
   async function run() {
     if (running) return
@@ -507,11 +516,21 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
         setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
-        const r = await window.api.runSim(s.netlist, dir, opts)
+        // live: the plots fill in while ngspice runs (sim/live.ts), with progress in the status bar
+        const lv = liveRun()
+        const r = await window.api.runSim(s.netlist, dir, opts, (c) => {
+          lv.add(c)
+          const plots = lv.plots(), last = plots.at(-1)
+          if (!last || last.points < 2) return
+          const pc = progress(last, s.netlist)
+          setStatus(`${n > 1 ? `Running ${i + 1}/${n} (${s.label})` : 'Running'}…${pc == null ? '' : ` ${Math.floor(pc * 100)}%`}`)
+          const rs = [...done, { label: s.label, result: { ok: true, log: '', plots }, netlist: s.netlist }]
+          setRuns(rs), fillSels(rs)
+        })
         // SAVE_CURRENTS makes .ac/.noise print one "unrecognized variable - @x[i]" per device: our noise, not the user's
         const rl = nl ? r.log.replace(/^.*unrecognized variable - @.*(\n|$)/gim, '') : r.log
         out += (n > 1 ? `--- run ${s.label} ---\n` : '') + rl + (rl.endsWith('\n') ? '' : '\n')
-        if ((stopped = r.stopped)) break // keep the runs completed so far, drop the cut-off one
+        if ((stopped = r.stopped)) { if (r.plots.length) done.push({ label: s.label, result: r, netlist: s.netlist }); break } // keep what the cut-off run computed too
         done.push({ label: s.label, result: r, netlist: s.netlist })
         if (!(ok = r.ok)) break // stop at the first failed run, its log is the last section
       }
