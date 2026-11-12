@@ -22,6 +22,10 @@ Plot controls:
 
 An analysis that produces a single point, such as `.op`, is shown as a table instead of a plot.
 
+### Opening a raw file
+
+**File › Open Raw File…** shows the results in an existing `.raw` file without running anything: one written by ngspice (`ngspice -b -r out.raw`, `write` in a `.control` block, binary or ASCII) or by LTspice. Each plot in the file gets a tab, and the plot tools (cursors, expressions, FFT, export) work as usual. From the Home page it opens in an untitled workspace; in an open project it replaces the results panel's contents until the next run.
+
 ### Choosing the plots with `.plot`
 
 Put `.plot` lines in a directive to pick what is plotted after each run. Each line becomes its own chart, stacked in the analysis's tab, so signals of very different sizes (millivolts at the electrodes, volts after the amplifier) each get a readable scale:

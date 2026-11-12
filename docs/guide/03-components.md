@@ -78,6 +78,20 @@ If the value is one of the default names (`D`, `DZ`, `LED`, `NPN`, `PNP`, `NJF`,
 
 Parts from a library carry more than a value: placing `2N3904` from the Parts panel links the part to its library entry, so the right model goes into the netlist. Typing `2N3904` into the value of a plain NPN does not; ngspice will then report that it can't find the model, unless you add the model yourself with `.model` or `.include`.
 
+## Digital parts
+
+The **Digital** category of the Parts panel has logic gates and a flip-flop. They simulate with ngspice's XSPICE digital models, and each part converts between analog and digital at its pins. You can wire them to each other, to sources and to analog parts like any other part, and every net plots as a voltage.
+
+| Part | Pins in order | Netlisted as |
+|---|---|---|
+| AND2, NAND2, OR2, NOR2, XOR2 | A, B, Y | `X… a b y NAND2 params: vdd=5 tpd=10n` |
+| INV, BUF | A, Y | an inverter or buffer |
+| DFF | D, CLK, Q, Q̄ | a D flip-flop, rising-edge clock, Q = 0 at the start |
+
+The value sets the logic family: `vdd=<logic high>` (output levels 0 and vdd, inputs switch at vdd/2) and `tpd=<delay>` (input to output; outputs then take 1 ns to swing). For 3.3 V logic, use `vdd=3.3`. For a clock, use a voltage source with a pulse, such as `PULSE(0 5 0 2n 2n 0.5u 1u)` for 1 MHz.
+
+Inputs draw no current, and an unconnected input reads as low. An output is an ideal voltage source, so don't connect two outputs together. The project template **Digital counter (mixed-signal)** and the [Digital-Counter](examples/Digital-Counter/) example show a 2-bit counter made from two DFFs, an XOR gate and an RC filter.
+
 ## Blocks
 
 A **block** is another sheet of the project used as one part; its pins are that sheet's ports. See [chapter 7](07-projects-and-hierarchy.md).
