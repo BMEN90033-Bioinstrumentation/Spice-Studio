@@ -94,6 +94,8 @@ function template(recents: Recent[]): Item[] {
   ]
   const place: Item[] = [
     cmd('place.wire', 'Wire', 'W'),
+    cmd('place.bus', 'Bus', 'B'),
+    cmd('place.bustap', 'Bus Tap'),
     sep,
     cmd('place.res', 'Resistor', 'R'),
     cmd('place.cap', 'Capacitor', 'C'),

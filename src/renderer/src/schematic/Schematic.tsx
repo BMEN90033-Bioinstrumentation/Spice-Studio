@@ -43,7 +43,7 @@ export interface Overlay {
 }
 
 type ShapeTool = 'line' | 'arrow' | 'rect' | 'ellipse'
-type Tool = 'select' | 'wire' | 'text' | 'note' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+type Tool = 'select' | 'wire' | 'bus' | 'text' | 'note' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
 const SHAPES: { t: ShapeTool; title: string; icon: ReactNode }[] = [
   { t: 'line', title: 'Line', icon: <Minus /> }, { t: 'arrow', title: 'Arrow', icon: <MoveUpRight /> },
   { t: 'rect', title: 'Rectangle', icon: <Square /> }, { t: 'ellipse', title: 'Ellipse', icon: <Circle /> }
@@ -103,6 +103,10 @@ function bounds(s: Sheet, skipTitle = false): Box | null {
 // ponytail: placement heuristic from the bbox aspect; no collision avoidance
 function Texts({ p }: { p: Part }) {
   if (p.kind === 'gnd') return null
+  if (p.kind === 'bustap') { // member name just past the wire end, away from the bus
+    const t = xform(p, { x: 13, y: 13 }), dx = t.x - p.x, dy = t.y - p.y
+    return <text className="n" x={t.x} y={t.y + (dy > 0 ? 6 : 0)} textAnchor={dx > 0 ? 'start' : 'end'}>{p.value}</text>
+  }
   if (p.kind === 'label' || p.kind === 'port' || p.kind === 'power') {
     // text sits past the symbol along its pointing direction: +x for labels/ports, up (-y) for the power bar
     const up = p.kind === 'power', o = xform(p, up ? { x: 0, y: -1 } : { x: 1, y: 0 }), dx = o.x - p.x, dy = o.y - p.y
@@ -393,7 +397,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else if (k === 't') use('note')
     else if (k === 'p') use('probe')
     else if (k === 'a') setDlg('analysis')
-    else if (k === '/' && tool === 'wire') setVFirst((v) => !v)
+    else if (k === '/' && (tool === 'wire' || tool === 'bus')) setVFirst((v) => !v)
+    else if (k === 'b') use('bus')
     else if (k === '/') toggleLib(true), setTimeout(() => search.current?.focus())
     else if (e.key === 'L') toggleLib()
     else if (k === '+' || k === '=') zoomBy(1.25)
@@ -464,6 +469,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'view.fit', run: () => fit() },
     { id: 'view.showOp', run: () => setShowOp((v) => !v), enabled: () => !!overlay?.op, checked: () => !!overlay?.op && showOp },
     { id: 'place.wire', run: () => use('wire') },
+    { id: 'place.bus', run: () => use('bus') },
+    { id: 'place.bustap', run: () => use({ place: 'bustap', title: SYMBOLS.bustap.title }) },
     { id: 'place.directive', run: () => use('text') },
     { id: 'place.note', run: () => use('note') },
     ...SHAPES.map(({ t }) => ({ id: 'place.' + t, run: () => use(t) })),
@@ -496,12 +503,13 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     svg: exportSvg
   }))
 
-  function wireClick(p: Pt) {
+  // bus: the same, into sheet.buses; it ends on another bus
+  function wireClick(p: Pt, bus = false) {
     if (!start) return setStart(p)
     if (same(p, start)) return
-    const s = cur.current
-    const hit = s.parts.some((q) => pins(q).some((r) => same(r, p))) || s.wires.some((w) => same(w.a, p) || same(w.b, p) || onSegment(w, p))
-    commit({ ...s, wires: [...s.wires, ...route(start, p, vFirst)] })
+    const s = cur.current, on = (w: { a: Pt; b: Pt }) => same(w.a, p) || same(w.b, p) || onSegment({ id: '', ...w }, p)
+    const hit = bus ? (s.buses ?? []).some(on) : s.parts.some((q) => pins(q).some((r) => same(r, p))) || s.wires.some(on)
+    commit(bus ? { ...s, buses: [...(s.buses ?? []), ...route(start, p, vFirst)] } : { ...s, wires: [...s.wires, ...route(start, p, vFirst)] })
     setStart(hit ? null : p)
   }
 
@@ -520,7 +528,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       drag.current = { t: 'diff', net, a: w, cx: e.clientX, cy: e.clientY, click: t }
       return e.currentTarget.setPointerCapture(e.pointerId)
     }
-    if (tool === 'wire') return wireClick(p)
+    if (tool === 'wire' || tool === 'bus') return wireClick(p, tool === 'bus')
     if (isShape(tool)) {
       if (!start) return setStart(p)
       if (same(p, start)) return
@@ -617,7 +625,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
 
   function dbl(e: RME) {
-    if (tool === 'wire' || isShape(tool)) return setStart(null)
+    if (tool === 'wire' || tool === 'bus' || isShape(tool)) return setStart(null)
     // pointer capture from pointerdown retargets dblclick to the <svg>: hit-test the point instead
     const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id')
     const p = cur.current.parts.find((q) => q.id === id)
@@ -697,7 +705,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       `<style>${PRINT_CSS}</style><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff"/>${new XMLSerializer().serializeToString(g)}</svg>`
   }
 
-  const dots = useMemo(() => ({ j: junctions(sheet), nc: unconnectedPins(sheet) }), [sheet])
+  const dots = useMemo(() => ({ j: junctions(sheet), nc: unconnectedPins(sheet), b: sheet.buses?.length ? junctions({ ...sheet, parts: [], wires: sheet.buses }) : [] }), [sheet])
   const placing = typeof tool === 'object' ? tool : null
   const one = sel.size === 1 ? sheet.parts.find((p) => sel.has(p.id) && p.kind !== 'gnd') : undefined
   const entry = one?.lib ? library.find((e) => e.id === one.lib) : undefined
@@ -745,6 +753,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       ? start
         ? `Click to finish the ${shapeName(tool)}${tool === 'line' ? ' and start the next segment · double-click or Esc ends' : ' · Esc cancels'}`
         : `Click where the ${shapeName(tool)} starts · Esc returns to select`
+      : tool === 'bus'
+      ? start
+        ? 'Click to add a corner · click a bus to join it · / flips the corner · double-click or Esc ends'
+        : 'Click to start a bus · name it with a net label such as D[0..7] · bus taps break out its members'
       : tool === 'wire'
       ? start
         ? 'Click to add a corner · click a pin or wire to finish · / flips the corner · double-click or Esc ends'
@@ -781,6 +793,13 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               <line x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
             </g>
           ))}
+          {sheet.buses?.map((w) => (
+            <g key={w.id} data-id={w.id} className={`bus${sel.has(w.id) ? ' on' : ''}`}>
+              <line className="hit" x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
+              <line x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />
+            </g>
+          ))}
+          {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
           {dots.j.map((q) => <circle key={`j${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
           {dots.nc.map((q, i) => <rect key={i} className="nc" x={q.x - 2} y={q.y - 2} width={4} height={4} />)}
@@ -794,8 +813,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {tool === 'note' && cursor && <DrawingEl d={{ id: '', t: 'note', ...cursor, text: 'Note' }} cls="ghost" />}
           {isShape(tool) && cursor && (start ? <DrawingEl d={{ id: '', t: tool, a: start, b: cursor }} cls="ghost" />
             : <g className="preview"><circle cx={cursor.x} cy={cursor.y} r={2.5} /></g>)}
-          {tool === 'wire' && cursor && (
-            <g className="preview">
+          {(tool === 'wire' || tool === 'bus') && cursor && (
+            <g className={`preview${tool === 'bus' ? ' bus' : ''}`}>
               {start && route(start, cursor, vFirst).map((w, i) => <line key={i} x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />)}
               <circle cx={cursor.x} cy={cursor.y} r={2.5} />
             </g>
@@ -828,7 +847,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           ))}
         </ToggleGroup>
         <DropdownMenu>
-          <Tip label="Annotate: text, lines, shapes, title block">
+          <Tip label="Draw: text, shapes, title block, buses">
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm" aria-label="Draw" className={cn('size-7 text-muted-foreground', (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /></Button>
             </DropdownMenuTrigger>
@@ -836,6 +855,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>T</DropdownMenuShortcut></DropdownMenuItem>
             {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => use('bus')}><Spline className="stroke-[3]" />Bus<DropdownMenuShortcut>B</DropdownMenuShortcut></DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => use({ place: 'bustap', title: SYMBOLS.bustap.title })}><SymbolPreview kind="bustap" size="small" />Bus tap</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem checked={!!titleOf(sheet)} onSelect={toggleTitle}><PanelBottom className="text-muted-foreground" />Title block</DropdownMenuCheckboxItem>
           </DropdownMenuContent>

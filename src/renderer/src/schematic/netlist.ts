@@ -1,7 +1,7 @@
 // Schematic -> SPICE netlist. Pure TS, follows the connectivity rules in model.ts.
 // Hierarchy: blocks (Part.sheet) become `.subckt` definitions of their sheets, library parts
 // (Part.lib) pull in their .model / .subckt text once.
-import { key, onSegment, pins, sheetPorts, type Part, type Sheet } from './model.ts'
+import { busMembers, key, onSegment, pins, same, sheetPorts, type Part, type Pt, type Sheet } from './model.ts'
 import { SYMBOLS, isFlag } from './symbols.ts'
 import { si, type LibEntry } from '../library/library.ts'
 
@@ -99,8 +99,10 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   }
   // a pin joins whatever sits at its point; coincident pins share a key so they join for free
   const flagName = (p: Part) => (p.kind === 'gnd' || /^(0|gnd)$/i.test(p.value) ? '0' : p.value)
+  const busLabel = (p: Part) => p.kind === 'label' && !!busMembers(p.value) // names a bus's members, not a net
+  buses(s, err, warn, busLabel)
   for (const p of s.parts) {
-    if (!isFlag(p.kind)) continue
+    if (!isFlag(p.kind) || busLabel(p)) continue
     if (p.kind !== 'gnd' && BAD.test(p.value)) err(`Invalid net ${p.kind === 'port' ? 'port' : p.kind === 'power' ? 'power flag' : 'label'} "${p.value}": no spaces or =(),{}"' allowed`)
     union(key(pins(p)[0]), '@' + flagName(p).toLowerCase())
     // power flags are global like ground (a subckt's other nets are local to it); labels stay local to their sheet
@@ -111,7 +113,7 @@ function sheet(s: Sheet, g: Global, file: string | null) {
 
   // name each net: ground, then (in a sub-sheet) its port, then labels (ngspice is case-insensitive, so compare lowercased)
   const labels = new Map<string, Map<string, string>>() // root -> lower -> display
-  for (const p of s.parts) if (isFlag(p.kind)) {
+  for (const p of s.parts) if (isFlag(p.kind) && !busLabel(p)) {
     const r = find(key(pins(p)[0])), n = flagName(p)
     if (!labels.has(r)) labels.set(r, new Map())
     if (!labels.get(r)!.has(n.toLowerCase())) labels.get(r)!.set(n.toLowerCase(), n)
@@ -254,6 +256,32 @@ function sheet(s: Sheet, g: Global, file: string | null) {
   // ponytail: names only checked on this sheet (+ its directives); an element in another sheet or an .include warns falsely
   for (const { ref, name, what } of named) if (!seen.has(name.toLowerCase())) warn(`${ref}: ${what} "${name}" is not on this sheet`)
   return { lines, directives, parts: parts.length, nets, wireNets, refs }
+}
+
+// Buses carry names only: segments join at their ends and T's, a bus label (D[0..7]) on a bus gives it members, and a
+// bus tap joins its wire to the member net named by its value (like a net label, so members connect by name across
+// buses and labels). Here: checks that taps and bus labels sit on a bus and that a tap names one of its bus's members.
+function buses(s: Sheet, err: (m: string) => void, warn: (m: string) => void, busLabel: (p: Part) => boolean) {
+  const bs = s.buses ?? [], up = bs.map((_, i) => i)
+  const g = (i: number): number => (up[i] === i ? i : (up[i] = g(up[i])))
+  bs.forEach((w, i) => bs.forEach((o, j) => {
+    if (i < j && ([w.a, w.b].some((q) => same(q, o.a) || same(q, o.b) || onSegment(o, q)) || [o.a, o.b].some((q) => onSegment(w, q)))) up[g(i)] = g(j)
+  }))
+  const at = (q: Pt) => { const i = bs.findIndex((w) => same(w.a, q) || same(w.b, q) || onSegment(w, q)); return i < 0 ? -1 : g(i) }
+  const members = new Map<number, Set<string>>(), labels = new Map<number, string[]>()
+  for (const p of s.parts.filter(busLabel)) {
+    const i = at(pins(p)[0])
+    if (i < 0) { warn(`Bus label "${p.value}" isn't on a bus`); continue }
+    members.set(i, new Set([...(members.get(i) ?? []), ...busMembers(p.value)!.map((m) => m.toLowerCase())]))
+    labels.set(i, [...(labels.get(i) ?? []), p.value])
+  }
+  for (const p of s.parts) {
+    if (p.kind === 'port' && busMembers(p.value)) err(`Port "${p.value}": buses can't cross sheets; use one port per member`)
+    if (p.kind !== 'bustap') continue
+    const i = at(p)
+    if (i < 0) warn(`Bus tap "${p.value}" isn't on a bus; it still joins net "${p.value}"`)
+    else if (members.has(i) && !members.get(i)!.has(p.value.toLowerCase())) err(`Bus tap "${p.value}" isn't a member of bus ${labels.get(i)!.join(', ')}`)
+  }
 }
 
 // Transformer value "Lp=1m Ls=100u k=0.999" (any order, case-insensitive); an error message if malformed

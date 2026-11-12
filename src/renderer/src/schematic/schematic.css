@@ -80,3 +80,10 @@
 /* imported part that wasn't converted (importer.ts placeholder): the netlister refuses it */
 .sch .part.ph { color: var(--err); }
 .sch .part.ph .sym path { stroke-dasharray: 4 3; }
+
+/* buses: thick, blue; they join only other buses (and bus taps / bus labels by position) */
+.sch .bus line { stroke: #5b9bd5; stroke-width: 4; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.sch .bus line.hit { stroke: transparent; stroke-width: 12; }
+.sch .bus.on line:not(.hit) { stroke: var(--sel); }
+.sch .bjn { fill: #5b9bd5; pointer-events: none; }
+.sch .preview.bus line { stroke-width: 4; }

@@ -147,11 +147,21 @@ export function nextName(s: Sheet, prefix: string): string {
   return prefix + (max + 1)
 }
 
+// Bus label name "D[0..7]" (or D[7..0]) -> its member nets D0..D7; null for an ordinary name
+export function busMembers(v: string): string[] | null {
+  const m = /^([A-Za-z_][\w]*)\[(\d+)\.\.(\d+)\]$/.exec(v.trim())
+  if (!m) return null
+  const a = +m[2], b = +m[3], st = a <= b ? 1 : -1
+  return Math.abs(b - a) > 1023 ? null : Array.from({ length: Math.abs(b - a) + 1 }, (_, i) => m[1] + (a + i * st))
+}
+
 export function newPart(s: Sheet, kind: Kind, x: number, y: number, rot = 0, mirror = false, extra?: Partial<Part>): Part {
   const d = SYMBOLS[kind]
   // new labels/ports get a unique name (n1, n2… / p1, p2…): a shared default would silently join their nets
   const uniq = (pre: string) => nextName({ ...s, parts: s.parts.filter((p) => p.kind === kind).map((p) => ({ ...p, name: p.value })) }, pre)
-  const value = kind === 'label' ? uniq('n') : kind === 'port' ? uniq('p') : d.value
+  // a new bus tap takes the member after the last tap's (D3 -> D4), so a row of taps fans a bus out in order
+  const tap = () => { const v = s.parts.findLast((p) => p.kind === 'bustap')?.value ?? '', m = /^(.*?)(\d+)$/.exec(v); return m ? m[1] + (+m[2] + 1) : d.value }
+  const value = kind === 'label' ? uniq('n') : kind === 'port' ? uniq('p') : kind === 'bustap' ? tap() : d.value
   return { id: uid(), kind, x, y, rot, mirror, name: d.prefix ? nextName(s, d.prefix) : '', value, ...extra }
 }
 

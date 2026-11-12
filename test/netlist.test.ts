@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { emptySheet, exampleSheet, newPart, pins, route, uid, type Pt, type Sheet } from '../src/renderer/src/schematic/model.ts'
+import { busMembers, emptySheet, exampleSheet, newPart, pins, route, uid, type Pt, type Sheet } from '../src/renderer/src/schematic/model.ts'
 import type { Kind } from '../src/renderer/src/schematic/symbols.ts'
 import { netlist } from '../src/renderer/src/schematic/netlist.ts'
 import { parseRaw } from '../src/main/rawfile.ts'
@@ -211,4 +211,39 @@ test('directives: verbatim in sheet order, bare .end dropped, missing analysis w
   assert.ok(r.text.endsWith('V1 a 0 DC 1\n.control\nop\nprint v(a)\n.endc\n.param k=2\n.end\n'), r.text)
   s.texts = [{ id: uid(), x: 0, y: 0, text: '.param k=2' }]
   assert.match(netlist(s).warnings.join(), /No analysis directive/)
+})
+
+test('buses: taps join their wires to member nets D0…, bus labels name the members, checks for taps and labels', () => {
+  const s = emptySheet()
+  const bus = (a: Pt, b: Pt) => (s.buses ??= []).push({ id: uid(), a, b })
+  // two separate buses, both labelled D[0..3]; a T on the first
+  bus({ x: 0, y: 0 }, { x: 200, y: 0 }), bus({ x: 100, y: 0 }, { x: 100, y: -50 }), bus({ x: 0, y: 300 }, { x: 200, y: 300 })
+  s.parts.push(newPart(s, 'label', 0, 0, 0, false, { value: 'D[0..3]' }), newPart(s, 'label', 200, 300, 0, false, { value: 'D[3..0]' }))
+  const tap = (x: number, y: number, v: string) => { const t = newPart(s, 'bustap', x, y, 0, false, { value: v }); s.parts.push(t); return pins(t)[0] }
+  // R1 from D0 (first bus) to D1 (the T branch); R2 from D0 (second bus) to ground
+  const r1 = put(s, 'res', 500, ['', ''], '1k'), r2 = put(s, 'res', 600, ['', '0'], '2k')
+  s.wires.push(...route(tap(40, 0, 'D0'), pins(r1)[0]), ...route(tap(100, -50, 'D1'), pins(r1)[1], true), ...route(tap(40, 300, 'd0'), pins(r2)[0]))
+  op(s)
+  const r = netlist(s)
+  assert.deepEqual([r.errors, r.warnings], [[], []])
+  assert.match(r.text, /^R1 D0 D1 1k$/m)
+  assert.match(r.text, /^R2 D0 0 2k$/m) // same member on another bus: same net
+  assert.equal(s.parts.at(-1)!.kind, 'bustap')
+  // a tap naming a non-member, a tap off any bus, a bus label off any bus, a bus port
+  s.parts.push(newPart(s, 'bustap', 160, 0, 0, false, { value: 'D7' }), newPart(s, 'bustap', 1000, 1000, 0, false, { value: 'X1' }))
+  s.parts.push(newPart(s, 'label', 1000, 2000, 0, false, { value: 'A[0..1]' }), newPart(s, 'port', 1000, 3000, 0, false, { value: 'B[0..1]' }))
+  const e = netlist(s)
+  assert.deepEqual(e.errors, ['Bus tap "D7" isn\'t a member of bus D[0..3]', 'Port "B[0..1]": buses can\'t cross sheets; use one port per member'])
+  assert.deepEqual(e.warnings.slice(0, 2), ['Bus label "A[0..1]" isn\'t on a bus', 'Bus tap "X1" isn\'t on a bus; it still joins net "X1"'])
+})
+
+test('busMembers and the next bus tap name', () => {
+  assert.deepEqual(busMembers('D[0..3]'), ['D0', 'D1', 'D2', 'D3'])
+  assert.deepEqual(busMembers(' A[2..0] '), ['A2', 'A1', 'A0'])
+  assert.equal(busMembers('D3'), null)
+  assert.equal(busMembers('D[0..9999]'), null)
+  const s = emptySheet()
+  s.parts.push(newPart(s, 'bustap', 0, 0, 0, false, { value: 'ADDR7' }))
+  assert.equal(newPart(s, 'bustap', 0, 0).value, 'ADDR8')
+  assert.equal(newPart(emptySheet(), 'bustap', 0, 0).value, 'D0')
 })
