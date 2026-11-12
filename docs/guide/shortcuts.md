@@ -62,7 +62,8 @@ These work when the canvas is active and no text field has focus.
 | Pinch, Ctrl+scroll | Zoom |
 | Shift+click | Add to or remove from the selection |
 | Double-click a part, directive or note | Open its properties popup |
-| Right-click, or Enter on the selection | Open its properties popup (also for blocks) |
+| Enter on the selection | Open its properties popup (also for blocks) |
+| Right-click | Context menu: properties, clipboard, rotate, mirror, align, distribute |
 | Double-click a block | Open its sheet |
 
 ## Parts panel search

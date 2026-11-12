@@ -68,7 +68,7 @@ The AC plot shows the single-pole roll-off at `mid` and the steeper two-pole rol
 To see or edit the sheet behind a block, either:
 
 - double-click the block, or
-- right-click it (or select it and press Enter) and click **Open sheet** in the popup.
+- select it and press Enter (or right-click it and choose **Properties…**), then click **Open sheet** in the popup.
 
 The sheet opens in a new tab, with a breadcrumb trail above the canvas (**main › filter**). Click **‹** or a name in the trail to go back up.
 

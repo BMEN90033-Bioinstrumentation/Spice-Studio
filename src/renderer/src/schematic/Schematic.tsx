@@ -18,7 +18,7 @@ import { usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
 import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -208,6 +208,37 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     setPop({ id, left: Math.max(8, Math.min(left, r.width - W - 8)), top: Math.max(8, Math.min(b.top - r.top, r.height - 220)) })
   }
   useEffect(() => { pop && ta.current?.focus() }, [pop?.id])
+  // right-click menu: at the pointer; on an item outside the selection it selects that item first
+  const [menu, setMenu] = useState<{ left: number; top: number; id?: string } | null>(null)
+  function context(e: RME) {
+    e.preventDefault()
+    drag.current = null, setBox(null) // a Ctrl+click (macOS) also pressed the left button
+    if (tool !== 'select') return use('select') // right-click leaves the current tool, like Esc
+    const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id') ?? undefined
+    if (id && !sel.has(id)) setSel(new Set([id]))
+    const r = root.current!.getBoundingClientRect()
+    setMenu({ left: e.clientX - r.left, top: e.clientY - r.top, id })
+  }
+  // Align / distribute the selected parts and directive cards by their boxes. Every move is a whole number of grid
+  // steps, so pins stay on the grid; wires follow as they do in a drag (remap).
+  type Edge = 'left' | 'right' | 'top' | 'bottom' | 'cx' | 'cy' | 'dx' | 'dy'
+  function align(m: Edge) {
+    const s0 = cur.current
+    const items = [...s0.parts.filter((p) => sel.has(p.id)).map((p) => ({ id: p.id, b: pbox(p), part: true })), ...s0.texts.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, b: tbox(t), part: false }))]
+    if (items.length < 2) return
+    const x = m === 'left' || m === 'right' || m === 'cx' || m === 'dx', mid = (b: Box) => (x ? (b.x0 + b.x1) / 2 : (b.y0 + b.y1) / 2)
+    const lo = Math.min(...items.map((i) => (x ? i.b.x0 : i.b.y0))), hi = Math.max(...items.map((i) => (x ? i.b.x1 : i.b.y1)))
+    const sorted = [...items].sort((a, b) => mid(a.b) - mid(b.b)), first = mid(sorted[0].b), step = (mid(sorted.at(-1)!.b) - first) / (sorted.length - 1)
+    let s = s0
+    for (const i of items) {
+      const want = m === 'left' || m === 'top' ? lo - (x ? i.b.x0 : i.b.y0) : m === 'right' || m === 'bottom' ? hi - (x ? i.b.x1 : i.b.y1)
+        : m === 'cx' || m === 'cy' ? (lo + hi) / 2 - mid(i.b) : first + sorted.indexOf(i) * step - mid(i.b)
+      const d = x ? { x: snap(want), y: 0 } : { x: 0, y: snap(want) }
+      if (!d.x && !d.y) continue
+      s = i.part ? remap(s, new Set([i.id]), (q) => ({ ...q, ...add(q, d) }), (q) => add(q, d)) : { ...s, texts: s.texts.map((t) => (t.id === i.id ? { ...t, ...add(t, d) } : t)) }
+    }
+    if (s !== s0) commit({ ...s, wires: s.wires.filter((w) => !same(w.a, w.b)) })
+  }
   useEffect(() => setPop(null), [view]) // ponytail: it doesn't follow a pan or zoom, it closes
   useEffect(() => { pop && !sel.has(pop.id) && setPop(null) }, [sel]) // closes when its element is no longer the selection
   const [tool, setTool] = useState<Tool>('select')
@@ -779,6 +810,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const ports = blockSheet && sheetPorts(blockSheet.sheet)
   const stale = ports && ports.join('\0') !== (one!.pins ?? []).map((q) => q.name).join('\0') ? ports : undefined
   const dir = sel.size === 1 ? sheet.texts.find((t) => sel.has(t.id)) : undefined
+  const alignable = sheet.parts.filter((p) => sel.has(p.id)).length + sheet.texts.filter((t) => sel.has(t.id)).length // what Align / Distribute move
   const popAt = pop ? { left: pop.left, top: pop.top, maxHeight: `calc(100% - ${pop.top + 8}px)` } : undefined
   const drw = sel.size === 1 ? sheet.draw?.find((d) => sel.has(d.id) && (d.t === 'note' || d.t === 'title')) : undefined
   const editDraw = (d: Drawing, f: string, v: string | number) =>
@@ -835,7 +867,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   return (
     <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
       <svg ref={svg} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-        onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={(e) => { e.preventDefault(); const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id'); if (id) openPop(id) }}>
+        onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={context}>
         <defs>
           <pattern id={gridId} width={g} height={g} patternUnits="userSpaceOnUse" patternTransform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             <circle className="dot" r={1 / view.k} />
@@ -1037,6 +1069,44 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </div>
       )}
 
+      {/* right-click menu: a zero-size trigger at the pointer anchors the dropdown */}
+      <DropdownMenu open={!!menu} onOpenChange={(o) => !o && setMenu(null)}>
+        <DropdownMenuTrigger asChild><span className="pointer-events-none absolute size-0" style={{ left: menu?.left ?? 0, top: menu?.top ?? 0 }} /></DropdownMenuTrigger>
+        <DropdownMenuContent align="start" side="bottom" sideOffset={2} className="w-52" onCloseAutoFocus={(e) => e.preventDefault()}>
+          {menu?.id && <DropdownMenuItem disabled={sel.size !== 1} onSelect={() => { const id = menu.id!; setTimeout(() => openPop(id)) }}>Properties…<DropdownMenuShortcut>↵</DropdownMenuShortcut></DropdownMenuItem>}
+          {menu?.id && <DropdownMenuSeparator />}
+          <DropdownMenuItem disabled={!sel.size} onSelect={cut}>Cut<DropdownMenuShortcut>{keyLabel('Mod+X')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => (clip.current = picked())}>Copy<DropdownMenuShortcut>{keyLabel('Mod+C')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!clip.current} onSelect={() => (clip.current = paste(clip.current))}>Paste<DropdownMenuShortcut>{keyLabel('Mod+V')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => paste(picked())}>Duplicate<DropdownMenuShortcut>{keyLabel('Mod+D')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={del}>Delete<DropdownMenuShortcut>Del</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(true)}>Rotate<DropdownMenuShortcut>Ctrl+R</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem disabled={!sel.size} onSelect={() => orient(false)}>Mirror<DropdownMenuShortcut>Ctrl+E</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger disabled={alignable < 2}>Align</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onSelect={() => align('left')}>Left edges</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => align('cx')}>Centres (in a column)</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => align('right')}>Right edges</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => align('top')}>Top edges</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => align('cy')}>Centres (in a row)</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => align('bottom')}>Bottom edges</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger disabled={alignable < 3}>Distribute</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onSelect={() => align('dx')}>Horizontally</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => align('dy')}>Vertically</DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setSel(new Set(all(cur.current)))}>Select All<DropdownMenuShortcut>{keyLabel('Mod+A')}</DropdownMenuShortcut></DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => fit()}>Fit to Window<DropdownMenuShortcut>F</DropdownMenuShortcut></DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <div className="sch-hint text-xs text-muted-foreground">{hint}</div>
       {/* portalled: panels beside the canvas would otherwise stack above the modal */}
       {dlg && createPortal(

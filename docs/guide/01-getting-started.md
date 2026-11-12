@@ -60,7 +60,7 @@ Start from a *Blank* project. [Chapter 2](02-drawing-schematics.md) explains eac
 
 ### Set the source
 
-1. Double-click V1. Its properties open in a popup beside it (right-click, or Enter on a selected part, opens it too; Esc closes it).
+1. Double-click V1. Its properties open in a popup beside it (Enter on a selected part, or **Properties…** in the right-click menu, opens it too; Esc closes it).
 2. Click **Waveform…**.
 3. Set **DC value** to `0` and **AC magnitude** to `1`.
 4. Set **Transient waveform** to *Pulse* and fill in 0, 1, 0, 1u, 1u, 5m and 10m (initial value, pulsed value, delay, rise, fall, width, period).

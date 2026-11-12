@@ -83,9 +83,15 @@ The four small buttons in the toolbar place a ground, a power flag, a net label 
 - **Ctrl+R** / **Ctrl+E** rotate or mirror the selected parts.
 - **Delete** or **⌫** deletes. ⌘X, ⌘C and ⌘V cut, copy and paste (inside the app only), ⌘D duplicates and ⌘A selects all.
 
-Double-click a part to open its properties in a popup beside it (or right-click it, or select it and press Enter). Edit **Name** and **Value** there. Esc, or a click elsewhere, closes the popup.
+Double-click a part to open its properties in a popup beside it (or select it and press Enter, or choose **Properties…** from the right-click menu). Edit **Name** and **Value** there. Esc, or a click elsewhere, closes the popup.
 
-If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. A box select picks up labels too (they turn the highlight colour): drag any selected label to move all the selected ones together. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
+If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. ### The right-click menu
+
+Right-click the canvas for a menu at the pointer: **Properties…**, Cut, Copy, Paste, Duplicate, Delete, Rotate, Mirror, **Align**, **Distribute**, Select All and Fit to Window. Right-clicking an item that isn't selected selects it first; right-clicking with a tool active just leaves the tool, like Esc.
+
+**Align** lines up the selected parts and directive cards by their left, right, top or bottom edges, or by their centres. **Distribute** spaces three or more evenly between the two outermost. Parts only ever move by whole grid steps, so their pins stay on the grid and wires stay attached; two parts of different sizes can therefore end up half a grid step short of an exact edge match.
+
+A box select picks up labels too (they turn the highlight colour): drag any selected label to move all the selected ones together. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
 
 ![The inspector for V1, with the Waveform… button](images/02-inspector.png)
 
