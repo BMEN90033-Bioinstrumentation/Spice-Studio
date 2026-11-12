@@ -148,6 +148,44 @@ export function suggest(p: ParsedLib): ImportedLib['entries'] {
   return out
 }
 
+// Component builder (Builder.tsx): SPICE to start a new part from. Each parses cleanly into exactly one placeable part.
+export const STARTERS: { title: string; text: string }[] = [
+  { title: 'Diode', text: '* A diode: Is saturation current, N emission coefficient, Rs series resistance,\n* Cjo junction capacitance, Bv / Ibv reverse breakdown\n.model MyDiode D(Is=2.5n N=1.8 Rs=0.6 Cjo=4p Bv=100 Ibv=100u)\n' },
+  { title: 'Zener', text: '* A 5.1 V zener: Bv sets the breakdown voltage\n.model MyZener D(Is=1n N=1.2 Rs=5 Cjo=150p Bv=5.1 Ibv=5m)\n' },
+  { title: 'NPN', text: '* An NPN transistor: Bf forward gain, Vaf Early voltage (for a PNP, change NPN to PNP)\n.model MyNPN NPN(Is=1e-14 Bf=200 Vaf=100 Rb=10 Cje=8p Cjc=4p Tf=400p)\n' },
+  { title: 'N-MOSFET', text: '* An N-channel MOSFET: Vto threshold, Kp transconductance (for P-channel, change NMOS to PMOS and make Vto negative)\n.model MyNMOS NMOS(Level=1 Vto=1.5 Kp=0.5 Lambda=0.02)\n' },
+  { title: 'N-JFET', text: '* An N-channel JFET: Vto pinch-off voltage, Beta transconductance (for P-channel, change NJF to PJF)\n.model MyJFET NJF(Vto=-2 Beta=1.3m Lambda=2m Cgs=4p Cgd=4p)\n' },
+  { title: 'Op-amp', text: '* An op-amp built from parts: gain 100k, one pole near 10 Hz (about 1 MHz unity gain)\n* pins: in+ in- v+ v- out\n.subckt MyOpamp inp inn vcc vee out\nRin inp inn 10meg\nG1 0 n1 inp inn 1m\nR1 n1 0 100meg\nC1 n1 0 159p\nE1 n2 0 n1 0 1\nRout n2 out 50\n.ends MyOpamp\n' },
+  { title: 'Subcircuit', text: '* Any circuit as one part: the names after the subcircuit name are its pins\n.subckt MyFilter in out gnd\nR1 in out 10k\nC1 out gnd 100n\n.ends MyFilter\n' }
+]
+
+// The builder's form view reads a definition's text into fields and writes it back (the text stays the one truth).
+// ponytail: writing a .model back keeps only its k=v parameters (comments inside it and bare flags go); the code view keeps everything.
+export const MODEL_TYPES = ['D', 'NPN', 'PNP', 'NJF', 'PJF', 'NMOS', 'PMOS']
+const BJT_P: [string, string][] = [['Is', 'Saturation current (A)'], ['Bf', 'Forward gain β'], ['Vaf', 'Early voltage (V)'], ['Rb', 'Base resistance (Ω)'], ['Rc', 'Collector resistance (Ω)'], ['Re', 'Emitter resistance (Ω)'], ['Cje', 'Base-emitter capacitance (F)'], ['Cjc', 'Base-collector capacitance (F)'], ['Tf', 'Transit time (s)']]
+const MOS_P: [string, string][] = [['Level', 'Model level'], ['Vto', 'Threshold voltage (V)'], ['Kp', 'Transconductance (A/V²)'], ['Lambda', 'Channel-length modulation (1/V)'], ['Rd', 'Drain resistance (Ω)'], ['Rs', 'Source resistance (Ω)'], ['Cgso', 'Gate-source overlap capacitance (F/m)'], ['Cgdo', 'Gate-drain overlap capacitance (F/m)']]
+const JFET_P: [string, string][] = [['Vto', 'Pinch-off voltage (V)'], ['Beta', 'Transconductance (A/V²)'], ['Lambda', 'Channel-length modulation (1/V)'], ['Rd', 'Drain resistance (Ω)'], ['Rs', 'Source resistance (Ω)'], ['Cgs', 'Gate-source capacitance (F)'], ['Cgd', 'Gate-drain capacitance (F)']]
+// the parameters the form always offers per model type: [name, what it is]; left empty = ngspice's default
+export const MODEL_PARAMS: Record<string, [string, string][]> = {
+  D: [['Is', 'Saturation current (A)'], ['N', 'Emission coefficient'], ['Rs', 'Series resistance (Ω)'], ['Cjo', 'Junction capacitance (F)'], ['Bv', 'Reverse breakdown voltage (V)'], ['Ibv', 'Current at breakdown (A)'], ['Tt', 'Transit time (s)']],
+  NPN: BJT_P, PNP: BJT_P, NMOS: MOS_P, PMOS: MOS_P, NJF: JFET_P, PJF: JFET_P
+}
+export function modelParts(text: string): { name: string; type: string; params: [string, string][] } | undefined {
+  const s = text.split('\n').map((l) => uncomment(l.trim())).filter((l) => l && l[0] !== '*').map((l) => (l[0] === '+' ? l.slice(1) : l)).join(' ')
+  const m = /^\.model\s+(\S+)\s+([a-z_]\w*)\s*(.*)$/is.exec(s)
+  return m ? { name: m[1], type: m[2], params: [...m[3].matchAll(/([a-z_]\w*)\s*=\s*([^\s,()=]+)/gi)].map((x) => [x[1], x[2]]) } : undefined
+}
+export const modelText = (name: string, type: string, params: [string, string][]) => `.model ${name} ${type}(${params.map(([k, v]) => `${k}=${v}`).join(' ')})`
+// tail: whatever follows the pins on the .subckt line (params: …); body: the lines between it and .ends
+export function subcktParts(s: ParsedLib['subckts'][number]): { tail: string; body: string } {
+  const lines = s.text.split('\n')
+  let h = 1
+  while (h < lines.length - 1 && lines[h].trim()[0] === '+') h++
+  const head = lines.slice(0, h).map((l, i) => uncomment(l.trim()).slice(i ? 1 : 0)).join(' ').trim().split(/\s+/)
+  return { tail: head.slice(2 + s.pins.length).join(' '), body: lines.slice(h, -1).join('\n') }
+}
+export const subcktText = (name: string, pins: string[], tail: string, body: string) => `${['.subckt', name, ...pins, tail].filter(Boolean).join(' ')}\n${body}${body ? '\n' : ''}.ends ${name}`
+
 // Library file outside the project: ids `${prefix}${file}#NAME` ('user:' / 'pack:<id>/'), subckts .include'd by
 // absolute path (dir + '/' + file). Without it: a project lib, 'proj:' ids, include relative to the project folder.
 export interface LibSource { source: 'user' | 'pack'; prefix: string; dir: string; group: string; compat?: string }

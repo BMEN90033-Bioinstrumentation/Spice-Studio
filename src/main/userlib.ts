@@ -45,6 +45,16 @@ async function texts(dir: string, libs: Lib[]) {
   return t
 }
 
+// write text as a new file in files/ (never overwriting: -2, -3… when the name is taken); returns the name used
+async function addFile(name: string, ext: string, text: string) {
+  const stem = name.replace(/[^\w.-]+/g, '_').replace(/^\.+/, '') || 'lib'
+  let file = stem + ext
+  for (let i = 2; existsSync(inside(FILES(), file)); i++) file = `${stem}-${i}${ext}`
+  await mkdir(FILES(), { recursive: true })
+  await writeFile(inside(FILES(), file), text)
+  return file
+}
+
 ipcMain.handle('userlib:list', async () => {
   const libs = await index()
   return { dir: FILES(), libs, texts: await texts(FILES(), libs) }
@@ -57,12 +67,13 @@ ipcMain.handle('userlib:import', async () => {
   })
   if (d.canceled || !d.filePaths[0]) return null
   const text = await readFile(d.filePaths[0], 'utf8')
-  const ext = extname(d.filePaths[0]), stem = basename(d.filePaths[0], ext).replace(/[^\w.-]+/g, '_') || 'lib'
-  let file = stem + ext
-  for (let i = 2; existsSync(inside(FILES(), file)); i++) file = `${stem}-${i}${ext}`
-  await mkdir(FILES(), { recursive: true })
-  await writeFile(inside(FILES(), file), text)
-  return { file, text }
+  const ext = extname(d.filePaths[0])
+  return { file: await addFile(basename(d.filePaths[0], ext), ext, text), text }
+})
+// a part written in the component builder: its SPICE text becomes a new file in files/; the mapping is stored by userlib:save
+ipcMain.handle('userlib:create', async (_e, name: unknown, text: unknown) => {
+  if (typeof name !== 'string' || typeof text !== 'string' || !text.trim() || text.length > 4 * 1024 * 1024) throw new Error('Bad component')
+  return { file: await addFile(name.slice(0, 64), '.lib', text) }
 })
 ipcMain.handle('userlib:save', async (_e, lib: Lib) => {
   if (!isLib(lib) || !existsSync(inside(FILES(), lib.file))) throw new Error('Bad library mapping')

@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type ComponentProps, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type ComponentProps, type CSSProperties, type FormEvent } from 'react'
 import { validName } from '../project/project'
 import { TEMPLATES } from '../schematic/templates'
-import { BookOpen, File, FileText, Folder, FolderOpen, Plus, Settings, type LucideIcon } from 'lucide-react'
+import { BookOpen, File, PencilRuler, FileText, Folder, FolderOpen, FolderSearch, LayoutGrid, Plus, Trash2, Settings, type LucideIcon } from 'lucide-react'
 import { SymBody, localBox } from '../library/Symbol'
-import { xform, type Sheet } from '../schematic/model'
+import { GRID, junctions, snap, xform, type Sheet } from '../schematic/model'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupButton } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
@@ -15,7 +16,9 @@ import { keyLabel } from '../layout/Panel'
 import { openSettings, usePrefs } from '../Preferences'
 import { RecoveryList, type Recovery } from '../Recovery'
 
-type Recent = { name: string; file: string; opened: number; exists: boolean }
+type Recent = { name: string; file: string; opened: number; exists: boolean; trash: { path: string; folder: boolean } }
+const WIN = navigator.platform.startsWith('Win'), MAC = navigator.platform.startsWith('Mac')
+const BIN = WIN ? 'Recycle Bin' : 'Trash', FILES = MAC ? 'Finder' : WIN ? 'File Explorer' : 'the file manager'
 
 const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [['year', 31536e3], ['month', 2592e3], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]]
@@ -27,33 +30,39 @@ function ago(t: number) {
 const tilde = (p: string) => p.replace(/^\/Users\/[^/]+/, '~')
 
 export const BLANK = 'blank'
-const CHOICES: { id: string; name: string; description: string; sheet?: Sheet }[] = [
-  { id: BLANK, name: 'Blank', description: 'An empty main sheet.' },
-  ...TEMPLATES.map((t) => ({ ...t, sheet: t.sheets['main.nsch'] }))
-]
+const EXAMPLES = TEMPLATES.map((t) => ({ ...t, sheet: t.sheets['main.nsch'] }))
 
-// the app mark (build/icon.svg's tile and trace)
+// the app mark (build/icon.svg's tile and roll-off curve)
 const Logo = ({ className }: { className?: string }) => (
   <svg viewBox="1 1 46 46" className={className} aria-hidden="true">
-    <rect x="1" y="1" width="46" height="46" rx="10.3" fill="#1b2530" stroke="#2f4a5c" strokeWidth="0.6" />
-    <path d="M8 30h7l3-12 5 20 5-26 4 18h8" fill="none" stroke="#4fc3f7" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    <rect x="1" y="1" width="46" height="46" rx="10.3" fill="#0b7fe6" />
+    <path d="M10 16h12q5 0 8 6l8 14" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 )
 
-// A template's main sheet, drawn small with the canvas's own symbols and colours (no names, values or directives).
+// A template's main sheet as the canvas draws it (schematic.css's .sch styles: grid, shaded bodies, junction dots, the
+// user's colour theme), at one scale for every example. No names, values or directives: unreadable this small.
 function Thumb({ sheet }: { sheet: Sheet }) {
+  const grid = useId()
   const pts = [
     ...sheet.wires.flatMap((w) => [w.a, w.b]),
     ...sheet.parts.flatMap((p) => { const b = localBox(p.kind, p); return [xform(p, { x: b.x0, y: b.y0 }), xform(p, { x: b.x1, y: b.y1 })] })
   ]
-  const xs = pts.map((q) => q.x), ys = pts.map((q) => q.y), x0 = Math.min(...xs), y0 = Math.min(...ys)
+  const xs = pts.map((q) => q.x), ys = pts.map((q) => q.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys)
+  const vw = Math.max(x1 - x0 + 60, (y1 - y0 + 60) * 1.6, 300), vh = vw / 1.6 // the tile's 8:5, 30 units of margin, never zoomed in past 300 wide
+  const vx = snap((x0 + x1 - vw) / 2), vy = snap((y0 + y1 - vh) / 2)
   return (
-    <svg viewBox={`${x0} ${y0} ${Math.max(...xs) - x0} ${Math.max(...ys) - y0}`} className="size-full fill-none [stroke-linecap:round] [stroke-linejoin:round] [&_*]:[vector-effect:non-scaling-stroke]" strokeWidth={1.25} aria-hidden="true">
-      <g className="stroke-wire">{sheet.wires.map((w) => <line key={w.id} x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} />)}</g>
-      <g className="stroke-sym [&_.f]:fill-sym [&_.shade]:stroke-none">
-        {sheet.parts.map((p) => <g key={p.id} transform={`translate(${p.x} ${p.y}) rotate(${p.rot * 90}) scale(${p.mirror ? -1 : 1} 1)`}><SymBody kind={p.kind} part={p} /></g>)}
-      </g>
-    </svg>
+    <span className="sch block size-full" style={{ '--sch-stroke': 1.1 } as CSSProperties}>
+      <svg viewBox={`${vx} ${vy} ${vw} ${vh}`} aria-hidden="true">
+        <defs><pattern id={grid} width={GRID} height={GRID} patternUnits="userSpaceOnUse"><circle className="dot" r={vw / 400} /></pattern></defs>
+        <rect x={vx} y={vy} width={vw} height={vh} fill={`url(#${grid})`} />
+        {sheet.parts.map((p) => (
+          <g key={p.id} className="part"><g className="sym" transform={`translate(${p.x} ${p.y}) rotate(${p.rot * 90}) scale(${p.mirror ? -1 : 1} 1)`}><SymBody kind={p.kind} part={p} /></g></g>
+        ))}
+        {sheet.wires.map((w) => <g key={w.id} className="wire"><line x1={w.a.x} y1={w.a.y} x2={w.b.x} y2={w.b.y} /></g>)}
+        {junctions(sheet).map((q) => <circle key={`${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
+      </svg>
+    </span>
   )
 }
 
@@ -70,20 +79,25 @@ function Action({ icon: I, title, tip, keys, className, ...b }: { icon: LucideIc
 }
 const H2 = 'mb-3 text-[13px] font-semibold'
 
-export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, setForm, onRestore }: {
+export function Home({ onCreate, onOpen, onOpenFile, onLibrary, onBuilder, error, form, setForm, onRestore }: {
   onCreate: (parent: string, name: string, template: string) => Promise<void>
   onOpen: (file?: string) => Promise<void>
   onOpenFile: () => Promise<void>
   onLibrary: () => void
+  onBuilder: () => void
   error: string
   form: boolean // the new-project form (owned by App: File › New Project opens it)
   setForm: (open: boolean) => void
   onRestore: (r: Recovery) => unknown // a crash-recovery copy (Recovery.tsx)
 }) {
   const [recents, setRecents] = useState<Recent[] | null>(null)
+  const [del, setDel] = useState<Recent | null>(null) // the recent being removed (dialog below)
+  const [delError, setDelError] = useState('')
+  const remove = (trash: boolean) => del && window.api.recent.delete(del.file, trash).then(() => setDel(null), (e) => setDelError(String(e?.message ?? e))).then(reload)
   const [name, setName] = useState('')
   const [parent, setParent] = useState('')
   const [tpl, setTpl] = useState(BLANK)
+  const [examples, setExamples] = useState(false) // the Examples tab; otherwise new project (blank) + recents
   const [busy, setBusy] = useState(false)
   const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
   const [app, setApp] = useState<Awaited<ReturnType<typeof window.api.menu.info>> | null>(null)
@@ -111,30 +125,34 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
     e.preventDefault()
     if (!ok || busy) return
     setBusy(true)
-    await onCreate(parent, name.trim(), tpl).finally(() => setBusy(false))
+    await onCreate(parent, name.trim(), template).finally(() => setBusy(false))
   }
   const pick = async () => {
     const p = await window.api.project.pickParent(parent)
     if (p) setParent(p)
   }
 
-  const desc = CHOICES.find((t) => t.id === tpl)?.description
+  const template = examples ? tpl : BLANK
+  const desc = EXAMPLES.find((t) => t.id === template)?.description ?? 'An empty main sheet.'
   return (
     <div className="relative flex h-full bg-background">
       <div className="home-drag" />
       <aside className="home-side flex w-60 shrink-0 flex-col border-r bg-card px-3 pb-3">
-        <div className="mb-5 flex items-center gap-2.5 px-2">
-          <Logo className="size-7" />
+        <div className="mb-6 flex items-center gap-3 px-2">
+          <Logo className="size-9 shrink-0" />
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Spice Studio</div>
+            <div className="text-base font-semibold tracking-tight">Spice Studio</div>
             {app && <div className="text-xs text-muted-foreground">Version {app.version}</div>}
           </div>
         </div>
         <nav className="grid gap-0.5" aria-label="Start">
-          <Action icon={Plus} title="New project" tip="Start blank or from a template" keys="Mod+N" className={cn(form && 'bg-accent')} onClick={() => setForm(!form)} aria-expanded={form} />
+          <Action icon={Plus} title="New project" tip="An empty project" keys="Mod+N" className={cn(form && !examples && 'bg-accent')} onClick={() => (setForm(examples || !form), setExamples(false))} aria-expanded={form && !examples} />
           <Action icon={Folder} title="Open project…" tip="A .nsproj project folder" keys="Mod+O" onClick={() => onOpen()} />
           <Action icon={File} title="Open file…" tip="A single .nsch schematic or .cir netlist" keys="Mod+Shift+O" onClick={onOpenFile} />
-          <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" className="mt-3" onClick={onLibrary} />
+          <Action icon={LayoutGrid} title="Examples" tip="Ready-made circuits to start a project from" className={cn('mt-3', examples && 'bg-accent')} aria-pressed={examples}
+            onClick={() => (setExamples(!examples), setTpl(BLANK), setForm(false))} />
+          <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" onClick={onLibrary} />
+          <Action icon={PencilRuler} title="Component builder" tip="Make your own part: how it behaves (by form or SPICE code), its pins and its symbol" onClick={onBuilder} />
         </nav>
         <Action icon={Settings} title="Settings" tip="Theme, autosave, defaults, keyboard shortcuts, the simulation engine and version details" className="mt-auto mb-3"
           onClick={() => openSettings()} />
@@ -168,22 +186,40 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           {(
             <>
               <section className="mb-10">
-                <h2 className={H2}>New project</h2>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(148px,1fr))] gap-3">
-                  {CHOICES.map((t) => {
+                <h2 className={H2}>{examples ? 'Examples' : 'Start'}</h2>
+                {!examples && <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
+                  {([
+                    [Plus, 'New project', 'An empty project', () => setForm(true)],
+                    [Folder, 'Open project…', 'A .nsproj project folder', () => onOpen()],
+                    [File, 'Open file…', 'A schematic or netlist', onOpenFile],
+                    [LayoutGrid, 'Examples', 'Ready-made circuits', () => setExamples(true)]
+                  ] as [LucideIcon, string, string, () => unknown][]).map(([I, title, sub, go]) => (
+                    <button key={title} type="button" onClick={go}
+                      className={cn('flex items-center gap-3 rounded-md border bg-black/15 px-3.5 py-3 text-left outline-none transition-colors hover:border-input hover:bg-black/25 focus-visible:ring-2 focus-visible:ring-ring',
+                        form && I === Plus && 'border-foreground/70 hover:border-foreground/70')}>
+                      <I className="size-5 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                      <span className="min-w-0 leading-tight">
+                        <span className="block truncate font-medium">{title}</span>
+                        <span className="block truncate text-xs text-muted-foreground">{sub}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>}
+                {examples && <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
+                  {EXAMPLES.map((t) => {
                     const on = form && tpl === t.id
                     return (
                       <button key={t.id} type="button" aria-pressed={on} onClick={() => (setTpl(t.id), setForm(true))}
                         className="group grid gap-2 rounded-md text-left outline-none">
-                        <span className={cn('grid aspect-[8/5] place-items-center rounded-md border bg-black/15 p-4 text-muted-foreground transition-colors group-hover:border-input group-hover:bg-black/25 group-focus-visible:ring-2 group-focus-visible:ring-ring',
+                        <span className={cn('block aspect-[8/5] overflow-hidden rounded-md border transition-colors group-hover:border-input group-focus-visible:ring-2 group-focus-visible:ring-ring',
                           on && 'border-foreground/70 group-hover:border-foreground/70')}>
-                          {t.sheet ? <Thumb sheet={t.sheet} /> : <Plus className="size-5" strokeWidth={1.5} />}
+                          <Thumb sheet={t.sheet} />
                         </span>
                         <span className={cn('truncate text-xs', on ? 'font-medium text-foreground' : 'text-muted-foreground group-hover:text-foreground')}>{t.name}</span>
                       </button>
                     )
                   })}
-                </div>
+                </div>}
 
                 {form && (
                   <form className="mt-5 grid gap-4 border-t pt-5" onSubmit={create}>
@@ -214,10 +250,10 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
                 )}
               </section>
 
-              <section>
+              {!examples && <section>
                 <h2 className={H2}>Recent</h2>
                 {recents?.length === 0 && (
-                  <p className="border-t pt-4 text-muted-foreground">Nothing here yet. Pick a template above, or open a project you already have.</p>
+                  <p className="border-t pt-4 text-muted-foreground">Nothing here yet. Start a new project, try an example, or open a project you already have.</p>
                 )}
                 {!!recents?.length && (
                   <div className="grid grid-cols-[minmax(120px,1fr)_minmax(0,2fr)_auto] gap-x-6">
@@ -238,19 +274,57 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
                         <span className="min-w-0 truncate text-left text-xs text-muted-foreground [direction:rtl]"><bdi dir="ltr">{tilde(r.file.replace(/\/[^/]*$/, ''))}</bdi></span>
                         <span className="flex items-center justify-end gap-2 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
                           {r.exists ? ago(r.opened) : 'Missing'}
-                          {!r.exists && (
-                            <Button variant="ghost" size="sm" className="relative h-6 px-2 text-xs" onClick={() => window.api.recent.remove(r.file).then(reload)} aria-label={`Remove ${r.name} from recents`}>Remove</Button>
-                          )}
+                          {!r.exists
+                            ? <Button variant="ghost" size="sm" className="relative h-6 px-2 text-xs" onClick={() => window.api.recent.remove(r.file).then(reload)} aria-label={`Remove ${r.name} from recents`}>Remove</Button>
+                            : (
+                              <span className="relative -mr-1 flex">
+                                <Tip label={`Show in ${FILES}`}>
+                                  <Button variant="ghost" size="icon" className="size-6 text-muted-foreground" onClick={() => window.api.recent.reveal(r.file)} aria-label={`Show ${r.name} in ${FILES}`}><FolderSearch className="size-3.5" /></Button>
+                                </Tip>
+                                <Tip label="Remove from this list, or delete the project…">
+                                  <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-destructive" onClick={() => (setDelError(''), setDel(r))} aria-label={`Remove or delete ${r.name}`}><Trash2 className="size-3.5" /></Button>
+                                </Tip>
+                              </span>
+                            )}
                         </span>
                       </div>
                     ))}
                   </div>
                 )}
-              </section>
+              </section>}
             </>
           )}
         </div>
       </main>
+
+      <Dialog open={!!del} onOpenChange={(o) => !o && setDel(null)}>
+        <DialogContent showCloseButton={false} className="grid-cols-[minmax(0,1fr)] gap-0 overflow-hidden bg-card p-0 sm:max-w-[440px]">
+          <DialogHeader className="gap-1.5 px-5 pt-5">
+            <DialogTitle className="text-[15px]">Remove from Recent?</DialogTitle>
+            <DialogDescription className="text-[13px]">
+              Removing only clears it from this list. Moving it to the {BIN} also deletes the {del?.trash.folder ? 'whole project folder' : 'file'} from disk.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mx-5 mt-4 flex items-center gap-3 rounded-md border bg-background px-3 py-2.5">
+            {del?.trash.folder ? <FolderOpen className="size-4 shrink-0 text-muted-foreground" /> : <FileText className="size-4 shrink-0 text-muted-foreground" />}
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-[13px] font-medium">{del?.name}</div>
+              {/* path ellipsised from the left so the folder name stays visible */}
+              <div className="truncate text-left text-xs text-muted-foreground [direction:rtl]"><bdi dir="ltr">{del && tilde(del.trash.path)}</bdi></div>
+            </div>
+          </div>
+          {delError && <p className="mx-5 mt-3 text-xs text-destructive">{delError}</p>}
+          <DialogFooter className="mt-5 items-center border-t bg-background/60 px-5 py-3 sm:justify-between">
+            <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(true)}>
+              <Trash2 />Move to {BIN}
+            </Button>
+            <span className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setDel(null)}>Cancel</Button>
+              <Button size="sm" autoFocus onClick={() => remove(false)}>Remove from list</Button>
+            </span>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

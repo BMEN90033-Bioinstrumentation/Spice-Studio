@@ -55,7 +55,7 @@
    "id": "mvxwdf8ba7",
    "kind": "res",
    "x": 760,
-   "y": 90,
+   "y": 110,
    "rot": 3,
    "mirror": false,
    "name": "R2",
@@ -65,7 +65,7 @@
    "id": "mvxwdf8ba8",
    "kind": "power",
    "x": 790,
-   "y": 90,
+   "y": 110,
    "rot": 0,
    "mirror": false,
    "name": "",
@@ -75,7 +75,7 @@
    "id": "mvxwdf8ba9",
    "kind": "res",
    "x": 710,
-   "y": 140,
+   "y": 160,
    "rot": 0,
    "mirror": false,
    "name": "R3",
@@ -85,7 +85,7 @@
    "id": "mvxwdf8baa",
    "kind": "gnd",
    "x": 710,
-   "y": 170,
+   "y": 190,
    "rot": 0,
    "mirror": false,
    "name": "",
@@ -95,7 +95,7 @@
    "id": "mvxwdf8bab",
    "kind": "label",
    "x": 710,
-   "y": 90,
+   "y": 110,
    "rot": 2,
    "mirror": false,
    "name": "",
@@ -110,7 +110,15 @@
    "mirror": false,
    "name": "X1",
    "value": "CMP_OC",
-   "lib": "std:CMP_OC"
+   "lib": "std:CMP_OC",
+   "lo": {
+    "x": 36,
+    "y": 50
+   },
+   "vo": {
+    "x": 47,
+    "y": -20
+   }
   },
   {
    "id": "mvxwdf8bad",
@@ -174,18 +182,18 @@
    },
    "b": {
     "x": 710,
-    "y": 110
+    "y": 130
    }
   },
   {
    "id": "mvxwdf8ba5",
    "a": {
     "x": 710,
-    "y": 90
+    "y": 110
    },
    "b": {
     "x": 730,
-    "y": 90
+    "y": 110
    }
   },
   {
@@ -204,7 +212,7 @@
   {
    "id": "mvxwdf8bai",
    "x": 580,
-   "y": 210,
+   "y": 220,
    "text": "* QRS detector: 10 Hz high-pass (100n/150k), comparator fires while qrs > thr (0.38 V,\n* tune with the 120k). Open-collector output: the pull-up is in the one-shot"
   }
  ]

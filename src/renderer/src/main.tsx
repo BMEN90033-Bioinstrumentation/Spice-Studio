@@ -10,6 +10,7 @@ import { keysOf, useCommands } from './commands'
 import { Help } from './Help'
 import { BUNDLED, copyOnUse, libEntries, resolver, type ImportedLib, type LibEntry } from './library/library'
 import { LibraryView } from './library/LibraryView'
+import { Builder } from './library/Builder'
 import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
 import { keyLabel, usePanels } from './layout/Panel'
@@ -95,7 +96,7 @@ function autoCompat(sheets: Sheet[], lib: (id: string) => LibEntry | undefined):
   return c.has('ltps') || (c.has('lt') && c.has('ps')) ? 'ltps' : [...c][0] // ponytail: kicad + another dialect: first wins
 }
 
-type Route = 'home' | 'editor' | 'library'
+type Route = 'home' | 'editor' | 'library' | 'builder'
 export type Session = (
   | { kind: 'project'; dir: string; file: string /* .nsproj, relative */; project: Project; sheets: Record<string, Sheet>; libTexts: Record<string, string>; warn: string }
   | { kind: 'loose'; path: string | null; sheet: Sheet; raw?: { path: string; plots: RawPlot[] } }
@@ -166,7 +167,7 @@ function App() {
     const offs = [window.api.onOsOpen(osOpen), window.api.onCloseRequest(() => leaving.guard(window.api.closeNow))]
     return () => offs.forEach((f) => f())
   }, [])
-  useEffect(() => { if (!session) document.title = route === 'library' ? 'Component library — Spice Studio' : 'Spice Studio' }, [session, route])
+  useEffect(() => { if (!session) document.title = route === 'library' ? 'Component library — Spice Studio' : route === 'builder' ? 'Component builder — Spice Studio' : 'Spice Studio' }, [session, route])
 
   const start = async (f: () => Promise<Session | null>) => {
     try {
@@ -210,16 +211,25 @@ function App() {
     { id: 'file.openFile', keys: 'Mod+Shift+O', run: () => leaving.guard(openFile) },
     { id: 'file.openRaw', run: () => leaving.guard(() => start(async () => { const r = await window.api.openRaw(); return r && { kind: 'loose', path: null, sheet: emptySheet(), raw: r } })) }, // a Workspace has its own
     { id: 'file.openRecent', run: (f) => f && leaving.guard(() => open(f)) }, // menu id 'file.openRecent:<file>'
-    ...(session ? [] : [{ id: 'tools.library', run: () => setRoute('library') }, ...(route === 'library' ? [{ id: 'view.home', run: () => setRoute('home') }] : [])])
+    ...(session ? [] : [{ id: 'tools.library', run: () => setRoute('library') }, ...(route !== 'home' ? [{ id: 'view.home', run: () => setRoute('home') }] : [])])
   ])
 
   if (session) return <Workspace key={gen} session={session} route={route} go={setRoute} onClose={() => (setSession(null), setRoute('home'))} sources={sources} />
   // no project: Manage Libraries here (a Workspace renders its own, with the project's libraries)
   return (
     <>
-      {route === 'library'
+      {route === 'builder' ? (
+        <div className="app">
+          <header>
+            <HomeBtn label="Home" onClick={() => setRoute('home')} />
+            <span className="ml-1 font-semibold">Component builder</span>
+            <span className="text-muted-foreground">New part for My library</span>
+          </header>
+          <div className="libpage"><Builder sources={sources} taken={[...BUNDLED, ...sources.entries]} onLibrary={() => setRoute('library')} /></div>
+        </div>
+      ) : route === 'library'
         ? <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.browse]} packs={sources.packs} />
-        : <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} error={error} form={form} setForm={setForm} onRestore={(r) => start(() => restoreSession(r, loadProject))} />}
+        : <Home onCreate={create} onOpen={open} onOpenFile={openFile} onLibrary={() => setRoute('library')} onBuilder={() => setRoute('builder')} error={error} form={form} setForm={setForm} onRestore={(r) => start(() => restoreSession(r, loadProject))} />}
       <ManageLibraries sources={sources} project={null} />
     </>
   )

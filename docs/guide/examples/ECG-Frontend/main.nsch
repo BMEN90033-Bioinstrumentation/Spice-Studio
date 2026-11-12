@@ -4,7 +4,7 @@
   {
    "id": "mvxwdf8bbb",
    "kind": "block",
-   "x": 0,
+   "x": -20,
    "y": 0,
    "rot": 0,
    "mirror": false,
@@ -74,8 +74,8 @@
    "id": "mvxwdf8bbd",
    "kind": "block",
    "x": 220,
-   "y": 110,
-   "rot": 0,
+   "y": 90,
+   "rot": 2,
    "mirror": false,
    "name": "XRLD",
    "value": "RLD",
@@ -206,9 +206,9 @@
   {
    "id": "mvxwdf8bbs",
    "kind": "label",
-   "x": 160,
-   "y": 110,
-   "rot": 2,
+   "x": 280,
+   "y": 90,
+   "rot": 0,
    "mirror": false,
    "name": "",
    "value": "cm"
@@ -286,7 +286,7 @@
   {
    "id": "mvxwdf8bcm",
    "kind": "vsrc",
-   "x": 500,
+   "x": 490,
    "y": 130,
    "rot": 0,
    "mirror": false,
@@ -296,7 +296,7 @@
   {
    "id": "mvxwdf8bcn",
    "kind": "power",
-   "x": 500,
+   "x": 490,
    "y": 100,
    "rot": 0,
    "mirror": false,
@@ -306,7 +306,7 @@
   {
    "id": "mvxwdf8bco",
    "kind": "gnd",
-   "x": 500,
+   "x": 490,
    "y": 160,
    "rot": 0,
    "mirror": false,
@@ -318,7 +318,7 @@
   {
    "id": "mvxwdf8bbh",
    "a": {
-    "x": 70,
+    "x": 50,
     "y": -20
    },
    "b": {
@@ -340,7 +340,7 @@
   {
    "id": "mvxwdf8bbm",
    "a": {
-    "x": 70,
+    "x": 50,
     "y": 0
    },
    "b": {
@@ -360,43 +360,10 @@
    }
   },
   {
-   "id": "mvxwdf8bbt",
-   "a": {
-    "x": 280,
-    "y": 110
-   },
-   "b": {
-    "x": 300,
-    "y": 110
-   }
-  },
-  {
-   "id": "mvxwdf8bbv",
-   "a": {
-    "x": 300,
-    "y": 110
-   },
-   "b": {
-    "x": 300,
-    "y": 150
-   }
-  },
-  {
-   "id": "mvxwdf8bbx",
-   "a": {
-    "x": 300,
-    "y": 150
-   },
-   "b": {
-    "x": 90,
-    "y": 150
-   }
-  },
-  {
    "id": "mvxwdf8bbz",
    "a": {
     "x": 90,
-    "y": 150
+    "y": 140
    },
    "b": {
     "x": 90,
@@ -410,7 +377,7 @@
     "y": 20
    },
    "b": {
-    "x": 70,
+    "x": 50,
     "y": 20
    }
   },
@@ -479,6 +446,28 @@
     "x": 700,
     "y": 0
    }
+  },
+  {
+   "id": "mwd7s20n65",
+   "a": {
+    "x": 90,
+    "y": 150
+   },
+   "b": {
+    "x": 90,
+    "y": 140
+   }
+  },
+  {
+   "id": "mwd7vt3l82",
+   "a": {
+    "x": 160,
+    "y": 90
+   },
+   "b": {
+    "x": 90,
+    "y": 90
+   }
   }
  ],
  "texts": [
@@ -500,5 +489,7 @@
    "y": 450,
    "text": "* detected rate from the one-shot (0.833 s = 72 bpm)\n.meas tran beat TRIG v(tmr) VAL=0 FALL=2 TARG v(tmr) VAL=0 FALL=3"
   }
- ]
+ ],
+ "draw": [],
+ "buses": []
 }

@@ -29,7 +29,15 @@
    "rot": 3,
    "mirror": false,
    "name": "C1",
-   "value": "10n"
+   "value": "10n",
+   "lo": {
+    "x": 15,
+    "y": 2
+   },
+   "vo": {
+    "x": 17,
+    "y": -32
+   }
   },
   {
    "id": "mvxwdf8b8d",
@@ -39,7 +47,15 @@
    "rot": 3,
    "mirror": false,
    "name": "R2",
-   "value": "1Meg"
+   "value": "1Meg",
+   "lo": {
+    "x": 20,
+    "y": 0
+   },
+   "vo": {
+    "x": 20,
+    "y": -1
+   }
   },
   {
    "id": "mvxwdf8b8k",
@@ -50,7 +66,15 @@
    "mirror": false,
    "name": "X1",
    "value": "OA_RRO",
-   "lib": "std:OA_RRO"
+   "lib": "std:OA_RRO",
+   "lo": {
+    "x": 36,
+    "y": 50
+   },
+   "vo": {
+    "x": 47,
+    "y": -20
+   }
   },
   {
    "id": "mvxwdf8b8l",

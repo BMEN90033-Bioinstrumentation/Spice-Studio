@@ -21,9 +21,10 @@ The app opens on the Home page.
 
 ![The Home page with the example projects in Recent projects](images/01-home.png)
 
-- **New project** (⌘N) creates a project folder from a template.
+- **New project** (⌘N) creates an empty project folder.
 - **Open project** (⌘O) opens a `.nsproj` file.
 - **Open file** (⇧⌘O) opens a single `.nsch` schematic or `.cir` netlist without a project.
+- **Examples** shows ready-made circuits to start a project from.
 - **Recent projects** lists the projects you opened before. Click one to open it.
 - **Component library** browses the parts and their models (see [chapter 8](08-libraries.md)).
 
@@ -31,23 +32,22 @@ The top-right corner shows which ngspice the app found, for example `ngspice-47+
 
 ## Create a project
 
-1. Click **New project** or press ⌘N.
+1. Click **New project** or press ⌘N for an empty project. To start from a ready-made circuit instead, click **Examples** and pick one: *RC low-pass*, *BJT common-emitter*, *Op-amp inverting amplifier*, *Hierarchical filter* or *Digital counter (mixed-signal)*.
 2. Type a **Name**. The name becomes the folder name, so it can't contain `/ \ : * ? " < > |` or start with a dot.
 3. Check the **Location**. By default projects go in `Documents/Spice Studio`. Click **Change…** to pick another folder, or change the default in [Settings](#settings).
-4. Pick a **Template**: *Blank*, *RC low-pass*, *BJT common-emitter*, *Op-amp inverting amplifier* or *Hierarchical filter*.
-5. Click **Create project**.
+4. Click **Create project**.
 
-![The New project form with the RC low-pass template selected](images/01-new-project.png)
+![The New project form with the RC low-pass example selected](images/01-new-project.png)
 
 The project opens in the editor. A project is a folder holding a `<Name>.nsproj` file, one `.nsch` file per sheet (the first is `main.nsch`) and a `libs/` folder for imported models.
 
 ## Your first simulation: an RC low-pass filter
 
-This section draws a 1 kΩ / 1 µF low-pass filter (corner frequency 1/(2π·RC) ≈ 159 Hz) and runs a transient and an AC analysis. The finished project is [examples/RC-Filter](examples/RC-Filter/); the *RC low-pass* template gives you the same circuit.
+This section draws a 1 kΩ / 1 µF low-pass filter (corner frequency 1/(2π·RC) ≈ 159 Hz) and runs a transient and an AC analysis. The finished project is [examples/RC-Filter](examples/RC-Filter/); the *RC low-pass* example gives you the same circuit.
 
 ### Draw it
 
-Start from a *Blank* project. [Chapter 2](02-drawing-schematics.md) explains each tool in detail.
+Start from a new, empty project. [Chapter 2](02-drawing-schematics.md) explains each tool in detail.
 
 1. Press **V** and click on the canvas to place a voltage source, V1. Press **Esc** to stop placing.
 2. Press **R**, then **Ctrl+R** to turn the resistor sideways, and click to the upper right of V1.

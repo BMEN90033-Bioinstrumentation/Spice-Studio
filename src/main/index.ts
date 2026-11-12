@@ -314,8 +314,23 @@ ipcMain.handle('project:importLib', async (_e, dir: string) => {
   await writeFile(inside(r, rel), text)
   return { rel, text }
 })
-ipcMain.handle('recent:list', async () => (await recents()).map((x) => ({ ...x, exists: existsSync(x.file) })))
+ipcMain.handle('recent:list', async () => (await recents()).map((x) => ({ ...x, exists: existsSync(x.file), trash: trashTarget(x.file) })))
 ipcMain.handle('recent:remove', async (_e, file: string) => saveRecents((await recents()).filter((x) => x.file !== file)))
+// Home › Recent › delete (the renderer asks first): forget the entry, or also move it to the Trash. Only a path already in
+// the recent list is accepted; a project's folder goes, unless the .nsproj sits loose in a shared folder (then only the file).
+function trashTarget(file: string): { path: string; folder: boolean } {
+  const dir = dirname(file), shared = dir === dirname(dir) || (['home', 'documents', 'desktop', 'downloads'] as const).some((k) => app.getPath(k) === dir)
+  const folder = /\.nsproj$/i.test(file) && !shared
+  return { path: folder ? dir : file, folder }
+}
+ipcMain.handle('recent:delete', async (_e, file: string, trash: boolean) => {
+  const all = await recents()
+  if (!all.some((x) => x.file === file)) return
+  if (trash) await shell.trashItem(trashTarget(file).path)
+  await saveRecents(all.filter((x) => x.file !== file))
+})
+// Home › Recent › show in Finder / File Explorer, with the file selected
+ipcMain.handle('recent:reveal', async (_e, file: string) => { if ((await recents()).some((x) => x.file === file)) shell.showItemInFolder(file) })
 
 // ---- files opened from the OS (.nsproj/.nsch associations): macOS open-file, argv on Windows/Linux ----
 // Queued until the renderer pulls them (app:opens), then pushed as 'open-path'.

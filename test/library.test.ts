@@ -487,3 +487,30 @@ test('netlist(ctx.lib): bundled + imported parts simulate (skipped if ngspice mi
   near(v('buf'), 0.999, 1.001, 'imported buffer')
   near(v('d'), 0.35, 0.55, 'imported diode: 1 V - Vf across 10k')
 })
+
+test('component builder starters: each parses cleanly into exactly one placeable part', async () => {
+  const { STARTERS } = await import('../src/renderer/src/library/library.ts')
+  for (const s of STARTERS) {
+    const p = parseLibFile(s.text)
+    assert.deepEqual(p.errors, [], s.title)
+    assert.equal(suggest(p).length, 1, s.title)
+  }
+})
+
+test('builder form: a definition read into fields writes back to SPICE that parses the same', async () => {
+  const { STARTERS, modelParts, modelText, subcktParts, subcktText } = await import('../src/renderer/src/library/library.ts')
+  for (const s of STARTERS) {
+    const p = parseLibFile(s.text)
+    for (const m of p.models) {
+      const f = modelParts(m.text)!
+      assert.deepEqual(parseLibFile(modelText(f.name, f.type, f.params)).models[0].params, m.params, s.title)
+    }
+    for (const c of p.subckts) {
+      const f = subcktParts(c)
+      assert.equal(subcktText(c.name, c.pins, f.tail, f.body), c.text, s.title)
+    }
+  }
+  const multi = parseLibFile('.subckt A in out params: g=2\n+ r=1k\nE1 out 0 in 0 {g}\n.ends').subckts[0]
+  assert.deepEqual(subcktParts(multi), { tail: 'params: g=2 r=1k', body: 'E1 out 0 in 0 {g}' })
+  assert.deepEqual(modelParts('.model X D(Is=1n\n+ N=2) ; c')!.params, [['Is', '1n'], ['N', '2']])
+})

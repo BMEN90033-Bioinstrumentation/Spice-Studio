@@ -65,6 +65,7 @@ const api = {
   userlib: {
     list: (): Promise<{ dir: string; libs: ImportedLib[]; texts: Record<string, string> }> => inv('userlib:list'),
     import: (): Promise<{ file: string; text: string } | null> => inv('userlib:import'),
+    create: (name: string, text: string): Promise<{ file: string }> => inv('userlib:create', name, text), // component builder
     save: (lib: ImportedLib): Promise<void> => inv('userlib:save', lib),
     setEnabled: (file: string, on: boolean): Promise<void> => inv('userlib:setEnabled', file, on),
     remove: (file: string): Promise<void> => inv('userlib:remove', file)
@@ -76,8 +77,10 @@ const api = {
     remove: (id: string): Promise<void> => inv('packs:remove', id) // user-installed packs only
   },
   recent: {
-    list: (): Promise<{ name: string; file: string; opened: number; exists: boolean }[]> => inv('recent:list'),
-    remove: (file: string): Promise<void> => inv('recent:remove', file)
+    list: (): Promise<{ name: string; file: string; opened: number; exists: boolean; trash: { path: string; folder: boolean } }[]> => inv('recent:list'),
+    remove: (file: string): Promise<void> => inv('recent:remove', file),
+    delete: (file: string, trash: boolean): Promise<void> => inv('recent:delete', file, trash), // forget it; trash: also move it (trash.path) to the Trash
+    reveal: (file: string): Promise<void> => inv('recent:reveal', file) // show it in Finder / File Explorer
   },
   // preferences (main/prefs.ts): read once at startup, every change pushed to all windows
   prefs: {

@@ -177,7 +177,8 @@ function rowErrors(r: Row, sub?: string[]): string[] {
 }
 
 // renders in whichever window holds it (Manage Libraries is its own window): keys and focus use that window
-export function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void }) {
+// verb: what confirming does ('Add' from the component builder)
+export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void; verb?: string }) {
   const orig = useMemo(() => suggest(parsed), [parsed])
   const [rows, setRows] = useState<Row[]>(() => orig.map((r) => ({ ...r, include: true })))
   const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
@@ -208,7 +209,7 @@ export function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; 
       <DialogContent aria-describedby={undefined} className="flex max-h-[calc(100%-2rem)] flex-col gap-0 p-0 sm:max-w-[720px]"
         onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.preventDefault(), submit() }}>
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="text-sm">Import <code className="font-mono text-xs">{rel}</code></DialogTitle>
+          <DialogTitle className="text-sm">{verb} <code className="font-mono text-xs">{rel}</code></DialogTitle>
         </DialogHeader>
         <div className="flex min-h-[120px] flex-col gap-2 overflow-y-auto px-4 py-3.5">
           {parsed.errors.length > 0 && (
@@ -261,9 +262,9 @@ export function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; 
           })}
         </div>
         <DialogFooter className="items-center border-t px-4 py-3">
-          <span className="mr-auto text-xs text-muted-foreground"><Kbd>Esc</Kbd> cancel · <Kbd>⌘↵</Kbd> import</span>
+          <span className="mr-auto text-xs text-muted-foreground"><Kbd>Esc</Kbd> cancel · <Kbd>⌘↵</Kbd> {verb.toLowerCase()}</span>
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button size="sm" onClick={submit} disabled={!ok}>Import {rows.filter((r) => r.include).length || ''}</Button>
+          <Button size="sm" onClick={submit} disabled={!ok}>{verb} {rows.filter((r) => r.include).length || ''}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

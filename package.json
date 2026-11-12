@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "Schematic editor and front end for the ngspice circuit simulator",
   "private": true,
+  "license": "GPL-3.0-only",
+  "author": "Callum Vidler",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

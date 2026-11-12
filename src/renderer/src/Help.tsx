@@ -107,6 +107,8 @@ export function About({ info }: { info: Info | null }) {
         <>
           <p><b className="font-semibold">Spice Studio</b> {info.version}</p>
           <p className={muted}>Schematic editor and front end for the ngspice circuit simulator.</p>
+          <p>Developed by Dr Callum Vidler, University of Melbourne, for BMEN90033 Bioinstrumentation.</p>
+          <p className={muted}>© 2026 Callum Vidler. Free software under the GNU General Public License, version 3, with no warranty.</p>
           <dl className={dl}>
             <dt>Engine</dt>
             <dd className={info.engine.path ? '' : 'text-err'}>{info.engine.version}{info.engine.bundled ? ' (bundled)' : ''}</dd>
