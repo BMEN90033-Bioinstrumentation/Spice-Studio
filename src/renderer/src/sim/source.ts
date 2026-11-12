@@ -2,14 +2,14 @@
 // Anything parseSource can't fully account for returns null, so callers keep the raw text untouched.
 import { isSpiceNumber, spiceValue } from './analysis.ts'
 
-export type TranKind = 'pulse' | 'sin' | 'pwl' | 'exp' | 'sffm' | 'am' | 'none'
+export type TranKind = 'pulse' | 'sin' | 'pwl' | 'exp' | 'sffm' | 'am' | 'none' | 'pwlfile' | 'wav' // file kinds: sim/filesrc.ts
 export interface Source {
   dc: string; acMag: string; acPhase: string // '' = omitted
-  tran: { kind: TranKind; args: string[]; r?: string; td?: string } // r/td: PWL repeat start / delay
+  tran: { kind: TranKind; args: string[]; r?: string; td?: string } // r/td: PWL repeat start / delay; pwlfile [path], wav [path, chan]
 }
 
 // positional argument names per function (ngspice-47 order; SFFM checked against a run: VO VA FC MDI FS)
-export const FIELDS: Record<Exclude<TranKind, 'none' | 'pwl'>, string[]> = {
+export const FIELDS: Record<Exclude<TranKind, 'none' | 'pwl' | 'pwlfile' | 'wav'>, string[]> = {
   pulse: ['V1', 'V2', 'TD', 'TR', 'TF', 'PW', 'PER', 'NP'],
   sin: ['VO', 'VA', 'FREQ', 'TD', 'THETA', 'PHASE'],
   exp: ['V1', 'V2', 'TD1', 'TAU1', 'TD2', 'TAU2'],
@@ -20,7 +20,7 @@ const KINDS = ['pulse', 'sin', 'pwl', 'exp', 'sffm', 'am']
 
 export function parseSource(text: string): Source | null {
   const s: Source = { dc: '', acMag: '', acPhase: '', tran: { kind: 'none', args: [] } }
-  const t = text.trim(), re = /\s*(?:([a-z]+)\s*\(([^()]*)\)|([^\s()]+))/iy
+  const t = text.trim(), re = /\s*(?:([a-z]+)\s*\(([^()]*)\)|((?:[^\s()"]|"[^"]*")+))/iy // file="a b.csv" is one token
   const toks: (string | { fn: string; args: string[] })[] = []
   while (re.lastIndex < t.length) {
     const m = re.exec(t)
@@ -43,6 +43,12 @@ export function parseSource(text: string): Source | null {
         if (s.tran[key] != null || !isSpiceNumber(m[2])) return null
         s.tran[key] = m[2]
       }
+    } else if (kw === 'pwl' || /^wavefile=/.test(kw)) { // PWL file="x.csv" | wavefile="x.wav" [chan=N]
+      const f = kw === 'pwl' ? /^file=(?:"([^"]+)"|([^"]+))$/i.exec(String(toks[++i])) : /^wavefile=(?:"([^"]+)"|([^"]+))$/i.exec(k)
+      if (!f || s.tran.kind !== 'none') return null
+      s.tran = { kind: kw === 'pwl' ? 'pwlfile' : 'wav', args: [f[1] ?? f[2]] }
+      const c = /^chan=(\d+)$/i.exec(String(toks[i + 1]))
+      if (kw !== 'pwl') s.tran.args.push(c ? ((i += 1), c[1]) : '0')
     } else if (kw === 'dc' && !dc && num(toks[i + 1])) (s.dc = toks[++i] as string), (dc = true)
     else if (kw === 'ac' && !ac && num(toks[i + 1])) {
       ;(s.acMag = toks[++i] as string), (ac = true)
@@ -57,7 +63,9 @@ export function sourceText(s: Source): string {
   const out: string[] = [], k = s.tran.kind
   if (s.dc) out.push(s.acMag || k !== 'none' ? 'DC ' + s.dc : s.dc)
   if (s.acMag) out.push('AC ' + s.acMag + (s.acPhase ? ' ' + s.acPhase : ''))
-  if (k !== 'none') {
+  if (k === 'pwlfile') out.push(`PWL file="${s.tran.args[0]}"`)
+  else if (k === 'wav') out.push(`wavefile="${s.tran.args[0]}" chan=${s.tran.args[1] ?? 0}`)
+  else if (k !== 'none') {
     out.push(`${k.toUpperCase()}(${s.tran.args.join(' ')})`)
     if (k === 'pwl' && s.tran.r) out.push('r=' + s.tran.r)
     if (k === 'pwl' && s.tran.td) out.push('td=' + s.tran.td)

@@ -3,10 +3,11 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, delimiter, dirname, extname, isAbsolute, join, resolve } from 'node:path'
+import { basename, delimiter, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { inside, safeName } from './paths'
 import { parseRaw, type LiveChunk, type RawPlot } from './rawfile'
 import { watchRaw } from './live'
+import { expandFileSources } from '../renderer/src/sim/filesrc'
 import type { SimOptions, Stopped } from '../renderer/src/contracts'
 import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
@@ -77,10 +78,15 @@ const COMPAT = ['ps', 'lt', 'ltps', 'kicad']
 async function runSim(netlist: string, baseDir?: string, opts?: SimOptions, live?: (c: LiveChunk[]) => void): Promise<SimResult> {
   const e = engine()
   if (!e) return { ok: false, log: NO_NGSPICE, plots: [] }
+  const proj = baseDir && existsSync(baseDir) ? baseDir : undefined
+  // PWL file= / wavefile= sources become inline PWL (sim/filesrc.ts), paths relative to the project folder
+  const fs = await expandFileSources(netlist, (p) => readFile(resolve(proj ?? tmpdir(), p)))
+  if (fs.errors.length) return { ok: false, log: fs.errors.map((x) => 'Error: ' + x).join('\n'), plots: [] }
+  netlist = fs.text
   const dir = await mkdtemp(join(tmpdir(), 'ngspice-'))
   const cir = join(dir, 'circuit.cir')
   const raw = join(dir, 'out.raw')
-  const cwd = baseDir && existsSync(baseDir) ? baseDir : dir
+  const cwd = proj ?? dir
   const base = ['-b', '-n', ...(COMPAT.includes(opts?.compat as string) ? ['-D', `ngbehavior=${opts!.compat}`] : [])]
   let stopped: Stopped | undefined, child: ChildProcess | undefined
   const stop = (why: Stopped) => {
@@ -181,6 +187,16 @@ ipcMain.handle('raw:open', async () => {
   const r = await dialog.showOpenDialog({ filters: [{ name: 'SPICE raw files', extensions: ['raw'] }, { name: 'All', extensions: ['*'] }], properties: ['openFile'] })
   if (r.canceled || !r.filePaths[0]) return null
   return { path: r.filePaths[0], plots: parseRaw(await readFile(r.filePaths[0])) }
+})
+// source dialog Browse…: a data / WAV file, relative to the open project's folder when it's inside it
+ipcMain.handle('source:pick', async (_e, kind: 'pwl' | 'wav') => {
+  const r = await dialog.showOpenDialog({
+    filters: [kind === 'wav' ? { name: 'WAV audio', extensions: ['wav'] } : { name: 'Time/value data', extensions: ['csv', 'txt', 'dat', 'pwl'] }, { name: 'All', extensions: ['*'] }],
+    properties: ['openFile']
+  })
+  const p = r.canceled ? undefined : r.filePaths[0]
+  const d = p && [...projects].filter((d) => p.startsWith(d + sep)).sort((a, b) => b.length - a.length)[0]
+  return !p ? null : d ? relative(d, p).split(sep).join('/') : p
 })
 
 ipcMain.handle('file:save', async (_e, text: string, path: string | null, kind: 'cir' | 'nsch') => {

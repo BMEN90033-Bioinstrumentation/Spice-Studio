@@ -25,6 +25,7 @@ const api = {
   },
   stopSim: (): Promise<void> => inv('sim:stop'), // kills the running ngspice; its runSim resolves with stopped: 'user'
   openRaw: (): Promise<{ path: string; plots: RawPlot[] } | null> => inv('raw:open'),
+  pickSourceFile: (kind: 'pwl' | 'wav'): Promise<string | null> => inv('source:pick', kind),
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {
