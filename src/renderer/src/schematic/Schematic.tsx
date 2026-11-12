@@ -200,6 +200,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     setPop({ id, left: Math.max(8, Math.min(left, r.width - W - 8)), top: Math.max(8, Math.min(b.top - r.top, r.height - 220)) })
   }
   useEffect(() => { pop && ta.current?.focus() }, [pop?.id])
+  // a popup wider than the 230 px openPop assumed (a directive's is as wide as its text, and grows as you type): back
+  // inside the canvas. Every render: one measurement, and it only moves a popup that sticks out
+  useLayoutEffect(() => {
+    const el = root.current?.querySelector<HTMLElement>('.sch-insp'), w = root.current?.clientWidth
+    if (pop && el && w && pop.left > 8 && pop.left + el.offsetWidth > w - 8) setPop({ ...pop, left: Math.max(8, w - el.offsetWidth - 8) })
+  })
   // right-click menu: at the pointer; on an item outside the selection it selects that item first
   const [menu, setMenu] = useState<{ left: number; top: number; id?: string } | null>(null)
   function context(e: RME) {
@@ -1029,10 +1035,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       )}
 
       {dir && pop?.id === dir.id && (
-        <div className={INSP} style={popAt} key={dir.id}>
+        <div className={cn(INSP, 'w-max max-w-[calc(100%-16px)] min-w-[230px]')} style={popAt} key={dir.id}>{/* as wide as its longest line, up to the canvas */}
           <Label className={FLD}>SPICE directive
-            <Textarea ref={ta} rows={6} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
-              className={cn('max-h-[50vh] min-h-[60px] resize-y overflow-x-auto px-2 py-1.5 leading-snug whitespace-pre [overflow-wrap:normal]', MONO)}
+            {/* grows with the text (field-sizing); its corner grip resizes it, and the popup with it */}
+            <Textarea ref={ta} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
+              className={cn('max-h-[70vh] min-h-[60px] resize overflow-auto px-2 py-1.5 leading-snug whitespace-pre [overflow-wrap:normal]', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </Label>
           {dirA && <InspBtn onClick={() => setDlg('edit')}>Edit as analysis…</InspBtn>}
