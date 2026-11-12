@@ -18,6 +18,7 @@ const api = {
   runSim: (netlist: string, baseDir?: string, opts?: SimOptions): Promise<SimResult> => inv('sim:run', netlist, baseDir, opts),
   stopSim: (): Promise<void> => inv('sim:stop'), // kills the running ngspice; its runSim resolves with stopped: 'user'
   openFile: (): Promise<{ path: string; text: string } | null> => inv('file:open'),
+  importFile: (): Promise<{ path: string; text: string } | null> => inv('file:import'), // LTspice .asc / KiCad .kicad_sch, decoded
   saveFile: (text: string, path: string | null, kind: 'cir' | 'nsch'): Promise<string | null> => inv('file:save', text, path, kind),
   project: {
     defaultParent: (): Promise<string> => inv('project:defaultParent'),

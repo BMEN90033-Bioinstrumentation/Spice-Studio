@@ -192,6 +192,11 @@ function sheet(s: Sheet, g: Global, file: string | null) {
       own.add(r.toLowerCase()), seen.add(r.toLowerCase())
     }
     refs[p.id] = ref
+    // a block that is neither a sheet nor a library part: an imported symbol that wasn't converted (importer.ts)
+    if (p.kind === 'block' && !p.sheet && !p.lib) {
+      err(`${ref}: placeholder for the imported part "${p.value.replace(/^\?/, '')}": replace it with a real part`)
+      continue
+    }
     const value = p.value.trim().replace(/\s+/g, ' ')
     const n = nets[p.id]
     pins(p).forEach((q, i) => {

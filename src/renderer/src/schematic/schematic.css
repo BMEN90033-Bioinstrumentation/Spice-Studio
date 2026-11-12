@@ -77,3 +77,6 @@
 .sch .drw.on { color: var(--sel); }
 .sch .drw.on text, .sch .drw.on.title text { fill: var(--sel); }
 .sch .drw.ghost { color: var(--hl); opacity: 0.6; pointer-events: none; }
+/* imported part that wasn't converted (importer.ts placeholder): the netlister refuses it */
+.sch .part.ph { color: var(--err); }
+.sch .part.ph .sym path { stroke-dasharray: 4 3; }

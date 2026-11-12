@@ -95,6 +95,20 @@ After a lot of copying and deleting, part names end up out of order (R7 next to 
 
 References to a renamed part follow it: `i(R1)` and `@R1[i]` in directive cards, `.dc V1 …`, the V source named by an F, H or W part, and the inductors named by a K part. Node names such as `v(R1)` and net labels are left alone. A name that does not end in a number (`Rload`) is not changed, and a name already used by an element line in a directive card is skipped. Both commands can be undone with ⌘Z.
 
+## Importing LTspice and KiCad schematics
+
+**File → Import Schematic…** reads an LTspice `.asc` file or a KiCad `.kicad_sch` file and adds it to the sheet you are on, to the right of what is already there, selected so you can move it. To import into an empty sheet, add a sheet in the Sheets panel first (or start a blank project).
+
+What is converted:
+
+- Resistors, capacitors, inductors, voltage and current sources, diodes (plain, Zener, Schottky, LED), NPN and PNP transistors, MOSFETs, JFETs, controlled sources (E, G, F, H), behavioural sources, switches and transmission lines, with their names, values, rotation and mirroring.
+- Op-amps: LTspice's ideal `opamp` becomes the ideal op-amp. Other op-amps (LTspice vendor symbols, KiCad `Amplifier_Operational`) become the generic op-amp model `OA_GENERIC`, pins matched by position or name; import the vendor model in Manage Libraries if you need it.
+- Ground, net labels, power symbols, hierarchical labels (as ports), wires and junctions. The connections are the source file's: where this app's symbol is a different size, a short wire joins its pin to the original pin position.
+- SPICE directives (LTspice `!` text, KiCad text starting with `.`) become directive cards. LTspice's `.tran <stop>` gets a step, and `startup` and `.backanno` are removed. Comments become text notes; lines, rectangles and circles become shapes.
+- A transistor or diode whose model name matches a built-in part (2N3904, 1N4148…) uses that part. KiCad source settings (`Sim.Type`, `Sim.Params`, or the older `Spice_Model`) become the source's value.
+
+Anything else becomes a **placeholder**: a block drawn with a red dashed outline, its value starting with `?`. KiCad placeholders keep their pins where the original pins were; LTspice placeholders have no pins, because an `.asc` file does not say where a symbol's pins are. The netlist stops with an error until you replace every placeholder. After the import, a report lists what was not converted or was converted with a change. Buses, hierarchical sheets and arcs are not converted.
+
 ## Notes, shapes and the title block
 
 Annotations explain a drawing. They are never written to the netlist, even when a note looks like SPICE.
