@@ -1,3 +1,5 @@
-/* home top bar: draggable title strip, room for the mac traffic lights */
-.home-bar { height: 44px; flex-shrink: 0; display: flex; align-items: center; padding: 0 14px; -webkit-app-region: drag; }
-.mac .home-bar { padding-left: 84px; }
+/* home: a drag strip across the top of the window; on macOS the sidebar starts below the traffic lights */
+.home-drag { position: absolute; inset: 0 0 auto; height: 40px; -webkit-app-region: drag; }
+.home-side { padding-top: 20px; }
+.home-main { padding-top: 48px; }
+.mac .home-side { padding-top: 52px; }
