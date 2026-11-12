@@ -186,3 +186,9 @@ test('parseSheet keeps note sizes within reason and one title block; turnSeg rot
   assert.deepEqual(turnSeg(w, true), { id: 'w', a: { x: 20, y: -20 }, b: { x: 20, y: 20 } })
   assert.deepEqual(turnSeg({ ...w, b: { x: 40, y: 20 } }, false), { id: 'w', a: { x: 40, y: 0 }, b: { x: 0, y: 20 } })
 })
+
+test('a dragged label offset (lo) round-trips and a bad one is rejected', () => {
+  const sh = { version: 1, parts: [{ id: 'a', kind: 'res', x: 0, y: 0, rot: 0, mirror: false, name: 'R1', value: '1k', lo: { x: 15, y: -5 } }], wires: [], texts: [] }
+  assert.deepEqual(parseSheet(JSON.stringify(sh)).parts[0].lo, { x: 15, y: -5 })
+  assert.throws(() => parseSheet(JSON.stringify({ ...sh, parts: [{ ...sh.parts[0], lo: { x: 'a', y: 0 } }] })), /Malformed lo/)
+})

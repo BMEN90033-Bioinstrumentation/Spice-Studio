@@ -58,6 +58,7 @@ type Drag =
   | { t: 'pan'; cx: number; cy: number; v: View }
   | { t: 'move'; from: Pt; base: Sheet; sel: Set<string>; d: Pt; click?: string }
   | { t: 'box'; a: Pt; base: Set<string> }
+  | { t: 'lbl'; id: string; from: Pt; base: Sheet; lo: Pt; moved: boolean } // dragging a part's name/value label
   | { t: 'diff'; net: string; a: Pt; cx: number; cy: number; click: ProbeTarget | null }
 
 const KEYS = Object.fromEntries(Object.entries(SYMBOLS).flatMap(([k, d]) => (d.key ? [[d.key, k]] : []))) as Record<string, Kind>
@@ -590,6 +591,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       drag.current = { t: 'box', a: w, base: e.shiftKey ? sel : new Set() }
       return
     }
+    const lp = !e.shiftKey && (e.target as Element).closest('.lbl') ? s.parts.find((q) => q.id === id && !isFlag(q.kind)) : undefined
+    if (lp) return void (drag.current = { t: 'lbl', id: lp.id, from: w, base: s, lo: lp.lo ?? { x: 0, y: 0 }, moved: false })
     let next = sel
     if (e.shiftKey) {
       next = new Set(sel)
@@ -607,6 +610,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     if (!d) return
     if (d.t === 'pan') setView({ ...d.v, x: d.v.x + e.clientX - d.cx, y: d.v.y + e.clientY - d.cy })
     else if (d.t === 'box') setBox(norm(d.a, w))
+    else if (d.t === 'lbl') {
+      const h = GRID / 2, lo = { x: d.lo.x + Math.round((w.x - d.from.x) / h) * h, y: d.lo.y + Math.round((w.y - d.from.y) / h) * h } // half-grid steps
+      if (!d.moved && same(lo, d.lo)) return
+      d.moved = true
+      live({ ...d.base, parts: d.base.parts.map((q) => (q.id === d.id ? { ...q, lo: lo.x || lo.y ? lo : undefined } : q)) })
+    }
     else if (d.t === 'diff') {
       if (Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 4) return
       setBand({ a: d.a, b: w })
@@ -649,6 +658,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         ...(s.buses ?? []).filter((w) => inside(w.a) && inside(w.b))
       ]
       setSel(new Set([...d.base, ...hits.map((i) => i.id)]))
+    } else if (d?.t === 'lbl') {
+      if (d.moved) commit(cur.current, undefined, d.base)
+      else setSel(new Set([d.id]))
     } else if (d?.t === 'move') {
       if (d.d.x || d.d.y) commit({ ...cur.current, wires: cur.current.wires.filter((w) => !same(w.a, w.b)) }, undefined, d.base)
       else if (d.click) setSel(new Set([d.click]))
@@ -825,7 +837,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               </g>
               {p.kind === 'block' && !p.sym && <PinNames part={p} at={p} />}
               {p.sym && <SymTexts part={p} at={p} />}
-              <Texts p={p} />
+              <g className="lbl" transform={p.lo ? `translate(${p.lo.x} ${p.lo.y})` : undefined}><Texts p={p} /></g>
             </g>
           ))}
           {sheet.wires.map((w) => (
@@ -938,6 +950,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {entry && <div className={D}>{entry.description}</div>}
           {entry?.group && <div className={D}>From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
           {one.lib && !entry && <div className={cn(D, 'text-warn')}>Unknown library part {one.lib}</div>}
+          {one.lo && <InspBtn onClick={() => commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === one.id ? { ...q, lo: undefined } : q)) })}>Reset label position</InspBtn>}
           {!isFlag(one.kind) && (
             <Label className={FLD}>Name
               <Input className={cn('h-7 px-2', MONO)} value={one.name} spellCheck={false} onChange={(e) => edit(one, 'name', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
