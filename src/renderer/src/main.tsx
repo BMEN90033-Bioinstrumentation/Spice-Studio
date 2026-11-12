@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { SimResult } from '../../main/index'
 import type { OsOpen } from '../../preload/index'
 import type { RawPlot } from '../../main/rawfile'
-import { isExpr, type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
+import { type Compat, type Diagnosis, type MeasTable, type ProjectSim, type SimOptions, type Stopped } from './contracts'
 import { Editor } from './Editor'
 import { Home } from './home/Home'
 import { useCommands } from './commands'
@@ -29,7 +29,7 @@ import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { expandSweep } from './sim/sweep'
-import { liveRun, progress } from './sim/live'
+import { keepSel, liveRun, progress } from './sim/live'
 import { ArrowUpToLine, ChevronLeft, House, Pencil, Play, Plus, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
@@ -471,10 +471,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const stop = () => ((stopReq.current = true), window.api.stopSim())
   // tabs with no usable selection get the default one (live results and opened raw files; run() does its own pass at the end)
   const fillSels = (rs: Run[]) => setSels((prev) => {
-    const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) => {
-      const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
-      return (panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]).map((d, i) => [paneKey(key, i), d] as const).filter(([k]) => !prev[k]?.some((v) => has.has(v)))
-    })
+    const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) =>
+      (panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]).map((d, i) => [paneKey(key, i), d] as const).filter(([k]) => !keepSel(prev[k], plot.vars).length))
     return add.length ? { ...prev, ...Object.fromEntries(add) } : prev
   })
   // File > Open Raw File…: an existing ngspice / LTspice .raw in the plots panel, nothing simulated
@@ -557,8 +555,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setSels((prev) =>
       Object.fromEntries(
         tabs.flatMap(({ key, runs: [{ plot }], panes }) => {
-          const has = new Set(plot.vars.map((v) => v.name.toLowerCase()))
-          const keep = (k: string) => prev[k]?.filter((v) => isExpr(v) || has.has(v)) // keep the user's picks when the vectors still exist
+          const keep = (k: string) => keepSel(prev[k], plot.vars) // keep the user's picks when the vectors still exist
           const defs = panes?.length ? panes.map((p) => p.sel) : [defaultSel(plot)]
           return defs.map((d, i) => { const k = paneKey(key, i), kept = keep(k); return [k, kept?.length ? kept : d] })
         })

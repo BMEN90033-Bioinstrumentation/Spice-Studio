@@ -2,6 +2,13 @@
 // RawPlots from them in growing arrays (each update copies only the new points) and says how far the run is. Pure TS.
 import type { LiveChunk, LiveHead, RawPlot } from '../../../main/rawfile'
 import { parseAnalysis, spiceValue } from './analysis.ts'
+import { isExpr } from '../contracts.ts'
+
+// what survives of a pane's selection on a new result: vectors the plot still has, and every expression ('=…')
+export const keepSel = (sel: string[] | undefined, vars: { name: string }[]) => {
+  const has = new Set(vars.map((v) => v.name.toLowerCase()))
+  return sel?.filter((v) => isExpr(v) || has.has(v)) ?? []
+}
 
 export function liveRun() {
   const acc: { head: LiveHead; n: number; cols: Float64Array[] }[] = []
