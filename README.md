@@ -163,7 +163,7 @@ Every part in the app simulates in ngspice. Packs can be switched on and off in 
 
 | Library | Parts | What's in it | Licence |
 |---|---:|---|---|
-| **Spice Studio parts** (built in) | 63 | Common diodes, Zeners, LEDs, BJTs, JFETs, MOSFETs, op-amp macromodels, a comparator, a TL431 and a 7805. Self-written from datasheet figures; each is tested against those figures. | Part of this repository |
+| **Spice Studio parts** (built in) | 85 | Common diodes, Zeners, LEDs, BJTs, JFETs, MOSFETs, op-amp macromodels, a comparator, a TL431 and a 7805. Self-written from datasheet figures; each is tested against those figures. | Part of this repository |
 | **Qucs-S community parts** | 2,309 | Diodes, BJTs, JFETs, MOSFETs, op-amps, references, regulators, optocouplers and a 555. Converted from [Qucs-S](https://github.com/ra3xdh/qucs_s) at a pinned commit; parts carrying vendor notices are excluded. | GPL-2.0-or-later |
 | **Zetex discretes** (Diodes Inc.) | 437 | BJTs, diodes, MOSFETs and references, shipped byte-identical with the vendor's notice. | Zetex model notice |
 | **National Semiconductor op-amps** | 134 | Op-amp and comparator macromodels, shipped byte-identical with the vendor's notice. | National notice (no resale) |
