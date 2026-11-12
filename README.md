@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <img alt="macOS | Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-4fc3f7?style=flat-square">
-  <img alt="Electron 45" src="https://img.shields.io/badge/Electron-45-47848f?style=flat-square&logo=electron&logoColor=white">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
-  <img alt="React 19" src="https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black">
-  <img alt="ngspice 47" src="https://img.shields.io/badge/ngspice-47-ffb74d?style=flat-square">
+  <img alt="macOS | Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-383838?style=flat-square&labelColor=1f1f1f">
+  <img alt="Electron 45" src="https://img.shields.io/badge/Electron-45-383838?style=flat-square&labelColor=1f1f1f&logo=electron&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-383838?style=flat-square&labelColor=1f1f1f&logo=typescript&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-383838?style=flat-square&labelColor=1f1f1f&logo=react&logoColor=white">
+  <img alt="ngspice 47" src="https://img.shields.io/badge/ngspice-47-383838?style=flat-square&labelColor=1f1f1f">
 </p>
 
 <p align="center">
@@ -43,7 +43,7 @@
 <tr>
 <td width="50%" valign="top">
 
-### ✏️ Schematic capture
+### Schematic capture
 - Grid-snapped canvas with orthogonal wires, junction dots and pan/zoom
 - Rotate, mirror, copy/paste, multi-select, undo/redo
 - Net labels, ground, ports, and SPICE directive blocks on the sheet
@@ -52,7 +52,7 @@
 </td>
 <td width="50%" valign="top">
 
-### ⚡ Simulation
+### Simulation
 - `.op`, `.tran`, `.ac`, `.dc` and `.noise`, set up in a dialog with a live preview
 - LTspice-style `.step` parameter sweeps, with the runs overlaid
 - Netlist errors are caught before ngspice runs, and ngspice errors point back to the part that caused them
@@ -63,7 +63,7 @@
 <tr>
 <td valign="top">
 
-### 📈 Results
+### Results
 - Fast uPlot waveforms: drag to zoom, magnitude/phase, log-frequency axes
 - **Probe**: Alt+click a wire for its voltage or a part for its current
 - Operating-point voltages shown right on the schematic
@@ -72,7 +72,7 @@
 </td>
 <td valign="top">
 
-### 🗂️ Projects & hierarchy
+### Projects & hierarchy
 - Projects with multiple sheets, tabs, templates and recent projects
 - **Hierarchical blocks**: put ports on a sheet, place it as a block, double-click to open it
 - Each block becomes a SPICE `.subckt`; circular references are reported as errors
@@ -83,7 +83,7 @@
 <tr>
 <td valign="top">
 
-### 🧩 Component libraries
+### Component libraries
 - **3,000+ parts**: diodes, Zeners, LEDs, BJTs, JFETs, MOSFETs, op-amps, comparators, references, regulators
 - Self-written models, each tested in ngspice against its datasheet figures
 - Import vendor `.lib`/`.mod` files, with a pin-mapping step
@@ -92,7 +92,7 @@
 </td>
 <td valign="top">
 
-### 🖥️ A real desktop app
+### A real desktop app
 - Native menu bar, keyboard shortcuts, collapsible panels
 - ngspice is bundled: nothing else to install
 - Signed macOS builds; a Windows installer
@@ -263,6 +263,6 @@ npm run dist:linux    # AppImage + .deb
 
 - **ngspice** is bundled unmodified, and its `COPYING` and third-party notices ship inside the app. It is mostly Modified BSD, with LGPL (KLU, numparam), MPL-2.0 (OSDI) and GPL (`table.cm`) parts. The notices say where to get the exact source.
 - **Library packs** carry their own licences and notices (see the table above and each pack's `NOTICE` file). All of them are viewable in the app under *Help → Third-party Licences*.
-- **Spice Studio's own code** doesn't have a licence yet.
+- **Spice Studio's own code** is licensed under [GPL-3.0-only](LICENSE).
 
 <p align="center"><sub>Built with Electron, React, CodeMirror and uPlot, on top of the excellent <a href="https://ngspice.sourceforge.io/">ngspice</a>.</sub></p>

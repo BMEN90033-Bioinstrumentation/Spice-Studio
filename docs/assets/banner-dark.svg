@@ -1,61 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-labelledby="t d">
   <title id="t">Spice Studio</title>
   <desc id="d">Schematic capture and circuit simulation for ngspice</desc>
+  <!-- Flat, in the app's own colours (src/renderer/src/index.css, style.css): neutral surface, canvas dot grid,
+       the symbol and wire colours for the schematic, the plot trace colours on the right. -->
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1c2633"/>
-      <stop offset="0.55" stop-color="#151a22"/>
-      <stop offset="1" stop-color="#11151b"/>
-    </linearGradient>
-    <radialGradient id="halo" cx="0.22" cy="0.42" r="0.55">
-      <stop offset="0" stop-color="#4fc3f7" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#4fc3f7" stop-opacity="0"/>
-    </radialGradient>
     <linearGradient id="fadeR" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#fff" stop-opacity="0"/>
       <stop offset="0.35" stop-color="#fff" stop-opacity="1"/>
     </linearGradient>
     <mask id="scopeMask"><rect x="780" y="0" width="500" height="400" fill="url(#fadeR)"/></mask>
-    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-      <path d="M40 0H0V40" fill="none" stroke="#4fc3f7" stroke-opacity="0.07" stroke-width="1"/>
+    <clipPath id="frame"><rect x="1" y="1" width="1278" height="398" rx="7"/></clipPath>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="1" fill="#ffffff" fill-opacity="0.1"/>
     </pattern>
-    <pattern id="dots" width="8" height="40" patternUnits="userSpaceOnUse">
-      <circle cx="4" cy="20" r="0.9" fill="#4fc3f7" fill-opacity="0.14"/>
+    <pattern id="grid" width="80" height="80" x="40" y="60" patternUnits="userSpaceOnUse">
+      <path d="M80 0H0V80" fill="none" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
     </pattern>
-    <filter id="glow" x="-10%" y="-30%" width="120%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
   </defs>
 
-  <rect width="1280" height="400" rx="24" fill="url(#bg)"/>
-  <rect width="1280" height="400" rx="24" fill="url(#halo)"/>
+  <rect x="0.5" y="0.5" width="1279" height="399" rx="8" fill="#1f1f1f" stroke="#ffffff" stroke-opacity="0.13"/>
 
-  <!-- oscilloscope screen on the right -->
-  <g mask="url(#scopeMask)">
-    <rect x="560" y="0" width="720" height="400" fill="url(#grid)"/>
-    <rect x="560" y="0" width="720" height="400" fill="url(#dots)"/>
-    <!-- square-wave drive -->
-    <path d="M600 300H700V140H860V300H1020V140H1180V300H1280" fill="none" stroke="#4fc3f7" stroke-opacity="0.35" stroke-width="2"/>
-    <!-- RC response -->
-    <path d="M700 300C716 196 760 152 860 144C876 248 920 292 1020 296C1036 192 1080 148 1180 144C1196 248 1240 292 1280 296"
-          fill="none" stroke="#ffb74d" stroke-width="7" stroke-opacity="0.35" filter="url(#glow)"/>
-    <path d="M700 300C716 196 760 152 860 144C876 248 920 292 1020 296C1036 192 1080 148 1180 144C1196 248 1240 292 1280 296"
-          fill="none" stroke="#ffb74d" stroke-width="3" stroke-linecap="round"/>
-    <!-- sine -->
-    <path d="M600 220C640 180 680 180 720 220S800 260 840 220S920 180 960 220S1040 260 1080 220S1160 180 1200 220S1260 250 1280 236"
-          fill="none" stroke="#81c784" stroke-width="2.4" stroke-opacity="0.55"/>
-    <!-- cursor -->
-    <path d="M1108 40V360" stroke="#e7ecf3" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 6"/>
-    <circle cx="1108" cy="154" r="5" fill="#ffb74d"/>
-    <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#e7ecf3" fill-opacity="0.75">
-      <text x="1120" y="58">V(out) 993mV</text>
-      <text x="1120" y="80">t = 14.1ms</text>
+  <g clip-path="url(#frame)">
+    <!-- schematic canvas dot grid on the left, fading out under the plot -->
+    <rect width="820" height="400" fill="url(#dots)"/>
+
+    <!-- plot on the right -->
+    <g mask="url(#scopeMask)">
+      <rect x="780" y="0" width="500" height="400" fill="#1f1f1f"/>
+      <rect x="560" y="0" width="720" height="400" fill="url(#grid)"/>
+      <!-- square-wave drive -->
+      <path d="M600 300H700V140H860V300H1020V140H1180V300H1280" fill="none" stroke="#6aa9ff" stroke-width="2" stroke-linejoin="round"/>
+      <!-- RC response -->
+      <path d="M700 300C716 196 760 152 860 144C876 248 920 292 1020 296C1036 192 1080 148 1180 144C1196 248 1240 292 1280 296"
+            fill="none" stroke="#f0b35a" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- sine -->
+      <path d="M600 220C640 180 680 180 720 220S800 260 840 220S920 180 960 220S1040 260 1080 220S1160 180 1200 220S1260 250 1280 236"
+            fill="none" stroke="#6fcf97" stroke-width="2"/>
+      <!-- cursor -->
+      <path d="M1108 40V360" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="4 6"/>
+      <circle cx="1108" cy="154" r="4.5" fill="#f0b35a"/>
+      <g font-family="'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#b4b4b4">
+        <text x="1120" y="58">V(out) 993mV</text>
+        <text x="1120" y="80">t = 14.1ms</text>
+      </g>
     </g>
   </g>
 
-  <!-- line-art schematic: source, resistor, capacitor -->
-  <g transform="translate(-6 24)" fill="none" stroke="#c9d1dc" stroke-opacity="0.22" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M90 352V330M90 300V280H120l6-10 12 20 12-20 12 20 12-20 12 20 6-10H230V300M216 300H244M216 310H244M230 310V330M70 352H250"/>
-    <circle cx="90" cy="315" r="15"/>
-    <path d="M90 307V313M87 310H93M87 320H93"/>
+  <!-- schematic: source, resistor, capacitor; symbols and wires in the canvas colours -->
+  <g transform="translate(-6 24)" fill="none" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.75">
+    <path stroke="#6fcf97" d="M90 300V280H120M192 280H230V300M230 310V352M90 330V352M70 352H250"/>
+    <g stroke="#c8cdd5">
+      <path d="M120 280l6-10 12 20 12-20 12 20 12-20 12 20 6-10M216 300H244M216 310H244"/>
+      <circle cx="90" cy="315" r="15" fill="#c8cdd5" fill-opacity="0.14"/>
+      <path d="M90 307V313M87 310H93M87 320H93"/>
+    </g>
+    <g fill="#6fcf97" stroke="none"><circle cx="90" cy="352" r="3.5"/><circle cx="230" cy="352" r="3.5"/></g>
   </g>
 
   <!-- brand mark (same artwork as build/icon.svg) -->
@@ -66,10 +65,8 @@
 
   <!-- wordmark -->
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-    <text x="292" y="186" font-size="72" font-weight="700" fill="#e7ecf3" letter-spacing="-1.5">Spice <tspan fill="#4fc3f7">Studio</tspan></text>
-    <text x="294" y="232" font-size="24" fill="#9aa3b2">Schematic capture &amp; simulation for ngspice</text>
-    <g font-size="15" font-weight="600" fill="#4fc3f7" fill-opacity="0.9" letter-spacing="1.5">
-      <text x="294" y="276">SCHEMATICS&#160;&#183;&#160;HIERARCHY&#160;&#183;&#160;3,000+ PARTS&#160;&#183;&#160;SWEEPS</text>
-    </g>
+    <text x="292" y="186" font-size="72" font-weight="600" fill="#fafafa" letter-spacing="-1.5">Spice Studio</text>
+    <text x="294" y="232" font-size="24" fill="#b4b4b4">Schematic capture &amp; simulation for ngspice</text>
+    <text x="294" y="276" font-size="14" font-weight="600" fill="#b4b4b4" letter-spacing="1.6">SCHEMATICS&#160;&#183;&#160;HIERARCHY&#160;&#183;&#160;3,000+ PARTS&#160;&#183;&#160;SWEEPS</text>
   </g>
 </svg>
