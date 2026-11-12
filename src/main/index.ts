@@ -1,12 +1,13 @@
 import { app, BrowserWindow, dialog, ipcMain, screen, shell } from 'electron'
 import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, delimiter, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { inside, safeName } from './paths'
 import { parseRaw, type LiveChunk, type RawPlot } from './rawfile'
 import { watchRaw } from './live'
+import { readCapped } from './srcfile'
 import { expandFileSources, MAX_FILE_BYTES } from '../renderer/src/sim/filesrc'
 import type { SimOptions, Stopped } from '../renderer/src/contracts'
 import { measDeck, measSection } from '../renderer/src/sim/meas'
@@ -80,11 +81,7 @@ async function runSim(netlist: string, baseDir?: string, opts?: SimOptions, live
   if (!e) return { ok: false, log: NO_NGSPICE, plots: [] }
   const proj = baseDir && existsSync(baseDir) ? baseDir : undefined
   // PWL file= / wavefile= sources become inline PWL (sim/filesrc.ts), paths relative to the project folder
-  const fs = await expandFileSources(netlist, async (p) => {
-    const f = resolve(proj ?? tmpdir(), p), n = (await stat(f)).size
-    if (n > MAX_FILE_BYTES) throw new Error(`${(n / 2 ** 20).toFixed(0)} MB; file sources are limited to ${MAX_FILE_BYTES / 2 ** 20} MB`)
-    return readFile(f)
-  })
+  const fs = await expandFileSources(netlist, (p) => readCapped(resolve(proj ?? tmpdir(), p), MAX_FILE_BYTES))
   if (fs.errors.length) return { ok: false, log: fs.errors.map((x) => 'Error: ' + x).join('\n'), plots: [] }
   netlist = fs.text
   const dir = await mkdtemp(join(tmpdir(), 'ngspice-'))

@@ -8,6 +8,7 @@ import { join, resolve } from 'node:path'
 import { parseRaw } from '../src/main/rawfile.ts'
 import { expandFileSources, MAX_POINTS, parsePwlFile, pwlText } from '../src/renderer/src/sim/filesrc.ts'
 import { parseWav, traceWav } from '../src/renderer/src/sim/wav.ts'
+import { readCapped } from '../src/main/srcfile.ts'
 
 test('parsePwlFile: CSV header, comments, separators, SI suffixes; bad lines and time going back are errors', () => {
   assert.deepEqual(parsePwlFile('time,value\n# comment\n0,0\n1m, 1.5\n\n2m;-1\n3e-3\t2k\n'), { t: [0, 1e-3, 2e-3, 3e-3], v: [0, 1.5, -1, 2000] })
@@ -15,6 +16,11 @@ test('parsePwlFile: CSV header, comments, separators, SI suffixes; bad lines and
   assert.match(parsePwlFile('0 0\n2 1\n1 0\n') as string, /line 3: its time is before/)
   // semicolon / decimal-comma dialect
   assert.deepEqual(parsePwlFile('Zeit;Spannung\n0;0\n0,001;1,5\n2e-3 ; -0,25\n'), { t: [0, 0.001, 0.002], v: [0, 1.5, -0.25] })
+  // trailing comments after comma-separated points; decimal commas with a tab; a mix that could be either is an error
+  assert.deepEqual(parsePwlFile('0,1 ; start\n1,2\n'), { t: [0, 1], v: [1, 2] })
+  assert.deepEqual(parsePwlFile('0,1\n1,2 ; end\n2 3 # c\n3,4 // c\n'), { t: [0, 1, 2, 3], v: [1, 2, 3, 4] })
+  assert.deepEqual(parsePwlFile('0,5\t1,5\n1,25 -2,5\n'), { t: [0.5, 1.25], v: [1.5, -2.5] })
+  assert.equal(parsePwlFile('0,5\t1,5\n1,5\t2\n'), 'line 2: can\'t tell decimal commas from separators (use ; between the columns, or dots)')
   // a step (repeated time) becomes strictly increasing, and stays so when printed
   const st = parsePwlFile('0 0\n1 1\n1 2\n1 3\n2 0\n') as { t: number[]; v: number[] }
   assert.deepEqual(st.v, [0, 1, 2, 3, 0])
@@ -77,10 +83,26 @@ test('expandFileSources: V/I lines only, paths quoted or bare, missing files and
   // '+' continuation lines belong to their element; the title line (first) is never an element
   assert.deepEqual(await expandFileSources('V title PWL file=nope.csv\nV1 a 0\n+ PWL file="d.csv"\nR1 a 0 1k\n+ PWL file=nope.csv\n', read),
     { text: 'V title PWL file=nope.csv\nV1 a 0\n+ PWL(0 0 0.001 1)\nR1 a 0 1k\n+ PWL file=nope.csv\n', errors: [] })
+  // ngspice continuation rule: a '+' line continues the previous non-comment, non-blank line; comments stay as written
+  assert.deepEqual(await expandFileSources('* t\nV1 a 0\n* note: d.csv\n\n+ PWL file="d.csv"\n', read), { text: '* t\nV1 a 0\n* note: d.csv\n\n+ PWL(0 0 0.001 1)\n', errors: [] })
+  // .control blocks hold commands, not elements
+  const ctl = '* t\nV1 a 0 DC 1\n.control\nversion pwl file=nope\nif 1\n+ PWL file=nope\nend\n.endc\nI1 a 0 PWL file=d.csv\n'
+  assert.deepEqual(await expandFileSources(ctl, read), { text: ctl.replace('PWL file=d.csv', 'PWL(0 0 0.001 1)'), errors: [] })
   // PWL with more than 8 points continues on '+' lines
   files['long.csv'] = new TextEncoder().encode(Array.from({ length: 20 }, (_, i) => `${i}m ${i % 2}`).join('\n'))
   const long = await expandFileSources('* t\nV1 a 0 PWL file=long.csv\n', read)
   assert.equal(long.text.split('\n').filter((l) => l.startsWith('+ ')).length, 2)
+})
+
+test('readCapped: regular files only, bytes counted while reading (stat sizes lie for devices)', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'filesrc-'))
+  writeFileSync(join(dir, 'a.txt'), 'x'.repeat(3000))
+  assert.equal((await readCapped(join(dir, 'a.txt'), 3000)).length, 3000)
+  await assert.rejects(readCapped(join(dir, 'a.txt'), 2999), /larger than/)
+  await assert.rejects(readCapped(dir, 1e6), /not a regular file/)
+  const t0 = performance.now()
+  if (process.platform !== 'win32') await assert.rejects(readCapped('/dev/zero', 64 * 2 ** 20), /not a regular file/)
+  assert.ok(performance.now() - t0 < 100)
 })
 
 test('file sources drive ngspice: CSV and WAV values at their time points (skipped if ngspice missing)', async (t) => {

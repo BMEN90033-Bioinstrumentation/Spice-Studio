@@ -13,16 +13,31 @@ export const MAX_FILE_BYTES = 64 * 2 ** 20 // checked (stat) before a file is re
 const PWL_FILE = /\bpwl\s+file\s*=\s*(?:"([^"]*)"|([^\s"]+))/gi
 const WAV_FILE = /\bwavefile\s*=\s*(?:"([^"]*)"|([^\s"]+))(?:\s+chan\s*=\s*(\d+))?/gi
 
-// "t v" lines -> points; a first line that isn't numeric is taken as a CSV header. A line with ';' is the
-// semicolon / decimal-comma dialect ("0,001;1,5"). A repeated time (a step) moves 1 ppb later: ngspice wants
-// strictly increasing PWL times. Errors name the line, never its content (the path may point anywhere).
+// one line -> [time, value] text fields, or 'ambiguous'. Separators: spaces, tabs or commas; ';', '#', '//' start a
+// comment. Decimal commas: "0,001;1,5" (';' between two numbers) or "0,5<tab>1,5" (two whitespace-separated fields
+// that are both decimal-comma numbers). A mix such as "0,5 1" could be either, so it's an error rather than a guess.
+const DC = /^[+-]?\d*,\d+(e[+-]?\d+)?[a-z]*$/i, dot = (s: string) => s.replace(',', '.')
+function fields(l: string): string[] | 'ambiguous' {
+  const sc = /^([^;\s]+)\s*;\s*([^;\s]+)/.exec(l)
+  if (sc && !isNaN(spiceValue(dot(sc[1]))) && !isNaN(spiceValue(dot(sc[2])))) return [dot(sc[1]), dot(sc[2])]
+  const ws = l.replace(/\s*(;|#|\/\/).*$/, '').split(/\s+/).filter(Boolean)
+  if (ws.length === 2 && ws.every((w) => DC.test(w))) return ws.map(dot)
+  if (ws.length > 1 && ws.some((w) => DC.test(w)) && ws.every((w) => DC.test(w) || !isNaN(spiceValue(w)))) return 'ambiguous'
+  return ws.join(' ').split(/[\s,]+/)
+}
+
+// "t v" lines -> points (see fields); a first line that isn't numeric is taken as a CSV header. A repeated time (a
+// step) moves 1 ppb later: ngspice wants strictly increasing PWL times. Errors name the line, never its content
+// (the path may point anywhere).
 export function parsePwlFile(text: string): { t: number[]; v: number[] } | string {
   const t: number[] = [], v: number[] = [], lines = text.split(/\r?\n/)
   let first = true, last = -Infinity
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i].trim()
     if (!l || /^(#|\*|;|\/\/)/.test(l)) continue
-    const [a, b] = l.includes(';') ? l.split(/\s*;\s*|\s+/).map((s) => s.replace(',', '.')) : l.split(/[\s,]+/)
+    const f = fields(l)
+    if (f === 'ambiguous') return `line ${i + 1}: can't tell decimal commas from separators (use ; between the columns, or dots)`
+    const [a, b] = f
     let x = spiceValue(a ?? '')
     const y = spiceValue(b ?? ''), head = first
     first = false
@@ -63,8 +78,15 @@ export async function expandFileSources(net: string, read: (path: string) => Pro
   }
   // V/I element lines and their '+' continuations; line 0 is the title
   const lines = net.split('\n')
-  let prev = false
-  const isEl = lines.map((l, i) => (i > 0 && /^\s*\+/.test(l) ? prev : (prev = i > 0 && /^\s*[vi]/i.test(l))))
+  // ngspice: a '+' line continues the previous non-comment, non-blank line; .control … .endc holds commands, not elements
+  let prev = false, ctl = false
+  const isEl = lines.map((l, i) => {
+    if (!i || /^\s*(\*|$)/.test(l)) return false
+    if (/^\s*\.control\b/i.test(l)) ctl = true
+    else if (/^\s*\.endc\b/i.test(l)) return (ctl = prev = false)
+    if (/^\s*\+/.test(l)) return prev
+    return (prev = !ctl && /^\s*[vi]/i.test(l))
+  })
   for (const l of lines.filter((_, i) => isEl[i])) {
     for (const m of l.matchAll(PWL_FILE)) await load('p:' + (m[1] ?? m[2]), m[1] ?? m[2], (b) => parsePwlFile(new TextDecoder().decode(b)))
     for (const m of l.matchAll(WAV_FILE)) {

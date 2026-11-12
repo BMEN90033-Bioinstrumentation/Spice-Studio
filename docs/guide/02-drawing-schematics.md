@@ -126,14 +126,14 @@ Two more waveforms read their data from a file when you run the simulation:
 
 | Waveform | SPICE | The file |
 |---|---|---|
-| PWL from a file | `PWL file="drive.csv"` | Two columns, time and value, one point per line. Columns can be separated by spaces, tabs or commas, and values can use SI suffixes (`1m`). A line with a semicolon is read as the semicolon dialect, where commas are decimal points (`0,001;1,5`). A first line that isn't numbers (a CSV header) is skipped, as are lines starting with `#`, `*`, `;` or `//`. Times must not go backwards; a repeated time makes a step (the second point is moved 1 part per billion later, because ngspice needs increasing times). |
+| PWL from a file | `PWL file="drive.csv"` | Two columns, time and value, one point per line. Columns can be separated by spaces, tabs or commas, and values can use SI suffixes (`1m`). Decimal commas work with a semicolon between the columns (`0,001;1,5`) or with a tab or space (`0,5	1,5`); a line that could be read either way (`0,5 1`) is an error. A first line that isn't numbers (a CSV header) is skipped, as are lines starting with `#`, `*`, `;` or `//`, and text after `;`, `#` or `//` on a line is a comment. Times must not go backwards; a repeated time makes a step (the second point is moved 1 part per billion later, because ngspice needs increasing times). |
 | WAV file | `wavefile="speech.wav" chan=0` | A `.wav` file played as the source's value: full scale is ±1 V (or ±1 A for a current source). **Channel** 0 is the left channel, 1 the right. PCM (8, 16, 24 or 32-bit) and 32/64-bit float files work. |
 
 1. Choose **PWL from a file** or **WAV file** as the **Transient waveform**.
 2. Click **Browse…** and pick the file. A file inside the project folder is stored as a path relative to it, so the project still works when you move or share the folder. You can also type a path.
 3. Click **Apply**.
 
-The file is read each time you run, so you can edit it between runs. The DC and AC fields still apply. Before ngspice runs, the app turns the file into an inline `PWL(…)`, with one point per line or sample. ngspice slows down with the square of the number of points, so a file source can have at most 100,000 points (about 2.3 s of 44.1 kHz audio), and the file can be at most 64 MB. For longer audio, shorten or resample the file. A missing or unreadable file stops the run with a message in the console that names the file and, for a bad line, its line number.
+The file is read each time you run, so you can edit it between runs. The DC and AC fields still apply. Before ngspice runs, the app turns the file into an inline `PWL(…)`, with one point per line or sample. ngspice slows down with the square of the number of points, so a file source can have at most 100,000 points (about 2.3 s of 44.1 kHz audio), and the file must be an ordinary file of at most 64 MB. For longer audio, shorten or resample the file. A missing or unreadable file stops the run with a message in the console that names the file and, for a bad line, its line number.
 
 The same syntax works in a hand-written netlist (it is LTspice's).
 
