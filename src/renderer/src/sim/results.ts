@@ -3,10 +3,11 @@
 //   .sens -> "Sensitivity Analysis": DC 1 real point, AC complex over frequency (scale first); one vector per device / parameter, mostly 0
 //   .pz   -> "Pole-Zero Analysis", 1 complex point: v(pole(1)) … v(zero(1)) … in rad/s
 //   .dc with two sources -> one "DC transfer characteristic" plot, the inner sweep repeated per outer value; with several
-//         .dc lines the plots come in reverse deck order, so a plot is matched to its line by its numbers
+//         .dc lines the plots come in reverse deck order (checked with 4), so a plot is matched to its line by its
+//         numbers, and by that order when the numbers fit more than one line
 // (checked on ngspice-47; .options savecurrents adds i(@x[i]) vectors to all of them)
 import type { RawPlot } from '../../../main/rawfile.ts'
-import { parseAnalysis, spiceValue, type Analysis } from './analysis.ts'
+import { joinLines, parseAnalysis, spiceValue, type Analysis } from './analysis.ts'
 import { eng } from './sweep.ts'
 
 type Run = { label: string; plot: RawPlot }
@@ -14,18 +15,22 @@ const bare = (name: string) => name.replace(/^v\((.*)\)$/i, '$1') // ngspice wri
 const junk = (name: string) => /^i\(@/i.test(name) // savecurrents device currents: meaningless in these plots
 
 // one rawfile plot of a run -> the runs the plot shows: a nested .dc splits into one run per outer value (a family of
-// curves, overlaid like .step runs), sensitivities lose their all-zero vectors; anything else passes through
-export function plotRuns(label: string, plot: RawPlot, netlist: string): Run[] {
+// curves, overlaid like .step runs), sensitivities lose their all-zero vectors; anything else passes through.
+// nth: the plot's place among the run's DC plots (1 = the first written), 0 = unknown
+export function plotRuns(label: string, plot: RawPlot, netlist: string, nth = 0): Run[] {
   if (/^sensitivity/i.test(plot.plotname)) {
     const vars = plot.vars.filter((v, i) => (i === 0 && plot.complex) || (!junk(v.name) && (v.re.some((x) => x !== 0) || !!v.im?.some((x) => x !== 0))))
     return [{ label, plot: { ...plot, vars } }]
   }
   const x = plot.vars[0]?.re, n = x ? x.indexOf(x[0], 1) : -1 // inner sweep length: where the scale restarts
   if (!/^dc\b/i.test(plot.plotname) || n < 1 || plot.points % n) return [{ label, plot }]
-  const nested = netlist.split('\n').map((l) => parseAnalysis(l.replace(/\s*;.*$|\s+(\$\s|\/\/).*$/, ''))).filter((a) => a?.kind === 'dc' && a.source2) as DC[]
+  const all = joinLines(netlist).split('\n').filter((l) => /^[ \t]*\.dc\b/i.test(l)).map((l) => parseAnalysis(l.replace(/\s*;.*$|\s+(\$\s|\/\/).*$/, '')) as DC | null)
+  const nested = all.filter((d): d is DC => !!d?.source2)
   if (!nested.length) return [{ label, plot }]
   const fits = (d: DC) => near(spiceValue(d.start), x[0]) && count(d.start, d.stop, d.step) === n && n * count(d.start2, d.stop2, d.step2) === plot.points
-  const dc = nested.find(fits) ?? (nested.length === 1 ? nested[0] : undefined) // one line with {expr} values: it must be that one
+  const own = nth ? all[all.length - nth] : null, fit = nested.filter(fits) // own: this plot's line by the reverse order
+  // {expr} values fit nothing: then its own line, or the only nested one
+  const dc = (own && fit.includes(own) ? own : fit[0]) ?? (own?.source2 ? own : nested.length === 1 ? nested[0] : undefined)
   const a = dc ? spiceValue(dc.start2) : NaN, step = dc ? spiceValue(dc.step2) : NaN // NaN: numbered labels
   return Array.from({ length: plot.points / n }, (_, k) => {
     const v = a + k * step, at = isFinite(v) ? `${dc!.source2}=${eng(Number(v.toPrecision(12)))}` : `${dc?.source2 ?? 'sweep'} #${k + 1}`

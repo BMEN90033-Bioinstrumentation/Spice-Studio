@@ -76,7 +76,7 @@ function tabsOf(runs: Run[]): Tab[] {
   return [...(maps[0] ?? [])].map(([key, p]) => ({
     key,
     name: p.plotname,
-    runs: runs.flatMap((r, i) => (maps[i].has(key) ? plotRuns(r.label, maps[i].get(key)!, r.netlist) : [])), // nested .dc: a run per outer value
+    runs: runs.flatMap((r, i) => (maps[i].has(key) ? plotRuns(r.label, maps[i].get(key)!, r.netlist, +key.slice(key.lastIndexOf('#') + 1)) : [])), // nested .dc: a run per outer value
     panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name))
   })).sort((a, b) => analysisPos(runs[0].netlist, a.name) - analysisPos(runs[0].netlist, b.name))
 }

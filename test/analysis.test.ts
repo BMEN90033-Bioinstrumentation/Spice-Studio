@@ -196,6 +196,7 @@ test('.plot lines become panes for their analysis only', () => {
   ])
   assert.deepEqual(plotPanes(net, 'AC Analysis', ['frequency', 'v(a)']), [{ title: '', sel: ['v(a)'] }])
   assert.deepEqual(plotPanes(net, 'Operating Point', ['v(a)']), [])
+  assert.deepEqual(plotPanes('.plot tran v(a)\n+ v(b) ; Two\n', 'Transient Analysis', ['time', 'v(a)', 'v(b)']), [{ title: 'Two', sel: ['v(a)', 'v(b)'] }])
 })
 
 test('result tabs follow the directive order', () => {

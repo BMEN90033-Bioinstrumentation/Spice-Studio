@@ -195,6 +195,30 @@ test('nested .dc: trailing comments, and two lines each labelled from their own 
   assert.deepEqual(labels, [['I1=0', 'I1=1m', 'I1=2m'], ['V2=0', 'V2=1', 'V2=2']])
 })
 
+test('the .meas pass with + continuation lines and quoted expressions (skipped if ngspice missing)', (t) => {
+  const vmax = (lines: string[]) => {
+    const sec = measPass([...RC, ...lines, '.meas tran vmax MAX v(out)'])
+    return sec == null ? null : (parseMeas(sec).find((x) => x.name === 'vmax')?.value ?? NaN)
+  }
+  const want = 1 - Math.exp(-20)
+  const cont = vmax(['.tran 10u', '+ 40m']) // a measured line continued: the command needs the whole line
+  if (cont === null) return void t.skip('ngspice not on PATH')
+  near(cont, want, 1e-2)
+  near(vmax(['.tran 10u 40m', '.ac dec 10', '+ 1 1k'])!, want, 1e-2) // an unmeasured one: commented out whole
+  near(vmax(['.param ts=40m', ".tran 10u 'ts'"])!, want, 1e-2) // quoted expression: `run` fallback
+  near(vmax(['.param ts=40m', '.tran 10u {ts}', '.tf v(out) V1'])!, want, 1e-2)
+  const sec = measPass([...RC, '.tran 10u 40m', '.four 25', '+ v(out)'])!
+  assert.deepEqual(parseFour(sec).map((f) => [f.vector, f.rows.length]), [['v(out)', 10]])
+})
+
+test('nested .dc: lines the numbers cannot tell apart go by ngspice\'s reverse order; + continuation (skipped if ngspice missing)', (t) => {
+  const net = ['V1 d 0 0', 'V2 g 0 0', 'I1 0 g 0', 'R1 d s 100', 'R2 g s 1k', 'R3 s 0 100', '.dc V1 0 0.5 0.25', '.dc V1 0 1 0.25 V2 0 2 1', '.dc V1 0 1 0.25', '+ I1 0 2m 1m']
+  const r = sim(net)
+  if (!r) return void t.skip('ngspice not on PATH')
+  const labels = r.plots.map((p, i) => plotRuns('', p, net.join('\n'), i + 1).map((x) => x.label))
+  assert.deepEqual(labels, [['I1=0', 'I1=1m', 'I1=2m'], ['V2=0', 'V2=1', 'V2=2'], ['']])
+})
+
 test('erc: .sp port sources (portnum) are not ideal voltage sources', async () => {
   const { erc } = await import('../src/renderer/src/sim/erc.ts')
   const deck = '* sp\nV1 in 0 dc 0 ac 1 portnum 1 z0 50\nL1 in out 100n\nC1 out 0 40p\nV2 out 0 dc 0 ac 0 PORTNUM 2 z0 50\n.end\n'

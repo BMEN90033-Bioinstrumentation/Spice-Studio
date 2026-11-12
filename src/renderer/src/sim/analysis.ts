@@ -76,6 +76,8 @@ export function analysisText(a: Analysis): string {
 const SWEEPS = ['dec', 'oct', 'lin']
 
 const BRACES = /\{[^{}]*\}/g, squash = (m: string) => m.replace(/\s+/g, '')
+// SPICE `+` continuation lines folded into the line they continue, so a directive can be matched as one line
+export const joinLines = (text: string) => text.replace(/\r?\n[ \t]*\+/g, ' ')
 export function parseAnalysis(text: string): Analysis | null {
   const s = text.trim()
   if (!s || s.includes('\n')) return null
@@ -341,7 +343,7 @@ const PLOT_OF: Record<string, RegExp> = {
 }
 export function plotPanes(text: string, plotname: string, vars: string[]): { title: string; sel: string[] }[] {
   const has = new Set(vars.map((v) => v.toLowerCase()))
-  return [...text.matchAll(/^[ \t]*\.plot[ \t]+(\w+)[ \t]+(.*\S)/gim)]
+  return [...joinLines(text).matchAll(/^[ \t]*\.plot[ \t]+(\w+)[ \t]+(.*\S)/gim)]
     .filter((m) => PLOT_OF[m[1].toLowerCase()]?.test(plotname))
     .map((m) => {
       const [v, ...t] = m[2].split(';')
