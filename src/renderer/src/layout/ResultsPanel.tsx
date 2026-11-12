@@ -1,8 +1,11 @@
 // Plot tabs + plot + console. Presentational: the workspace owns the state; rendered docked or inside the pop-out window.
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { eng, Plot, type PlotRun } from '../Plot'
 import type { MeasTable } from '../contracts'
 import type { Blame } from '../sim/probe'
+import { FourierTables, ScalarTable } from '../sim/AnalysisTables'
+import { parseFour } from '../sim/meas'
+import { tableKind } from '../sim/results'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tip } from '@/components/ui/tip'
@@ -27,18 +30,21 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
   meas?: MeasTable
 }) {
   // the Measurements tab is local view state; the plot stays mounted underneath (keeps its cursors and zoom)
-  const [onMeas, setOnMeas] = useState(false)
+  const [onMeas, setOnMeas] = useState<boolean | 'four'>(false) // 'four': the Fourier tab (.four)
   const hasMeas = !!meas?.some((r) => r.rows.length)
-  const showMeas = hasMeas && (onMeas || !cur)
+  const four = useMemo(() => parseFour(log.join('\n')), [log])
+  const showFour = four.length > 0 && (onMeas === 'four' || (!cur && !hasMeas))
+  const showMeas = hasMeas && !showFour && (onMeas === true || !cur)
   return (
     <section className="right">
       <nav className="flex items-center gap-0.5 overflow-x-auto border-b px-2">
         {tabs.map((t) => (
-          <TabBtn key={t.key} on={t === cur && !showMeas} onClick={() => (setOnMeas(false), onTab(t.key))}>{t.name}</TabBtn>
+          <TabBtn key={t.key} on={t === cur && !showMeas && !showFour} onClick={() => (setOnMeas(false), onTab(t.key))}>{t.name}</TabBtn>
         ))}
         {hasMeas && <TabBtn on={showMeas} onClick={() => setOnMeas(true)}>Measurements</TabBtn>}
+        {four.length > 0 && <TabBtn on={showFour} onClick={() => setOnMeas('four')}>Fourier</TabBtn>}
         {!ran && <span className="px-1.5 text-muted-foreground">Press Run (⌘↵) to simulate</span>}
-        {ran && !tabs.length && !hasMeas && <span className="px-1.5 text-muted-foreground">No analysis results. Check the console.</span>}
+        {ran && !tabs.length && !hasMeas && !four.length && <span className="px-1.5 text-muted-foreground">No analysis results. Check the console.</span>}
         {actions && <span className="ml-auto flex shrink-0 items-center gap-1 pl-2">{actions}</span>}
       </nav>
       <div className="plotarea">
@@ -50,7 +56,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
                 <div key={k} className="plotpane">
                   {p?.title && <h3 className="panetitle">{p.title}</h3>}
                   <div className="panebody">
-                    <Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} />
+                    {tableKind(cur.runs[0].plot) ? <ScalarTable runs={cur.runs} /> : <Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} />}
                   </div>
                 </div>
               )
@@ -58,6 +64,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
           </div>
         )}
         {showMeas && <Measurements meas={meas!} />}
+        {showFour && <FourierTables four={four} />}
       </div>
       <pre className="console">
         {log.map((l, i) => {

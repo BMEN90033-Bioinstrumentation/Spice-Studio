@@ -13,14 +13,17 @@ const FAILED = /^\.meas(?:ure)?\s+\w+\s+(\S+)\b.*\bfailed!$/i
 // pass with this control block (main/index.ts); null = no second pass. A deck with its own .control is left alone.
 // ponytail: costs a second ngspice run per .meas deck; libngspice (shared mode) would give vectors and meas in one.
 // ngspice prints .meas for only one analysis type when a deck has several (tran wins over ac, checked on ngspice-47).
+// .four is skipped the same way ("fourier line ignored since rawfile was produced"), and a .control run ignores .four
+// lines too, so each becomes a `fourier` command on the transient plot (tran1: each run is a fresh ngspice).
 export function measDeck(netlist: string): string | null {
-  if (!/^[ \t]*\.meas(ure)?\b/im.test(netlist) || /^[ \t]*\.control\b/im.test(netlist)) return null
-  const ctl = '.control\nrun\nquit\n.endc\n', END = /^[ \t]*\.end[ \t]*$/im
+  const four = [...netlist.matchAll(/^[ \t]*\.four(?:ier)?[ \t]+([^;\n]*[^;\s])/gim)].map((m) => 'fourier ' + m[1])
+  if ((!four.length && !/^[ \t]*\.meas(ure)?\b/im.test(netlist)) || /^[ \t]*\.control\b/im.test(netlist)) return null
+  const ctl = ['.control', 'run', ...(four.length ? ['setplot tran1', ...four] : []), 'quit', '.endc', ''].join('\n'), END = /^[ \t]*\.end[ \t]*$/im
   return END.test(netlist) ? netlist.replace(END, ctl + '.end') : netlist.replace(/\n?$/, '\n' + ctl)
 }
-// the measurement part of a measDeck run's log, appended to the run log
+// the measurement (and Fourier) part of a measDeck run's log, appended to the run log
 export const measSection = (log: string) => {
-  const i = log.search(/^\s*Measurements for /m)
+  const i = log.search(/^\s*(Measurements|Fourier analysis) for /m)
   return i < 0 ? '' : log.slice(i).replace(/^ngspice-\S+ done\s*$/m, '').replace(/\n{3,}/g, '\n\n').trim()
 }
 
@@ -33,12 +36,32 @@ export function parseMeas(log: string): Measurement[] {
   for (const raw of log.split('\n')) {
     const l = raw.trim()
     if (/^Measurements for /.test(l)) on = true
-    else if (/^(ngspice-\S+ done|Total analysis time|Doing analysis|---)/.test(l)) on = false
+    else if (/^(ngspice-\S+ done|Total analysis time|Doing analysis|Fourier analysis for|---)/.test(l)) on = false
     if (!on) continue
     let m
     if ((m = ERR.exec(l))) add(m[1].toLowerCase(), null, l)
     else if ((m = FAILED.exec(l))) add(m[1].toLowerCase(), null, l)
     else if ((m = OK.exec(l)) && !isNaN(Number(m[2]))) add(m[1].toLowerCase(), Number(m[2]), l.replace(/\s+/g, ' '))
+  }
+  return out
+}
+
+// ---- .four: "Fourier analysis for v(out):" blocks (from the measDeck pass) ----
+export type Harmonic = { n: number; freq: number; mag: number; phase: number; nmag: number; nphase: number }
+export type Fourier = { run: string; vector: string; thd: number; rows: Harmonic[] }
+// log = the whole results log; sweep runs are marked "--- run R=1k ---" (main.tsx)
+export function parseFour(log: string): Fourier[] {
+  const out: Fourier[] = []
+  let run = '', cur: Fourier | null = null, m
+  for (const l of log.split('\n').map((x) => x.trim())) {
+    if ((m = /^--- run (.*) ---$/.exec(l))) (run = m[1]), (cur = null)
+    else if ((m = /^Fourier analysis for (.+):$/.exec(l))) out.push((cur = { run, vector: m[1], thd: NaN, rows: [] }))
+    else if (!cur || !l || /^(Harmonic\s|-+\s)/.test(l)) continue
+    else if ((m = /\bTHD:\s*(\S+)\s*%/.exec(l))) cur.thd = Number(m[1])
+    else if ((m = /^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)$/.exec(l))) {
+      const [n, freq, mag, phase, nmag, nphase] = m.slice(1).map(Number)
+      cur.rows.push({ n, freq, mag, phase, nmag, nphase })
+    } else cur = null
   }
   return out
 }
