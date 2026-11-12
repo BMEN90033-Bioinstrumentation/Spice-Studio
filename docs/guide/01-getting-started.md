@@ -120,7 +120,7 @@ You can change how often copies are made, or turn them off, in [Settings](#setti
 
 ## Settings
 
-Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar, which also lists the keyboard shortcuts and version details. Changes apply at once to every open window, and are kept for next time.
+Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar. Settings fills the window, with a tab down the left for each section: Appearance, Schematic, Autosave, New projects and files, Simulation engine, Keyboard shortcuts and About. **Back** at the top left (or Esc) returns to where you were. Changes apply at once to every open window, and are kept for next time.
 
 - **Theme**: **Light**, **Dark** or **System** (follows your computer's setting). Dark is the default. Exported and printed schematics are always black on white.
 - **Schematic**: show or hide the grid, and whether operating-point values appear on the schematic after a run. The **OP** button on the canvas toolbar still turns them on and off for the sheet you are on.

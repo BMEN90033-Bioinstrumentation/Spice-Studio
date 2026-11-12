@@ -1,9 +1,12 @@
 // Preferences: the live store (main/prefs.ts owns the file and pushes every change to every window) and the
-// Settings (macOS) / Preferences window: app menu › Settings… / File › Preferences…, Mod+,.
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+// Settings page: fills the main window, with a tab down the side per section. App menu › Settings… / File › Preferences…, Mod+,,
+// or Settings on the Home page.
+import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { Compat } from './contracts'
 import { useCommands } from './commands'
-import { focusPopout, PopOut } from './layout/PopOut'
+import { About, Shortcuts, type Info } from './Help'
+import { ArrowLeft } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { COMPATS } from './project/project'
 import { AUTOSAVE_MAX, AUTOSAVE_MIN, type Prefs, type Theme } from './prefs'
 import { Button } from '@/components/ui/button'
@@ -37,29 +40,57 @@ export const useDark = () => useSyncExternalStore((f) => {
 }, isDark)
 
 const MAC = /Mac/.test(navigator.platform)
-export const PREFWIN = 'ngspice-prefs'
 const COMPAT_NAME: Record<Compat, string> = { ps: 'PSpice', lt: 'LTspice', ltps: 'LTspice + PSpice', kicad: 'KiCad' } // as main.tsx's Run settings
 const AUTO = 'auto'
 
+const TABS = [['appearance', 'Appearance'], ['schematic', 'Schematic'], ['autosave', 'Autosave'], ['new', 'New projects and files'], ['engine', 'Simulation engine'],
+  ['keys', 'Keyboard shortcuts'], ['about', 'About']] as const
+type Tab = (typeof TABS)[number][0]
+const TabCtx = createContext<Tab | null>(null) // the section on show (Section renders only its own)
+let show: (() => void) | undefined
+export const openSettings = () => show?.() // Home's Settings button
+
 export function Preferences() {
-  const [open, setOpen] = useState(false)
-  useCommands([{ id: 'app.preferences', keys: 'Mod+,', run: () => (open ? focusPopout(PREFWIN) : setOpen(true)) }])
+  const [open, setOpen] = useState(false), [tab, setTab] = useState<Tab>('appearance')
+  const [info, setInfo] = useState<Info | null>(null)
+  const box = useRef<HTMLDivElement>(null)
+  show = () => setOpen(true)
+  useCommands([{ id: 'app.preferences', keys: 'Mod+,', run: () => setOpen((o) => !o) }])
+  useEffect(() => {
+    if (!open) return
+    box.current?.focus() // keys typed here stay here (the canvas has single-key shortcuts)
+    Promise.all([window.api.menu.info(), window.api.engine()]).then(([a, engine]) => setInfo({ ...a, engine }))
+  }, [open])
   if (!open) return null
+  const title = TABS.find(([id]) => id === tab)![1]
   return (
-    <PopOut name={PREFWIN} size="width=600,height=780" title={MAC ? 'Settings' : 'Preferences'} onClose={() => setOpen(false)}>
-      <div className="h-full overflow-y-auto bg-background px-6 py-5"><PreferencesPanel /></div>
-    </PopOut>
+    <div ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Settings" className="fixed inset-0 z-50 flex bg-background text-sm outline-none"
+      onKeyDown={(e) => (e.stopPropagation(), e.key === 'Escape' && !(e.target as Element).closest('input,textarea,[role=combobox],[role=listbox]') && setOpen(false))}>
+      <nav className="flex w-60 shrink-0 flex-col gap-0.5 border-r bg-card/40 px-3 pb-3" aria-label="Settings sections">
+        {/* top-left: Back, to the right of the macOS window buttons; the rest of the strip drags the window */}
+        <div className={cn('-mx-3 flex h-11 shrink-0 items-center px-2 [-webkit-app-region:drag]', MAC && 'pl-[78px]')}>
+          <Button variant="ghost" size="sm" className="[-webkit-app-region:no-drag]" onClick={() => setOpen(false)}><ArrowLeft />Back</Button>
+        </div>
+        <h1 className="mb-2 px-2 text-base font-semibold">Settings</h1>
+        {TABS.map(([id, name]) => (
+          <Button key={id} variant="ghost" size="sm" aria-current={id === tab ? 'page' : undefined} onClick={() => setTab(id)}
+            className={cn('h-9 justify-start px-2 font-normal text-muted-foreground', id === tab && 'bg-accent font-medium text-foreground')}>{name}</Button>
+        ))}
+      </nav>
+      <main className="min-w-0 flex-1 overflow-y-auto">
+        <div className="h-11 [-webkit-app-region:drag]" />
+        <div className="max-w-[760px] px-10 pb-12">
+          <h2 className="mb-5 text-lg font-semibold">{title}</h2>
+          {tab === 'keys' ? <Shortcuts /> : tab === 'about' ? <About info={info} /> : <TabCtx value={tab}><PreferencesPanel /></TabCtx>}
+        </div>
+      </main>
+    </div>
   )
 }
 
-const Section = ({ title, children }: { title: string; children: ReactNode }) => (
-  <section className="grid gap-3 border-b py-4 first:pt-0 last:border-0">
-    <h2 className="text-xs font-medium text-muted-foreground">{title}</h2>
-    {children}
-  </section>
-)
+const Section = ({ id, children }: { id: Tab; children: ReactNode }) => (useContext(TabCtx) === id ? <section className="grid gap-4">{children}</section> : null)
 const Row = ({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode }) => (
-  <div className="grid grid-cols-[120px_1fr] items-center gap-3">
+  <div className="grid grid-cols-[160px_1fr] items-center gap-3">
     <Label htmlFor={htmlFor} className="font-normal">{label}</Label>
     <div className="flex min-w-0 items-center gap-2">{children}</div>
   </div>
@@ -91,8 +122,8 @@ function Num({ id, value, unit, min, max, placeholder, onCommit }: { id: string;
   )
 }
 
-// the settings themselves: the Settings window, and Home's Settings page
-export function PreferencesPanel() {
+// the settings themselves: one Section per tab
+function PreferencesPanel() {
   const p = usePrefs()
   const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
   const [defDir, setDefDir] = useState('')
@@ -108,7 +139,7 @@ export function PreferencesPanel() {
   return (
     <div>
       {err && <p role="alert" className="mb-3 text-xs text-destructive">{err}</p>}
-      <Section title="Appearance">
+      <Section id="appearance">
         <Row label="Theme">
           <ToggleGroup type="single" variant="outline" size="sm" value={p.theme} onValueChange={(v) => v && setPrefs({ theme: v as Theme })} aria-label="Theme">
             <ToggleGroupItem value="light" className="px-3">Light</ToggleGroupItem>
@@ -118,7 +149,7 @@ export function PreferencesPanel() {
         </Row>
       </Section>
 
-      <Section title="Schematic">
+      <Section id="schematic">
         <Check id="pref-grid" checked={p.grid} onChange={(grid) => setPrefs({ grid })}>Show the grid</Check>
         <Check id="pref-op" checked={p.showOp} onChange={(showOp) => setPrefs({ showOp })}>
           Show operating-point values on the schematic after a run
@@ -126,7 +157,7 @@ export function PreferencesPanel() {
         </Check>
       </Section>
 
-      <Section title="Autosave">
+      <Section id="autosave">
         <Check id="pref-autosave" checked={p.autosave} onChange={(autosave) => setPrefs({ autosave })}>
           Keep recovery copies of unsaved work
           <Hint>Copies go in Spice Studio's own folder, never over your files. If the app quits unexpectedly, the Home page offers them back next time, and so does opening the project.</Hint>
@@ -137,7 +168,7 @@ export function PreferencesPanel() {
         </Row>
       </Section>
 
-      <Section title="New projects and files">
+      <Section id="new">
         <Row label="Project folder">
           <PathText path={p.projectDir || defDir} empty="Documents/Spice Studio" />
           <Button variant="outline" size="sm" onClick={pickDir}>Change…</Button>
@@ -158,7 +189,7 @@ export function PreferencesPanel() {
         <Hint>The run settings a new project or a loose file starts with. Change them for one project with Run settings in the editor.</Hint>
       </Section>
 
-      <Section title="Simulation engine">
+      <Section id="engine">
         <Row label="ngspice">
           <PathText path={p.ngspicePath} empty="Bundled with Spice Studio" />
           <Button variant="outline" size="sm" onClick={pickEngine}>Choose…</Button>

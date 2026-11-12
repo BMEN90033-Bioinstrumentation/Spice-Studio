@@ -12,8 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Tip } from '@/components/ui/tip'
 import { cn } from '@/lib/utils'
 import { keyLabel } from '../layout/Panel'
-import { About, Shortcuts } from '../Help'
-import { PreferencesPanel, usePrefs } from '../Preferences'
+import { openSettings, usePrefs } from '../Preferences'
 import { RecoveryList, type Recovery } from '../Recovery'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
@@ -88,7 +87,6 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   const [busy, setBusy] = useState(false)
   const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
   const [app, setApp] = useState<Awaited<ReturnType<typeof window.api.menu.info>> | null>(null)
-  const [settings, setSettings] = useState(false) // the main pane shows Settings instead of New project / Recent
   const nameRef = useRef<HTMLInputElement>(null)
 
   const reload = () => window.api.recent.list().then(setRecents)
@@ -101,8 +99,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   }, [])
   useEffect(() => void checkEngine(), [ngspicePath]) // Settings › Simulation engine
   useEffect(() => void (projectDir ? setParent(projectDir) : window.api.project.defaultParent().then(setParent)), [projectDir]) // Settings › Project folder
-  useEffect(() => { if (form) setSettings(false) }, [form]) // ⌘N from Settings
-  useEffect(() => { if (form && !settings) nameRef.current?.focus() }, [form, settings])
+  useEffect(() => { if (form) nameRef.current?.focus() }, [form])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setForm(false) // ⌘N/⌘O: commands in main.tsx
     window.addEventListener('keydown', onKey)
@@ -134,13 +131,13 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           </div>
         </div>
         <nav className="grid gap-0.5" aria-label="Start">
-          <Action icon={Plus} title="New project" tip="Start blank or from a template" keys="Mod+N" className={cn(form && !settings && 'bg-accent')} onClick={() => (setSettings(false), setForm(settings || !form))} aria-expanded={form && !settings} />
+          <Action icon={Plus} title="New project" tip="Start blank or from a template" keys="Mod+N" className={cn(form && 'bg-accent')} onClick={() => setForm(!form)} aria-expanded={form} />
           <Action icon={Folder} title="Open project…" tip="A .nsproj project folder" keys="Mod+O" onClick={() => onOpen()} />
           <Action icon={File} title="Open file…" tip="A single .nsch schematic or .cir netlist" keys="Mod+Shift+O" onClick={onOpenFile} />
           <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" className="mt-3" onClick={onLibrary} />
         </nav>
-        <Action icon={Settings} title="Settings" tip="Theme, autosave, defaults, keyboard shortcuts, the simulation engine and version details" className={cn('mt-auto mb-3', settings && 'bg-accent')}
-          onClick={() => setSettings(!settings)} aria-pressed={settings} />
+        <Action icon={Settings} title="Settings" tip="Theme, autosave, defaults, keyboard shortcuts, the simulation engine and version details" className="mt-auto mb-3"
+          onClick={openSettings} />
         {engine && (
           <Tip label={engine.path ?? 'ngspice not found'} side="right">
             <div className="flex items-center gap-2 border-t px-2 pt-3 text-xs text-muted-foreground">
@@ -168,22 +165,7 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
             </Alert>
           )}
 
-          {settings ? (
-            <>
-              <section className="mb-10">
-                <h2 className={H2}>Preferences</h2>
-                <PreferencesPanel />{/* the same as the Settings window (⌘,) */}
-              </section>
-              <section className="mb-10">
-                <h2 className={H2}>Keyboard shortcuts</h2>
-                <Shortcuts />
-              </section>
-              <section>
-                <h2 className={H2}>About and simulation engine</h2>
-                <About info={app && engine && { ...app, engine }} />
-              </section>
-            </>
-          ) : (
+          {(
             <>
               <section className="mb-10">
                 <h2 className={H2}>New project</h2>
