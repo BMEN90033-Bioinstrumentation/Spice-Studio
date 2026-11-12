@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState, type ComponentProps, type FormEvent } from 'react'
 import { validName } from '../project/project'
 import { TEMPLATES } from '../schematic/templates'
-import { BookOpen, File, FileText, Folder, FolderOpen, Plus, type LucideIcon } from 'lucide-react'
+import { BookOpen, File, FileText, Folder, FolderOpen, Plus, Settings, type LucideIcon } from 'lucide-react'
 import { SymBody, localBox } from '../library/Symbol'
 import { xform, type Sheet } from '../schematic/model'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupButton } from '@/components/ui/input-group'
-import { Kbd } from '@/components/ui/kbd'
 import { Label } from '@/components/ui/label'
 import { Tip } from '@/components/ui/tip'
 import { cn } from '@/lib/utils'
 import { keyLabel } from '../layout/Panel'
+import { About, Shortcuts } from '../Help'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
 
@@ -67,7 +67,6 @@ function Action({ icon: I, title, tip, keys, className, ...b }: { icon: LucideIc
     </Tip>
   )
 }
-const TIPS: [string[], string][] = [[['R', 'C', 'L', 'V'], 'place a part'], [['W'], 'draw a wire'], [['Alt'], 'click to probe a net'], [['Mod+Enter'], 'run'], [['Mod+/'], 'all shortcuts']]
 const H2 = 'mb-3 text-[13px] font-semibold'
 
 export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, setForm }: {
@@ -85,7 +84,8 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   const [tpl, setTpl] = useState(BLANK)
   const [busy, setBusy] = useState(false)
   const [engine, setEngine] = useState<Awaited<ReturnType<typeof window.api.engine>> | null>(null)
-  const [version, setVersion] = useState('')
+  const [app, setApp] = useState<Awaited<ReturnType<typeof window.api.menu.info>> | null>(null)
+  const [settings, setSettings] = useState(false) // the main pane shows Settings instead of New project / Recent
   const nameRef = useRef<HTMLInputElement>(null)
 
   const reload = () => window.api.recent.list().then(setRecents)
@@ -93,10 +93,11 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
   useEffect(() => {
     reload()
     checkEngine()
-    window.api.menu.info().then((i) => setVersion(i.version))
+    window.api.menu.info().then(setApp)
     window.api.project.defaultParent().then((p) => setParent((cur) => cur || p))
   }, [])
-  useEffect(() => { if (form) nameRef.current?.focus() }, [form])
+  useEffect(() => { if (form) setSettings(false) }, [form]) // ⌘N from Settings
+  useEffect(() => { if (form && !settings) nameRef.current?.focus() }, [form, settings])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setForm(false) // ⌘N/⌘O: commands in main.tsx
     window.addEventListener('keydown', onKey)
@@ -124,18 +125,20 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           <Logo className="size-7" />
           <div className="leading-tight">
             <div className="text-sm font-semibold">Spice Studio</div>
-            {version && <div className="text-xs text-muted-foreground">Version {version}</div>}
+            {app && <div className="text-xs text-muted-foreground">Version {app.version}</div>}
           </div>
         </div>
         <nav className="grid gap-0.5" aria-label="Start">
-          <Action icon={Plus} title="New project" tip="Start blank or from a template" keys="Mod+N" className={cn(form && 'bg-accent')} onClick={() => setForm(!form)} aria-expanded={form} />
+          <Action icon={Plus} title="New project" tip="Start blank or from a template" keys="Mod+N" className={cn(form && !settings && 'bg-accent')} onClick={() => (setSettings(false), setForm(settings || !form))} aria-expanded={form && !settings} />
           <Action icon={Folder} title="Open project…" tip="A .nsproj project folder" keys="Mod+O" onClick={() => onOpen()} />
           <Action icon={File} title="Open file…" tip="A single .nsch schematic or .cir netlist" keys="Mod+Shift+O" onClick={onOpenFile} />
           <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" className="mt-3" onClick={onLibrary} />
         </nav>
+        <Action icon={Settings} title="Settings" tip="Keyboard shortcuts, the simulation engine and version details" className={cn('mt-auto mb-3', settings && 'bg-accent')}
+          onClick={() => setSettings(!settings)} aria-pressed={settings} />
         {engine && (
           <Tip label={engine.path ?? 'ngspice not found'} side="right">
-            <div className="mt-auto flex items-center gap-2 px-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 border-t px-2 pt-3 text-xs text-muted-foreground">
               <span className={cn('size-1.5 rounded-full', engine.path ? 'bg-ok' : 'bg-warn')} />
               <span className={cn(!engine.path && 'text-warn')}>{engine.version}</span>
               {engine.bundled && <span className="ml-auto">Bundled</span>}
@@ -159,95 +162,101 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
             </Alert>
           )}
 
-          <section className="mb-10">
-            <h2 className={H2}>New project</h2>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(148px,1fr))] gap-3">
-              {CHOICES.map((t) => {
-                const on = form && tpl === t.id
-                return (
-                  <button key={t.id} type="button" aria-pressed={on} onClick={() => (setTpl(t.id), setForm(true))}
-                    className="group grid gap-2 rounded-md text-left outline-none">
-                    <span className={cn('grid aspect-[8/5] place-items-center rounded-md border bg-black/15 p-4 text-muted-foreground transition-colors group-hover:border-input group-hover:bg-black/25 group-focus-visible:ring-2 group-focus-visible:ring-ring',
-                      on && 'border-foreground/70 group-hover:border-foreground/70')}>
-                      {t.sheet ? <Thumb sheet={t.sheet} /> : <Plus className="size-5" strokeWidth={1.5} />}
-                    </span>
-                    <span className={cn('truncate text-xs', on ? 'font-medium text-foreground' : 'text-muted-foreground group-hover:text-foreground')}>{t.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-
-            {form && (
-              <form className="mt-5 grid gap-4 border-t pt-5" onSubmit={create}>
-                <p className="text-muted-foreground">{desc}</p>
-                <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 max-[820px]:grid-cols-1">
-                  <div className="grid content-start gap-1.5">
-                    <Label htmlFor="np-name" className="text-xs font-normal text-muted-foreground">Name</Label>
-                    <Input id="np-name" ref={nameRef} className="h-8" value={name} onChange={(e) => setName(e.target.value)} placeholder="My amplifier" spellCheck={false}
-                      aria-invalid={!!name && !validName(name)} aria-describedby={name && !validName(name) ? 'np-name-err' : undefined} />
-                    {name && !validName(name) && <div id="np-name-err" className="text-xs text-destructive">No / \ : * ? " &lt; &gt; | and it can't start with "."</div>}
-                  </div>
-                  <div className="grid content-start gap-1.5">
-                    <span id="np-loc" className="text-xs text-muted-foreground">Location</span>
-                    <InputGroup className="h-8" aria-labelledby="np-loc">
-                      {/* rtl + ltr bdi: ellipsised from the left, so the folder name stays visible */}
-                      <Tip label={parent}>
-                        <code className="min-w-0 flex-1 truncate px-3 text-left font-mono text-xs [direction:rtl]"><bdi dir="ltr">{tilde(parent)}{name.trim() && validName(name) ? '/' + name.trim() : ''}</bdi></code>
-                      </Tip>
-                      <InputGroupAddon align="inline-end"><InputGroupButton onClick={pick}>Change…</InputGroupButton></InputGroupAddon>
-                    </InputGroup>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm(false)}>Cancel</Button>
-                  <Button type="submit" size="sm" disabled={!ok || busy}>{busy ? 'Creating…' : 'Create project'}</Button>
-                </div>
-              </form>
-            )}
-          </section>
-
-          <section>
-            <h2 className={H2}>Recent</h2>
-            {recents?.length === 0 && (
-              <div className="grid gap-4 border-t pt-4 text-muted-foreground">
-                <p>Nothing here yet. Pick a template above, or open a project you already have.</p>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-                  {TIPS.map(([keys, what]) => (
-                    <span key={what} className="flex items-center gap-1.5">
-                      <span className="flex gap-0.5">{keys.map((k) => <Kbd key={k}>{k === 'Alt' && /Mac/.test(navigator.platform) ? '⌥' : keyLabel(k)}</Kbd>)}</span>{what}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {!!recents?.length && (
-              <div className="grid grid-cols-[minmax(120px,1fr)_minmax(0,2fr)_auto] gap-x-6">
-                <div className="col-span-full grid grid-cols-subgrid border-b pb-1.5 text-xs text-muted-foreground">
-                  <span>Name</span><span>Location</span><span className="text-right">Opened</span>
-                </div>
-                {recents.map((r) => (
-                  <div key={r.file} className="relative col-span-full -mx-2 grid grid-cols-subgrid items-center rounded-md px-2 hover:bg-accent/60 has-focus-visible:bg-accent/60">
-                    <Tip label={r.exists ? r.file : 'Missing: ' + r.file}>
-                      {/* the name is the button; its ::after stretches the hit area over the whole row */}
-                      <button type="button" disabled={!r.exists} onClick={() => onOpen(r.file)}
-                        className={cn('flex h-9 min-w-0 items-center gap-2.5 text-left font-medium outline-none after:absolute after:inset-0 after:rounded-md focus-visible:after:ring-2 focus-visible:after:ring-ring', !r.exists && 'text-muted-foreground line-through')}>
-                        {/\.nsproj$/.test(r.file) ? <FolderOpen className="size-4 shrink-0 text-muted-foreground" /> : <FileText className="size-4 shrink-0 text-muted-foreground" />}
-                        <span className="truncate">{r.name}</span>
+          {settings ? (
+            <>
+              <section className="mb-10">
+                <h2 className={H2}>Keyboard shortcuts</h2>
+                <Shortcuts />
+              </section>
+              <section>
+                <h2 className={H2}>About and simulation engine</h2>
+                <About info={app && engine && { ...app, engine }} />
+              </section>
+            </>
+          ) : (
+            <>
+              <section className="mb-10">
+                <h2 className={H2}>New project</h2>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(148px,1fr))] gap-3">
+                  {CHOICES.map((t) => {
+                    const on = form && tpl === t.id
+                    return (
+                      <button key={t.id} type="button" aria-pressed={on} onClick={() => (setTpl(t.id), setForm(true))}
+                        className="group grid gap-2 rounded-md text-left outline-none">
+                        <span className={cn('grid aspect-[8/5] place-items-center rounded-md border bg-black/15 p-4 text-muted-foreground transition-colors group-hover:border-input group-hover:bg-black/25 group-focus-visible:ring-2 group-focus-visible:ring-ring',
+                          on && 'border-foreground/70 group-hover:border-foreground/70')}>
+                          {t.sheet ? <Thumb sheet={t.sheet} /> : <Plus className="size-5" strokeWidth={1.5} />}
+                        </span>
+                        <span className={cn('truncate text-xs', on ? 'font-medium text-foreground' : 'text-muted-foreground group-hover:text-foreground')}>{t.name}</span>
                       </button>
-                    </Tip>
-                    {/* path ellipsised from the left so the folder name stays visible */}
-                    <span className="min-w-0 truncate text-left text-xs text-muted-foreground [direction:rtl]"><bdi dir="ltr">{tilde(r.file.replace(/\/[^/]*$/, ''))}</bdi></span>
-                    <span className="flex items-center justify-end gap-2 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
-                      {r.exists ? ago(r.opened) : 'Missing'}
-                      {!r.exists && (
-                        <Button variant="ghost" size="sm" className="relative h-6 px-2 text-xs" onClick={() => window.api.recent.remove(r.file).then(reload)} aria-label={`Remove ${r.name} from recents`}>Remove</Button>
-                      )}
-                    </span>
+                    )
+                  })}
+                </div>
+
+                {form && (
+                  <form className="mt-5 grid gap-4 border-t pt-5" onSubmit={create}>
+                    <p className="text-muted-foreground">{desc}</p>
+                    <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 max-[820px]:grid-cols-1">
+                      <div className="grid content-start gap-1.5">
+                        <Label htmlFor="np-name" className="text-xs font-normal text-muted-foreground">Name</Label>
+                        <Input id="np-name" ref={nameRef} className="h-8" value={name} onChange={(e) => setName(e.target.value)} placeholder="My amplifier" spellCheck={false}
+                          aria-invalid={!!name && !validName(name)} aria-describedby={name && !validName(name) ? 'np-name-err' : undefined} />
+                        {name && !validName(name) && <div id="np-name-err" className="text-xs text-destructive">No / \ : * ? " &lt; &gt; | and it can't start with "."</div>}
+                      </div>
+                      <div className="grid content-start gap-1.5">
+                        <span id="np-loc" className="text-xs text-muted-foreground">Location</span>
+                        <InputGroup className="h-8" aria-labelledby="np-loc">
+                          {/* rtl + ltr bdi: ellipsised from the left, so the folder name stays visible */}
+                          <Tip label={parent}>
+                            <code className="min-w-0 flex-1 truncate px-3 text-left font-mono text-xs [direction:rtl]"><bdi dir="ltr">{tilde(parent)}{name.trim() && validName(name) ? '/' + name.trim() : ''}</bdi></code>
+                          </Tip>
+                          <InputGroupAddon align="inline-end"><InputGroupButton onClick={pick}>Change…</InputGroupButton></InputGroupAddon>
+                        </InputGroup>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setForm(false)}>Cancel</Button>
+                      <Button type="submit" size="sm" disabled={!ok || busy}>{busy ? 'Creating…' : 'Create project'}</Button>
+                    </div>
+                  </form>
+                )}
+              </section>
+
+              <section>
+                <h2 className={H2}>Recent</h2>
+                {recents?.length === 0 && (
+                  <p className="border-t pt-4 text-muted-foreground">Nothing here yet. Pick a template above, or open a project you already have.</p>
+                )}
+                {!!recents?.length && (
+                  <div className="grid grid-cols-[minmax(120px,1fr)_minmax(0,2fr)_auto] gap-x-6">
+                    <div className="col-span-full grid grid-cols-subgrid border-b pb-1.5 text-xs text-muted-foreground">
+                      <span>Name</span><span>Location</span><span className="text-right">Opened</span>
+                    </div>
+                    {recents.map((r) => (
+                      <div key={r.file} className="relative col-span-full -mx-2 grid grid-cols-subgrid items-center rounded-md px-2 hover:bg-accent/60 has-focus-visible:bg-accent/60">
+                        <Tip label={r.exists ? r.file : 'Missing: ' + r.file}>
+                          {/* the name is the button; its ::after stretches the hit area over the whole row */}
+                          <button type="button" disabled={!r.exists} onClick={() => onOpen(r.file)}
+                            className={cn('flex h-9 min-w-0 items-center gap-2.5 text-left font-medium outline-none after:absolute after:inset-0 after:rounded-md focus-visible:after:ring-2 focus-visible:after:ring-ring', !r.exists && 'text-muted-foreground line-through')}>
+                            {/\.nsproj$/.test(r.file) ? <FolderOpen className="size-4 shrink-0 text-muted-foreground" /> : <FileText className="size-4 shrink-0 text-muted-foreground" />}
+                            <span className="truncate">{r.name}</span>
+                          </button>
+                        </Tip>
+                        {/* path ellipsised from the left so the folder name stays visible */}
+                        <span className="min-w-0 truncate text-left text-xs text-muted-foreground [direction:rtl]"><bdi dir="ltr">{tilde(r.file.replace(/\/[^/]*$/, ''))}</bdi></span>
+                        <span className="flex items-center justify-end gap-2 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                          {r.exists ? ago(r.opened) : 'Missing'}
+                          {!r.exists && (
+                            <Button variant="ghost" size="sm" className="relative h-6 px-2 text-xs" onClick={() => window.api.recent.remove(r.file).then(reload)} aria-label={`Remove ${r.name} from recents`}>Remove</Button>
+                          )}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
+                )}
+              </section>
+            </>
+          )}
         </div>
       </main>
     </div>

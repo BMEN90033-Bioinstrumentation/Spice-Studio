@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Kbd } from '@/components/ui/kbd'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tip } from '@/components/ui/tip'
-import { useCommands } from './commands'
+import { runCommand, useCommands } from './commands'
 import { loadPacks, type PackInfo } from './library/sources'
 
 const MAC = navigator.platform.includes('Mac')
@@ -28,7 +28,7 @@ const SHORTCUTS: [string, [string, string][]][] = [
   ['Help', [['Keyboard shortcuts', 'Mod+/']]]
 ]
 
-type Info = Awaited<ReturnType<typeof window.api.menu.info>> & { engine: Awaited<ReturnType<typeof window.api.engine>> }
+export type Info = Awaited<ReturnType<typeof window.api.menu.info>> & { engine: Awaited<ReturnType<typeof window.api.engine>> }
 
 // what the app itself is built from (its JS ships inside the app; their licences ask for this credit)
 const CREDITS: [string, string, string][] = [
@@ -106,6 +106,45 @@ function Fold({ title, open, children }: { title: React.ReactNode; open?: boolea
   )
 }
 
+// the bodies of the Keyboard shortcuts and About dialogs; Home's Settings page shows the same two
+export function Shortcuts() {
+  return (
+    <div className="grid min-h-0 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-7 gap-y-1 overflow-auto">
+      {SHORTCUTS.map(([group, rows]) => (
+        <section key={group}>
+          <h3 className={cn(h3, 'mt-2.5 mb-1')}>{group}</h3>
+          {rows.map(([what, k]) => (
+            <div key={what} className="flex items-center gap-3 border-b py-1 text-xs"><span className="flex-1">{what}</span><Kbd className="font-mono">{keyLabel(k)}</Kbd></div>
+          ))}
+        </section>
+      ))}
+    </div>
+  )
+}
+export function About({ info }: { info: Info | null }) {
+  return (
+    <div className="grid gap-2.5 text-sm">
+      {!info ? <p className={muted}>Loading…</p> : (
+        <>
+          <p><b className="font-semibold">Spice Studio</b> {info.version}</p>
+          <p className={muted}>Schematic editor and front end for the ngspice circuit simulator.</p>
+          <dl className={dl}>
+            <dt>Engine</dt>
+            <dd className={info.engine.path ? '' : 'text-err'}>{info.engine.version}{info.engine.bundled ? ' (bundled)' : ''}</dd>
+            <dt>Engine path</dt>
+            <dd><code className="font-mono text-[11px]">{info.engine.path ?? 'not found: npm run ngspice:build, or install ngspice'}</code></dd>
+            <dt>Runtime</dt>
+            <dd>Electron {info.electron} · Chromium {info.chrome} · Node {info.node}</dd>
+            <dt>Platform</dt>
+            <dd>{info.platform}</dd>
+          </dl>
+          <p className={muted}>ngspice is BSD-3-Clause with third-party parts: <Button variant="link" className="h-auto p-0 text-xs text-hl" onClick={() => runCommand('help.licenses')}>Third-party licences</Button> lists them, the library packs' notices and the app's own components.</p>
+        </>
+      )}
+    </div>
+  )
+}
+
 export function Help() {
   const [open, setOpen] = useState<'shortcuts' | 'about' | 'licenses' | null>(null)
   const [info, setInfo] = useState<Info | null>(null)
@@ -127,40 +166,13 @@ export function Help() {
   if (open === 'shortcuts')
     return (
       <Modal title="Keyboard shortcuts" onClose={() => setOpen(null)}>
-        <div className="grid min-h-0 grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-x-7 gap-y-1 overflow-auto">
-          {SHORTCUTS.map(([group, rows]) => (
-            <section key={group}>
-              <h3 className={cn(h3, 'mt-2.5 mb-1')}>{group}</h3>
-              {rows.map(([what, k]) => (
-                <div key={what} className="flex items-center gap-3 border-b py-1 text-xs"><span className="flex-1">{what}</span><Kbd className="font-mono">{keyLabel(k)}</Kbd></div>
-              ))}
-            </section>
-          ))}
-        </div>
+        <Shortcuts />
       </Modal>
     )
   if (open === 'about')
     return (
       <Modal title="About Spice Studio" onClose={() => setOpen(null)}>
-        <div className="grid gap-2.5 text-sm">
-          {!info ? <p className={muted}>Loading…</p> : (
-            <>
-              <p><b className="font-semibold">Spice Studio</b> {info.version}</p>
-              <p className={muted}>Schematic editor and front end for the ngspice circuit simulator.</p>
-              <dl className={dl}>
-                <dt>Engine</dt>
-                <dd className={info.engine.path ? '' : 'text-err'}>{info.engine.version}{info.engine.bundled ? ' (bundled)' : ''}</dd>
-                <dt>Engine path</dt>
-                <dd><code className="font-mono text-[11px]">{info.engine.path ?? 'not found: npm run ngspice:build, or install ngspice'}</code></dd>
-                <dt>Runtime</dt>
-                <dd>Electron {info.electron} · Chromium {info.chrome} · Node {info.node}</dd>
-                <dt>Platform</dt>
-                <dd>{info.platform}</dd>
-              </dl>
-              <p className={muted}>ngspice is BSD-3-Clause with third-party parts: <Button variant="link" className="h-auto p-0 text-xs text-hl" onClick={licenses}>Third-party licences</Button> lists them, the library packs' notices and the app's own components.</p>
-            </>
-          )}
-        </div>
+        <About info={info} />
       </Modal>
     )
   if (open === 'licenses')
