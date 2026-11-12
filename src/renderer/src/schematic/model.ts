@@ -18,6 +18,7 @@ export interface Part {
   pins?: { name: string; x: number; y: number }[] // per-instance pins (blocks), local coords; overrides the symbol's
   size?: { w: number; h: number } // block body, centred on origin
   lib?: string // library entry id, e.g. 'std:2N3904'
+  sym?: Drawing[] // custom library symbol (symbol editor): its graphics in local coords; its pins are in `pins`
 }
 export interface Wire {
   id: string
@@ -209,12 +210,17 @@ export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: P
   return { ...s, parts, wires: [...wires, ...added] }
 }
 
+const num = (v: unknown) => typeof v === 'number' && isFinite(v)
+const pt = (p: any) => num(p?.x) && num(p?.y)
+const str = (v: unknown) => typeof v === 'string'
+export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
+  : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
+  : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b))
+
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {
   const s = JSON.parse(text)
   if (s?.version !== 1 || !Array.isArray(s.parts) || !Array.isArray(s.wires)) throw new Error('Not a Spice Studio schematic (.nsch v1)')
-  const num = (v: unknown) => typeof v === 'number' && isFinite(v)
-  const pt = (p: any) => num(p?.x) && num(p?.y)
   for (const p of s.parts) {
     if (!(p?.kind in SYMBOLS)) throw new Error(`Unknown part kind "${p?.kind}"`)
     if (!pt(p) || !num(p.rot) || typeof p.mirror !== 'boolean' || typeof p.name !== 'string' || typeof p.value !== 'string' || typeof p.id !== 'string')
@@ -226,22 +232,17 @@ export function parseSheet(text: string): Sheet {
     opt('lib', (v) => typeof v === 'string')
     opt('size', (v) => num(v?.w) && num(v?.h))
     opt('pins', (v) => Array.isArray(v) && v.every((q: any) => pt(q) && typeof q.name === 'string'))
+    opt('sym', (v) => Array.isArray(v) && v.every(okDrawing))
   }
   for (const w of s.wires) if (!pt(w?.a) || !pt(w?.b) || typeof w.id !== 'string') throw new Error(`Malformed wire ${JSON.stringify(w).slice(0, 80)}`)
   s.texts ??= [] // Phase 2 files predate directives
   if (!Array.isArray(s.texts)) throw new Error('Malformed texts')
   for (const t of s.texts) if (!pt(t) || typeof t.text !== 'string' || typeof t.id !== 'string') throw new Error(`Malformed directive ${JSON.stringify(t).slice(0, 80)}`)
-  const str = (v: unknown) => typeof v === 'string'
   if (s.draw !== undefined) {
     if (!Array.isArray(s.draw)) throw new Error('Malformed draw')
-    for (const d of s.draw) {
-      const ok = str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
-        : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
-        : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b))
-      if (!ok) throw new Error(`Malformed drawing ${JSON.stringify(d).slice(0, 80)}`)
-    }
+    for (const d of s.draw) if (!okDrawing(d)) throw new Error(`Malformed drawing ${JSON.stringify(d).slice(0, 80)}`)
   }
-  if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && str(w.id)))) throw new Error('Malformed buses')
+  if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && typeof w.id === 'string'))) throw new Error('Malformed buses')
   return s
 }
 

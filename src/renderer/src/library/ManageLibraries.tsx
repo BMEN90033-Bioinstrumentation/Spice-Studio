@@ -9,6 +9,7 @@ import { isUrl, PackLicence } from '../Help'
 import { focusPopout, LIBWIN, PopOut } from '../layout/PopOut'
 import { BUNDLED, libOn, parseLibFile, type ImportedLib, type ParsedLib } from './library'
 import { ImportDialog } from './LibraryView'
+import { SymbolEditor } from './SymbolEditor'
 import { reloadPacks, setPackEnabled, usePacks, type PackInfo, type Sources } from './sources'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -69,6 +70,7 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
   const [notice, setNotice] = useState<string | null>(null) // pack id whose licence / notice is expanded
   const [ask, setAsk] = useState<string | null>(null) // row key whose Remove is awaiting confirmation
   const [busy, setBusy] = useState(false)
+  const [symFor, setSymFor] = useState<{ lib: ImportedLib; text: string; save: (l: ImportedLib) => Promise<unknown> } | null>(null) // symbol editor
   const first = useRef<HTMLDivElement>(null)
   const seen = useRef(0) // import requests already handled (a fresh window handles the one that opened it)
   useEffect(() => { if (req > seen.current) (seen.current = req), setMenu(true) }, [req])
@@ -116,7 +118,7 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
   // one library row: checkbox (none for built-in), name, meta line, optional licence / notice and inline Remove confirm
   const row = (o: {
     k: string; name: string; on: boolean; toggle?: (on: boolean) => void; meta: React.ReactNode; title?: string
-    pack?: PackInfo; rm?: { warn: string; run: () => unknown }
+    pack?: PackInfo; rm?: { warn: string; run: () => unknown }; sym?: () => void
   }) => (
     <li key={o.k} className="grid gap-1 rounded-lg border bg-card px-2.5 py-2">
       <div className="flex items-center gap-2">
@@ -130,6 +132,7 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
             <Badge variant="outline" className="border-ok/35 font-mono text-[10px] font-normal text-ok">{o.pack.license.length > 28 ? o.pack.license.slice(0, 26) + '…' : o.pack.license}</Badge>
           </Tip>
         )}
+        {o.sym && <Tip label="Draw custom symbols for this library's parts"><Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-muted-foreground" onClick={o.sym}>Symbols…</Button></Tip>}
         {o.rm && (
           <Button variant="ghost" size="sm" aria-expanded={ask === o.k} onClick={() => setAsk(ask === o.k ? null : o.k)}
             className="h-6 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive aria-expanded:bg-destructive/10 aria-expanded:text-destructive dark:hover:bg-destructive/20">Remove</Button>
@@ -179,7 +182,8 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
           {sources.user.libs.map((l) => row({
             k: 'user-' + l.file, name: l.file, on: libOn(l), toggle: (on) => sources.setEnabled(l.file, on),
             meta: `${plural(l.entries.length, 'part')} · available in every project${sources.user.texts[l.file] == null ? ' · file missing' : ''}`,
-            rm: { warn: KEEP, run: () => sources.remove(l.file) }
+            rm: { warn: KEEP, run: () => sources.remove(l.file) },
+            sym: sources.user.texts[l.file] == null ? undefined : () => setSymFor({ lib: l, text: sources.user.texts[l.file], save: sources.save })
           }))}
           {!sources.user.libs.length && <li className={MUTED}>Import a vendor .lib file into My libraries to use it in every project.</li>}
         </ul>
@@ -190,7 +194,8 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
               {project.libs.map((l) => row({
                 k: 'proj-' + l.file, name: l.file.replace(/^libs\//, ''), title: l.file, on: libOn(l), toggle: (on) => project.onToggle(l.file, on),
                 meta: `${plural(l.entries.length, 'part')} · in this project’s libs/ folder${project.texts[l.file] == null ? ' · file missing' : ''}`,
-                rm: { warn: 'Parts already placed from it will stop netlisting.', run: () => project.onRemove(l.file) }
+                rm: { warn: 'Parts already placed from it will stop netlisting.', run: () => project.onRemove(l.file) },
+                sym: project.texts[l.file] == null ? undefined : () => setSymFor({ lib: l, text: project.texts[l.file], save: async (x) => project.onImport(x) })
               }))}
               {!project.libs.length && <li className={MUTED}>No libraries imported into this project yet.</li>}
             </ul>
@@ -234,6 +239,8 @@ function Manager({ sources, project, req, onClose }: { sources: Sources; project
         <Button variant="outline" size="sm" onClick={onClose}>Done</Button>
       </div>
 
+      {symFor && <SymbolEditor lib={symFor.lib} text={symFor.text} onClose={() => setSymFor(null)}
+        onSave={(l) => symFor.save(l).then(() => say(`Saved the symbols of ${l.file.replace(/^libs\//, '')}. Parts you place from now on use them; select a placed part to switch it over.`))} />}
       {imp && (
         <ImportDialog rel={imp.rel} parsed={imp.parsed} onClose={cancelImport}
           onImport={(lib) => {

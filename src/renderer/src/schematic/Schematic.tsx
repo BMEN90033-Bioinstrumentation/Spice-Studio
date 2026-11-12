@@ -6,7 +6,8 @@ import { annotate, rewriteRefs } from './annotate'
 import { importSchematic } from './importer'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
-import { localBox, PinNames, SymBody, SymbolPreview, type Box } from '../library/Symbol'
+import { localBox, PinNames, SymBody, SymbolPreview, SymTexts, type Box } from '../library/Symbol'
+import { symbolFields } from '../library/customSymbol'
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
 import { analysisText, isOptionsLine, mergeOptions, parseAnalysis, type Analysis } from '../sim/analysis'
 import { AnalysisDialog, type Tab } from '../sim/AnalysisDialog'
@@ -323,6 +324,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     // ponytail: spice-less generics (std:R…) stay plain parts, no lib id: they netlist identically and survive a missing resolver
     const extra: Partial<Part> = { value: e.value, ...(e.spice ? { lib: e.id } : {}) }
     if (e.kind === 'block') Object.assign(extra, blockPartFields(e))
+    Object.assign(extra, symbolFields(e)) // the custom symbol drawn in the symbol editor, if any
     use({ place: e.kind, title: e.name, id: e.id, extra })
   }
   const picked = () => subset(cur.current, sel)
@@ -709,6 +711,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const placing = typeof tool === 'object' ? tool : null
   const one = sel.size === 1 ? sheet.parts.find((p) => sel.has(p.id) && p.kind !== 'gnd') : undefined
   const entry = one?.lib ? library.find((e) => e.id === one.lib) : undefined
+  // the library's custom symbol, when this part doesn't use it (yet) or uses an older version
+  const symNow = entry && symbolFields(entry), symFresh = symNow && JSON.stringify(symNow) !== JSON.stringify({ pins: one!.pins, sym: one!.sym }) ? symNow : undefined
   const blockSheet = one?.sheet ? sheets.find((x) => x.file === one.sheet) : undefined
   const ports = blockSheet && sheetPorts(blockSheet.sheet)
   const stale = ports && ports.join('\0') !== (one!.pins ?? []).map((q) => q.name).join('\0') ? ports : undefined
@@ -783,7 +787,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
                 <Hit b={localBox(p.kind, p)} />
                 <SymBody kind={p.kind} part={p} />
               </g>
-              {p.kind === 'block' && <PinNames part={p} at={p} />}
+              {p.kind === 'block' && !p.sym && <PinNames part={p} at={p} />}
+              {p.sym && <SymTexts part={p} at={p} />}
               <Texts p={p} />
             </g>
           ))}
@@ -806,7 +811,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {placing && cursor && (
             <g className="ghost">
               <g className="sym" transform={tf({ ...ghost, ...cursor })}><SymBody kind={placing.place} part={placing.extra} /></g>
-              {placing.place === 'block' && placing.extra && <PinNames part={placing.extra} at={{ ...ghost, ...cursor }} />}
+              {placing.place === 'block' && placing.extra && !placing.extra.sym && <PinNames part={placing.extra} at={{ ...ghost, ...cursor }} />}
+              {placing.extra?.sym && <SymTexts part={placing.extra} at={{ ...ghost, ...cursor }} />}
             </g>
           )}
           {tool === 'text' && cursor && <Card t={{ id: '', ...cursor, text: '.op' }} cls="ghost" />}
@@ -916,6 +922,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
                 <Input className={cn('h-7 px-2', MONO)} value={one.value} spellCheck={false} onChange={(e) => edit(one, 'value', e.target.value)} onKeyDown={blurOnEnter} onBlur={() => (hist.current.merge = undefined)} />
               </Label>
               {isSrc(one) && <Tip label="Edit DC, AC and the transient waveform"><InspBtn onClick={() => setSrcDlg(true)}>Waveform…</InspBtn></Tip>}
+              {symFresh && (
+                <Tip label="Draw this part with the library's custom symbol (wires on its old pins stay where they are)">
+                  <InspBtn onClick={() => commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === one.id ? { ...q, ...symFresh } : q)) })}>{one.sym ? 'Update symbol' : 'Use custom symbol'}</InspBtn>
+                </Tip>
+              )}
             </>
           )}
         </div>
