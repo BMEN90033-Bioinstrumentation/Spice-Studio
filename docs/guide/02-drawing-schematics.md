@@ -83,7 +83,7 @@ The four small buttons in the toolbar place a ground, a power flag, a net label 
 - **Ctrl+R** / **Ctrl+E** rotate or mirror the selected parts.
 - **Delete** or **⌫** deletes. ⌘X, ⌘C and ⌘V cut, copy and paste (inside the app only), ⌘D duplicates and ⌘A selects all.
 
-Select a single part to open the inspector. Edit **Name** and **Value** there. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
+Double-click a part to open its properties in a popup beside it (or right-click it, or select it and press Enter). Edit **Name** and **Value** there. Esc, or a click elsewhere, closes the popup. Names must start with the right SPICE letter (R for resistors, C for capacitors…). If one doesn't, the app adds the letter when it writes the netlist and shows a warning.
 
 ![The inspector for V1, with the Waveform… button](images/02-inspector.png)
 
@@ -95,7 +95,7 @@ Directives are lines of SPICE text that go into the netlist as written: analyses
 
 1. Press **S**, click **.op** in the toolbar, or choose **Place → SPICE Directive**.
 2. Click on the canvas. A card with `.op` appears and is selected.
-3. Type in the **SPICE directive** box in the inspector. A card can hold several lines.
+3. Type in the **SPICE directive** box in the popup that opens beside the card. A card can hold several lines.
 
 Double-click a card to edit it again. If the card holds a single analysis line, the inspector offers **Edit as analysis…**; if it holds an `.options` line, **Edit options…**. Both open the forms described in [chapter 4](04-simulating.md).
 
@@ -125,7 +125,7 @@ Anything else becomes a **placeholder**: a block drawn with a red dashed outline
 
 Annotations explain a drawing. They are never written to the netlist, even when a note looks like SPICE.
 
-- **Text note**: press **T** (or **Place → Text Note**, or the pen button in the toolbar), then click. Type in the inspector; a note can hold several lines. **Size** picks Small, Normal, Large or Huge.
+- **Text note**: press **T** (or **Place → Text Note**, or the pen button in the toolbar), then click. Type in the popup; a note can hold several lines. **Size** picks Small, Normal, Large or Huge.
 - **Shapes**: choose **Line**, **Arrow**, **Rectangle** or **Ellipse** from the pen button or **Place → Shape**. Click where the shape starts, then click where it ends. The line tool keeps going from the last point, so you can draw a polyline; double-click or press **Esc** to stop.
 - **Title block**: choose **Title block** from the pen button or **Place → Title Block**. It appears under the bottom-right corner of the drawing with the sheet name, today's date and revision A. Select it to edit **Title**, **Author**, **Date** and **Revision**. In a project, **Sheet n of m** is filled in from the Sheets panel. Choose **Title block** again to remove it. Each sheet has its own.
 

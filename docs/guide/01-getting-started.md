@@ -60,7 +60,7 @@ Start from a *Blank* project. [Chapter 2](02-drawing-schematics.md) explains eac
 
 ### Set the source
 
-1. Click V1 to select it. The inspector opens at the top right of the canvas.
+1. Double-click V1. Its properties open in a popup beside it (right-click, or Enter on a selected part, opens it too; Esc closes it).
 2. Click **Waveform…**.
 3. Set **DC value** to `0` and **AC magnitude** to `1`.
 4. Set **Transient waveform** to *Pulse* and fill in 0, 1, 0, 1u, 1u, 5m and 10m (initial value, pulsed value, delay, rise, fall, width, period).
@@ -70,7 +70,7 @@ The AC magnitude is used by the AC analysis; the pulse is used by the transient 
 
 ### Add the analyses
 
-1. Press **S** (or click the **.op** button in the toolbar) and click below the circuit. A directive card with `.op` appears and its text opens in the inspector.
+1. Press **S** (or click the **.op** button in the toolbar) and click below the circuit. A directive card with `.op` appears and its text opens in a popup beside it.
 2. Replace the text with two lines:
 
    ```

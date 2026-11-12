@@ -174,7 +174,7 @@ const TBTN = "h-12 min-w-12 flex-col gap-1 px-2 text-[11px] leading-none font-no
 const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
   <Tip label={label}><Button variant="ghost" size="sm" className={TBTN} aria-label={aria} onClick={onClick} disabled={disabled}>{children}<span>{aria.split(' ')[0]}</span></Button></Tip>
 )
-const INSP = 'sch-insp grid gap-2 rounded-lg border bg-card p-2.5 text-card-foreground shadow-md'
+const INSP = 'sch-insp grid gap-2 overflow-y-auto rounded-lg border bg-card p-2.5 text-card-foreground shadow-lg'
 const FLD = 'grid gap-1 text-[11px] font-normal text-muted-foreground'
 const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_code]:text-foreground'
 const MONO = 'font-mono text-xs md:text-xs text-foreground'
@@ -190,6 +190,20 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [sheet, setSheet] = useState(initial)
   const [sel, setSel] = useState<Set<string>>(() => new Set())
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
+  // the property popup: opened by a double-click on a part, directive, note or title block, placed at that point
+  const [pop, setPop] = useState<{ id: string; left: number; top: number } | null>(null)
+  // beside the element (right of it, or left when there's no room), kept inside the canvas
+  function openPop(id: string) {
+    const el = root.current?.querySelector(`[data-id="${id}"]`)
+    if (!el || !root.current) return
+    const r = root.current.getBoundingClientRect(), b = el.getBoundingClientRect(), W = 230 // .sch-insp width
+    const right = b.right - r.left + 10, left = right + W + 8 <= r.width ? right : b.left - r.left - W - 10
+    setSel(new Set([id]))
+    setPop({ id, left: Math.max(8, Math.min(left, r.width - W - 8)), top: Math.max(8, Math.min(b.top - r.top, r.height - 220)) })
+  }
+  useEffect(() => { pop && ta.current?.focus() }, [pop?.id])
+  useEffect(() => setPop(null), [view]) // ponytail: it doesn't follow a pan or zoom, it closes
+  useEffect(() => { pop && !sel.has(pop.id) && setPop(null) }, [sel]) // closes when its element is no longer the selection
   const [tool, setTool] = useState<Tool>('select')
   const [ghost, setGhost] = useState({ rot: 0, mirror: false })
   const [cursor, setCursor] = useState<Pt | null>(null)
@@ -385,6 +399,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     return out
   }
   function esc() {
+    if (pop) return setPop(null)
     if (start) setStart(null)
     else if (tool !== 'select') use('select')
     else setSel(new Set())
@@ -405,6 +420,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     else if (mod && k === 'a') setSel(new Set(all(cur.current)))
     else if (mod || e.altKey) done = false
     else if (k === 'escape') esc()
+    else if (k === 'enter' && sel.size === 1) openPop([...sel][0])
     else if (k === 'delete' || k === 'backspace') del()
     else if (k === 'w') use('wire')
     else if (k === 's') use('text')
@@ -555,7 +571,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       commit({ ...s, draw: [...(s.draw ?? []), d] })
       setSel(new Set([d.id]))
       use('select')
-      setTimeout(() => ta.current?.select())
+      setTimeout(() => (openPop(d.id), setTimeout(() => ta.current?.select())))
       return
     }
     if (tool === 'text') {
@@ -563,7 +579,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       commit({ ...s, texts: [...s.texts, t] })
       setSel(new Set([t.id]))
       use('select')
-      setTimeout(() => ta.current?.select()) // after mousedown's default focus change
+      setTimeout(() => (openPop(t.id), setTimeout(() => ta.current?.select()))) // after mousedown's default focus change, once the card is drawn
       return
     }
     if (typeof tool === 'object') return commit({ ...s, parts: [...s.parts, newPart(s, tool.place, p.x, p.y, ghost.rot, ghost.mirror, tool.extra)] })
@@ -645,7 +661,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id')
     const p = cur.current.parts.find((q) => q.id === id)
     if (p?.sheet && onOpenSheet) return onOpenSheet(p.sheet)
-    ta.current?.focus()
+    if (id) openPop(id)
   }
   // File › Import Schematic…: the converted sheet goes to the right of the drawing, selected; clashing names get the next free one
   async function importFile() {
@@ -736,6 +752,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const ports = blockSheet && sheetPorts(blockSheet.sheet)
   const stale = ports && ports.join('\0') !== (one!.pins ?? []).map((q) => q.name).join('\0') ? ports : undefined
   const dir = sel.size === 1 ? sheet.texts.find((t) => sel.has(t.id)) : undefined
+  const popAt = pop ? { left: pop.left, top: pop.top, maxHeight: `calc(100% - ${pop.top + 8}px)` } : undefined
   const drw = sel.size === 1 ? sheet.draw?.find((d) => sel.has(d.id) && (d.t === 'note' || d.t === 'title')) : undefined
   const editDraw = (d: Drawing, f: string, v: string | number) =>
     commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === d.id ? ({ ...x, [f]: v } as Drawing) : x)) }, `edit:${d.id}:${f}`)
@@ -791,7 +808,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   return (
     <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
       <svg ref={svg} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
-        onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={(e) => e.preventDefault()}>
+        onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={(e) => { e.preventDefault(); const id = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-id]')?.getAttribute('data-id'); if (id) openPop(id) }}>
         <defs>
           <pattern id={gridId} width={g} height={g} patternUnits="userSpaceOnUse" patternTransform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             <circle className="dot" r={1 / view.k} />
@@ -915,8 +932,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         )}
       </div>
 
-      {one && (
-        <div className={INSP} key={one.id}>
+      {one && pop?.id === one.id && (
+        <div className={INSP} style={popAt} key={one.id}>
           <div className="text-xs font-semibold">{entry?.name ?? (one.sheet ? 'Sheet block' : SYMBOLS[one.kind].title)}</div>
           {entry && <div className={D}>{entry.description}</div>}
           {entry?.group && <div className={D}>From {entry.group} · {libKey(entry.id).replace(/^(proj|user):|^pack:[^/]*\//, '')}</div>}
@@ -951,8 +968,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </div>
       )}
 
-      {dir && (
-        <div className={INSP} key={dir.id}>
+      {dir && pop?.id === dir.id && (
+        <div className={INSP} style={popAt} key={dir.id}>
           <Label className={FLD}>SPICE directive
             <Textarea ref={ta} rows={6} value={dir.text} spellCheck={false} onChange={(e) => editText(dir.id, e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y overflow-x-auto px-2 py-1.5 leading-snug whitespace-pre [overflow-wrap:normal]', MONO)}
@@ -965,8 +982,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </div>
       )}
 
-      {drw?.t === 'note' && (
-        <div className={INSP} key={drw.id}>
+      {drw?.t === 'note' && pop?.id === drw.id && (
+        <div className={INSP} style={popAt} key={drw.id}>
           <Label className={FLD}>Text note (not netlisted)
             <Textarea ref={ta} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
@@ -980,8 +997,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           </Label>
         </div>
       )}
-      {drw?.t === 'title' && (
-        <div className={INSP} key={drw.id}>
+      {drw?.t === 'title' && pop?.id === drw.id && (
+        <div className={INSP} style={popAt} key={drw.id}>
           <div className="text-xs font-semibold">Title block</div>
           {(['title', 'author', 'date', 'rev'] as const).map((f) => (
             <Label key={f} className={FLD}>{f === 'rev' ? 'Revision' : f[0].toUpperCase() + f.slice(1)}
