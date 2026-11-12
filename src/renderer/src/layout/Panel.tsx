@@ -52,7 +52,7 @@ function load(): State {
 
 // Panel state for one workspace: persisted, registers the view.* commands. `runs` changing = a run finished.
 export function usePanels({ active, hasSheets, isSch, runs, title }: { active: boolean; hasSheets: boolean; isSch: boolean; runs: unknown; title: string }) {
-  const [s, setS] = useState(load)
+  const [s, setS] = useState(() => ({ ...load(), ...(hasSheets && { plots: false }) })) // a project opens with results collapsed (nothing run yet)
   const [dot, setDot] = useState(false)
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(s)) } catch {} }, [s])
   const docked = s.plots && !s.popped

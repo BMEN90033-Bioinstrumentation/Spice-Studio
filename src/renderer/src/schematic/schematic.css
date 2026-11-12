@@ -34,7 +34,7 @@
 .sch-bar { position: absolute; top: 8px; left: 8px; right: 8px; width: fit-content; display: flex; } /* width shrinks to its content, wraps when narrow */
 .sch-bar [aria-pressed=true] .symp { color: var(--hl); }
 .sch-bar .sym path, .sch-bar .sym circle { stroke-width: 1.2; }
-.sch-insp { position: absolute; top: calc(var(--bar-h, 28px) + 20px); right: 8px; width: 230px; }
+.sch-insp { position: absolute; top: calc(var(--bar-h, 60px) + 20px); right: 8px; width: 230px; }
 .sch-hint { position: absolute; left: 10px; right: 10px; bottom: 6px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .sch .dir rect { fill: var(--s2); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }

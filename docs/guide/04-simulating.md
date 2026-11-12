@@ -6,7 +6,7 @@ A simulation needs at least one **analysis directive** on the sheet: `.op`, `.tr
 
 ## The Simulation setup dialog
 
-Open it with **A**, the **Analysis…** toolbar button, or **Simulate › Analysis Setup…**.
+Open it with **A**, the **Analysis** toolbar button, or **Simulate › Analysis Setup…**.
 
 ![The Simulation setup dialog on the Transient tab](images/04-analysis-tran.png)
 

@@ -16,7 +16,7 @@ import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2 } from 'lucide-react'
+import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -62,6 +62,7 @@ type Drag =
 
 const KEYS = Object.fromEntries(Object.entries(SYMBOLS).flatMap(([k, d]) => (d.key ? [[d.key, k]] : []))) as Record<string, Kind>
 const QUICK: Kind[] = ['gnd', 'power', 'label', 'port']
+const QUICK_LABEL: Partial<Record<Kind, string>> = { gnd: 'Ground', power: 'Power', label: 'Label', port: 'Port' } // short toolbar labels
 const LIBW = 240 // library panel width, keep in sync with .libp in library.css
 const clampK = (k: number) => Math.min(8, Math.max(0.2, k))
 const add = (a: Pt, d: Pt) => ({ x: a.x + d.x, y: a.y + d.y })
@@ -167,9 +168,11 @@ const typing = (e: KeyboardEvent) => {
 const blurOnEnter = (e: RKE<HTMLInputElement>) => (e.key === 'Enter' || e.key === 'Escape') && e.currentTarget.blur()
 
 // floating toolbar / inspector chrome (positions stay in schematic.css: they shift with the parts panel)
-const Sep = () => <Separator orientation="vertical" className="mx-0.5 data-[orientation=vertical]:h-[18px]" />
+const Sep = () => <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-8" />
+// toolbar button: icon over its label
+const TBTN = "h-12 min-w-12 flex-col gap-1 px-2 text-[11px] leading-none font-normal text-muted-foreground [&_svg:not([class*='size-'])]:size-5"
 const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
-  <Tip label={label}><Button variant="ghost" size="icon-sm" className="size-7 text-muted-foreground" aria-label={aria} onClick={onClick} disabled={disabled}>{children}</Button></Tip>
+  <Tip label={label}><Button variant="ghost" size="sm" className={TBTN} aria-label={aria} onClick={onClick} disabled={disabled}>{children}<span>{aria.split(' ')[0]}</span></Button></Tip>
 )
 const INSP = 'sch-insp grid gap-2 rounded-lg border bg-card p-2.5 text-card-foreground shadow-md'
 const FLD = 'grid gap-1 text-[11px] font-normal text-muted-foreground'
@@ -854,24 +857,24 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
         : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts (${keyLabel('Mod+2')} or Shift+L)`} onOpen={() => toggleLib(true)} />}
-      <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1 shadow-sm" ref={bar}>
+      <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
         <Tip label="Parts library (Shift+L) · search (/)">
-          <Toggle size="sm" className="h-7 px-2 text-xs" pressed={libOpen} onPressedChange={() => toggleLib()}>Parts</Toggle>
+          <Toggle size="sm" className={TBTN} pressed={libOpen} onPressedChange={() => toggleLib()}><Cpu /><span>Parts</span></Toggle>
         </Tip>
         <Sep />
         {/* items keep their own onClick: re-clicking the current tool still resets it (ends a wire in progress) */}
         <ToggleGroup type="single" size="sm" aria-label="Tool" value={typeof tool === 'string' ? tool : ''}>
-          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire (W)', 'Wire', <Spline />], ['text', 'SPICE directive (S)', 'SPICE directive', '.op'],
+          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire (W)', 'Wire', <Spline />], ['text', 'SPICE directive (S)', 'Directive', <span className="grid h-5 place-items-center font-mono text-xs">.op</span>],
             ['probe', 'Probe (P) · or Alt+click', 'Probe', <Crosshair />]] as const).map(([k, label, aria, body]) => (
             <Tip key={k} label={label}>
-              <ToggleGroupItem value={k} aria-label={aria} className={cn('h-7 min-w-7 px-1.5 text-muted-foreground', k === 'text' && 'font-mono text-xs')} onClick={() => use(k)}>{body}</ToggleGroupItem>
+              <ToggleGroupItem value={k} aria-label={k === 'text' ? 'SPICE directive' : aria} className={TBTN} onClick={() => use(k)}>{body}<span>{aria}</span></ToggleGroupItem>
             </Tip>
           ))}
         </ToggleGroup>
         <DropdownMenu>
           <Tip label="Draw: text, shapes, title block, buses">
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Draw" className={cn('size-7 text-muted-foreground', (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /></Button>
+              <Button variant="ghost" size="sm" aria-label="Draw" className={cn(TBTN, (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /><span>Draw</span></Button>
             </DropdownMenuTrigger>
           </Tip>
           <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -889,9 +892,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           const on = placing?.place === k && !placing.id
           return (
             <Tip key={k} label={SYMBOLS[k].title + (SYMBOLS[k].key ? ` (${SYMBOLS[k].key!.toUpperCase()})` : '')}>
-              <Button variant="ghost" size="icon-sm" aria-label={SYMBOLS[k].title} aria-pressed={on} className={cn('size-7 [&_.symp]:size-5!', on && 'bg-accent')}
+              <Button variant="ghost" size="sm" aria-label={SYMBOLS[k].title} aria-pressed={on} className={cn(TBTN, '[&_.symp]:size-5!', on && 'bg-accent text-foreground')}
                 onClick={() => use({ place: k, title: SYMBOLS[k].title })}>
-                <SymbolPreview kind={k} size="small" />
+                <SymbolPreview kind={k} size="small" /><span>{QUICK_LABEL[k] ?? SYMBOLS[k].title}</span>
               </Button>
             </Tip>
           )
@@ -904,10 +907,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
         <BarBtn label="Fit (F)" aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
         <Sep />
-        <Tip label="Simulation setup (A)"><Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" onClick={() => setDlg('analysis')}>Analysis…</Button></Tip>
+        <Tip label="Simulation setup (A)"><Button variant="ghost" size="sm" className={TBTN} onClick={() => setDlg('analysis')}><Activity /><span>Analysis</span></Button></Tip>
         {overlay?.op && (
           <Tip label="Show DC operating point voltages">
-            <Toggle size="sm" className="h-7 px-2 text-xs" pressed={showOp} onPressedChange={() => setShowOp((v) => !v)}>OP</Toggle>
+            <Toggle size="sm" className={TBTN} aria-label="Operating point values" pressed={showOp} onPressedChange={() => setShowOp((v) => !v)}><Gauge /><span>OP</span></Toggle>
           </Tip>
         )}
       </div>

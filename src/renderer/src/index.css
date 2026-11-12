@@ -115,4 +115,7 @@
   * { @apply border-border outline-ring/50; }
   html, body, #root { height: 100%; }
   body { @apply bg-background text-foreground text-[13px] leading-[1.4] antialiased; }
+  /* chrome isn't text: a drag or double-click shouldn't highlight labels and buttons. Things worth copying stay selectable. */
+  body { user-select: none; }
+  input, textarea, pre, td, [contenteditable] { user-select: text; }
 }
