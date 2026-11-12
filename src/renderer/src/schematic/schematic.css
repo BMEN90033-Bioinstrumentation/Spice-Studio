@@ -9,7 +9,7 @@
   fill: none; stroke: currentColor; stroke-width: var(--sch-stroke, 1.5); vector-effect: non-scaling-stroke;
   stroke-linecap: round; stroke-linejoin: round;
 }
-.sch .sym .shade, .sch .sym circle { fill: color-mix(in srgb, currentColor 14%, transparent); } /* body shading */
+.sch .sym .shade, .sch .sym circle { fill: var(--sym-body, color-mix(in srgb, currentColor 14%, transparent)); } /* body shading; --sym-body, --jn, --nc, --note, --bus: a schematic colour theme (themes.ts) */
 .sch .sym .shade { stroke: none; }
 .sch .sym .f { fill: currentColor; }
 .sch .sym .hit { fill: transparent; stroke: none; }
@@ -22,8 +22,8 @@
 .sch .wire line { stroke: var(--wire); stroke-width: var(--sch-stroke, 1.5); vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .sch .wire line.hit { stroke: transparent; stroke-width: 10; }
 .sch .wire.on line:not(.hit) { stroke: var(--sel); }
-.sch .jn { fill: var(--wire); pointer-events: none; }
-.sch .nc { fill: var(--err); pointer-events: none; }
+.sch .jn { fill: var(--jn, var(--wire)); pointer-events: none; }
+.sch .nc { fill: var(--nc, var(--err)); pointer-events: none; }
 
 .sch .ghost { color: var(--hl); opacity: 0.6; pointer-events: none; }
 .sch .preview { pointer-events: none; }
@@ -68,7 +68,7 @@
 .sch .band { stroke: var(--probe); stroke-width: 1.5; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 
 /* annotations (drawings.tsx): a quieter colour than parts, never netlisted */
-.sch .drw { color: #8fa3ba; }
+.sch .drw { color: var(--note, #8fa3ba); }
 .sch .drw path { fill: none; stroke: currentColor; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
 .sch .drw .f { fill: currentColor; }
 .sch .drw path.hit { stroke: transparent; stroke-width: 10; pointer-events: stroke; }
@@ -85,17 +85,17 @@
 .sch .part.ph .sym path { stroke-dasharray: 4 3; }
 
 /* buses: thick, blue; they join only other buses (and bus taps / bus labels by position) */
-.sch .bus line { stroke: #5b9bd5; stroke-width: 4; vector-effect: non-scaling-stroke; stroke-linecap: round; }
+.sch .bus line { stroke: var(--bus, #5b9bd5); stroke-width: 4; vector-effect: non-scaling-stroke; stroke-linecap: round; }
 .sch .bus line.hit { stroke: transparent; stroke-width: 12; }
 .sch .bus.on line:not(.hit) { stroke: var(--sel); }
-.sch .bjn { fill: #5b9bd5; pointer-events: none; }
+.sch .bjn { fill: var(--bus, #5b9bd5); pointer-events: none; }
 .sch .preview.bus line { stroke-width: 4; }
 
 /* light theme: annotations and buses need darker ink on the white canvas */
 @media (prefers-color-scheme: light) {
-  .sch .drw { color: #4a5d73; }
-  .sch .bus line { stroke: #2f6fb0; }
-  .sch .bjn { fill: #2f6fb0; }
+  .sch .drw { color: var(--note, #4a5d73); }
+  .sch .bus line { stroke: var(--bus, #2f6fb0); }
+  .sch .bjn { fill: var(--bus, #2f6fb0); }
 }
 
 /* a part's name and value labels can each be dragged on their own (Part.lo, Part.vo) */

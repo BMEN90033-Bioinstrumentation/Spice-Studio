@@ -10,6 +10,7 @@ import { About, type Info } from './Help'
 import { Activity, ArrowLeft, CircuitBoard, Cpu, FolderPlus, Grid3x3, Grip, History, Info as InfoIcon, Keyboard, Monitor, Moon, Move, Palette, RotateCcw, Sun, ZoomIn, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { COMPATS } from './project/project'
+import { SCH_DEFAULT, SCH_THEMES, schThemeCss } from './schematic/themes'
 import { AUTOSAVE_MAX, AUTOSAVE_MIN, EDITOR_FONTS, PLOT_WIDTHS, UI_SCALES, type Prefs, type Theme } from './prefs'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -24,8 +25,10 @@ const subs = new Set<() => void>(), sub = (f: () => void) => (subs.add(f), () =>
 const FONT = { s: '8px', m: '9px', l: '11px' }, STROKE = { thin: '1', normal: '1.5', bold: '2.2' }
 // what the stylesheets and the shortcut handlers read: grid (style.css), schematic text and line weight (schematic.css),
 // netlist editor text size (Editor.tsx), the changed shortcuts (commands.ts)
+const schStyle = document.head.appendChild(document.createElement('style')) // the schematic colour theme; unlayered, so it wins
 const apply = () => {
   const r = document.documentElement
+  schStyle.textContent = schThemeCss(cur.schTheme)
   r.classList.toggle('no-grid', !cur.grid)
   r.style.setProperty('--sch-font', FONT[cur.labelSize]), r.style.setProperty('--sch-stroke', STROKE[cur.lineWeight])
   cur.editorFont ? r.style.setProperty('--editor-font', cur.editorFont + 'px') : r.style.removeProperty('--editor-font')
@@ -225,6 +228,16 @@ function PreferencesPanel() {
             <ToggleGroupItem value="dark" className="px-3"><Moon />Dark</ToggleGroupItem>
             <ToggleGroupItem value="system" className="px-3"><Monitor />System</ToggleGroupItem>
           </ToggleGroup>
+        </Row>
+        <Row label="Schematic colours">
+          <Select value={p.schTheme} onValueChange={(schTheme) => setPrefs({ schTheme })}>
+            <SelectTrigger size="sm" className="w-56" aria-label="Schematic colours"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SCH_DEFAULT}>Default</SelectItem>
+              {SCH_THEMES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Hint>KiCad colour themes by cosmopotamian</Hint>
         </Row>
         <Row label="Interface scale">
           <Pick value={String(p.uiScale)} onChange={(v) => setPrefs({ uiScale: +v })} label="Interface scale" options={UI_SCALES.map((v) => [String(v), `${Math.round(v * 100)} %`])} />

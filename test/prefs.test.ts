@@ -18,3 +18,14 @@ test('prefs: defaults keep the app as it was (dark, autosave on); garbage falls 
   assert.deepEqual(cleanPrefs({ sim: { timeoutS: 0 } }).sim, {}) // 0 = no limit = not stored
   assert.deepEqual(cleanPrefs(['dark']), DEFAULT_PREFS)
 })
+
+test('prefs: schematic colour themes — known ids kept, unknown back to default; every theme yields a full set of colours', async () => {
+  const { SCH_THEMES, schThemeCss } = await import('../src/renderer/src/schematic/themes.ts')
+  assert.equal(cleanPrefs({ schTheme: 'tokyo_night' }).schTheme, 'tokyo_night')
+  assert.equal(cleanPrefs({ schTheme: 'nope' }).schTheme, 'default')
+  assert.equal(schThemeCss('default'), '')
+  assert.equal(SCH_THEMES.length, 22)
+  for (const t of SCH_THEMES) assert.match(schThemeCss(t.id), /--bg:#[0-9a-f]{6};.*--err:#[0-9a-f]{6,8};/, t.id), assert.doesNotMatch(schThemeCss(t.id), /undefined/, t.id)
+  assert.match(schThemeCss('tokyo_night'), /--wire:#9ece6a;.*--sel:#f0b35a/) // dark background: the dark selection colours
+  assert.match(schThemeCss('altium_light'), /--bg:#ffffff;.*--sel:#c2410c/)
+})

@@ -3,10 +3,12 @@
 import type { ProjectSim } from './contracts.ts'
 import { COMPATS } from './project/project.ts'
 import { cleanKeys } from './shortcuts.ts'
+import { SCH_DEFAULT, SCH_THEME_IDS } from './schematic/themes.ts'
 
 export type Theme = 'dark' | 'light' | 'system'
 export interface Prefs {
   theme: Theme
+  schTheme: string // schematic colours: 'default' or a theme id (schematic/themes.ts)
   autosave: boolean // recovery copies of unsaved work (Recovery.tsx)
   autosaveSecs: number
   sim: ProjectSim // run settings for new projects and loose files
@@ -24,7 +26,7 @@ export interface Prefs {
   live: boolean // waveforms fill in while a simulation runs
   plotWidth: number // trace thickness in px
 }
-export const DEFAULT_PREFS: Prefs = { theme: 'dark', autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
+export const DEFAULT_PREFS: Prefs = { theme: 'dark', schTheme: SCH_DEFAULT, autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
   uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'pan', live: true, plotWidth: 1.5 }
 export const UI_SCALES = [0.8, 0.9, 1, 1.1, 1.25, 1.5], EDITOR_FONTS = [0, 11, 12, 13, 14, 16, 18], PLOT_WIDTHS = [1, 1.5, 2, 3]
 export const AUTOSAVE_MIN = 5, AUTOSAVE_MAX = 600
@@ -38,6 +40,7 @@ export function cleanPrefs(x: unknown): Prefs {
   const secs = Number(p.autosaveSecs), s = p.sim && typeof p.sim === 'object' ? p.sim : {}, t = Number(s.timeoutS)
   return {
     theme: ['dark', 'light', 'system'].includes(p.theme) ? p.theme : d.theme,
+    schTheme: one(SCH_THEME_IDS, p.schTheme, d.schTheme),
     autosave: bool('autosave'),
     autosaveSecs: Number.isFinite(secs) ? Math.round(Math.min(AUTOSAVE_MAX, Math.max(AUTOSAVE_MIN, secs))) : d.autosaveSecs,
     sim: { ...(COMPATS.includes(s.compat) && { compat: s.compat }), ...(t > 0 && Number.isFinite(t) && { timeoutS: t }) },
