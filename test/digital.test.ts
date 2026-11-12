@@ -89,3 +89,44 @@ test('NAND ring oscillator: 3 gates, enable; period ≈ 6 gate delays; vdd=3.3 s
   assert.ok(period > 6 * 5e-9 && period < 6 * 8e-9, `period ${period}`) // 3 gates × 2 edges × (tpd + bridge edge)
   assert.ok(Math.abs(Math.max(...r.v('v(b)')) - 3.3) < 1e-6)
 })
+
+test('truth tables: AND2, OR2, NOR2, NAND2, XOR2, INV, BUF in ngspice (skipped if ngspice missing)', (t) => {
+  const s = emptySheet()
+  const add = (kind: Parameters<typeof newPart>[1], x: number, y: number, extra = {}) => s.parts.push(newPart(s, kind, x, y, 0, false, extra))
+  const lab = (x: number, y: number, value: string) => add('label', x, y, { value })
+  // (a, b) = 11, 10, 01, 00 in successive 100 ns slots
+  add('vsrc', -200, 0, { value: 'PULSE(0 5 0 1n 1n 200n 400n)' }), lab(-200, -30, 'a'), add('gnd', -200, 30)
+  add('vsrc', -300, 0, { value: 'PULSE(0 5 0 1n 1n 100n 200n)' }), lab(-300, -30, 'b'), add('gnd', -300, 30)
+  const gates = { and2: '1000', or2: '1110', nor2: '0001', nand2: '0111', xor2: '0110', inv: '0011', buf: '1100' } as const
+  Object.keys(gates).forEach((k, i) => {
+    const kind = k as keyof typeof gates, two = !['inv', 'buf'].includes(kind)
+    add(kind, 0, 100 * i, { lib: 'std:' + DIGITAL_PARTS.find((e) => e.kind === kind)!.name })
+    if (two) lab(-30, 100 * i - 10, 'a'), lab(-30, 100 * i + 10, 'b')
+    else lab(-30, 100 * i, 'a')
+    lab(30, 100 * i, 'y_' + kind)
+  })
+  s.texts.push({ id: 'd', x: 0, y: 900, text: '.tran 1n 400n' })
+  const r = sim(s)
+  if (!r) return void t.skip('ngspice not found')
+  for (const [kind, want] of Object.entries(gates)) {
+    const got: string = [60e-9, 160e-9, 260e-9, 360e-9].map((x: number) => (at(r.t, r.v(`v(y_${kind})`), x) > 2.5 ? '1' : '0')).join('')
+    assert.equal(got, want, kind)
+  }
+})
+
+test('ERC: two digital outputs on one net is an error (ngspice: singular matrix); one output and inputs are fine', () => {
+  const s = emptySheet()
+  const add = (kind: Parameters<typeof newPart>[1], x: number, y: number, extra = {}) => s.parts.push(newPart(s, kind, x, y, 0, false, extra))
+  add('vsrc', -200, 0, { value: 'DC 5' }), add('label', -200, -30, { value: 'in' }), add('gnd', -200, 30)
+  for (const y of [0, 100]) add('inv', 0, y, { lib: 'std:INV' }), add('label', -30, y, { value: 'in' }), add('label', 30, y, { value: 'out' })
+  add('buf', 0, 200, { lib: 'std:BUF' }), add('label', -30, 200, { value: 'out' }), add('label', 30, 200, { value: 'z' })
+  s.texts.push({ id: 'd', x: 0, y: 900, text: '.tran 1n 10n' })
+  const n = netlist(s, 'fight', { lib })
+  const e = erc(n.text)
+  assert.equal(e.errors.length, 1)
+  assert.match(e.errors[0].message, /^Digital outputs fight: XU1, XU2 drive the same net out/)
+  assert.deepEqual(e.errors[0].refs, ['XU1', 'XU2'])
+  // a hand-written dac_bridge output on a V source's net
+  const hand = '* x\nV1 y 0 DC 1\nA1 [d] [y] dac\n.model dac dac_bridge\n.tran 1n 10n\n.end\n'
+  assert.match(erc(hand).errors[0]?.message ?? '', /Digital outputs fight: V1, A1/)
+})

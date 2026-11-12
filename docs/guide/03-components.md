@@ -90,7 +90,7 @@ The **Digital** category of the Parts panel has logic gates and a flip-flop. The
 
 The value sets the logic family: `vdd=<logic high>` (output levels 0 and vdd, inputs switch at vdd/2) and `tpd=<delay>` (input to output; outputs then take 1 ns to swing). For 3.3 V logic, use `vdd=3.3`. For a clock, use a voltage source with a pulse, such as `PULSE(0 5 0 2n 2n 0.5u 1u)` for 1 MHz.
 
-Inputs draw no current, and an unconnected input reads as low. An output is an ideal voltage source, so don't connect two outputs together. The project template **Digital counter (mixed-signal)** and the [Digital-Counter](examples/Digital-Counter/) example show a 2-bit counter made from two DFFs, an XOR gate and an RC filter.
+Inputs draw no current, and an unconnected input reads as low. An output is an ideal voltage source, so two outputs can't share a net, and neither can an output and a voltage source: the rules check stops the run and names the parts. The project template **Digital counter (mixed-signal)** and the [Digital-Counter](examples/Digital-Counter/) example show a 2-bit counter made from two DFFs, an XOR gate and an RC filter.
 
 ## Blocks
 

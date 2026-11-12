@@ -7,7 +7,7 @@
 // their pins. Elements inside .include/.lib files aren't seen. Refs and nets come back as written (first spelling).
 export interface Issue { message: string; refs: string[]; nets: string[] }
 
-type Scope = { name?: string; anchors: string[]; els: { ref: string; dc: string[][]; vdef?: [string, string]; nets: string[]; sub?: string }[] }
+type Scope = { name?: string; anchors: string[]; els: { ref: string; dc: string[][]; vdef?: [string, string]; nets: string[]; sub?: string; xs?: string[] }[] }
 const KEYWORD = /^(value|poly|table|vol|cur|laplace|freq|and|or|nand|nor)\b/i
 
 // one element line -> its DC-conducting node groups, voltage-defined output pair, and every node it touches
@@ -40,7 +40,7 @@ function element(t: string[]): Scope['els'][number] | null {
     case 'a': {
       // XSPICE: [ ] vectors, %v-style port types, model last. Digital nets have no analog DC path: tie them to ground.
       const ns = t.slice(1, -1).join(' ').replace(/[[\]]/g, ' ').split(/\s+/).filter((s) => s && !s.startsWith('%') && s !== '~')
-      return { ref, dc: [[...ns, '0']], nets: ns }
+      return { ref, dc: [[...ns, '0']], nets: ns, xs: t }
     }
   }
   return null // K (no nodes) and anything unknown
@@ -76,7 +76,7 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
     else lines.push(l)
   }
 
-  const scopes: Scope[] = [{ anchors: ['0'], els: [] }], stack = [scopes[0]], globals: string[] = []
+  const scopes: Scope[] = [{ anchors: ['0'], els: [] }], stack = [scopes[0]], globals: string[] = [], models = new Map<string, string>()
   for (const l of lines) {
     const t = l.split(/\s+/)
     if (/^\.subckt$/i.test(t[0])) {
@@ -85,6 +85,7 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
       scopes.push(sc), stack.push(sc)
     } else if (/^\.ends$/i.test(t[0])) stack.length > 1 && stack.pop()
     else if (/^\.global$/i.test(t[0])) globals.push(...t.slice(1))
+    else if (/^\.model$/i.test(t[0]) && t[2]) models.set(t[1].toLowerCase(), /^\w*/.exec(t[2])![0].toLowerCase())
     else if (/^\.end$/i.test(t[0])) break
     else if (!t[0].startsWith('.')) {
       const e = element(t)
@@ -106,6 +107,27 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
     return r
   }
 
+  // XSPICE dac_bridge outputs are voltage sources to ground: one on a net with another output (directly, or through the
+  // subckt ports they drive, as in the digital parts) or a V source is a short like two V sources in parallel
+  const drivenMemo = new Map<string, Set<number>>()
+  const outs = (sc: Scope) => sc.els.flatMap((e) => {
+    if (e.xs && models.get(e.xs.at(-1)!.toLowerCase()) === 'dac_bridge') {
+      const ports = e.xs.slice(1, -1).join(' ').match(/\[[^\]]*\]|[^\s[\]]+/g)?.filter((x) => !x.startsWith('%')) ?? []
+      return (ports[1] ?? '').replace(/[[\]]/g, ' ').split(/\s+/).filter(Boolean).map((net) => ({ ref: e.ref, net }))
+    }
+    const d = e.sub ? driven(e.sub) : null
+    return d ? e.nets.flatMap((net, i) => (d.has(i) ? [{ ref: e.ref, net }] : [])) : []
+  })
+  const driven = (name: string): Set<number> => {
+    const sc = byName.get(name)
+    if (!sc || drivenMemo.has(name)) return drivenMemo.get(name) ?? new Set()
+    drivenMemo.set(name, new Set())
+    const o = new Set(outs(sc).map((x) => x.net.toLowerCase()))
+    const r = new Set(sc.anchors.slice(1).flatMap((p, i) => (o.has(p.toLowerCase()) ? [i] : [])))
+    drivenMemo.set(name, r)
+    return r
+  }
+
   const errors: Issue[] = [], warnings: Issue[] = []
   for (const s of scopes) {
     const spell = new Map<string, string>()
@@ -115,8 +137,9 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
       return x
     }
     const dc = new UF(), vloop = new UF(), vedges: { a: string; b: string; ref: string }[] = []
+    const drv: Scope['els'] = outs(s).map((o) => ({ ref: o.ref, dc: [], vdef: [o.net, '0'], nets: [] })), digital = new Set(drv.map((d) => d.ref))
     for (const a of [...s.anchors, ...globals]) dc.union(k(a), '0')
-    for (const e of s.els) {
+    for (const e of [...s.els, ...drv]) {
       for (const g of e.dc) for (const n of g.slice(1)) dc.union(k(g[0]), k(n))
       if (e.sub && grounded(e.sub)) for (const n of e.nets) dc.union(k(n), '0')
       if (!e.vdef) continue
@@ -129,7 +152,9 @@ export function erc(netlistText: string): { errors: Issue[]; warnings: Issue[] }
         const path = vpath(vedges, a, b).sort((x, y) => vedges.indexOf(x) - vedges.indexOf(y)) // netlist order
         const refs = [...path.map((x) => x.ref), e.ref]
         const nets = [...new Set([a, b, ...path.flatMap((x) => [x.a, x.b])])].map((n) => spell.get(n)!)
-        errors.push({ message: `Loop of voltage sources / inductors: ${refs.join(', ')} (a short circuit at DC)`, refs, nets })
+        errors.push({ message: refs.some((r) => digital.has(r))
+          ? `Digital outputs fight: ${refs.join(', ')} drive ${nets.filter((n) => n !== '0').length > 1 ? 'the nets' : 'the same net'} ${nets.filter((n) => n !== '0').join(', ')} (an output is a voltage source; ngspice can't solve two in parallel)`
+          : `Loop of voltage sources / inductors: ${refs.join(', ')} (a short circuit at DC)`, refs, nets })
       }
       vedges.push({ a, b, ref: e.ref })
     }
