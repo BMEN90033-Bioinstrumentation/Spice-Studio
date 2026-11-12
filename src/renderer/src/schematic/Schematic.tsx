@@ -1,7 +1,7 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
+import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
-import { cleanUp as cleanSheet, flagAt, labelAt } from './cleanup'
+import { cleanUp as cleanSheet, clusters, flagAt, labelAt } from './cleanup'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
@@ -226,8 +226,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     const r = root.current!.getBoundingClientRect()
     setMenu({ left: e.clientX - r.left, top: e.clientY - r.top, id })
   }
-  // Align / distribute the selected parts and directive cards by their boxes. Every move is a whole number of grid
-  // steps, so pins stay on the grid; wires follow as they do in a drag (remap).
+  // Align / distribute the selection by its boxes. A selection that falls into separate groups (clusters: things
+  // touching or a grid step apart, so a part with its wires, labels and cards) moves each group as one, lined up on the
+  // other groups; one group alone has its parts and directive cards lined up one by one. Every move is a whole number
+  // of grid steps, so pins stay on the grid; wires follow as they do in a drag (remap).
   // Clean up (cleanup.ts): the whole sheet is spread out, its wires tidied and its labels placed; with parts selected,
   // only their labels move.
   function cleanUp() {
@@ -237,8 +239,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
   type Edge = 'left' | 'right' | 'top' | 'bottom' | 'cx' | 'cy' | 'dx' | 'dy'
   function align(m: Edge) {
-    const s0 = cur.current
-    const items = [...s0.parts.filter((p) => sel.has(p.id)).map((p) => ({ id: p.id, b: pbox(p), part: true })), ...s0.texts.filter((t) => sel.has(t.id)).map((t) => ({ id: t.id, b: tbox(t), part: false }))]
+    const s0 = cur.current, on = (i: { id: string }) => sel.has(i.id), seg = (w: Wire) => ({ id: w.id, b: norm(w.a, w.b) })
+    const solo = [...s0.parts.filter(on).map((p) => ({ id: p.id, b: pbox(p) })), ...s0.texts.filter(on).map((t) => ({ id: t.id, b: tbox(t) }))]
+    const dist = m === 'dx' || m === 'dy'
+    const groups = clusters([...solo, ...s0.wires.filter(on).map(seg), ...(s0.buses ?? []).filter(on).map(seg), ...(s0.draw ?? []).filter(on).map((d) => ({ id: d.id, b: dbox(d) }))], GRID)
+    const items = (groups.length >= (dist ? 3 : 2) ? groups : solo.map((i) => [i])).map((g) => ({
+      ids: new Set(g.map((i) => i.id)),
+      b: { x0: Math.min(...g.map((i) => i.b.x0)), y0: Math.min(...g.map((i) => i.b.y0)), x1: Math.max(...g.map((i) => i.b.x1)), y1: Math.max(...g.map((i) => i.b.y1)) }
+    }))
     if (items.length < 2) return
     const x = m === 'left' || m === 'right' || m === 'cx' || m === 'dx', mid = (b: Box) => (x ? (b.x0 + b.x1) / 2 : (b.y0 + b.y1) / 2)
     const lo = Math.min(...items.map((i) => (x ? i.b.x0 : i.b.y0))), hi = Math.max(...items.map((i) => (x ? i.b.x1 : i.b.y1)))
@@ -247,9 +255,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     for (const i of items) {
       const want = m === 'left' || m === 'top' ? lo - (x ? i.b.x0 : i.b.y0) : m === 'right' || m === 'bottom' ? hi - (x ? i.b.x1 : i.b.y1)
         : m === 'cx' || m === 'cy' ? (lo + hi) / 2 - mid(i.b) : first + sorted.indexOf(i) * step - mid(i.b)
-      const d = x ? { x: snap(want), y: 0 } : { x: 0, y: snap(want) }
+      const d = x ? { x: snap(want), y: 0 } : { x: 0, y: snap(want) }, mine = (q: { id: string }) => i.ids.has(q.id)
       if (!d.x && !d.y) continue
-      s = i.part ? remap(s, new Set([i.id]), (q) => ({ ...q, ...add(q, d) }), (q) => add(q, d)) : { ...s, texts: s.texts.map((t) => (t.id === i.id ? { ...t, ...add(t, d) } : t)) }
+      const r = remap(s, i.ids, (q) => ({ ...q, ...add(q, d) }), (q) => add(q, d))
+      s = {
+        ...r, texts: r.texts.map((t) => (mine(t) ? { ...t, ...add(t, d) } : t)),
+        ...(r.draw && { draw: r.draw.map((q) => (mine(q) ? moveD(q, d) : q)) }),
+        ...(r.buses && { buses: r.buses.map((w) => (mine(w) ? { ...w, a: add(w.a, d), b: add(w.b, d) } : w)) })
+      }
     }
     if (s !== s0) commit({ ...s, wires: s.wires.filter((w) => !same(w.a, w.b)) })
   }

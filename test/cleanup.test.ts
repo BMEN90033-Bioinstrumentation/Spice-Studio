@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cleanLabels, cleanUp, labelAt, netSignature, spread, tidyWires, type Box } from '../src/renderer/src/schematic/cleanup.ts'
+import { cleanLabels, cleanUp, clusters, labelAt, netSignature, spread, tidyWires, type Box } from '../src/renderer/src/schematic/cleanup.ts'
 import type { Part, Sheet } from '../src/renderer/src/schematic/model.ts'
 
 const part = (id: string, x: number, y: number, name = id, value = '1k'): Part => ({ id, kind: 'res', x, y, rot: 0, mirror: false, name, value })
@@ -124,4 +124,11 @@ test('cleanUp: overlapping parts end up apart with clear labels and the same cir
   const sel = cleanUp(s, G, new Set(['R1']))
   assert.deepEqual(sel.parts.map((p) => [p.x, p.y]), s.parts.map((p) => [p.x, p.y]))
   assert.equal(sel.wires, s.wires)
+})
+
+test('clusters: boxes within the gap chain into one group, the rest stay apart', () => {
+  const b = (id: string, x0: number, x1: number) => ({ id, b: { x0, y0: 0, x1, y1: 10 } })
+  const g = clusters([b('a', 0, 10), b('far', 100, 110), b('c', 40, 50), b('b', 20, 30)], 10) // b joins a and c
+  assert.deepEqual(g.map((c) => c.map((i) => i.id).sort()), [['far'], ['a', 'b', 'c']])
+  assert.equal(clusters([b('a', 0, 10), b('b', 20, 30)]).length, 2) // no gap allowed: apart
 })

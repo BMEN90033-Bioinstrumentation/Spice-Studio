@@ -9,6 +9,17 @@ import { isFlag } from './symbols.ts'
 import { GRID, key, pins, same, uid, wiresThrough, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model.ts'
 
 export type Box = { x0: number; y0: number; x1: number; y1: number }
+// The groups a set of boxes falls into: boxes within `gap` of each other, chained. Align / Distribute move each group as one.
+// ponytail: O(n²) over the selection
+export function clusters<T extends { b: Box }>(items: T[], gap = 0): T[][] {
+  let out: T[][] = []
+  const near = (a: Box, b: Box) => a.x0 <= b.x1 + gap && b.x0 <= a.x1 + gap && a.y0 <= b.y1 + gap && b.y0 <= a.y1 + gap
+  for (const i of items) {
+    const hit = out.filter((g) => g.some((j) => near(i.b, j.b)))
+    out = [...out.filter((g) => !hit.includes(g)), [...hit.flat(), i]]
+  }
+  return out
+}
 export interface Geo {
   pbox: (p: Part) => Box // the whole part, pins included
   body?: (p: Part) => Box // the drawn body without the leads out to the pins; labels sit beside it (default: pbox)
