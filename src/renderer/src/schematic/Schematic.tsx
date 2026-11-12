@@ -93,9 +93,9 @@ const subset = (s: Sheet, ids: Set<string>, keep = true): Sheet => {
 const corners = (b: Box) => [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y1 }]
 const count = (s: Sheet) => s.parts.length + s.wires.length + s.texts.length + (s.draw?.length ?? 0) + (s.buses?.length ?? 0)
 
-function bounds(s: Sheet, skipTitle = false): Box | null {
+function bounds(s: Sheet): Box | null {
   const pts = [...s.parts.flatMap((p) => corners(pbox(p))), ...s.wires.flatMap((w) => [w.a, w.b]), ...s.texts.flatMap((t) => corners(tbox(t))),
-    ...(s.draw ?? []).flatMap((d) => (skipTitle && d.t === 'title' ? [] : corners(dbox(d)))), ...(s.buses ?? []).flatMap((w) => [w.a, w.b])]
+    ...(s.draw ?? []).flatMap((d) => corners(dbox(d))), ...(s.buses ?? []).flatMap((w) => [w.a, w.b])]
   if (!pts.length) return null
   return pts.reduce((b, q) => ({ x0: Math.min(b.x0, q.x), y0: Math.min(b.y0, q.y), x1: Math.max(b.x1, q.x), y1: Math.max(b.y1, q.y) }), norm(pts[0], pts[0]))
 }
