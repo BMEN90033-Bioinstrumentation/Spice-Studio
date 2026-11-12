@@ -2,6 +2,13 @@
 // Reads PCM 8/16/24/32-bit and float 32/64 (plain or WAVE_FORMAT_EXTENSIBLE); writes 16-bit PCM.
 
 export function parseWav(b: Uint8Array): { rate: number; channels: Float64Array[] } | string {
+  try {
+    return wav(b)
+  } catch {
+    return 'damaged WAV file (a chunk runs past the end of the file)' // DataView RangeError from a cut-off header
+  }
+}
+function wav(b: Uint8Array): { rate: number; channels: Float64Array[] } | string {
   const v = new DataView(b.buffer, b.byteOffset, b.byteLength), tag = (o: number) => String.fromCharCode(...b.subarray(o, o + 4))
   if (b.length < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return 'not a WAV file (no RIFF/WAVE header)'
   let fmt = 0, nch = 0, rate = 0, bits = 0, data: Uint8Array | null = null
@@ -30,7 +37,8 @@ export function parseWav(b: Uint8Array): { rate: number; channels: Float64Array[
 export function traceWav(x: ArrayLike<number>, ys: ArrayLike<number | null>[], rate = 44100): { wav: Uint8Array; scale: number } {
   const t0 = x[0], n = Math.max(1, Math.floor((x[x.length - 1] - t0) * rate) + 1), nch = ys.length
   let peak = 1
-  for (const y of ys) for (let i = 0; i < y.length; i++) peak = Math.max(peak, Math.abs(y[i] ?? 0))
+  const val = (y: number | null | undefined) => (y != null && Number.isFinite(y) ? y : 0) // NaN / gaps: silence, not a NaN peak
+  for (const y of ys) for (let i = 0; i < y.length; i++) peak = Math.max(peak, Math.abs(val(y[i])))
   const out = new Uint8Array(44 + n * nch * 2), v = new DataView(out.buffer)
   const str = (o: number, s: string) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)))
   str(0, 'RIFF'), v.setUint32(4, 36 + n * nch * 2, true), str(8, 'WAVEfmt '), v.setUint32(16, 16, true)
@@ -41,7 +49,7 @@ export function traceWav(x: ArrayLike<number>, ys: ArrayLike<number | null>[], r
     for (let i = 0; i < n; i++) {
       const t = t0 + i / rate
       while (j < x.length - 2 && x[j + 1] < t) j++
-      const a = y[j] ?? 0, b = y[j + 1] ?? a, dx = x[j + 1] - x[j]
+      const a = val(y[j]), b = j + 1 < y.length ? val(y[j + 1]) : a, dx = x[j + 1] - x[j]
       const s = dx > 0 ? a + ((b - a) * Math.min(1, Math.max(0, (t - x[j]) / dx))) : a
       v.setInt16(44 + (i * nch + c) * 2, Math.round(Math.max(-1, Math.min(1, s / peak)) * 32767), true)
     }
