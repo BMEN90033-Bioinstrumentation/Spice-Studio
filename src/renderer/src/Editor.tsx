@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Compartment } from '@codemirror/state'
-import { EditorView, basicSetup } from 'codemirror'
+import { EditorView, basicSetup, minimalSetup } from 'codemirror'
 import { StreamLanguage } from '@codemirror/language'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { useDark } from './Preferences'
@@ -27,7 +27,8 @@ const spice = StreamLanguage.define<{ control: boolean }>({
   }
 })
 
-export function Editor({ initial, onChange }: { initial: string; onChange: (s: string) => void }) {
+// plain: no line numbers or gutters (a form field with SPICE highlighting)
+export function Editor({ initial, onChange, plain }: { initial: string; onChange: (s: string) => void; plain?: boolean }) {
   const host = useRef<HTMLDivElement>(null)
   const cb = useRef(onChange)
   cb.current = onChange
@@ -38,7 +39,7 @@ export function Editor({ initial, onChange }: { initial: string; onChange: (s: s
       doc: initial,
       parent: host.current!,
       extensions: [
-        basicSetup,
+        plain ? minimalSetup : basicSetup,
         spice,
         theme.current.of(dark ? oneDark : []),
         EditorView.theme({ '&': { height: '100%' }, '&.cm-focused': { outline: 'none' }, '.cm-scroller': { fontFamily: 'var(--mono)', fontSize: 'var(--editor-font, inherit)' } }),

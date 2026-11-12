@@ -71,7 +71,7 @@ const shade = (d: string) => (d.match(/M[^M]*Z/g) ?? []).join('')
 // Paths in local coords; caller supplies the transform. Stroke/fill styling via CSS (.sym / .symp).
 export function SymBody({ kind, part }: { kind: Kind; part?: Shape }) {
   if (part?.sym) {
-    const ps = part.sym.filter((d): d is Drawn => 'a' in d).map(shapePath)
+    const ps = part.sym.filter((d): d is Drawn => d.t !== 'note' && d.t !== 'title').map(shapePath)
     return (
       <>
         <path d={ps.map((x) => x.path).join('')} />

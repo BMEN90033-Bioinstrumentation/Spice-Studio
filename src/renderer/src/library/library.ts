@@ -154,11 +154,15 @@ export function suggest(p: ParsedLib): ImportedLib['entries'] {
 export const STARTERS: { title: string; text: string }[] = [
   { title: 'Diode', text: '* A diode: Is saturation current, N emission coefficient, Rs series resistance,\n* Cjo junction capacitance, Bv / Ibv reverse breakdown\n.model MyDiode D(Is=2.5n N=1.8 Rs=0.6 Cjo=4p Bv=100 Ibv=100u)\n' },
   { title: 'Zener', text: '* A 5.1 V zener: Bv sets the breakdown voltage\n.model MyZener D(Is=1n N=1.2 Rs=5 Cjo=150p Bv=5.1 Ibv=5m)\n' },
+  { title: 'LED', text: '* An LED: about 1.9 V across it at 10 mA (a larger Is lowers that, a smaller one raises it)\n.model MyLED D(Is=1e-20 N=1.8 Rs=2 Cjo=30p Bv=5 Ibv=10u)\n' },
   { title: 'NPN', text: '* An NPN transistor: Bf forward gain, Vaf Early voltage (for a PNP, change NPN to PNP)\n.model MyNPN NPN(Is=1e-14 Bf=200 Vaf=100 Rb=10 Cje=8p Cjc=4p Tf=400p)\n' },
+  { title: 'PNP', text: '* A PNP transistor: Bf forward gain, Vaf Early voltage\n.model MyPNP PNP(Is=1e-14 Bf=150 Vaf=80 Rb=10 Cje=8p Cjc=5p Tf=500p)\n' },
   { title: 'N-MOSFET', text: '* An N-channel MOSFET: Vto threshold, Kp transconductance (for P-channel, change NMOS to PMOS and make Vto negative)\n.model MyNMOS NMOS(Level=1 Vto=1.5 Kp=0.5 Lambda=0.02)\n' },
+  { title: 'P-MOSFET', text: '* A P-channel MOSFET: Vto threshold (negative), Kp transconductance\n.model MyPMOS PMOS(Level=1 Vto=-1.5 Kp=0.2 Lambda=0.02)\n' },
   { title: 'N-JFET', text: '* An N-channel JFET: Vto pinch-off voltage, Beta transconductance (for P-channel, change NJF to PJF)\n.model MyJFET NJF(Vto=-2 Beta=1.3m Lambda=2m Cgs=4p Cgd=4p)\n' },
+  { title: 'P-JFET', text: '* A P-channel JFET: Vto pinch-off voltage, Beta transconductance\n.model MyPJFET PJF(Vto=-2 Beta=1m Lambda=2m Cgs=5p Cgd=5p)\n' },
   { title: 'Op-amp', text: '* An op-amp built from parts: gain 100k, one pole near 10 Hz (about 1 MHz unity gain)\n* pins: in+ in- v+ v- out\n.subckt MyOpamp inp inn vcc vee out\nRin inp inn 10meg\nG1 0 n1 inp inn 1m\nR1 n1 0 100meg\nC1 n1 0 159p\nE1 n2 0 n1 0 1\nRout n2 out 50\n.ends MyOpamp\n' },
-  { title: 'Subcircuit', text: '* Any circuit as one part: the names after the subcircuit name are its pins\n.subckt MyFilter in out gnd\nR1 in out 10k\nC1 out gnd 100n\n.ends MyFilter\n' }
+  { title: 'Custom block', text: '* Any circuit as one part: the names after the subcircuit name are its pins\n.subckt MyFilter in out gnd\nR1 in out 10k\nC1 out gnd 100n\n.ends MyFilter\n' }
 ]
 
 // The builder's form view reads a definition's text into fields and writes it back (the text stays the one truth).

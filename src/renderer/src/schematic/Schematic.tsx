@@ -443,7 +443,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       const r = remap(s, sel, (p) => ({ ...p, ...g(p), ...(rot ? { rot: (p.rot + 1) % 4 } : { mirror: !p.mirror, rot: (4 - (p.rot % 4)) % 4 }) }), g)
       return commit({
         ...r, wires: r.wires.filter((w) => !same(w.a, w.b)), texts: r.texts.map((t) => (sel.has(t.id) ? box(t, tbox(t)) : t)),
-        ...(r.draw && { draw: r.draw.map((d) => (!sel.has(d.id) ? d : 'a' in d ? seg(d) : box(d, dbox(d)))) }),
+        ...(r.draw && { draw: r.draw.map((d) => (!sel.has(d.id) ? d : 'a' in d ? seg(d) : d.t === 'poly' ? { ...d, pts: d.pts.map(g) } : box(d, dbox(d)))) }),
         ...(r.buses && { buses: r.buses.map((w) => (sel.has(w.id) ? seg(w) : w)) })
       })
     }

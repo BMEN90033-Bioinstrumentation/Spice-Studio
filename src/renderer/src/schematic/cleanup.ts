@@ -206,7 +206,7 @@ function spreadAxis(s: Sheet, g: Geo, X: boolean, last: boolean): Sheet {
   const r: Sheet = {
     ...s, parts: s.parts.map((p) => mv(p, '#' + p.id)), wires: s.wires.map(seg), texts: s.texts.map((t) => mv(t, 't' + t.id)),
     ...(s.buses && { buses: s.buses.map(seg) }),
-    ...(s.draw && { draw: s.draw.map((x) => (isShape(x) ? { ...x, a: mv(x.a, 'd' + x.id + 'a'), b: mv(x.b, 'd' + x.id + 'b') } : mv(x, 'd' + x.id))) })
+    ...(s.draw && { draw: s.draw.map((x) => (isShape(x) ? { ...x, a: mv(x.a, 'd' + x.id + 'a'), b: mv(x.b, 'd' + x.id + 'b') } : x.t === 'poly' ? x : mv(x, 'd' + x.id))) }) // poly: custom symbols only, never on a sheet
   }
   return r.parts.every((p, i) => p === s.parts[i]) && r.wires.every((w, i) => w === s.wires[i]) && r.texts.every((t, i) => t === s.texts[i]) ? s : r
 }

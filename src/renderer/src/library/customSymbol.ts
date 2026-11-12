@@ -1,7 +1,7 @@
 // Custom symbols for library parts (the symbol editor): graphics + pins on the grid, each pin mapped to a subckt pin
 // (subcircuits) or to one of the symbol kind's SPICE pins (models: D, Q, M, J). Saved on the library entry; a placed
 // part carries a copy (Part.pins + Part.sym), so it draws and netlists without the library. Pure TS.
-import { blockShape, okDrawing, uid, type Drawing, type Part } from '../schematic/model.ts'
+import { blockShape, okDrawing, snap, uid, type Drawing, type Part, type Pt } from '../schematic/model.ts'
 import { SYMBOLS, type Kind } from '../schematic/symbols.ts'
 
 export type SymPin = { name: string; x: number; y: number; map: number }
@@ -49,29 +49,51 @@ export function defaultSymbol(e: Entryish): CustomSymbol {
 }
 
 // the part's standard symbol as editable shapes and pins: what the drawing view starts from. Blocks: the box.
-// ponytail: straight lines only; filled bits (a diode's triangle, arrowheads) come out as outlines, an arc as its chord. Fine for every kind a library part can be.
+// Open strokes become lines, closed outlines polygons (solid where the symbol fills them).
+// ponytail: an arc becomes its chord; no kind a library part can be has one.
 export function standardSymbol(e: Entryish): CustomSymbol {
   const d = SYMBOLS[e.kind], o = order(e)
   if (e.kind === 'block' || d.pins.length !== o.length) return defaultSymbol(e)
   const shapes: Drawing[] = d.circle ? [{ id: uid(), t: 'ellipse', a: { x: -d.circle, y: -d.circle }, b: { x: d.circle, y: d.circle } }] : []
-  for (const path of [d.path, d.fill ?? '']) {
+  for (const [path, fill] of [[d.path, false], [d.fill ?? '', true]] as const) {
     const t = path.match(/[A-Za-z]|-?[\d.]+/g) ?? []
-    let cmd = '', x = 0, y = 0, sx = 0, sy = 0, i = 0
+    let cmd = '', x = 0, y = 0, i = 0, sub: Pt[] = []
     const n = () => +t[i++]
-    const to = (nx: number, ny: number, draw = true) => {
-      if (draw && (nx !== x || ny !== y)) shapes.push({ id: uid(), t: 'line', a: { x, y }, b: { x: nx, y: ny } })
-      ;(x = nx), (y = ny)
+    const end = (closed: boolean) => {
+      if (closed && sub.length >= 3) shapes.push({ id: uid(), t: 'poly', pts: sub, ...(fill && { fill }) })
+      else for (let k = 1; k < sub.length; k++) shapes.push({ id: uid(), t: 'line', a: sub[k - 1], b: sub[k] })
+      sub = []
     }
+    const to = (nx: number, ny: number) => ((x = nx), (y = ny), void sub.push({ x, y }))
     while (i < t.length) {
-      if (/[A-Za-z]/.test(t[i])) { if ((cmd = t[i++]) === 'Z') to(sx, sy); continue }
-      if (cmd === 'M') to(n(), n(), false), (sx = x), (sy = y), (cmd = 'L')
-      else if (cmd === 'H') to(n(), y)
+      if (/[A-Za-z]/.test(t[i])) { cmd = t[i++]; if (cmd === 'Z') end(true); else if (cmd === 'M') end(false); continue }
+      if (cmd === 'H') to(n(), y)
       else if (cmd === 'V') to(x, n())
       else if (cmd === 'A') (i += 5), to(n(), n())
-      else to(n(), n())
+      else to(n(), n()), cmd === 'M' && (cmd = 'L')
     }
+    end(false)
   }
   return { shapes, pins: d.pins.map((p, i) => ({ name: d.pinNames?.[i] ?? `pin ${i + 1}`, x: p.x, y: p.y, map: o[i] })) }
+}
+
+// ---- editing a selection (the drawing pad): which shapes and pins, by position
+export type Picked = { shapes: number[]; pins: number[] }
+const ptsOf = (d: Drawing): Pt[] => ('a' in d ? [d.a, d.b] : d.t === 'poly' ? d.pts : [{ x: d.x, y: d.y }])
+const mapShape = (d: Drawing, f: (p: Pt) => Pt): Drawing => ('a' in d ? { ...d, a: f(d.a), b: f(d.b) } : d.t === 'poly' ? { ...d, pts: d.pts.map(f) } : { ...d, ...f({ x: d.x, y: d.y }) })
+// f applied to every point of the picked shapes and pins
+export const mapPicked = (s: CustomSymbol, k: Picked, f: (p: Pt) => Pt): CustomSymbol => ({
+  shapes: s.shapes.map((d, i) => (k.shapes.includes(i) ? mapShape(d, f) : d)),
+  pins: s.pins.map((p, i) => (k.pins.includes(i) ? { ...p, ...f({ x: p.x, y: p.y }) } : p))
+})
+// the picked things turned a quarter clockwise, or mirrored left-right, as one about their centre (on the grid, so
+// pins stay on it); nothing picked = the whole symbol. A text keeps reading upright: only its position moves.
+export function turnPicked(s: CustomSymbol, k: Picked, how: 'rotate' | 'mirror'): CustomSymbol {
+  const all: Picked = k.shapes.length + k.pins.length ? k : { shapes: s.shapes.map((_, i) => i), pins: s.pins.map((_, i) => i) }
+  const ps = [...all.shapes.flatMap((i) => ptsOf(s.shapes[i])), ...all.pins.map((i) => s.pins[i])]
+  if (!ps.length) return s
+  const mid = (v: number[]) => snap((Math.min(...v) + Math.max(...v)) / 2), c = { x: mid(ps.map((p) => p.x)), y: mid(ps.map((p) => p.y)) }
+  return mapPicked(s, all, how === 'rotate' ? (p) => ({ x: c.x - (p.y - c.y) + 0, y: c.y + (p.x - c.x) + 0 }) : (p) => ({ x: 2 * c.x - p.x + 0, y: p.y }))
 }
 
 // shape check for a symbol read from disk or IPC (main re-checks with this before saving to My library)

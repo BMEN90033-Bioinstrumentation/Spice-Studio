@@ -2,7 +2,7 @@
 import type { Drawing, Pt } from './model'
 import type { Box } from '../library/Symbol'
 
-export type Shape = Extract<Drawing, { a: Pt }>
+export type Shape = Exclude<Drawing, { t: 'note' } | { t: 'title' }>
 export const NOTE = 10 // default note font size
 export const NOTE_SIZES: [string, number][] = [['Small', 7], ['Normal', 10], ['Large', 14], ['Huge', 20]]
 export const TB = { w: 260, h: 60 } // title block
@@ -18,17 +18,21 @@ export function dbox(d: Drawing): Box {
     return { x0: d.x, y0: d.y, x1: d.x + Math.max(1, ...l.map((x) => x.length)) * s * 0.6, y1: d.y + l.length * s * 1.25 }
   }
   if (d.t === 'title') return { x0: d.x, y0: d.y, x1: d.x + TB.w, y1: d.y + TB.h }
+  if (d.t === 'poly') return { x0: Math.min(...d.pts.map((p) => p.x)), y0: Math.min(...d.pts.map((p) => p.y)), x1: Math.max(...d.pts.map((p) => p.x)), y1: Math.max(...d.pts.map((p) => p.y)) }
   return norm(d.a, d.b)
 }
-export const moveD = (d: Drawing, v: Pt): Drawing => ('a' in d ? { ...d, a: { x: d.a.x + v.x, y: d.a.y + v.y }, b: { x: d.b.x + v.x, y: d.b.y + v.y } } : { ...d, x: d.x + v.x, y: d.y + v.y })
+export const moveD = (d: Drawing, v: Pt): Drawing => ('a' in d ? { ...d, a: { x: d.a.x + v.x, y: d.a.y + v.y }, b: { x: d.b.x + v.x, y: d.b.y + v.y } }
+  : d.t === 'poly' ? { ...d, pts: d.pts.map((p) => ({ x: p.x + v.x, y: p.y + v.y })) } : { ...d, x: d.x + v.x, y: d.y + v.y })
 
 // stroked + filled SVG path data of a shape (absolute M/L/A/Z only, so Symbol.tsx's pathBox can read it)
 export function shapePath(d: Shape): { path: string; fill: string } {
+  const solid = (path: string) => ({ path, fill: d.fill ? path : '' })
+  if (d.t === 'poly') return solid('M' + d.pts.map((p) => `${p.x} ${p.y}`).join('L') + 'Z')
   const { a, b } = d
-  if (d.t === 'rect') return { path: `M${a.x} ${a.y}L${b.x} ${a.y}L${b.x} ${b.y}L${a.x} ${b.y}Z`, fill: '' }
+  if (d.t === 'rect') return solid(`M${a.x} ${a.y}L${b.x} ${a.y}L${b.x} ${b.y}L${a.x} ${b.y}Z`)
   if (d.t === 'ellipse') {
     const rx = Math.abs(b.x - a.x) / 2, ry = Math.abs(b.y - a.y) / 2, cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2
-    return { path: `M${cx - rx} ${cy}A${rx} ${ry} 0 1 0 ${cx + rx} ${cy}A${rx} ${ry} 0 1 0 ${cx - rx} ${cy}Z`, fill: '' }
+    return solid(`M${cx - rx} ${cy}A${rx} ${ry} 0 1 0 ${cx + rx} ${cy}A${rx} ${ry} 0 1 0 ${cx - rx} ${cy}Z`)
   }
   const line = `M${a.x} ${a.y}L${b.x} ${b.y}`, len = Math.hypot(b.x - a.x, b.y - a.y)
   if (d.t === 'line' || !len) return { path: line, fill: '' }

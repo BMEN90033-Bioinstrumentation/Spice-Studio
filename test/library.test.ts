@@ -525,7 +525,19 @@ test('standardSymbol: every starter opens with a symbol that connects all its pi
     assert.ok(sym.shapes.length >= 3, s.title)
     assert.equal(symbolFields({ ...e, symbol: sym })!.pins!.length, sym.pins.length, s.title)
   }
-  // diode: the lead, the bar, the lead, then the triangle's three sides
+  // diode: the lead, the bar, the lead, then the triangle as one solid outline
   const [d] = entriesFromImport({ file: 'x.lib', entries: suggest(parseLibFile(STARTERS[0].text)) }, STARTERS[0].text)
-  assert.equal(standardSymbol(d).shapes.length, 6)
+  const std = standardSymbol(d)
+  assert.deepEqual(std.shapes.map((x) => x.t + ('fill' in x && x.fill ? '*' : '')), ['line', 'line', 'line', 'poly*'])
+
+  // rotate / mirror: a quarter turn four times, or a mirror twice, is where it started; pins stay on the grid
+  const { turnPicked, validSymbol } = await import('../src/renderer/src/library/customSymbol.ts')
+  const none = { shapes: [], pins: [] }, geo = (s: typeof std) => JSON.stringify([s.shapes.map(({ id: _, ...r }) => r), s.pins])
+  let t = std
+  for (let i = 0; i < 4; i++) t = turnPicked(t, none, 'rotate'), assert.ok(t.pins.every((p) => p.x % 10 === 0 && p.y % 10 === 0))
+  assert.equal(geo(t), geo(std))
+  assert.equal(geo(turnPicked(turnPicked(std, none, 'mirror'), none, 'mirror')), geo(std))
+  assert.deepEqual(turnPicked(std, none, 'rotate').pins.map((p) => [p.x, p.y]), [[30, 0], [-30, 0]]) // A was on top: now on the right
+  assert.deepEqual(turnPicked(std, { shapes: [], pins: [0] }, 'mirror').pins[1], std.pins[1]) // only what is picked moves
+  assert.ok(validSymbol(std) && !validSymbol({ ...std, shapes: [{ id: 'x', t: 'poly', pts: [{ x: 0, y: 0 }] }] })) // a polygon needs three points
 })

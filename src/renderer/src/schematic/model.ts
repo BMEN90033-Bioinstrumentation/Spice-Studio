@@ -38,7 +38,8 @@ export interface Directive {
 // Annotations, never netlisted: shapes from a to b, free text notes (size = font size, default 10), and the
 // sheet's title block (one per sheet; "sheet n of m" is filled in when drawn).
 export type Drawing =
-  | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt }
+  | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt; fill?: boolean } // fill: rect / ellipse drawn solid
+  | { id: string; t: 'poly'; pts: Pt[]; fill?: boolean } // closed outline (a triangle…): custom symbols only, the sheet has no tool for it
   | { id: string; t: 'note'; x: number; y: number; text: string; size?: number }
   | { id: string; t: 'title'; x: number; y: number; title: string; author: string; date: string; rev: string }
 export interface Sheet {
@@ -236,7 +237,8 @@ const pt = (p: any) => num(p?.x) && num(p?.y)
 const str = (v: unknown) => typeof v === 'string'
 export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
   : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
-  : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b))
+  : (d.fill === undefined || typeof d.fill === 'boolean') && (d.t === 'poly' ? Array.isArray(d.pts) && d.pts.length >= 3 && d.pts.length <= 64 && d.pts.every(pt)
+  : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b)))
 
 // Validate a parsed .nsch file; throws on garbage so loading never corrupts state.
 export function parseSheet(text: string): Sheet {

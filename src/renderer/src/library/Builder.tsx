@@ -7,7 +7,7 @@ import {
   blockPartFields, CATEGORIES, entriesFromImport, MODEL_PARAMS, MODEL_TYPES, modelParts, modelText, parseLibFile, STARTERS, subcktParts, subcktText, suggest,
   type ImportedLib, type LibEntry, type ParsedLib
 } from './library'
-import { standardSymbol, symbolErrors, symbolFields, type CustomSymbol } from './customSymbol'
+import { standardSymbol, symbolErrors, type CustomSymbol } from './customSymbol'
 import { SymbolPreview } from './Symbol'
 import type { Sources } from './sources'
 import { KIND_CAT, SUB_KINDS } from './LibraryView'
@@ -16,7 +16,7 @@ import { SYMBOLS, type Kind } from '../schematic/symbols'
 import { SymbolPad } from './SymbolEditor'
 import { Editor } from '../Editor'
 import { runCommand } from '../commands'
-import { ChevronDown, Plus } from 'lucide-react'
+import { ChevronDown, FileCode2, Plus } from 'lucide-react'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 
@@ -75,23 +74,27 @@ function ModelForm({ text, put }: { text: string; put: (t: string) => void }) {
   )
 }
 
+const CODE = 'overflow-hidden rounded-md border border-input text-xs dark:bg-input/30 [&_.cm-editor]:bg-transparent'
 function SubcktForm({ s, put }: { s: ParsedLib['subckts'][number]; put: (t: string) => void }) {
   const { tail, body } = subcktParts(s)
+  const [init] = useState({ pins: s.pins.join(' '), body }) // what the two code fields were loaded with (they keep their own text from then on)
   return (
     <div className="grid gap-3 rounded-lg border bg-card p-3.5">
-      <div className="grid gap-3">
-        <Label className={FLD}>Name<Field value={s.name} ok={NAME} onCommit={(v) => put(subcktText(v, s.pins, tail, body))} /></Label>
-        <Label className={FLD}>Pins, in order, separated by spaces
-          <Field value={s.pins.join(' ')} ok={PINS} onCommit={(v) => put(subcktText(s.name, v.trim().split(/\s+/).filter(Boolean), tail, body))} />
-        </Label>
+      <Label className={FLD}>Name<Field value={s.name} ok={NAME} onCommit={(v) => put(subcktText(v, s.pins, tail, body))} /></Label>
+      <div className={FLD}>Pins, in order, separated by spaces
+        <div className={CODE + ' h-8'}><Editor plain initial={init.pins} onChange={(v) => PINS(v) && put(subcktText(s.name, v.trim().split(/\s+/).filter(Boolean), tail, body))} /></div>
       </div>
-      <Label className={FLD}>The circuit inside: one element per line, wired between the pins and any internal nodes (0 is ground)
-        <Textarea className="min-h-32 font-mono text-xs md:text-xs" spellCheck={false} value={body} onChange={(e) => put(subcktText(s.name, s.pins, tail, e.target.value))} />
-      </Label>
+      <div className={FLD}>The circuit inside: one element per line, wired between the pins and any internal nodes (0 is ground)
+        <div className={CODE + ' h-44'}><Editor plain initial={init.body} onChange={(v) => put(subcktText(s.name, s.pins, tail, v))} /></div>
+      </div>
       <p className={MUTED}>For example <code className="font-mono">R1 in out 10k</code> is a 10 kΩ resistor between pins in and out.</p>
     </div>
   )
 }
+
+const TILE = 'grid justify-items-center gap-1 rounded-lg border bg-card p-3 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50'
+// the start screen's tiles: each starter with the part it makes (for its symbol)
+const TILES = STARTERS.map((s) => ({ ...s, e: entriesFromImport({ file: 'starter', entries: suggest(parseLibFile(s.text)) }, s.text)[0] }))
 
 type Meta = { old: string; name: string; kind: Kind; category: string; mfr: string; mpn: string }
 type Entry = ImportedLib['entries'][number]
@@ -179,11 +182,13 @@ export function Builder({ sources, taken }: {
   sources: Sources
   taken: LibEntry[] // every part there is: a new part with one of these names gets a warning
 }) {
+  const [started, setStarted] = useState(false) // false: the start screen (choose a kind of part, or open one of yours)
   const [mode, setMode] = useState<'design' | 'code'>('design')
   const [initial, setInitial] = useState(STARTERS[0].text) // what the code editor was last loaded with
   const [text, setText] = useState(initial)
   const [syms, setSyms] = useState<Record<number, CustomSymbol>>({}) // symbols you've drawn or changed, by part position; the others show (and are saved with) their standard symbol
   const [editing, setEditing] = useState<ImportedLib | null>(null) // a part made earlier, open again: saving rewrites it
+  const [gen, setGen] = useState(0) // counts loads: the form's code fields start afresh
   const [cur, setCur] = useState(0) // which part is on the drawing canvas (a definition can hold several)
   const [saving, setSaving] = useState(false) // the Save dialog
   const [q, setQ] = useState('')
@@ -197,7 +202,7 @@ export function Builder({ sources, taken }: {
   const names = useMemo(() => new Set(taken.filter((e) => !editing || !e.id.startsWith(`user:${editing.file}#`)).map((e) => e.name.toLowerCase())), [taken, editing]) // not the part being edited itself
   const stale = parts.filter((e) => e.symbol && symbolErrors(e.symbol, e).length).map((e) => e.name) // drawn, but not every pin is connected
   const reload = (t: string) => setInitial(t === initial ? t + '\n' : t) // a changed `initial` reloads the editor
-  const load = (t: string) => (reload(t), setText(t), setSyms({}), setEditing(null), setCur(0), setNote(''), setErr(''))
+  const load = (t: string) => (setStarted(true), reload(t), setText(t), setGen((g) => g + 1), setSyms({}), setEditing(null), setCur(0), setNote(''), setErr(''))
   const edit = (old: string, now: string) => setText(text.replace(old, () => now)) // form: rewrite one definition in place
   const draw = (s: CustomSymbol | null) => setSyms((m) => { const { [ci]: _, ...rest } = m; return s ? { ...rest, [ci]: s } : rest })
   const custom = useMemo(() => [...new Set(taken.map((e) => e.category))].filter((c) => !CATEGORIES.includes(c)).sort(), [taken])
@@ -238,7 +243,7 @@ export function Builder({ sources, taken }: {
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[250px_minmax(0,1fr)_340px]">
+    <div className={cn('grid h-full min-h-0', started ? 'grid-cols-[250px_minmax(0,1fr)_340px]' : 'grid-cols-[250px_minmax(0,1fr)]')}>
       <aside className="flex min-h-0 flex-col gap-2 border-r px-2.5 py-3" aria-label="Parts you've made">
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button size="sm" variant="outline"><Plus />New part<ChevronDown className="ml-auto opacity-60" /></Button></DropdownMenuTrigger>
@@ -267,6 +272,29 @@ export function Builder({ sources, taken }: {
         <Button variant="link" className="h-auto justify-start p-0 px-2 text-xs" onClick={() => runCommand('tools.manageLibraries')}>Remove or hide parts…</Button>
       </aside>
 
+      {!started && (
+        <section className="min-h-0 overflow-y-auto px-10 py-8" aria-label="Start a new part">
+          <div className="mx-auto grid max-w-[860px] gap-4">
+            <div>
+              <h2 className="text-base font-semibold">What are you making?</h2>
+              <p className={MUTED + ' mt-1'}>Choose a kind of part to start from: it opens in the drawing editor with its usual symbol and values, ready to change. Empty starts from SPICE you write yourself. Or open one of your parts on the left.</p>
+            </div>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
+              {TILES.map((s) => (
+                <button key={s.title} type="button" className={TILE} onClick={() => (load(s.text), setMode('design'))}>
+                  <span className="w-full [&_.symp]:h-24 [&_.symp]:text-foreground"><SymbolPreview kind={s.e.kind} part={s.e.kind === 'block' ? blockPartFields(s.e) : undefined} size="large" /></span>
+                  <b className="text-xs font-medium">{s.title}</b>
+                </button>
+              ))}
+              <button type="button" className={TILE} onClick={() => (load(''), setMode('code'))}>
+                <span className="grid h-24 w-full place-items-center text-muted-foreground"><FileCode2 className="size-10" strokeWidth={1.25} /></span>
+                <b className="text-xs font-medium">Empty</b>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+      {started && <>
       <section className="flex min-h-0 flex-col border-r" aria-label="The part">
         <div className="flex flex-none items-center gap-2 border-b px-3.5 py-2">
           <b className="min-w-0 truncate font-mono text-[13px] font-medium">{parts.map((e) => e.name).join(', ') || 'New part'}</b>
@@ -296,7 +324,7 @@ export function Builder({ sources, taken }: {
 
       <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4 py-3.5" aria-label="Preview and behaviour">
         <div className={H}>Preview</div>
-        {part ? <div className="flex-none rounded-md border bg-background p-1 [&_.symp]:text-foreground"><SymbolPreview kind={part.kind} part={symbolFields(part) ?? (part.kind === 'block' ? blockPartFields(part) : undefined)} size="large" /></div>
+        {part ? <div className="flex-none rounded-md border bg-background p-1 [&_.symp]:text-foreground"><SymbolPreview kind={part.kind} part={{ pins: (syms[ci] ?? std[ci]).pins, sym: (syms[ci] ?? std[ci]).shapes }} size="large" /></div>
           : <p className={MUTED}>Nothing that can be placed yet.</p>}
         <div ref={setSide} className="flex-none empty:hidden" />
         {/* Code edits the same text: the form stays out of its way */}
@@ -304,11 +332,12 @@ export function Builder({ sources, taken }: {
           <>
             <div className={H}>How it behaves</div>
             {parsed.models.map((m, i) => <ModelForm key={'m' + i} text={m.text} put={(t) => edit(m.text, t)} />)}
-            {parsed.subckts.map((s, i) => <SubcktForm key={'s' + i} s={s} put={(t) => edit(s.text, t)} />)}
+            {parsed.subckts.map((s, i) => <SubcktForm key={'s' + i + '|' + gen} s={s} put={(t) => edit(s.text, t)} />)}
             {parsed.models.length + parsed.subckts.length > parts.length && <p className={MUTED}>Only models of type D, NPN, PNP, NJF, PJF, NMOS and PMOS, and subcircuits, become parts you can place.</p>}
           </>
         )}
       </aside>
+      </>}
 
       {saving && <SaveDialog parts={parts} was={editing?.entries} drawn={(i) => !!syms[i]} taken={names} categories={custom} error={err} onSave={save} onClose={() => setSaving(false)} />}
     </div>
