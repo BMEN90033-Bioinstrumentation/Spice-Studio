@@ -1,6 +1,7 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
+import { cleanLabels, labelAt } from './cleanup'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
@@ -16,7 +17,7 @@ import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge } from 'lucide-react'
+import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -119,9 +120,7 @@ function Texts({ p, sel }: { p: Part; sel?: Set<string> }) {
     const t = xform(p, up ? { x: 0, y: localBox(p.kind).y0 - 1 } : { x: localBox(p.kind).x1 + 1, y: 0 })
     return <text className="n" x={t.x} y={t.y + (dy > 0 ? 8 : dy < 0 ? 0 : 3.5)} textAnchor={dx > 0 ? 'start' : dx < 0 ? 'end' : 'middle'}>{p.value}</text>
   }
-  const b = pbox(p), tall = b.y1 - b.y0 >= b.x1 - b.x0, cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2
-  const [n, v] = tall ? [[b.x1 + 3, cy - 2], [b.x1 + 3, cy + 10]] : [[cx, b.y0 - 4], [cx, b.y1 + 11]]
-  const anchor = tall ? 'start' : 'middle'
+  const { n, v, anchor } = labelAt(pbox(p)) // cleanup.ts: shared with Clean up
   const val = p.sheet ? sheetName(p.sheet) : p.value
   return (
     <>
@@ -221,6 +220,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
   // Align / distribute the selected parts and directive cards by their boxes. Every move is a whole number of grid
   // steps, so pins stay on the grid; wires follow as they do in a drag (remap).
+  // Clean up: labels only (cleanup.ts). The selected parts when some are selected, else the whole sheet.
+  function cleanUp() {
+    const s = cur.current, ids = new Set(s.parts.filter((p) => sel.has(p.id)).map((p) => p.id))
+    const next = cleanLabels(s, pbox, ids.size ? ids : undefined, [...s.texts.map(tbox), ...(s.draw ?? []).map(dbox)])
+    if (next.parts.some((p, i) => p !== s.parts[i])) commit(next)
+  }
   type Edge = 'left' | 'right' | 'top' | 'bottom' | 'cx' | 'cy' | 'dx' | 'dy'
   function align(m: Edge) {
     const s0 = cur.current
@@ -982,6 +987,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <BarBtn label="Undo (⌘Z)" aria="Undo" onClick={undo} disabled={!hist.current.undo.length}><Undo2 /></BarBtn>
         <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
         <BarBtn label="Fit (F)" aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
+        <Tip label="Clean up: move name and value labels off parts, wires and each other (the selected parts, or the whole sheet)">
+          <Button variant="ghost" size="sm" className={TBTN} aria-label="Clean up" onClick={cleanUp}><Sparkles /><span>Clean up</span></Button>
+        </Tip>
         <Sep />
         <Tip label="Simulation setup (A)"><Button variant="ghost" size="sm" className={TBTN} onClick={() => setDlg('analysis')}><Activity /><span>Analysis</span></Button></Tip>
         {overlay?.op && (
@@ -1102,6 +1110,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               <DropdownMenuItem onSelect={() => align('dy')}>Vertically</DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={cleanUp}>Clean Up Labels</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setSel(new Set(all(cur.current)))}>Select All<DropdownMenuShortcut>{keyLabel('Mod+A')}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuItem onSelect={() => fit()}>Fit to Window<DropdownMenuShortcut>F</DropdownMenuShortcut></DropdownMenuItem>

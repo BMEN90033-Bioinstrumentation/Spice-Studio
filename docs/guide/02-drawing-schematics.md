@@ -85,7 +85,11 @@ The four small buttons in the toolbar place a ground, a power flag, a net label 
 
 Double-click a part to open its properties in a popup beside it (or select it and press Enter, or choose **Properties…** from the right-click menu). Edit **Name** and **Value** there. Esc, or a click elsewhere, closes the popup.
 
-If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. ### The right-click menu
+If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. ### Clean up
+
+**Clean up** in the toolbar (or **Clean Up Labels** in the right-click menu) moves name and value labels that sit on a part, a wire, a directive card or another label to a free spot beside their part: right, left, above or below. It works on the selected parts, or on the whole sheet when nothing is selected. Parts and wires are never moved, labels that are already clear stay where they are, and one Undo puts everything back.
+
+### The right-click menu
 
 Right-click the canvas for a menu at the pointer: **Properties…**, Cut, Copy, Paste, Duplicate, Delete, Rotate, Mirror, **Align**, **Distribute**, Select All and Fit to Window. Right-clicking an item that isn't selected selects it first; right-clicking with a tool active just leaves the tool, like Esc.
 
