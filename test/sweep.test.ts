@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { eng, expandSweep, parseSteps } from '../src/renderer/src/sim/sweep.ts'
+import { atCorner, eng, expandSweep, MAX_WC, parseSteps, tolerances } from '../src/renderer/src/sim/sweep.ts'
 
 const values = (line: string) => {
   const r = parseSteps(line)
@@ -139,4 +139,52 @@ test('.mc through ngspice: draws differ between runs and repeat exactly (skipped
   assert.equal(new Set(a).size, 3, `distinct draws: ${a}`)
   a.forEach((i) => assert.ok(i > 1 / 1500 && i < 1 / 500, `plausible agauss(1k, 100, 1) draw: ${1 / i}`))
   assert.equal(ngspiceI(t, runs[1].netlist), a[1]) // same seed, same draw
+})
+
+// I(V1) = 1/(R + R2) with R = 1k ±10 % (gauss, relative), R2 = 1k ±100 Ω (aunif, absolute)
+const WCDECK = '* wc\nV1 1 0 1\n.param R={gauss(1k, 0.1, 3)}\nR1 1 2 {R}\nR2 2 0 {aunif(1k, 100)}\n.wc\n.op\n.end\n'
+test('.wc: tolerances found and named, nominal + 2^n corners as ngspice expressions, errors', () => {
+  const tols = tolerances(['.param R={gauss(1k, 0.1, 3)} C = {2*unif(1u,0.05)}', 'R1 a b {agauss(1k,50,3)}', '* R9 a b {gauss(1,1,1)}', '.model QN NPN(BF={limit(100, 20)} IS=1f)'])
+  assert.deepEqual(tols.map((t) => [t.name, t.nom, t.dev, t.rel]), [['R', '1k', '0.1', true], ['C', '1u', '0.05', true], ['R1', '1k', '50', false], ['QN.BF', '100', '20', false]])
+  assert.deepEqual(atCorner(['R1 a b {agauss(1k,50,3)} ; {gauss(1,f(2),3)}'], tolerances(['R1 a b {agauss(1k,50,3)} ; {gauss(1,f(2),3)}']), [-1, 1]), ['R1 a b {((1k)-(50))} ; {((1)*(1+(f(2))))}'])
+  const { runs, errors, note } = expandSweep(WCDECK)
+  assert.deepEqual(errors, [])
+  assert.deepEqual(runs.map((r) => r.label), ['nominal', 'R− R2−', 'R+ R2−', 'R− R2+', 'R+ R2+'])
+  assert.equal(runs[2].netlist, '* wc\nV1 1 0 1\n.param R={((1k)*(1+(0.1)))}\nR1 1 2 {R}\nR2 2 0 {((1k)-(100))}\n.op\n.end\n')
+  assert.match(note!, /2 toleranced values \(R, R2\).*all 4 corners/)
+  const err = (d: string) => expandSweep(d).errors.join()
+  assert.match(err('* x\nR1 1 0 1k\n.wc\n.op\n'), /no toleranced values/)
+  assert.match(err(WCDECK + '.wc\n'), /Only one/)
+  assert.match(err(WCDECK.replace('.op', '.step param x list 1 2\n.op')), /cannot be combined with \.step/)
+  assert.match(err(WCDECK.replace('.op', '.mc 5\n.op')), /cannot be combined/)
+})
+
+test('.wc corners through ngspice: extremes of I(V1) at the R−R2− and R+R2+ corners (skipped if ngspice missing)', (t) => {
+  const i: number[] = []
+  for (const r of expandSweep(WCDECK).runs) {
+    const v = ngspiceI(t, r.netlist)
+    if (v === null) return
+    i.push(v)
+  }
+  const near = (a: number, b: number) => assert.ok(Math.abs(a / b - 1) < 1e-5, `${a} vs ${b}`) // ngspice prints 6 digits
+  near(i[0], 1 / 2000), near(i[1], 1 / (900 + 900)), near(i[4], 1 / (1100 + 1100)), near(i[2], 1 / (1100 + 900))
+})
+
+test('.wc above MAX_WC: sensitivity fallback picks each measurement\'s max/min corner from the earlier runs', () => {
+  // 9 resistors in series, R5 in reverse sense via a negative nominal-free expression: I = 1/ΣR falls as any R rises
+  const rs = Array.from({ length: 9 }, (_, k) => `R${k + 1} n${k} n${k + 1} {gauss(1k, 0.1, 3)}`)
+  const deck = ['* big', 'V1 n0 0 1', ...rs, 'R0 n9 0 1', '.wc', '.op', '.meas op i1 find i(v1)', '.end'].join('\n')
+  const sw = expandSweep(deck)
+  assert.deepEqual(sw.errors, [])
+  assert.equal(MAX_WC, 8)
+  assert.equal(sw.runs.length, 1 + 9 + 2)
+  assert.match(sw.note!, /9 toleranced values .* 512 corners .* i1/)
+  // fake .meas logs: i(v1) is negative (current into +), so it rises as R rises
+  const meas = (v: number) => `Measurements for Operating Point Analysis\n\ni1                  =  ${v}\n`
+  sw.observe!(meas(-1 / 9001))
+  for (let j = 0; j < 9; j++) sw.observe!(meas(-1 / (9001 + 100)))
+  assert.equal(sw.runs[10].label, 'max i1: R1+ R2+ R3+ R4+ R5+ R6+ R7+ R8+ R9+')
+  assert.equal(sw.runs[11].label, 'min i1: R1− R2− R3− R4− R5− R6− R7− R8− R9−')
+  assert.match(sw.runs[10].netlist, /^R1 n0 n1 \{\(\(1k\)\*\(1\+\(0\.1\)\)\)\}$/m)
+  assert.match(expandSweep(deck.replace('.meas op i1 find i(v1)\n', '')).errors.join(), /512 corners .* Add a \.meas line/)
 })
