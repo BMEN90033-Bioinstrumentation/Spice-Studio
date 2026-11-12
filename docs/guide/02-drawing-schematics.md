@@ -87,7 +87,17 @@ Double-click a part to open its properties in a popup beside it (or select it an
 
 If a part's name or value sits on top of something else, drag that text to move it; the part stays where it is. The name and the value move separately, in half-grid steps, and their positions are saved with the sheet. **Reset label positions** in the part's popup puts both back. ### Clean up
 
-**Clean up** in the toolbar (or **Clean Up Labels** in the right-click menu) moves name and value labels that sit on a part, a wire, a directive card or another label to a free spot beside their part: right, left, above or below. It works on the selected parts, or on the whole sheet when nothing is selected. Parts and wires are never moved, labels that are already clear stay where they are, and one Undo puts everything back.
+**Clean up** in the toolbar (or **Clean Up** in the right-click menu) tidies the whole sheet in three steps:
+
+1. **Spacing.** Parts, directive cards and notes that overlap are pushed apart, and a wire running through a part is moved off it. Everything keeps its order left to right and top to bottom, parts move by whole grid steps, and wires only get longer or shorter, so no wire gains a bend. A small kink in a wire (the step left behind when a part is nudged off its row) is closed up by lining the two sides up again.
+2. **Wires.** Doubled-up and split wire pieces are merged into one, and a wire that wanders, with three or more corners or a detour between two points that line up, is replaced by a straight run or a single corner when that path is free. An ordinary two-corner step is left as drawn.
+3. **Labels.** Name and value labels that sit on a part, a wire, a directive card, a net or power label or another label move to the nearest free spot beside their part. A label dragged far from its part is brought back.
+
+The circuit never changes: Clean up checks that every pin is on the same net afterwards and leaves parts and wires alone if it would not be. A sheet that is already tidy is not touched, and one Undo puts everything back.
+
+With parts selected, Clean up (**Clean Up Labels** in the right-click menu) only moves the labels of those parts; nothing else on the sheet moves.
+
+Clean up never changes the order of things, so it cannot untangle a part that has been dragged right across another one. Move that part roughly where it belongs first.
 
 ### The right-click menu
 

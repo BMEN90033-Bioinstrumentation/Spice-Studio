@@ -1,13 +1,13 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet } from './model'
 import { SYMBOLS, isFlag, type Kind } from './symbols'
-import { cleanLabels, labelAt } from './cleanup'
+import { cleanUp as cleanSheet, flagAt, labelAt } from './cleanup'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
 import { netlist, type NetCtx } from './netlist'
 import { blockPartFields, libKey, type LibEntry } from '../library/library'
-import { localBox, PinNames, SymBody, SymbolPreview, SymTexts, type Box } from '../library/Symbol'
+import { bodyBox, localBox, PinNames, SymBody, SymbolPreview, SymTexts, type Box } from '../library/Symbol'
 import { symbolFields } from '../library/customSymbol'
 import { LibraryPanel, sheetName, type LibPick, type SheetItem } from '../library/LibraryPanel'
 import { analysisText, mergeOptions, parseAnalysis, setupKind, type Analysis, type SetupKind } from '../sim/analysis'
@@ -81,7 +81,8 @@ function eng(v: number) {
 }
 const tf = (p: Orient) => `translate(${p.x} ${p.y}) rotate(${p.rot * 90}) scale(${p.mirror ? -1 : 1} 1)`
 
-const pbox = (p: Part) => { const b = localBox(p.kind, p); return norm(xform(p, { x: b.x0, y: b.y0 }), xform(p, { x: b.x1, y: b.y1 })) }
+const placed = (p: Part, b: Box) => norm(xform(p, { x: b.x0, y: b.y0 }), xform(p, { x: b.x1, y: b.y1 }))
+const pbox = (p: Part) => placed(p, localBox(p.kind, p))
 
 // Directive card box. ponytail: monospace estimate (char = 0.6em), not measured text
 const LH = 12, CW = 6, PAD = 4
@@ -110,16 +111,8 @@ const off = (o?: Pt) => (o ? `translate(${o.x} ${o.y})` : undefined)
 function Texts({ p, sel }: { p: Part; sel?: Set<string> }) {
   const lc = (k: string) => (sel?.has(`${p.id}:${k}`) ? 'lbl on' : 'lbl')
   if (p.kind === 'gnd') return null
-  if (p.kind === 'bustap') { // member name just past the wire end, away from the bus
-    const t = xform(p, { x: 13, y: 13 }), dx = t.x - p.x, dy = t.y - p.y
-    return <text className="n" x={t.x} y={t.y + (dy > 0 ? 6 : 0)} textAnchor={dx > 0 ? 'start' : 'end'}>{p.value}</text>
-  }
-  if (p.kind === 'label' || p.kind === 'port' || p.kind === 'power') {
-    // text sits past the symbol along its pointing direction: +x for labels/ports, up (-y) for the power bar
-    const up = p.kind === 'power', o = xform(p, up ? { x: 0, y: -1 } : { x: 1, y: 0 }), dx = o.x - p.x, dy = o.y - p.y
-    const t = xform(p, up ? { x: 0, y: localBox(p.kind).y0 - 1 } : { x: localBox(p.kind).x1 + 1, y: 0 })
-    return <text className="n" x={t.x} y={t.y + (dy > 0 ? 8 : dy < 0 ? 0 : 3.5)} textAnchor={dx > 0 ? 'start' : dx < 0 ? 'end' : 'middle'}>{p.value}</text>
-  }
+  const f = flagAt(p, pbox(p)) // cleanup.ts: a flag's one text (net label, port, power rail, bus tap), shared with Clean up
+  if (f) return <text className="n" x={f.x} y={f.y} textAnchor={f.anchor}>{p.value}</text>
   const { n, v, anchor } = labelAt(pbox(p)) // cleanup.ts: shared with Clean up
   const val = p.sheet ? sheetName(p.sheet) : p.value
   return (
@@ -220,11 +213,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   }
   // Align / distribute the selected parts and directive cards by their boxes. Every move is a whole number of grid
   // steps, so pins stay on the grid; wires follow as they do in a drag (remap).
-  // Clean up: labels only (cleanup.ts). The selected parts when some are selected, else the whole sheet.
+  // Clean up (cleanup.ts): the whole sheet is spread out, its wires tidied and its labels placed; with parts selected,
+  // only their labels move.
   function cleanUp() {
     const s = cur.current, ids = new Set(s.parts.filter((p) => sel.has(p.id)).map((p) => p.id))
-    const next = cleanLabels(s, pbox, ids.size ? ids : undefined, [...s.texts.map(tbox), ...(s.draw ?? []).map(dbox)])
-    if (next.parts.some((p, i) => p !== s.parts[i])) commit(next)
+    const next = cleanSheet(s, { pbox, body: (p) => placed(p, bodyBox(p.kind, p)), tbox, dbox }, ids.size ? ids : undefined)
+    if (next !== s) commit(next)
   }
   type Edge = 'left' | 'right' | 'top' | 'bottom' | 'cx' | 'cy' | 'dx' | 'dy'
   function align(m: Edge) {
@@ -985,7 +979,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <BarBtn label="Undo (⌘Z)" aria="Undo" onClick={undo} disabled={!hist.current.undo.length}><Undo2 /></BarBtn>
         <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
         <BarBtn label={'Fit' + kl('view.fit')} aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
-        <Tip label="Clean up: move name and value labels off parts, wires and each other (the selected parts, or the whole sheet)">
+        <Tip label="Clean up: space out overlapping parts, straighten wires and put labels beside their parts (with parts selected: just their labels)">
           <Button variant="ghost" size="sm" className={TBTN} aria-label="Clean up" onClick={cleanUp}><Sparkles /><span>Clean up</span></Button>
         </Tip>
         <Sep />
@@ -1109,7 +1103,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={cleanUp}>Clean Up Labels</DropdownMenuItem>
+          <DropdownMenuItem onSelect={cleanUp}>{sel.size ? 'Clean Up Labels' : 'Clean Up'}</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setSel(new Set(all(cur.current)))}>Select All<DropdownMenuShortcut>{keyLabel('Mod+A')}</DropdownMenuShortcut></DropdownMenuItem>
           <DropdownMenuItem onSelect={() => fit()}>Fit to Window<DropdownMenuShortcut>{keyLabel(keysOf('view.fit'))}</DropdownMenuShortcut></DropdownMenuItem>
