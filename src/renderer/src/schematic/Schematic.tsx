@@ -10,6 +10,7 @@ import { AnalysisDialog, type Tab } from '../sim/AnalysisDialog'
 import { SourceDialog } from '../sim/SourceDialog'
 import { useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
+import { usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
 import { Cpu, Crosshair, FlipHorizontal2, Maximize, MousePointer2, Redo2, RotateCw, Spline, Trash2, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -170,7 +171,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [box, setBox] = useState<Box | null>(null)
   const [space, setSpace] = useState(false)
   const [hov, setHov] = useState<ProbeTarget | null>(null)
-  const [showOp, setShowOp] = useState(true)
+  const opPref = usePrefs().showOp // Settings › Schematic; the OP toggle overrides it per canvas
+  const [showOp, setShowOp] = useState(opPref)
+  useEffect(() => setShowOp(opPref), [opPref])
   const [dlg, setDlg] = useState<Tab | 'analysis' | 'edit' | null>(null) // analysis dialog open, on this tab ('edit': rewrite the selected card)
   const [srcDlg, setSrcDlg] = useState(false)
   const [band, setBand] = useState<{ a: Pt; b: Pt } | null>(null) // differential probe rubber band

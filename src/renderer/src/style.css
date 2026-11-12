@@ -10,6 +10,7 @@
   --hl: #6aa9ff; /* data highlight: OP values, links, focus on the canvas */
   --hl-bg: rgba(106, 169, 255, 0.13);
   --ok: #4cc38a;
+  --ok-fg: #08130d; /* text on an --ok fill (the Run button) */
   --err: #f0787b;
   --warn: #e3b366;
   --sel: #f0b35a;   /* selected schematic items */
@@ -21,6 +22,23 @@
   --panel: var(--s1);
   --mono: 'SF Mono', Menlo, Consolas, monospace;
 }
+/* light theme (index.css): the same roles, dark enough for white (text >= 4.5:1, lines >= 3:1) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --hl: #2563eb;
+    --hl-bg: rgba(37, 99, 235, 0.1);
+    --ok: #15803d;
+    --ok-fg: #ffffff;
+    --err: #dc2626;
+    --warn: #a3530a;
+    --sel: #c2410c;
+    --probe: #a16207;
+    --wire: #16a34a;
+    --sym: #404040;
+  }
+}
+/* Settings › Schematic › Show the grid (Preferences.tsx sets the class) */
+.no-grid .sch .dot { display: none; }
 .app { display: flex; flex-direction: column; height: 100%; }
 [hidden] { display: none !important; }
 
@@ -53,7 +71,7 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 .u-legend { color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
 /* many sweep / Monte Carlo runs: the legend scrolls instead of squeezing the chart (Plot sizes the chart from its height) */
 .u-legend.u-inline { max-height: 66px; overflow-y: auto; }
-.u-select { background: rgba(106, 169, 255, 0.12); }
+.u-select { background: color-mix(in srgb, var(--hl) 12%, transparent); }
 
 /* plot cursors (created in Plot.tsx) and trace swatches */
 .pcur { position: absolute; top: 0; bottom: 0; width: 9px; margin-left: -4px; cursor: ew-resize; z-index: 5; }

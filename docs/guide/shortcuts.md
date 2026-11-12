@@ -24,6 +24,7 @@ These work even while typing in a text field.
 | ⌘2 | Show or hide the Parts panel |
 | ⌘3 | Show or hide the results panel |
 | ⌘/ | Keyboard shortcuts |
+| ⌘, | Settings (Preferences on Windows) |
 
 ## Schematic canvas
 

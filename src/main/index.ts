@@ -9,6 +9,7 @@ import { parseRaw, type RawPlot } from './rawfile'
 import type { SimOptions, Stopped } from '../renderer/src/contracts'
 import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
+import { getPrefs, windowBg } from './prefs' // preferences, theme
 import { installMenu, refreshMenu } from './menu'
 
 export interface SimResult {
@@ -26,6 +27,7 @@ type Engine = { path: string; bundled: boolean; env: NodeJS.ProcessEnv }
 // SPICE_SCRIPTS would redirect spinit lookup; SPICE_ASCIIRAWFILE would make the rawfile ASCII (parseRaw wants binary)
 const { SPICE_SCRIPTS: _s, SPICE_ASCIIRAWFILE: _a, ...ENV } = process.env
 function engine(): Engine | null {
+  if (getPrefs().ngspicePath) return { path: getPrefs().ngspicePath, bundled: false, env: ENV } // Settings › Simulation engine
   if (process.env.NGSPICE_PATH) return { path: process.env.NGSPICE_PATH, bundled: false, env: ENV }
   const b = join(BUNDLED, 'bin', EXE)
   // required on macOS/Linux: ngspice finds spinit (and through it the .cm code models) only via SPICE_LIB_DIR
@@ -333,12 +335,13 @@ function guardClose(w: BrowserWindow) {
 const WINDOWS: Record<string, Electron.BrowserWindowConstructorOptions> = {
   'ngspice-plots': { width: 1000, height: 700, minWidth: 480, minHeight: 320, title: 'Plots' },
   'ngspice-libraries': { width: 760, height: 560, minWidth: 520, minHeight: 360, title: 'Manage Libraries' },
-  'ngspice-bom': { width: 1240, height: 680, minWidth: 640, minHeight: 360, title: 'Bill of Materials' }
+  'ngspice-bom': { width: 1240, height: 680, minWidth: 640, minHeight: 360, title: 'Bill of Materials' },
+  'ngspice-prefs': { width: 600, height: 780, minWidth: 480, minHeight: 360, title: process.platform === 'darwin' ? 'Settings' : 'Preferences' }
 }
 const external = ({ url }: { url: string }) => (/^https?:\/\//i.test(url) && void shell.openExternal(url), { action: 'deny' as const })
 function popouts(w: BrowserWindow) {
   w.webContents.setWindowOpenHandler((d) => WINDOWS[d.frameName]
-    ? { action: 'allow', overrideBrowserWindowOptions: { ...WINDOWS[d.frameName], backgroundColor: '#0a0a0a', autoHideMenuBar: true } }
+    ? { action: 'allow', overrideBrowserWindowOptions: { ...WINDOWS[d.frameName], backgroundColor: windowBg(), autoHideMenuBar: true } }
     : external(d))
   w.webContents.on('did-create-window', (c) => c.webContents.setWindowOpenHandler(external))
   w.on('closed', () => BrowserWindow.getAllWindows().forEach((x) => x.destroy()))
@@ -350,7 +353,7 @@ app.whenReady().then(() => {
     // editor = sheets + library panel + canvas + plots: use most of the screen
     width: Math.max(1200, Math.round(screen.getPrimaryDisplay().workAreaSize.width * 0.92)),
     height: Math.max(800, Math.round(screen.getPrimaryDisplay().workAreaSize.height * 0.92)),
-    backgroundColor: '#0a0a0a',
+    backgroundColor: windowBg(),
     // mac: inset traffic lights over the header; Windows/Linux: a normal frame with the menu bar in the window
     ...(process.platform === 'darwin' ? { titleBarStyle: 'hiddenInset' as const } : { autoHideMenuBar: false }),
     webPreferences: { preload: join(__dirname, '../preload/index.js') }

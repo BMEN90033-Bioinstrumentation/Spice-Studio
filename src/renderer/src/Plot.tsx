@@ -10,6 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { RawPlot, RawVar } from '../../main/rawfile'
 import { isExpr } from './contracts'
 import { useCommands } from './commands'
+import { isDark, useDark } from './Preferences'
 import { evalExpr, isCurrent, pretty } from './plot/expr'
 import { fft, nextPow2 } from './plot/fft'
 import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
@@ -17,7 +18,8 @@ export { isCurrent, pretty }
 
 const HUES = [199, 36, 123, 0, 291, 54, 174, 340]
 // one hue per vector; with several sweep runs each run gets its own lightness (light -> dark)
-const color = (i: number, run = 0, n = 1) => `hsl(${HUES[i % HUES.length]} 75% ${n > 1 ? 78 - (36 * run) / (n - 1) : 64}%)`
+// light theme: darker, so lines hold up on white
+const color = (i: number, run = 0, n = 1) => `hsl(${HUES[i % HUES.length]} 75% ${isDark() ? (n > 1 ? 78 - (36 * run) / (n - 1) : 64) : n > 1 ? 50 - (28 * run) / (n - 1) : 36}%)`
 const PREFIX: [number, string][] = [
   [1e12, 'T'], [1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''],
   [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n'], [1e-12, 'p'], [1e-15, 'f']
@@ -82,6 +84,7 @@ function at(x: ArrayLike<number>, y: ArrayLike<number | null>, v: number): numbe
 export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void }) {
   const first = runs[0].plot
   const [scale, ...signals] = first.vars
+  const dark = useDark() // re-render (and redraw the canvas) when the theme changes
   const [mode, setMode] = useState<Mode>('db')
   const [view, setView] = useState<View>('time')
   const [fftLog, setFftLog] = useState(true)
@@ -149,7 +152,9 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
     const el = host.current, doc = el.ownerDocument
     const yUnit = fftv ? 'dB' : first.complex ? (mode === 'db' ? 'dB' : '°') : ''
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
-    const axis = { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } } // ≈ --muted-foreground / --border (canvas can't read CSS vars)
+    const axis = dark // ≈ --muted-foreground / --border (canvas can't read CSS vars)
+      ? { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } }
+      : { stroke: '#737373', grid: { stroke: 'rgba(0,0,0,0.08)' }, ticks: { stroke: 'rgba(0,0,0,0.15)' } }
     const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
     runs.forEach(({ label }, r) => {
       const ts = traces.filter((t) => t.run === r)
@@ -241,7 +246,7 @@ export function Plot({ runs, sel, onSel }: { runs: PlotRun[]; sel: string[]; onS
       uref.current = null
       place.current = () => {}
     }
-  }, [traces])
+  }, [traces, dark])
   useEffect(() => place.current(), [cur])
 
   const csv = () => {

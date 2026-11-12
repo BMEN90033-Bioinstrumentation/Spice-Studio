@@ -13,6 +13,7 @@ import { LibraryView } from './library/LibraryView'
 import { ManageLibraries } from './library/ManageLibraries'
 import { useSources, type Sources } from './library/sources'
 import { usePanels } from './layout/Panel'
+import { newSim, prefs, Preferences } from './Preferences'
 import { focusPopout } from './layout/PopOut'
 import { paneKey, ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
@@ -44,7 +45,6 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import './index.css'
 
-document.documentElement.classList.add('dark') // shadcn dark theme (index.css); the app is dark only
 if (/Mac/.test(navigator.platform)) document.documentElement.classList.add('mac') // header leaves room for traffic lights
 
 const EXAMPLE = `* RC low-pass filter, fc = 159 Hz
@@ -174,7 +174,7 @@ function App() {
     start(async () => {
       const t = TEMPLATES.find((t) => t.id === tpl)
       const src = t?.sheets ?? { 'main.nsch': emptySheet() }
-      const project = newProject(name), file = name + '.nsproj'
+      const project: Project = { ...newProject(name), ...newSim() }, file = name + '.nsproj'
       if (!src[project.top]) project.top = Object.keys(src)[0]
       const files: Record<string, string> = { [file]: json(project) }
       for (const [f, s] of Object.entries(src)) files[f] = json(s)
@@ -256,7 +256,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [meas, setMeas] = useState<MeasTable | null>(null)
   const [diag, setDiag] = useState<Diagnosis[]>([]) // convergence help for the last run
   // compat / timeout: stored in the .nsproj for projects, per session for loose files; simEdit = the open settings bar
-  const [looseSim, setLooseSim] = useState<ProjectSim>({})
+  const [looseSim, setLooseSim] = useState<ProjectSim>(() => prefs().sim) // Settings › New projects and files
   const [simEdit, setSimEdit] = useState<ProjectSim | null>(null)
   const peeked = useRef<string | null>(null) // last generated netlist put in the editor
 
@@ -768,7 +768,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
               <Button variant="ghost" size="sm" aria-expanded={!!simEdit} onClick={() => setSimEdit(simEdit ? null : sim)}><SlidersHorizontal />Run settings</Button>
             </Tip>
             <Tip label={running ? 'Stop the simulation (⌘.)' : proj ? `Run the top sheet ${stem(top)} (⌘↵)` : 'Run (⌘↵)'}>
-              <Button size="sm" variant={running ? 'destructive' : 'default'} className={cn('ml-1.5 min-w-[68px] gap-1.5 font-semibold', !running && 'bg-ok text-[#08130d] hover:bg-ok/85')} onClick={running ? stop : run}>
+              <Button size="sm" variant={running ? 'destructive' : 'default'} className={cn('ml-1.5 min-w-[68px] gap-1.5 font-semibold', !running && 'bg-ok text-ok-fg hover:bg-ok/85')} onClick={running ? stop : run}>
                 {running ? <><Square className="size-3! fill-current" />Stop</> : <><Play className="size-3! fill-current" />Run</>}
               </Button>
             </Tip>
@@ -992,4 +992,4 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   )
 }
 
-createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /></TooltipProvider>)
+createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /><Preferences /></TooltipProvider>)

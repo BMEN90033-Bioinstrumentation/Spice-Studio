@@ -3,6 +3,7 @@ import type { SimResult } from '../main/index'
 import type { Pack } from '../main/userlib'
 import type { ImportedLib } from '../renderer/src/library/library'
 import type { Filter, SimOptions } from '../renderer/src/contracts'
+import type { Prefs } from '../renderer/src/prefs'
 
 type Opened = { dir: string; file: string; text: string }
 // a file the OS asked us to open (double-click / Open With): a project, a loose sheet, or why it failed
@@ -66,6 +67,13 @@ const api = {
   recent: {
     list: (): Promise<{ name: string; file: string; opened: number; exists: boolean }[]> => inv('recent:list'),
     remove: (file: string): Promise<void> => inv('recent:remove', file)
+  },
+  // preferences (main/prefs.ts): read once at startup, every change pushed to all windows
+  prefs: {
+    initial: ipcRenderer.sendSync('prefs:get') as Prefs,
+    set: (p: Partial<Prefs>): Promise<Prefs> => inv('prefs:set', p),
+    onChange: (cb: (p: Prefs) => void) => on('prefs:changed', cb),
+    pickEngine: (): Promise<string | null> => inv('prefs:pickEngine')
   }
 }
 

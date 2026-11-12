@@ -55,7 +55,7 @@ function template(recents: Recent[]): Item[] {
       ]
     },
     cmd('file.export.print', 'Print Schematic…', 'CmdOrCtrl+P'),
-    ...(mac ? [] : [sep, { role: 'quit' } as Item])
+    ...(mac ? [] : [sep, cmd('app.preferences', 'Preferences…', 'Ctrl+,'), sep, { role: 'quit' } as Item])
   ]
   const editMenu: Item[] = [
     edit('edit.undo', 'Undo', 'CmdOrCtrl+Z'),
@@ -134,7 +134,7 @@ function template(recents: Recent[]): Item[] {
     ...(mac
       ? [{
           label: 'Spice Studio',
-          submenu: [cmd('help.about', 'About Spice Studio'), sep, { role: 'services' }, sep, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, sep, { role: 'quit' }]
+          submenu: [cmd('help.about', 'About Spice Studio'), sep, cmd('app.preferences', 'Settings…', 'Cmd+,'), sep, { role: 'services' }, sep, { role: 'hide' }, { role: 'hideOthers' }, { role: 'unhide' }, sep, { role: 'quit' }]
         } as Item]
       : []),
     { label: 'File', submenu: file },

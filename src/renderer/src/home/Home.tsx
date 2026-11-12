@@ -13,6 +13,7 @@ import { Tip } from '@/components/ui/tip'
 import { cn } from '@/lib/utils'
 import { keyLabel } from '../layout/Panel'
 import { About, Shortcuts } from '../Help'
+import { PreferencesPanel, usePrefs } from '../Preferences'
 
 type Recent = { name: string; file: string; opened: number; exists: boolean }
 
@@ -90,12 +91,14 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
 
   const reload = () => window.api.recent.list().then(setRecents)
   const checkEngine = () => window.api.engine().then(setEngine) // looked up afresh each call: picks up an ngspice installed since launch
+  const runs = !!engine?.path && /^ngspice-/.test(engine.version) // found and answered --version (a Settings override can point anywhere)
+  const { ngspicePath, projectDir } = usePrefs()
   useEffect(() => {
     reload()
-    checkEngine()
     window.api.menu.info().then(setApp)
-    window.api.project.defaultParent().then((p) => setParent((cur) => cur || p))
   }, [])
+  useEffect(() => void checkEngine(), [ngspicePath]) // Settings › Simulation engine
+  useEffect(() => void (projectDir ? setParent(projectDir) : window.api.project.defaultParent().then(setParent)), [projectDir]) // Settings › Project folder
   useEffect(() => { if (form) setSettings(false) }, [form]) // ⌘N from Settings
   useEffect(() => { if (form && !settings) nameRef.current?.focus() }, [form, settings])
   useEffect(() => {
@@ -134,13 +137,13 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
           <Action icon={File} title="Open file…" tip="A single .nsch schematic or .cir netlist" keys="Mod+Shift+O" onClick={onOpenFile} />
           <Action icon={BookOpen} title="Component library" tip="Diodes, transistors and op-amps with their models" className="mt-3" onClick={onLibrary} />
         </nav>
-        <Action icon={Settings} title="Settings" tip="Keyboard shortcuts, the simulation engine and version details" className={cn('mt-auto mb-3', settings && 'bg-accent')}
+        <Action icon={Settings} title="Settings" tip="Theme, autosave, defaults, keyboard shortcuts, the simulation engine and version details" className={cn('mt-auto mb-3', settings && 'bg-accent')}
           onClick={() => setSettings(!settings)} aria-pressed={settings} />
         {engine && (
           <Tip label={engine.path ?? 'ngspice not found'} side="right">
             <div className="flex items-center gap-2 border-t px-2 pt-3 text-xs text-muted-foreground">
-              <span className={cn('size-1.5 rounded-full', engine.path ? 'bg-ok' : 'bg-warn')} />
-              <span className={cn(!engine.path && 'text-warn')}>{engine.version}</span>
+              <span className={cn('size-1.5 rounded-full', runs ? 'bg-ok' : 'bg-warn')} />
+              <span className={cn('truncate', !runs && 'text-warn')}>{engine.version}</span>
               {engine.bundled && <span className="ml-auto">Bundled</span>}
             </div>
           </Tip>
@@ -164,6 +167,10 @@ export function Home({ onCreate, onOpen, onOpenFile, onLibrary, error, form, set
 
           {settings ? (
             <>
+              <section className="mb-10">
+                <h2 className={H2}>Preferences</h2>
+                <PreferencesPanel />{/* the same as the Settings window (⌘,) */}
+              </section>
               <section className="mb-10">
                 <h2 className={H2}>Keyboard shortcuts</h2>
                 <Shortcuts />

@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-The app needs an ngspice program. It uses the first one it finds: the `NGSPICE_PATH` environment variable, a bundled build in `vendor/ngspice/`, Homebrew (`brew install ngspice`), then your `PATH`. The [project README](../../README.md#run-it-from-source) has the details, and [Building and packaging](../../README.md#building-and-packaging) explains how to build the bundled ngspice and the installers.
+The app needs an ngspice program. It uses the first one it finds: the program you chose in [Settings](#settings), the `NGSPICE_PATH` environment variable, a bundled build in `vendor/ngspice/`, Homebrew (`brew install ngspice`), then your `PATH`. The [project README](../../README.md#run-it-from-source) has the details, and [Building and packaging](../../README.md#building-and-packaging) explains how to build the bundled ngspice and the installers.
 
 ## The Home page
 
@@ -33,7 +33,7 @@ The top-right corner shows which ngspice the app found, for example `ngspice-47+
 
 1. Click **New project** or press ⌘N.
 2. Type a **Name**. The name becomes the folder name, so it can't contain `/ \ : * ? " < > |` or start with a dot.
-3. Check the **Location**. By default projects go in `Documents/Spice Studio`. Click **Change…** to pick another folder.
+3. Check the **Location**. By default projects go in `Documents/Spice Studio`. Click **Change…** to pick another folder, or change the default in [Settings](#settings).
 4. Pick a **Template**: *Blank*, *RC low-pass*, *BJT common-emitter*, *Op-amp inverting amplifier* or *Hierarchical filter*.
 5. Click **Create project**.
 
@@ -97,5 +97,15 @@ Below the plot, the console shows the netlist the app generated and ngspice's ou
 ### Save
 
 Press ⌘S, or click **Save**, to save every changed sheet. Unsaved sheets show a • after their name. If you go back Home or open another project with unsaved changes, the app asks you to **Save**, **Discard** or **Cancel**.
+
+## Settings
+
+Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar, which also lists the keyboard shortcuts and version details. Changes apply at once to every open window, and are kept for next time.
+
+- **Theme**: **Light**, **Dark** or **System** (follows your computer's setting). Dark is the default. Exported and printed schematics are always black on white.
+- **Schematic**: show or hide the grid, and whether operating-point values appear on the schematic after a run. The **OP** button on the canvas toolbar still turns them on and off for the sheet you are on.
+- **Autosave**: keep recovery copies of unsaved work, and how often (5 to 600 seconds).
+- **New projects and files**: the folder New project suggests, and the compatibility mode and timeout that new projects and single files start with. Each project then keeps its own in **Run settings** ([chapter 4](04-simulating.md#run-settings)).
+- **Simulation engine**: the ngspice the app uses, its version and where it is. **Choose…** picks another ngspice program; **Use bundled** goes back to the built-in one. If the chosen program doesn't run, this shows the error.
 
 Next: [Drawing schematics](02-drawing-schematics.md).

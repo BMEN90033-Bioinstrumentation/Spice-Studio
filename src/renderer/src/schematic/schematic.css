@@ -28,7 +28,7 @@
 .sch .preview { pointer-events: none; }
 .sch .preview line { stroke: var(--hl); stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
 .sch .preview circle { fill: var(--hl); }
-.sch .boxsel { fill: rgba(106, 169, 255, 0.08); stroke: var(--hl); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.sch .boxsel { fill: color-mix(in srgb, var(--hl) 8%, transparent); stroke: var(--hl); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
 
 /* floating toolbar + inspectors: positions only (the parts panel/rail shift them, layout.css); looks are Tailwind in Schematic.tsx */
 .sch-bar { position: absolute; top: 8px; left: 8px; right: 8px; width: fit-content; display: flex; } /* width shrinks to its content, wraps when narrow */

@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
+import { Compartment } from '@codemirror/state'
 import { EditorView, basicSetup } from 'codemirror'
 import { StreamLanguage } from '@codemirror/language'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { useDark } from './Preferences'
 
 // Minimal SPICE highlighter: comments, dot-directives, element names, numbers w/ SI suffixes.
 const spice = StreamLanguage.define<{ control: boolean }>({
@@ -29,21 +31,24 @@ export function Editor({ initial, onChange }: { initial: string; onChange: (s: s
   const host = useRef<HTMLDivElement>(null)
   const cb = useRef(onChange)
   cb.current = onChange
+  const dark = useDark(), theme = useRef(new Compartment()), view = useRef<EditorView | null>(null)
 
   useEffect(() => {
-    const view = new EditorView({
+    const v = new EditorView({
       doc: initial,
       parent: host.current!,
       extensions: [
         basicSetup,
         spice,
-        oneDark,
-        EditorView.theme({ '&': { height: '100%' }, '.cm-scroller': { fontFamily: 'var(--mono)' } }),
+        theme.current.of(dark ? oneDark : []),
+        EditorView.theme({ '&': { height: '100%' }, '&.cm-focused': { outline: 'none' }, '.cm-scroller': { fontFamily: 'var(--mono)' } }),
         EditorView.updateListener.of((u) => u.docChanged && cb.current(u.state.doc.toString()))
       ]
     })
-    return () => view.destroy()
+    view.current = v
+    return () => v.destroy()
   }, [initial]) // remounts only when a file is loaded (new `initial`)
+  useEffect(() => view.current?.dispatch({ effects: theme.current.reconfigure(dark ? oneDark : []) }), [dark])
 
   return <div ref={host} className="editor" />
 }

@@ -6,7 +6,7 @@ Keyboard shortcuts are written for macOS (⌘). On Windows and Linux, use Ctrl w
 
 ## Chapters
 
-1. [Getting started](01-getting-started.md): install, the Home page, your first project and your first simulation.
+1. [Getting started](01-getting-started.md): install, the Home page, your first project and your first simulation, and Settings (theme, autosave, defaults).
 2. [Drawing schematics](02-drawing-schematics.md): parts, wires, labels, ground, editing values, directives, undo and the source waveform editor.
 3. [Component reference](03-components.md): every part kind, its pins and its value syntax, with worked examples.
 4. [Simulating](04-simulating.md): the Analysis dialog, `.options`, Run and Stop, Run settings, the rules check and convergence help.
