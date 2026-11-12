@@ -514,3 +514,18 @@ test('builder form: a definition read into fields writes back to SPICE that pars
   assert.deepEqual(subcktParts(multi), { tail: 'params: g=2 r=1k', body: 'E1 out 0 in 0 {g}' })
   assert.deepEqual(modelParts('.model X D(Is=1n\n+ N=2) ; c')!.params, [['Is', '1n'], ['N', '2']])
 })
+
+test('standardSymbol: every starter opens with a symbol that connects all its pins', async () => {
+  const { STARTERS } = await import('../src/renderer/src/library/library.ts')
+  const { standardSymbol, symbolErrors, symbolFields } = await import('../src/renderer/src/library/customSymbol.ts')
+  for (const s of STARTERS) {
+    const [e] = entriesFromImport({ file: 'x.lib', entries: suggest(parseLibFile(s.text)) }, s.text)
+    const sym = standardSymbol(e)
+    assert.deepEqual(symbolErrors(sym, e), [], s.title)
+    assert.ok(sym.shapes.length >= 3, s.title)
+    assert.equal(symbolFields({ ...e, symbol: sym })!.pins!.length, sym.pins.length, s.title)
+  }
+  // diode: the lead, the bar, the lead, then the triangle's three sides
+  const [d] = entriesFromImport({ file: 'x.lib', entries: suggest(parseLibFile(STARTERS[0].text)) }, STARTERS[0].text)
+  assert.equal(standardSymbol(d).shapes.length, 6)
+})

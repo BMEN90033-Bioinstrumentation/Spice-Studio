@@ -8,12 +8,14 @@ import { validSymbol, type CustomSymbol } from './customSymbol.ts'
 
 export type Category = 'Passives' | 'Sources' | 'Controlled sources' | 'Switches' | 'Diodes' | 'BJTs' | 'JFETs' | 'MOSFETs' | 'Op-amps' | 'Comparators'
   | 'Regulators' | 'References' | 'Optocouplers' | 'Timers' | 'Subcircuits' | 'Digital'
+  | (string & {}) // your own: typed when adding a part to My library (packs stay on the built-in ones: checkPack)
 export interface LibEntry {
   id: string
   name: string
   category: Category
   kind: Kind
   description: string
+  mfr?: string; mpn?: string // manufacturer and its part number: shown on the detail card, the BOM's starting values
   value: string
   spice?:
     | { type: 'model'; name: string; text: string }
@@ -25,7 +27,7 @@ export interface LibEntry {
   symbol?: CustomSymbol // drawn in the symbol editor (customSymbol.ts)
 }
 export interface ImportedLib {
-  file: string; entries: { name: string; kind: Kind; category: Category; pinMap: number[]; symbol?: CustomSymbol }[]
+  file: string; entries: { name: string; kind: Kind; category: Category; pinMap: number[]; symbol?: CustomSymbol; mfr?: string; mpn?: string }[] // mfr / mpn: manufacturer and its part number (component builder)
   enabled?: false // hidden from the parts lists and search (Manage Libraries); its parts still resolve for netlisting
 }
 export const libOn = (l: { enabled?: boolean }) => l.enabled !== false
@@ -204,7 +206,7 @@ export function entriesFromImport(lib: ImportedLib, text: string, src?: LibSourc
   return lib.entries.flatMap((e): LibEntry[] => {
     const base = {
       id: `${src?.prefix ?? 'proj:'}${lib.file}#${e.name}`, name: e.name, category: e.category, kind: e.kind, value: e.name,
-      source: src?.source ?? ('project' as const), group: src?.group ?? 'Project', ...(src?.compat && { compat: src.compat }), ...(validSymbol(e.symbol) && { symbol: e.symbol })
+      source: src?.source ?? ('project' as const), group: src?.group ?? 'Project', ...(src?.compat && { compat: src.compat }), ...(validSymbol(e.symbol) && { symbol: e.symbol }), ...(e.mfr && { mfr: e.mfr }), ...(e.mpn && { mpn: e.mpn })
     }
     const m = models.get(e.name.toLowerCase())
     if (m) return [{ ...base, description: `${m.type} model`, spice: { type: 'model', name: m.name, text: m.text }, params: m.params }]

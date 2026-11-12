@@ -48,6 +48,32 @@ export function defaultSymbol(e: Entryish): CustomSymbol {
   return { shapes, pins: pins.map((p, i) => ({ name: p.name, x: p.x, y: p.y, map: o[i] })) }
 }
 
+// the part's standard symbol as editable shapes and pins: what the drawing view starts from. Blocks: the box.
+// ponytail: straight lines only; filled bits (a diode's triangle, arrowheads) come out as outlines, an arc as its chord. Fine for every kind a library part can be.
+export function standardSymbol(e: Entryish): CustomSymbol {
+  const d = SYMBOLS[e.kind], o = order(e)
+  if (e.kind === 'block' || d.pins.length !== o.length) return defaultSymbol(e)
+  const shapes: Drawing[] = d.circle ? [{ id: uid(), t: 'ellipse', a: { x: -d.circle, y: -d.circle }, b: { x: d.circle, y: d.circle } }] : []
+  for (const path of [d.path, d.fill ?? '']) {
+    const t = path.match(/[A-Za-z]|-?[\d.]+/g) ?? []
+    let cmd = '', x = 0, y = 0, sx = 0, sy = 0, i = 0
+    const n = () => +t[i++]
+    const to = (nx: number, ny: number, draw = true) => {
+      if (draw && (nx !== x || ny !== y)) shapes.push({ id: uid(), t: 'line', a: { x, y }, b: { x: nx, y: ny } })
+      ;(x = nx), (y = ny)
+    }
+    while (i < t.length) {
+      if (/[A-Za-z]/.test(t[i])) { if ((cmd = t[i++]) === 'Z') to(sx, sy); continue }
+      if (cmd === 'M') to(n(), n(), false), (sx = x), (sy = y), (cmd = 'L')
+      else if (cmd === 'H') to(n(), y)
+      else if (cmd === 'V') to(x, n())
+      else if (cmd === 'A') (i += 5), to(n(), n())
+      else to(n(), n())
+    }
+  }
+  return { shapes, pins: d.pins.map((p, i) => ({ name: d.pinNames?.[i] ?? `pin ${i + 1}`, x: p.x, y: p.y, map: o[i] })) }
+}
+
 // shape check for a symbol read from disk or IPC (main re-checks with this before saving to My library)
 export function validSymbol(x: unknown): x is CustomSymbol {
   const s = x as CustomSymbol, n = (v: unknown) => typeof v === 'number' && isFinite(v)

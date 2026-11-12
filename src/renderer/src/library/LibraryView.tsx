@@ -1,5 +1,5 @@
 // Full-page library browser (enabled libraries, by category) + the vendor .lib import pin-mapping dialog (Manage Libraries).
-import { useEffect, useMemo, useState, type KeyboardEvent as RKE } from 'react'
+import { useEffect, useId, useMemo, useState, type KeyboardEvent as RKE } from 'react'
 import { SYMBOLS, type Kind } from '../schematic/symbols'
 import { blockPartFields, CATEGORIES as CATS, libKey, suggest, type Category, type ImportedLib, type LibEntry, type ParsedLib } from './library'
 import { match, mini, useDebounced, VList } from './LibraryPanel'
@@ -22,8 +22,8 @@ import { Tip } from '@/components/ui/tip'
 import { cn } from '@/lib/utils'
 
 const MODEL_KINDS: Kind[] = ['diode', 'zener', 'led', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos']
-const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']
-const KIND_CAT: Partial<Record<Kind, Category>> = { diode: 'Diodes', zener: 'Diodes', led: 'Diodes', npn: 'BJTs', pnp: 'BJTs', njf: 'JFETs', pjf: 'JFETs', nmos: 'MOSFETs', pmos: 'MOSFETs', opamp: 'Op-amps', opamp5: 'Op-amps', block: 'Subcircuits' }
+export const SUB_KINDS: Kind[] = ['opamp5', 'opamp', 'npn', 'pnp', 'njf', 'pjf', 'nmos', 'pmos', 'diode', 'zener', 'led', 'block']
+export const KIND_CAT: Partial<Record<Kind, Category>> = { diode: 'Diodes', zener: 'Diodes', led: 'Diodes', npn: 'BJTs', pnp: 'BJTs', njf: 'JFETs', pjf: 'JFETs', nmos: 'MOSFETs', pmos: 'MOSFETs', opamp: 'Op-amps', opamp5: 'Op-amps', block: 'Subcircuits' }
 const packOf = (id: string) => (id.startsWith('pack:') ? id.slice(5, id.indexOf('/')) : '')
 const ROW_H = 46
 const rowH = () => ROW_H, rowKey = (e: LibEntry) => e.id
@@ -66,7 +66,7 @@ export function LibraryView({ entries, packs }: {
     for (const e of found) m.set(e.category, (m.get(e.category) ?? 0) + 1)
     return m
   }, [found])
-  const cats = useMemo(() => CATS.filter((c) => entries.some((e) => e.category === c)), [entries])
+  const cats = useMemo(() => { const used = new Set(entries.map((e) => e.category)); return [...CATS.filter((c) => used.has(c)), ...[...used].filter((c) => !CATS.includes(c)).sort()] }, [entries]) // built-in order, then your own
 
   const navBtn = (id: string, label: string, n: number) => (
     <Button key={id} variant="ghost" size="sm" className="w-full justify-start font-normal aria-pressed:bg-accent aria-pressed:text-accent-foreground" aria-pressed={cat === id} onClick={() => setCat(id)}>
@@ -133,6 +133,8 @@ function Detail({ e, packs, onNotice }: { e: LibEntry; packs: PackInfo[]; onNoti
           : e.source === 'pack' ? <>{pack?.name ?? 'Pack'}{pack?.version && ` ${/^\d/.test(pack.version) ? 'v' : ''}${pack.version}`} · {fileOf(e)}{pack?.source && <> · from {isUrl(pack.source) ? <Button asChild variant="link" className={LINK}><a href={pack.source} target="_blank" rel="noreferrer">{pack.source}</a></Button> : pack.source}</>}</>
           : `Project file ${fileOf(e)}`
         }</dd>
+        {e.mfr && <><dt>Manufacturer</dt><dd>{e.mfr}</dd></>}
+        {e.mpn && <><dt>Part number</dt><dd><code>{e.mpn}</code></dd></>}
         {pack && <><dt>Licence</dt><dd>{pack.license || 'not stated'} · <Button variant="link" className={LINK} onClick={() => onNotice(pack)}>notice</Button></dd></>}
         {e.compat && <><dt>Dialect</dt><dd>{e.compat}</dd></>}
         {!e.spice && <><dt>Model</dt><dd>Built-in SPICE element: the value is the whole spec</dd></>}
@@ -177,14 +179,14 @@ function rowErrors(r: Row, sub?: string[]): string[] {
 }
 
 // renders in whichever window holds it (Manage Libraries is its own window): keys and focus use that window
-// verb: what confirming does ('Add' from the component builder)
-export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void; verb?: string }) {
+export function ImportDialog({ rel, parsed, onClose, onImport }: { rel: string; parsed: ParsedLib; onClose: () => void; onImport: (l: ImportedLib) => void }) {
   const orig = useMemo(() => suggest(parsed), [parsed])
+  const listId = useId()
   const [rows, setRows] = useState<Row[]>(() => orig.map((r) => ({ ...r, include: true })))
   const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
   const info = rows.map((r) => ({ m: parsed.models.find((m) => same(m.name, r.name)), s: parsed.subckts.find((s) => same(s.name, r.name)) }))
   const errs = rows.map((r, i) => (r.include ? rowErrors(r, info[i].s?.pins) : []))
-  const ok = rows.some((r) => r.include) && errs.every((e) => !e.length)
+  const ok = rows.some((r) => r.include) && errs.every((e) => !e.length) && rows.every((r) => !r.include || r.category.trim())
   const skipped = parsed.models.length + parsed.subckts.length - rows.length
 
   const upd = (i: number, p: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...p } : r)))
@@ -198,7 +200,7 @@ export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }
     const entries = rows.flatMap((r, i) => {
       if (!r.include) return []
       const sub = info[i].s?.pins
-      return [{ name: r.name, kind: r.kind, category: r.category, pinMap: r.kind === 'block' && sub ? sub.map((_, j) => j) : r.pinMap }]
+      return [{ name: r.name, kind: r.kind, category: r.category.trim(), pinMap: r.kind === 'block' && sub ? sub.map((_, j) => j) : r.pinMap }]
     })
     onImport({ file: rel, entries })
   }
@@ -209,7 +211,7 @@ export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }
       <DialogContent aria-describedby={undefined} className="flex max-h-[calc(100%-2rem)] flex-col gap-0 p-0 sm:max-w-[720px]"
         onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.preventDefault(), submit() }}>
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="text-sm">{verb} <code className="font-mono text-xs">{rel}</code></DialogTitle>
+          <DialogTitle className="text-sm">Import <code className="font-mono text-xs">{rel}</code></DialogTitle>
         </DialogHeader>
         <div className="flex min-h-[120px] flex-col gap-2 overflow-y-auto px-4 py-3.5">
           {parsed.errors.length > 0 && (
@@ -231,10 +233,11 @@ export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }
                     <SelectTrigger size="sm" aria-label={`${r.name} symbol`} className={SEL}><SelectValue /></SelectTrigger>
                     <SelectContent>{[...new Set([...kinds, r.kind])].map((k) => <SelectItem key={k} value={k}>{SYMBOLS[k].title}</SelectItem>)}</SelectContent>
                   </Select>
-                  <Select value={r.category} disabled={!r.include} onValueChange={(v) => upd(i, { category: v as Category })}>
-                    <SelectTrigger size="sm" aria-label={`${r.name} category`} className={SEL}><SelectValue /></SelectTrigger>
-                    <SelectContent>{CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                  </Select>
+                  {/* native combobox: pick a category or type a new one */}
+                  <Tip label="Category: choose one, or type a new one">
+                    <Input className="h-7 w-36 text-xs md:text-xs" list={listId} maxLength={40} placeholder="Category" aria-label={`${r.name} category`} aria-invalid={!r.category.trim() || undefined}
+                      value={r.category} disabled={!r.include} onChange={(e) => upd(i, { category: e.target.value })} />
+                  </Tip>
                 </div>
                 {s && r.include && r.kind !== 'block' && (
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-x-2.5 gap-y-1.5">
@@ -261,10 +264,11 @@ export function ImportDialog({ rel, parsed, onClose, onImport, verb = 'Import' }
             )
           })}
         </div>
+        <datalist id={listId}>{CATS.map((c) => <option key={c} value={c} />)}</datalist>
         <DialogFooter className="items-center border-t px-4 py-3">
-          <span className="mr-auto text-xs text-muted-foreground"><Kbd>Esc</Kbd> cancel · <Kbd>⌘↵</Kbd> {verb.toLowerCase()}</span>
+          <span className="mr-auto text-xs text-muted-foreground"><Kbd>Esc</Kbd> cancel · <Kbd>⌘↵</Kbd> import</span>
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button size="sm" onClick={submit} disabled={!ok}>{verb} {rows.filter((r) => r.include).length || ''}</Button>
+          <Button size="sm" onClick={submit} disabled={!ok}>Import {rows.filter((r) => r.include).length || ''}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

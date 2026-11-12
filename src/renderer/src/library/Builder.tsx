@@ -1,18 +1,24 @@
-// Component builder (Home › Component builder): define how a part behaves, either by filling in a form or by writing
-// its SPICE (.model or .subckt); both edit the same text. Draw its symbol (the symbol editor), then add it: the import
-// dialog confirms symbol kind, category and pins. The part is saved to My library as its own file.
+// Component builder (Home › Component builder), laid out like the main window. Left: the parts you've made, by
+// category, searchable; open one to change it. Right: Design (draw the symbol and place its pins, then fill in how
+// the part behaves) or Code (its SPICE, a .model or .subckt); both edit the same definition. Save asks for the name,
+// type, category (existing or new), manufacturer and part number, and stores the part in My library as its own file.
 import { useMemo, useState, type ComponentProps } from 'react'
 import {
-  blockPartFields, entriesFromImport, MODEL_PARAMS, MODEL_TYPES, modelParts, modelText, parseLibFile, STARTERS, subcktParts, subcktText, suggest,
+  blockPartFields, CATEGORIES, entriesFromImport, MODEL_PARAMS, MODEL_TYPES, modelParts, modelText, parseLibFile, STARTERS, subcktParts, subcktText, suggest,
   type ImportedLib, type LibEntry, type ParsedLib
 } from './library'
-import { symbolErrors, symbolFields, type CustomSymbol } from './customSymbol'
-import type { Sources } from './sources'
-import { ImportDialog } from './LibraryView'
-import { SymbolEditor } from './SymbolEditor'
+import { standardSymbol, symbolErrors, symbolFields, type CustomSymbol } from './customSymbol'
 import { SymbolPreview } from './Symbol'
+import type { Sources } from './sources'
+import { KIND_CAT, SUB_KINDS } from './LibraryView'
+import { mini } from './LibraryPanel'
+import { SYMBOLS, type Kind } from '../schematic/symbols'
+import { SymbolPad } from './SymbolEditor'
 import { Editor } from '../Editor'
 import { runCommand } from '../commands'
+import { ChevronDown, Plus } from 'lucide-react'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +26,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils'
 
 const MUTED = 'text-xs leading-normal text-muted-foreground'
 const H = 'text-xs font-medium text-muted-foreground'
@@ -55,7 +62,7 @@ function ModelForm({ text, put }: { text: string; put: (t: string) => void }) {
           </Select>
         </Label>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-3">
+      <div className="grid gap-2.5">
         {rows.map(([k, what]) => (
           <Label key={k.toLowerCase()} className={FLD}>
             <span><b className="font-mono font-medium text-foreground">{has(k)?.[0] ?? k}</b>{what && ` · ${what}`}</span>
@@ -72,7 +79,7 @@ function SubcktForm({ s, put }: { s: ParsedLib['subckts'][number]; put: (t: stri
   const { tail, body } = subcktParts(s)
   return (
     <div className="grid gap-3 rounded-lg border bg-card p-3.5">
-      <div className="grid grid-cols-[1fr_2fr] gap-3">
+      <div className="grid gap-3">
         <Label className={FLD}>Name<Field value={s.name} ok={NAME} onCommit={(v) => put(subcktText(v, s.pins, tail, body))} /></Label>
         <Label className={FLD}>Pins, in order, separated by spaces
           <Field value={s.pins.join(' ')} ok={PINS} onCommit={(v) => put(subcktText(s.name, v.trim().split(/\s+/).filter(Boolean), tail, body))} />
@@ -86,96 +93,224 @@ function SubcktForm({ s, put }: { s: ParsedLib['subckts'][number]; put: (t: stri
   )
 }
 
-export function Builder({ sources, taken, onLibrary }: {
+type Meta = { old: string; name: string; kind: Kind; category: string; mfr: string; mpn: string }
+type Entry = ImportedLib['entries'][number]
+const subPins = (e: LibEntry) => (e.spice?.type === 'subckt' ? e.spice : undefined)
+// the symbol types a part can take: a diode model is a diode, zener or LED; a subcircuit is a block or any symbol with as many pins
+const kindsFor = (e: LibEntry): Kind[] => {
+  const s = subPins(e)
+  if (!s) return ['diode', 'zener', 'led'].includes(e.kind) ? ['diode', 'zener', 'led'] : [e.kind]
+  return [...new Set<Kind>(['block', ...SUB_KINDS.filter((k) => k !== 'block' && SYMBOLS[k].pins.length === s.pins.length), e.kind])]
+}
+// pinMap[symbol pin] = subckt pin: what was saved before for this type, else the suggestion, else in order
+const pinMapFor = (e: LibEntry, kind: Kind, was?: Entry) => {
+  const s = subPins(e)
+  if (!s) return []
+  return was?.kind === kind && was.pinMap.length === s.pins.length ? was.pinMap : kind === e.kind ? s.pinMap : s.pins.map((_, i) => i)
+}
+
+// Save: name, type, category (pick or type a new one), manufacturer, part number; one block per part in the definition
+function SaveDialog({ parts, was, drawn, taken, categories, error, onSave, onClose }: {
+  parts: LibEntry[]; was?: Entry[]; drawn: (i: number) => boolean; taken: Set<string>; categories: string[]; error: string
+  onSave: (rows: Meta[]) => Promise<unknown>; onClose: () => void
+}) {
+  const prev = (e: LibEntry) => was?.find((x) => x.name === e.name)
+  const [rows, setRows] = useState<Meta[]>(() => parts.map((e) => { const o = prev(e); return { old: e.name, name: e.name, kind: o?.kind ?? e.kind, category: o?.category ?? e.category, mfr: o?.mfr ?? '', mpn: o?.mpn ?? '' } }))
+  const [busy, setBusy] = useState(false)
+  const upd = (i: number, p: Partial<Meta>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...p } : r)))
+  const dup = (r: Meta) => rows.filter((x) => x.name.toLowerCase() === r.name.toLowerCase()).length > 1
+  const ok = rows.every((r) => NAME(r.name) && !dup(r) && r.category.trim())
+  const submit = () => ok && !busy && (setBusy(true), onSave(rows).finally(() => setBusy(false)))
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent aria-describedby={undefined} className="flex max-h-[calc(100%-2rem)] flex-col gap-0 p-0 sm:max-w-[520px]"
+        onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter' && !(e.target as Element).closest('button')) e.preventDefault(), submit() }}>
+        <DialogHeader className="border-b px-4 py-3"><DialogTitle className="text-sm">Save to My library</DialogTitle></DialogHeader>
+        <div className="grid gap-3 overflow-y-auto px-4 py-3.5">
+          {rows.map((r, i) => {
+            const e = parts[i], s = subPins(e), map = pinMapFor(e, r.kind, prev(e))
+            return (
+              <div key={i} className={cn('grid grid-cols-2 gap-3', rows.length > 1 && 'rounded-lg border bg-card p-3')}>
+                <Label className={FLD}>Name
+                  <Input className={IN} spellCheck={false} autoFocus={!i} value={r.name} aria-invalid={!NAME(r.name) || dup(r) || undefined} onChange={(ev) => upd(i, { name: ev.target.value })} />
+                </Label>
+                <Label className={FLD}>Type
+                  <Select value={r.kind} onValueChange={(v) => upd(i, { kind: v as Kind, ...(r.category === (KIND_CAT[r.kind] ?? '') && KIND_CAT[v as Kind] && { category: KIND_CAT[v as Kind] }) })}>
+                    <SelectTrigger size="sm" className="w-full text-xs data-[size=sm]:h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>{kindsFor(e).map((k) => <SelectItem key={k} value={k} className="text-xs">{SYMBOLS[k].title}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Label>
+                {/* native combobox: pick a category or type a new one */}
+                <Label className={FLD + ' col-span-2'}>Category: choose one, or type a new one
+                  <Input className="h-8 text-xs md:text-xs" list="bld-cats" maxLength={40} value={r.category} aria-invalid={!r.category.trim() || undefined} onChange={(ev) => upd(i, { category: ev.target.value })} />
+                </Label>
+                <Label className={FLD}>Manufacturer (optional)<Input className="h-8 text-xs md:text-xs" maxLength={80} value={r.mfr} onChange={(ev) => upd(i, { mfr: ev.target.value })} /></Label>
+                <Label className={FLD}>Part number (optional)<Input className={IN} spellCheck={false} maxLength={80} value={r.mpn} onChange={(ev) => upd(i, { mpn: ev.target.value })} /></Label>
+                {taken.has(r.name.toLowerCase()) && <p className="col-span-2 text-xs leading-normal text-warn">The library already has a part named {r.name}. A different name keeps the two from being mixed up in a circuit.</p>}
+                {dup(r) && <p className="col-span-2 text-xs text-destructive">Two parts can't share a name.</p>}
+                {s && r.kind !== 'block' && !drawn(i) && (
+                  <p className={MUTED + ' col-span-2'}>Its pins connect as {SYMBOLS[r.kind].pins.map((_, j) => `${SYMBOLS[r.kind].pinNames?.[j] ?? `pin ${j + 1}`} → ${s.pins[map[j]]}`).join(', ')}. For another arrangement, draw the symbol and connect its pins yourself.</p>
+                )}
+              </div>
+            )
+          })}
+          {error && <Alert variant="destructive"><AlertDescription className="text-xs">{error}</AlertDescription></Alert>}
+        </div>
+        <datalist id="bld-cats">{[...new Set([...CATEGORIES, ...categories])].map((c) => <option key={c} value={c} />)}</datalist>
+        <DialogFooter className="border-t px-4 py-3">
+          <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+          <Button size="sm" onClick={submit} disabled={!ok || busy}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// text with the definition called `old` renamed (the name is the .model / .subckt name in the SPICE)
+function renamed(text: string, old: string, now: string) {
+  const p = parseLibFile(text), m = p.models.find((x) => x.name === old), s = p.subckts.find((x) => x.name === old), f = m && modelParts(m.text)
+  if (m && f) return text.replace(m.text, () => modelText(now, f.type, f.params))
+  if (!s) return text
+  const { tail, body } = subcktParts(s)
+  return text.replace(s.text, () => subcktText(now, s.pins, tail, body))
+}
+
+export function Builder({ sources, taken }: {
   sources: Sources
   taken: LibEntry[] // every part there is: a new part with one of these names gets a warning
-  onLibrary: () => void
 }) {
-  const [mode, setMode] = useState<'form' | 'code'>('form')
+  const [mode, setMode] = useState<'design' | 'code'>('design')
   const [initial, setInitial] = useState(STARTERS[0].text) // what the code editor was last loaded with
   const [text, setText] = useState(initial)
-  const [syms, setSyms] = useState<Record<number, CustomSymbol>>({}) // drawn symbols, by part position
-  const [mapping, setMapping] = useState(false) // the symbol kind / pins dialog
-  const [drawing, setDrawing] = useState(false) // the symbol editor
+  const [syms, setSyms] = useState<Record<number, CustomSymbol>>({}) // symbols you've drawn or changed, by part position; the others show (and are saved with) their standard symbol
+  const [editing, setEditing] = useState<ImportedLib | null>(null) // a part made earlier, open again: saving rewrites it
+  const [cur, setCur] = useState(0) // which part is on the drawing canvas (a definition can hold several)
+  const [saving, setSaving] = useState(false) // the Save dialog
+  const [q, setQ] = useState('')
+  const [side, setSide] = useState<HTMLDivElement | null>(null) // where the drawing's pin list goes (right panel)
   const [note, setNote] = useState(''), [err, setErr] = useState('')
   const parsed = useMemo(() => parseLibFile(text), [text])
-  const draft: ImportedLib = useMemo(() => ({ file: 'new part', entries: suggest(parsed).map((e, i) => (syms[i] ? { ...e, symbol: syms[i] } : e)) }), [parsed, syms])
-  const parts = useMemo(() => entriesFromImport(draft, text), [draft, text])
-  const names = useMemo(() => new Set(taken.map((e) => e.name.toLowerCase())), [taken])
-  const clash = parts.filter((e) => names.has(e.name.toLowerCase())).map((e) => e.name)
-  const stale = parts.filter((e) => e.symbol && symbolErrors(e.symbol, e).length).map((e) => e.name) // drawn, then the pins changed
+  const plain = useMemo(() => entriesFromImport({ file: 'new part', entries: suggest(parsed) }, text), [parsed, text])
+  const std = useMemo(() => plain.map(standardSymbol), [plain]) // what the canvas starts from: the standard symbol, as shapes you can change
+  const parts = useMemo(() => plain.map((e, i) => (syms[i] ? { ...e, symbol: syms[i] } : e)), [plain, syms])
+  const ci = parts[cur] ? cur : 0, part = parts[ci]
+  const names = useMemo(() => new Set(taken.filter((e) => !editing || !e.id.startsWith(`user:${editing.file}#`)).map((e) => e.name.toLowerCase())), [taken, editing]) // not the part being edited itself
+  const stale = parts.filter((e) => e.symbol && symbolErrors(e.symbol, e).length).map((e) => e.name) // drawn, but not every pin is connected
   const reload = (t: string) => setInitial(t === initial ? t + '\n' : t) // a changed `initial` reloads the editor
-  const load = (t: string) => (reload(t), setText(t), setSyms({}), setNote(''), setErr(''))
+  const load = (t: string) => (reload(t), setText(t), setSyms({}), setEditing(null), setCur(0), setNote(''), setErr(''))
   const edit = (old: string, now: string) => setText(text.replace(old, () => now)) // form: rewrite one definition in place
+  const draw = (s: CustomSymbol | null) => setSyms((m) => { const { [ci]: _, ...rest } = m; return s ? { ...rest, [ci]: s } : rest })
+  const custom = useMemo(() => [...new Set(taken.map((e) => e.category))].filter((c) => !CATEGORIES.includes(c)).sort(), [taken])
 
-  async function add(l: ImportedLib) {
+  // the list: every part of My library under its category (built-in order, then your own)
+  // ponytail: My library has no "made here" mark, so imported vendor files are listed too; the big ones (one form per part) are left to Manage Libraries
+  const ql = q.trim().toLowerCase()
+  const mine = sources.user.libs.filter((l) => l.entries.length <= 12 && sources.user.texts[l.file] != null).flatMap((l) => l.entries.map((e) => ({ l, e })))
+  const found = mine.filter(({ e }) => !ql || [e.name, e.category, e.mfr, e.mpn].some((x) => x?.toLowerCase().includes(ql)))
+  const groups = [...CATEGORIES, ...custom].map((c) => ({ c, items: found.filter((x) => x.e.category === c) })).filter((g) => g.items.length)
+  const entryOf = (l: ImportedLib, e: Entry) => sources.entries.find((x) => x.id === `user:${l.file}#${e.name}`) // for its small symbol
+
+  function open(l: ImportedLib, name: string) {
+    const t = sources.user.texts[l.file], sg = suggest(parseLibFile(t))
+    load(t), setEditing(l), setCur(Math.max(0, sg.findIndex((s) => s.name === name)))
+    setSyms(Object.fromEntries(sg.flatMap((s, i) => { const o = l.entries.find((e) => e.name === s.name); return o?.symbol ? [[i, o.symbol]] : [] })))
+  }
+
+  async function save(rows: Meta[]) {
     setErr('')
     let file = ''
+    const t = rows.reduce((t, r) => (r.name === r.old ? t : renamed(t, r.old, r.name)), text)
     try {
-      file = (await window.api.userlib.create(l.entries[0].name, text)).file
-      // the drawn symbols go with their parts (one that no longer fits its pins is ignored: the part uses the generic symbol)
-      const sym = (n: string) => draft.entries.find((e) => e.name === n)?.symbol
-      await sources.save({ file, entries: l.entries.map((e) => (sym(e.name) ? { ...e, symbol: sym(e.name) } : e)) })
-      setMapping(false), setNote(`Added ${l.entries.map((e) => e.name).join(', ')} to My library.`)
+      if (editing) await window.api.userlib.write(editing.file, t)
+      else file = (await window.api.userlib.create(rows[0].name, t)).file
+      // a drawn symbol goes with its part (one that doesn't connect every pin is ignored when placing: the part uses the standard symbol)
+      const lib: ImportedLib = { file: editing?.file ?? file, entries: rows.map((r, i) => ({
+        name: r.name, kind: r.kind, category: r.category.trim(), pinMap: pinMapFor(parts[i], r.kind, editing?.entries.find((x) => x.name === r.old)),
+        ...(syms[i] && { symbol: syms[i] }), ...(r.mfr.trim() && { mfr: r.mfr.trim() }), ...(r.mpn.trim() && { mpn: r.mpn.trim() })
+      })) }
+      await sources.save(lib)
+      setText(t), reload(t), setSaving(false), setEditing(lib) // from here on, Save rewrites this part instead of adding another
+      setNote(`Saved ${rows.map((r) => r.name).join(', ')} under ${[...new Set(lib.entries.map((e) => e.category))].join(', ')}.${editing ? ' Projects that already use it keep the copy they have.' : ''}`)
     } catch (e) {
-      if (file) window.api.userlib.remove(file).catch(() => {}) // written but not mapped: don't leave it behind
-      setMapping(false), setErr(String((e as Error)?.message ?? e))
+      if (file && !editing) window.api.userlib.remove(file).catch(() => {}) // written but not listed: don't leave it behind
+      setErr(String((e as Error)?.message ?? e))
     }
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_340px]">
-      <section className="flex min-h-0 flex-col border-r" aria-label="How the part behaves">
-        <div className="flex flex-none flex-wrap items-center gap-1.5 border-b px-3.5 py-2">
-          <span className={H + ' mr-1'}>Start from</span>
-          {STARTERS.map((s) => <Button key={s.title} variant="outline" size="sm" className="h-7 text-xs" onClick={() => load(s.text)}>{s.title}</Button>)}
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => (load(''), setMode('code'))}>Empty</Button>
-          <ToggleGroup type="single" size="sm" variant="outline" value={mode} aria-label="Edit as" className="ml-auto">
-            <ToggleGroupItem value="form" className="h-7 px-2.5 text-xs" onClick={() => setMode('form')}>Form</ToggleGroupItem>
-            <ToggleGroupItem value="code" className="h-7 px-2.5 text-xs" onClick={() => (reload(text), setMode('code'))}>Code</ToggleGroupItem>
-          </ToggleGroup>
+    <div className="grid h-full min-h-0 grid-cols-[250px_minmax(0,1fr)_340px]">
+      <aside className="flex min-h-0 flex-col gap-2 border-r px-2.5 py-3" aria-label="Parts you've made">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button size="sm" variant="outline"><Plus />New part<ChevronDown className="ml-auto opacity-60" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-[230px]">
+            {STARTERS.map((s) => <DropdownMenuItem key={s.title} onSelect={() => (load(s.text), setMode('design'))}>{s.title}</DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => (load(''), setMode('code'))}>Empty: write the SPICE yourself</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Input className="h-8 text-xs md:text-xs" type="search" placeholder="Search your parts" aria-label="Search your parts" value={q} spellCheck={false} onChange={(e) => setQ(e.target.value)} />
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {groups.map((g) => (
+            <div key={g.c} className="mb-1.5 grid gap-px">
+              <div className="px-2 pt-1.5 pb-0.5 text-[11px] font-medium text-muted-foreground">{g.c}</div>
+              {g.items.map(({ l, e }) => { const le = entryOf(l, e); return (
+                <Button key={l.file + '#' + e.name} variant="ghost" className="h-auto w-full justify-start gap-2 px-2 py-1 text-left font-normal aria-pressed:bg-accent" aria-pressed={editing?.file === l.file && part?.name === e.name} onClick={() => open(l, e.name)}>
+                  {le && mini(le)}
+                  <span className="grid min-w-0"><b className="truncate font-mono text-xs font-medium">{e.name}</b>
+                    {(e.mfr || e.mpn) && <small className="truncate text-[11px] text-muted-foreground">{[e.mfr, e.mpn].filter(Boolean).join(' · ')}</small>}</span>
+                </Button>
+              ) })}
+            </div>
+          ))}
+          {!found.length && <p className={MUTED + ' px-2 py-1'}>{mine.length ? `Nothing matches “${q}”.` : 'Parts you save appear here under their category, ready to open and change.'}</p>}
         </div>
-        {mode === 'code' ? <div className="min-h-0 flex-1 overflow-hidden"><Editor initial={initial} onChange={setText} /></div> : (
-          <div className="grid min-h-0 flex-1 content-start gap-3 overflow-y-auto p-4">
-            {parsed.models.map((m, i) => <ModelForm key={'m' + i} text={m.text} put={(t) => edit(m.text, t)} />)}
-            {parsed.subckts.map((s, i) => <SubcktForm key={'s' + i} s={s} put={(t) => edit(s.text, t)} />)}
-            {!parsed.models.length && !parsed.subckts.length && <p className={MUTED}>Nothing to fill in yet: pick a starter above, or write the SPICE yourself in Code.</p>}
-          </div>
-        )}
-      </section>
-
-      <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4 py-3.5">
-        <p className={MUTED}>
-          A part is a SPICE <code className="font-mono">.model</code> (diode, transistor) or a <code className="font-mono">.subckt</code> (any circuit, with its pins).
-          Form and Code edit the same definition: switch between them at any time.
-        </p>
-        <div className={H}>This defines</div>
-        {parts.map((e) => (
-          <div key={e.id} className="grid gap-1 rounded-lg border bg-card p-2.5">
-            <b className="font-mono text-[13px] font-medium">{e.name}</b>
-            <span className={MUTED}>{e.description}</span>
-            <div className="rounded-md border bg-background p-1 [&_.symp]:text-foreground"><SymbolPreview kind={e.kind} part={symbolFields(e) ?? (e.kind === 'block' ? blockPartFields(e) : undefined)} size="large" /></div>
-          </div>
-        ))}
-        {!parts.length && <p className={MUTED}>Nothing that can be placed yet. Write a .model of type D, NPN, PNP, NJF, PJF, NMOS or PMOS, or a .subckt … .ends block.</p>}
-        {parts.length > 0 && <Button variant="outline" size="sm" onClick={() => setDrawing(true)}>{Object.keys(syms).length ? 'Edit the symbol…' : 'Draw a symbol…'}</Button>}
-        {stale.length > 0 && <p className="text-xs leading-normal text-warn">The symbol drawn for {stale.join(', ')} no longer matches its pins, so the standard one is shown. Edit the symbol to reconnect its pins.</p>}
-        {parsed.errors.length > 0 && <Alert variant="destructive"><AlertDescription><ul className="list-disc pl-4 text-xs">{parsed.errors.map((x, i) => <li key={i}>{x}</li>)}</ul></AlertDescription></Alert>}
-        {clash.length > 0 && <p className="text-xs leading-normal text-warn">The library already has a part named {clash.join(', ')}. Rename yours so the two can't be mixed up in a circuit.</p>}
-        {err && <Alert variant="destructive"><AlertDescription className="text-xs">{err}</AlertDescription></Alert>}
-        <Button disabled={!parts.length || parsed.errors.length > 0} onClick={() => (setNote(''), setErr(''), setMapping(true))}>Add to My library…</Button>
-        {note && (
-          <div className="grid gap-2 rounded-lg border border-ok/35 bg-ok/10 p-2.5 text-xs" role="status">
-            <span>{note}</span>
-            <span><Button size="sm" variant="outline" onClick={onLibrary}>Open the library</Button></span>
-          </div>
-        )}
-        <Button variant="link" className="mt-auto h-auto justify-start p-0 text-xs" onClick={() => runCommand('tools.manageLibraries')}>Edit or remove parts you've made: Manage libraries…</Button>
+        <Button variant="link" className="h-auto justify-start p-0 px-2 text-xs" onClick={() => runCommand('tools.manageLibraries')}>Remove or hide parts…</Button>
       </aside>
 
-      {mapping && <ImportDialog rel={parts[0]?.name ?? 'part'} verb="Add" parsed={parsed} onClose={() => setMapping(false)} onImport={add} />}
-      {drawing && <SymbolEditor lib={draft} text={text} onClose={() => setDrawing(false)}
-        onSave={async (l) => setSyms(Object.fromEntries(l.entries.flatMap((e, i) => (e.symbol ? [[i, e.symbol]] : []))))} />}
+      <section className="flex min-h-0 flex-col border-r" aria-label="The part">
+        <div className="flex flex-none items-center gap-2 border-b px-3.5 py-2">
+          <b className="min-w-0 truncate font-mono text-[13px] font-medium">{parts.map((e) => e.name).join(', ') || 'New part'}</b>
+          <span className={MUTED + ' flex-none'}>{editing ? 'saved in My library' : 'not saved yet'}</span>
+          <ToggleGroup type="single" size="sm" variant="outline" value={mode} aria-label="Edit as" className="ml-auto flex-none">
+            <ToggleGroupItem value="design" className="h-7 px-2.5 text-xs" onClick={() => setMode('design')}>Design</ToggleGroupItem>
+            <ToggleGroupItem value="code" className="h-7 px-2.5 text-xs" onClick={() => (reload(text), setMode('code'))}>Code</ToggleGroupItem>
+          </ToggleGroup>
+          <Button size="sm" className="h-7 flex-none" disabled={!parts.length || parsed.errors.length > 0} onClick={() => (setNote(''), setErr(''), setSaving(true))}>Save…</Button>
+        </div>
+        {(parsed.errors.length > 0 || stale.length > 0 || note) && (
+          <div className="grid flex-none gap-1 border-b px-3.5 py-2 text-xs leading-normal">
+            {parsed.errors.map((x, i) => <p key={i} className="text-destructive">{x}</p>)}
+            {stale.length > 0 && <p className="text-warn">The symbol drawn for {stale.join(', ')} doesn't connect every pin yet. Until it does, the part is placed with its standard symbol.</p>}
+            {note && <p className="text-ok" role="status">{note}</p>}
+          </div>
+        )}
+        {mode === 'code' ? <div className="min-h-0 flex-1 overflow-hidden"><Editor initial={initial} onChange={setText} /></div>
+          : part ? (
+            <SymbolPad key={ci} e={part} sym={syms[ci] ?? std[ci]} put={draw} side={side} lead={parts.length > 1 && (
+              <Select value={String(ci)} onValueChange={(v) => setCur(+v)}>
+                <SelectTrigger size="sm" aria-label="Part to draw" className="h-7 w-44 font-mono text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>{parts.map((x, i) => <SelectItem key={i} value={String(i)} className="font-mono text-xs">{x.name}</SelectItem>)}</SelectContent>
+              </Select>)} />
+          ) : <p className={MUTED + ' p-4'}>Nothing to draw yet: choose a starting point under New part, or write the SPICE yourself in Code.</p>}
+      </section>
+
+      <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4 py-3.5" aria-label="Preview and behaviour">
+        <div className={H}>Preview</div>
+        {part ? <div className="flex-none rounded-md border bg-background p-1 [&_.symp]:text-foreground"><SymbolPreview kind={part.kind} part={symbolFields(part) ?? (part.kind === 'block' ? blockPartFields(part) : undefined)} size="large" /></div>
+          : <p className={MUTED}>Nothing that can be placed yet.</p>}
+        <div ref={setSide} className="flex-none empty:hidden" />
+        {/* Code edits the same text: the form stays out of its way */}
+        {mode === 'design' && (
+          <>
+            <div className={H}>How it behaves</div>
+            {parsed.models.map((m, i) => <ModelForm key={'m' + i} text={m.text} put={(t) => edit(m.text, t)} />)}
+            {parsed.subckts.map((s, i) => <SubcktForm key={'s' + i} s={s} put={(t) => edit(s.text, t)} />)}
+            {parsed.models.length + parsed.subckts.length > parts.length && <p className={MUTED}>Only models of type D, NPN, PNP, NJF, PJF, NMOS and PMOS, and subcircuits, become parts you can place.</p>}
+          </>
+        )}
+      </aside>
+
+      {saving && <SaveDialog parts={parts} was={editing?.entries} drawn={(i) => !!syms[i]} taken={names} categories={custom} error={err} onSave={save} onClose={() => setSaving(false)} />}
     </div>
   )
 }

@@ -32,7 +32,7 @@ export function bom(sheets: Record<string, Sheet>, top: string, lib?: (id: strin
       if (!r) {
         // op-amp symbol carries comparators too: say what the library part is
         const type = p.kind === 'opamp5' && e ? e.category.replace(/s$/, '') : SYMBOLS[p.kind].title
-        groups.set(k, (r = { key: k, qty: 0, value, type, part: e?.name ?? '', refs: [], sheets: [], info: info[k] ?? {} }))
+        groups.set(k, (r = { key: k, qty: 0, value, type, part: e?.name ?? '', refs: [], sheets: [], info: info[k] ?? { ...(e?.mfr && { mfr: e.mfr }), ...(e?.mpn && { mpn: e.mpn }) } }))
       }
       r.qty++
       r.refs.push(path + p.name)

@@ -8,7 +8,7 @@ import { checkPack, PACK_ID } from '../renderer/src/library/library'
 import { validSymbol } from '../renderer/src/library/customSymbol'
 import { inside } from './paths'
 
-type Entry = { name: string; kind: string; category: string; pinMap: number[]; symbol?: unknown } // symbol: symbol editor
+type Entry = { name: string; kind: string; category: string; pinMap: number[]; symbol?: unknown; mfr?: unknown; mpn?: unknown } // symbol: symbol editor
 type Lib = { file: string; entries: Entry[]; enabled?: false } // enabled: false = hidden from browsing (Manage Libraries)
 type Prov = { file: string; url: string; sha256: string; retrieved: string }
 export type Pack = {
@@ -75,9 +75,15 @@ ipcMain.handle('userlib:create', async (_e, name: unknown, text: unknown) => {
   if (typeof name !== 'string' || typeof text !== 'string' || !text.trim() || text.length > 4 * 1024 * 1024) throw new Error('Bad component')
   return { file: await addFile(name.slice(0, 64), '.lib', text) }
 })
+// the component builder editing a part made earlier: only a file My library already lists
+ipcMain.handle('userlib:write', async (_e, file: unknown, text: unknown) => {
+  if (typeof file !== 'string' || typeof text !== 'string' || !text.trim() || text.length > 4 * 1024 * 1024 || !(await index()).some((l) => l.file === file)) throw new Error('Bad component')
+  await writeFile(inside(FILES(), file), text)
+})
+const short = (s: unknown) => typeof s === 'string' && !!s && s.length <= 80
 ipcMain.handle('userlib:save', async (_e, lib: Lib) => {
   if (!isLib(lib) || !existsSync(inside(FILES(), lib.file))) throw new Error('Bad library mapping')
-  const l: Lib = { file: lib.file, entries: lib.entries.map(({ name, kind, category, pinMap, symbol }) => ({ name, kind, category, pinMap, ...(validSymbol(symbol) && { symbol }) })) }
+  const l: Lib = { file: lib.file, entries: lib.entries.map(({ name, kind, category, pinMap, symbol, mfr, mpn }) => ({ name, kind, category, pinMap, ...(validSymbol(symbol) && { symbol }), ...(short(mfr) && { mfr }), ...(short(mpn) && { mpn }) })) }
   await saveIndex([...(await index()).filter((x) => x.file !== l.file), l])
 })
 ipcMain.handle('userlib:setEnabled', async (_e, file: unknown, on: unknown) => {

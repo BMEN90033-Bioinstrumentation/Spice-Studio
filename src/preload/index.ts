@@ -66,6 +66,7 @@ const api = {
     list: (): Promise<{ dir: string; libs: ImportedLib[]; texts: Record<string, string> }> => inv('userlib:list'),
     import: (): Promise<{ file: string; text: string } | null> => inv('userlib:import'),
     create: (name: string, text: string): Promise<{ file: string }> => inv('userlib:create', name, text), // component builder
+    write: (file: string, text: string): Promise<void> => inv('userlib:write', file, text), // component builder: edit a part made earlier
     save: (lib: ImportedLib): Promise<void> => inv('userlib:save', lib),
     setEnabled: (file: string, on: boolean): Promise<void> => inv('userlib:setEnabled', file, on),
     remove: (file: string): Promise<void> => inv('userlib:remove', file)

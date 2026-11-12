@@ -225,7 +225,7 @@ function App() {
             <span className="ml-1 font-semibold">Component builder</span>
             <span className="text-muted-foreground">New part for My library</span>
           </header>
-          <div className="libpage"><Builder sources={sources} taken={[...BUNDLED, ...sources.entries]} onLibrary={() => setRoute('library')} /></div>
+          <div className="libpage"><Builder sources={sources} taken={[...BUNDLED, ...sources.entries]} /></div>
         </div>
       ) : route === 'library'
         ? <LibraryPage title="All parts" onHome={() => setRoute('home')} entries={[...BUNDLED, ...sources.browse]} packs={sources.packs} />
