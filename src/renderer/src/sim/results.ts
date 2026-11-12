@@ -7,7 +7,7 @@
 //         numbers, and by that order when the numbers fit more than one line
 // (checked on ngspice-47; .options savecurrents adds i(@x[i]) vectors to all of them)
 import type { RawPlot } from '../../../main/rawfile.ts'
-import { joinLines, parseAnalysis, spiceValue, type Analysis } from './analysis.ts'
+import { logicalLines, parseAnalysis, spiceValue, type Analysis } from './analysis.ts'
 import { eng } from './sweep.ts'
 
 type Run = { label: string; plot: RawPlot }
@@ -24,7 +24,7 @@ export function plotRuns(label: string, plot: RawPlot, netlist: string, nth = 0)
   }
   const x = plot.vars[0]?.re, n = x ? x.indexOf(x[0], 1) : -1 // inner sweep length: where the scale restarts
   if (!/^dc\b/i.test(plot.plotname) || n < 1 || plot.points % n) return [{ label, plot }]
-  const all = joinLines(netlist).split('\n').filter((l) => /^[ \t]*\.dc\b/i.test(l)).map((l) => parseAnalysis(l.replace(/\s*;.*$|\s+(\$\s|\/\/).*$/, '')) as DC | null)
+  const all = logicalLines(netlist).filter((l) => /^\.dc\b/i.test(l.text)).map((l) => parseAnalysis(l.text) as DC | null)
   const nested = all.filter((d): d is DC => !!d?.source2)
   if (!nested.length) return [{ label, plot }]
   const fits = (d: DC) => near(spiceValue(d.start), x[0]) && count(d.start, d.stop, d.step) === n && n * count(d.start2, d.stop2, d.step2) === plot.points

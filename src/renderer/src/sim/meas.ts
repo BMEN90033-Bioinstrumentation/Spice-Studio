@@ -3,7 +3,7 @@
 //   Error: measure  bad  trig(TRIG) : out of interval      ⏎  " .meas tran bad trig ... failed!"
 // Names come out lowercased. A failed one is listed with value null (its Error line as text), in log order.
 import type { Measurement } from '../contracts.ts'
-import { joinLines } from './analysis.ts'
+import { logicalLines } from './analysis.ts'
 
 const OK = /^(\S+)\s+=\s+(\S+)(.*)$/
 const ERR = /^Error: measure\s+(\S+)\s+(.*)$/
@@ -17,23 +17,26 @@ const FAILED = /^\.meas(?:ure)?\s+\w+\s+(\S+)\b.*\bfailed!$/i
 // .tf/.pz/.sens/.disto after the .tran leaves the tran measurements empty). So the pass runs only the analyses
 // something measures, each as its own command (each command evaluates its own type's .meas); a line that needs
 // .param braces (or a 'quoted' expression) can't be a command, so then the others are commented out and `run` measures
-// the last type only. Continuation (+) lines are folded in first, so a line is commented out or copied whole.
+// the last type only. Lines are read as ngspice reads them (logicalLines: + continuations, inline comments); the deck
+// is otherwise left byte for byte, except that every physical line of an unmeasured analysis gets a `*`.
 // .four is skipped like .meas ("fourier line ignored since rawfile was produced") and a .control deck ignores .four
 // lines, so each becomes a `fourier` command on the transient plot (tran1: each run is a fresh ngspice), after an
 // echoed marker that measSection starts at, so fourier errors (too short a run, no .tran) reach the log.
-const AN = /^[ \t]*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss)\b.*$/gim
+const AN = /^\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp|pss)\b/i
 export const FOUR_MARK = 'Fourier analysis (.four):'
-export function measDeck(text: string): string | null {
-  const netlist = joinLines(text)
-  const four = [...netlist.matchAll(/^[ \t]*\.four(?:ier)?[ \t]+([^;\n]*[^;\s])/gim)].map((m) => 'fourier ' + m[1])
-  const types = new Set([...netlist.matchAll(/^[ \t]*\.meas(?:ure)?[ \t]+(\w+)/gim)].map((m) => m[1].toLowerCase()))
+export function measDeck(netlist: string): string | null {
+  const lines = logicalLines(netlist), grab = (re: RegExp) => lines.flatMap((l) => re.exec(l.text)?.[1] ?? [])
+  const four = grab(/^\.four(?:ier)?\s+(.*)/i).map((x) => 'fourier ' + x)
+  const types = new Set(grab(/^\.meas(?:ure)?\s+(\w+)/i).map((x) => x.toLowerCase()))
   if (four.length) types.add('tran')
-  if (!types.size || /^[ \t]*\.control\b/im.test(netlist)) return null
-  const deck = netlist.replace(AN, (l, k: string) => (types.has(k.toLowerCase()) ? l : '*' + l))
-  const cmds = [...deck.matchAll(AN)].map((m) => m[0].trim().slice(1).replace(/\s+(;|\$\s|\/\/).*$/, ''))
+  if (!types.size || lines.some((l) => /^\.control\b/i.test(l.text))) return null
+  const an = lines.filter((l) => AN.test(l.text)), measured = (l: { text: string }) => types.has(AN.exec(l.text)![1].toLowerCase())
+  const off = new Set(an.filter((l) => !measured(l)).flatMap((l) => l.rows))
+  const deck = netlist.split('\n').map((l, i) => (off.has(i) ? '*' + l : l)).join('\n')
+  const cmds = an.filter(measured).map((l) => l.text.slice(1))
   const plain = cmds.length && cmds.every((c) => /^\w+(\s+[\w.+-]+)*$/.test(c)) // names, numbers, keywords only
   const ctl = ['.control', ...(plain ? cmds : ['run']), ...(four.length ? [`echo ${FOUR_MARK}`, 'setplot tran1', ...four] : []),
-    'quit', '.endc', ''].join('\n'), END = /^[ \t]*\.end[ \t]*$/im
+    'quit', '.endc', ''].join('\n'), END = /^[ \t]*\.end[ \t]*\r?$/im
   return END.test(deck) ? deck.replace(END, ctl + '.end') : deck.replace(/\n?$/, '\n' + ctl)
 }
 // the measurement (and Fourier) part of a measDeck run's log, appended to the run log, plus any Error lines from before

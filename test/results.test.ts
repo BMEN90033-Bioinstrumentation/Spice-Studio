@@ -219,6 +219,37 @@ test('nested .dc: lines the numbers cannot tell apart go by ngspice\'s reverse o
   assert.deepEqual(labels, [['I1=0', 'I1=1m', 'I1=2m'], ['V2=0', 'V2=1', 'V2=2'], ['']])
 })
 
+test('the .meas pass reads + lines past comments and blank lines, as ngspice does (skipped if ngspice missing)', (t) => {
+  // each variant must measure the same circuit as its one-line reference
+  const vmax = (lines: string[]) => {
+    const sec = measPass([...lines, '.meas tran vmax MAX v(out)'])
+    return sec == null ? null : (parseMeas(sec).find((x) => x.name === 'vmax')?.value ?? NaN)
+  }
+  const diode = (model: string[]) => vmax(['V1 in 0 SIN(0 2 1k)', 'R1 in out 1k', 'D1 out 0 dd', ...model, '.tran 10u 5m'])
+  const ref = diode(['.model dd D(is=1e-14 n=2 rs=500)'])
+  if (ref === null) return void t.skip('ngspice not on PATH')
+  near(ref, 1.51507, 1e-4)
+  near(diode(['.model dd D(is=1e-14 ; saturation current', '+ n=2 ; emission', '+ rs=500)'])!, ref, 1e-6)
+  near(diode(['.model dd D(is=1e-14', '* emission and series R', '+ n=2 rs=500)'])!, ref, 1e-6)
+  const rc = (r: string[], tran: string[]) => vmax(['V1 in 0 PULSE(0 1 0 1u 1u 5m 10m)', ...r, 'C1 out 0 1u', ...tran])
+  const rcRef = rc(['R1 in out 1k'], ['.tran 10u 40m'])!
+  near(rcRef, 0.993311, 1e-5)
+  near(rc(['R1 in out', '* note', '+ 1k'], ['.tran 10u 40m'])!, rcRef, 1e-6)
+  near(rc(['R1 in out ; the resistor', '+ 1k'], ['.tran 10u 40m'])!, rcRef, 1e-6)
+  near(rc(['R1 in out 1k'], ['.tran 10u', '* note', '+ 40m'])!, rcRef, 1e-6)
+  near(rc(['R1 in out 1k'], ['.tran 10u', '', '+ 40m'])!, rcRef, 1e-6)
+  near(rc(['R1 in out 1k'], ['.tran 10u $ step', '+ 40m'])!, rcRef, 1e-6)
+})
+
+test('measDeck leaves the deck as it was, apart from commenting out unmeasured analyses and adding .control', () => {
+  const lines = ['* deck', 'V1 in 0 SIN(0 1 1k) ; src', 'R1 in out', '* note', '+ 1k', 'C1 out 0 1u', '', '.ac dec 10', '* between', '', '+ 1 1k',
+    '.tf v(out) V1 $ gain', '.tran 10u', '+ 5m ; stop', '.op', '.meas tran vmax MAX v(out)', '.four 1k', '+ v(out)', '.end', '']
+  const md = measDeck(lines.join('\n'))!.split('\n'), off = new Set([7, 10, 11, 14]) // .ac and its + line, .tf, .op
+  const i = md.indexOf('.control'), ctl = md.slice(i, md.indexOf('.endc') + 1)
+  assert.deepEqual([...md.slice(0, i), ...md.slice(i + ctl.length)], lines.map((l, k) => (off.has(k) ? '*' + l : l)))
+  assert.deepEqual(ctl, ['.control', 'tran 10u 5m', 'echo Fourier analysis (.four):', 'setplot tran1', 'fourier 1k v(out)', 'quit', '.endc'])
+})
+
 test('erc: .sp port sources (portnum) are not ideal voltage sources', async () => {
   const { erc } = await import('../src/renderer/src/sim/erc.ts')
   const deck = '* sp\nV1 in 0 dc 0 ac 1 portnum 1 z0 50\nL1 in out 100n\nC1 out 0 40p\nV2 out 0 dc 0 ac 0 PORTNUM 2 z0 50\n.end\n'

@@ -76,8 +76,21 @@ export function analysisText(a: Analysis): string {
 const SWEEPS = ['dec', 'oct', 'lin']
 
 const BRACES = /\{[^{}]*\}/g, squash = (m: string) => m.replace(/\s+/g, '')
-// SPICE `+` continuation lines folded into the line they continue, so a directive can be matched as one line
-export const joinLines = (text: string) => text.replace(/\r?\n[ \t]*\+/g, ' ')
+// A deck's logical lines, read the way ngspice does: inline comments (`;`, ` $ `, `//`) are cut from each physical line,
+// `*` and blank lines are skipped, and a `+` line continues the previous line left. rows: its physical line numbers
+// (0-based); note: its `;` comment text (a .plot title).
+export type LogicalLine = { text: string; rows: number[]; note: string }
+export function logicalLines(deck: string): LogicalLine[] {
+  const out: LogicalLine[] = []
+  deck.split('\n').forEach((raw, i) => {
+    const c = raw.search(/;|(^|\s)\$(\s|$)|\/\//), l = (c < 0 ? raw : raw.slice(0, c)).trim(), sc = raw.indexOf(';')
+    const note = sc < 0 ? '' : raw.slice(sc + 1).trim(), last = out[out.length - 1]
+    if (!l || l.startsWith('*')) return
+    if (l.startsWith('+') && last) (last.text += ' ' + l.slice(1).trim()), last.rows.push(i), (last.note = [last.note, note].filter(Boolean).join('; '))
+    else out.push({ text: l, rows: [i], note })
+  })
+  return out
+}
 export function parseAnalysis(text: string): Analysis | null {
   const s = text.trim()
   if (!s || s.includes('\n')) return null
@@ -343,12 +356,11 @@ const PLOT_OF: Record<string, RegExp> = {
 }
 export function plotPanes(text: string, plotname: string, vars: string[]): { title: string; sel: string[] }[] {
   const has = new Set(vars.map((v) => v.toLowerCase()))
-  return [...joinLines(text).matchAll(/^[ \t]*\.plot[ \t]+(\w+)[ \t]+(.*\S)/gim)]
-    .filter((m) => PLOT_OF[m[1].toLowerCase()]?.test(plotname))
-    .map((m) => {
-      const [v, ...t] = m[2].split(';')
-      return { title: t.join(';').trim(), sel: v.trim().split(/\s+/).filter(Boolean).map((x) => (has.has(x.toLowerCase()) ? x.toLowerCase() : '=' + x)) }
-    })
+  return logicalLines(text).flatMap(({ text: l, note }) => {
+    const m = /^\.plot\s+(\w+)\s+(.*\S)/i.exec(l)
+    return m && PLOT_OF[m[1].toLowerCase()]?.test(plotname)
+      ? [{ title: note, sel: m[2].split(/\s+/).map((x) => (has.has(x.toLowerCase()) ? x.toLowerCase() : '=' + x)) }] : []
+  })
 }
 
 // where the deck first asks for a plot's analysis, so result tabs follow the directive order rather than ngspice's

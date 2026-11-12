@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
   ANALYSES, analysisText, defaultAnalysis, emptyOptions, isSpiceNumber, mergeOptions, nodeValsText, optionsText, parseAnalysis, parseNodeVals, parseOptions, plotPanes, analysisPos,
-  setupKind, spiceValue, validate, validateNodeVals, validateOptions, type Analysis
+  logicalLines, setupKind, spiceValue, validate, validateNodeVals, validateOptions, type Analysis
 } from '../src/renderer/src/sim/analysis.ts'
 import { parseRaw } from '../src/main/rawfile.ts'
 
@@ -188,6 +188,14 @@ test('form-written .ic / .nodeset lines steer ngspice (skipped if ngspice missin
   assert.ok(Math.abs(tran.vars.find((v) => v.name === 'v(out)')!.re[0] - 2) < 1e-6) // held at 2 V through the operating point
 })
 
+test('logicalLines: + continues past comment and blank lines, inline comments cut first', () => {
+  assert.deepEqual(logicalLines('* t\nR1 a b ; r\n* c\n\n+ 1k $ val\n+ m=2 // x\n.tran 1u\n+1m'), [
+    { text: 'R1 a b 1k m=2', rows: [1, 4, 5], note: 'r' },
+    { text: '.tran 1u 1m', rows: [6, 7], note: '' }
+  ])
+  assert.deepEqual(logicalLines('a$b c\nV(x) 1;n').map((l) => l.text), ['a$b c', 'V(x) 1']) // $ only with spaces around
+})
+
 test('.plot lines become panes for their analysis only', () => {
   const net = '* x\n.tran 1u 1m\n.plot tran v(a) v(a,b) ; Input; raw\n  .PLOT TRAN I(D1)\n.plot ac v(a)\n'
   assert.deepEqual(plotPanes(net, 'Transient Analysis', ['time', 'v(a)', 'v(b)']), [
@@ -197,6 +205,7 @@ test('.plot lines become panes for their analysis only', () => {
   assert.deepEqual(plotPanes(net, 'AC Analysis', ['frequency', 'v(a)']), [{ title: '', sel: ['v(a)'] }])
   assert.deepEqual(plotPanes(net, 'Operating Point', ['v(a)']), [])
   assert.deepEqual(plotPanes('.plot tran v(a)\n+ v(b) ; Two\n', 'Transient Analysis', ['time', 'v(a)', 'v(b)']), [{ title: 'Two', sel: ['v(a)', 'v(b)'] }])
+  assert.deepEqual(plotPanes('.plot tran v(a) ; One\n* x\n\n+ v(b) $ y\n', 'Transient Analysis', ['time', 'v(a)', 'v(b)']), [{ title: 'One', sel: ['v(a)', 'v(b)'] }])
 })
 
 test('result tabs follow the directive order', () => {
