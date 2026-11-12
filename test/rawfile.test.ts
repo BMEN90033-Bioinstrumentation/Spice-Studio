@@ -193,3 +193,73 @@ test('watchRaw: points arrive while ngspice is still running and add up to the f
   const w = tr.vars.length
   assert.equal(rows[1][(tr.points - 1) * w + 2], tr.vars[2].re[tr.points - 1])
 })
+
+// ---- hostile input (File > Open Raw File reads anything): every case returns or throws at once, without huge allocations
+const quick = (what: string, f: () => unknown) => {
+  const t0 = performance.now()
+  try { f() } catch (e) { if (e instanceof assert.AssertionError) throw e } // a parse error is fine, a failed check isn't
+  const ms = performance.now() - t0
+  assert.ok(ms < 250, `${what}: ${ms.toFixed(0)} ms`)
+}
+test('hostile headers: counts are bounded by the bytes before anything is allocated or looped over', () => {
+  const B = (s: string) => Buffer.from(s, 'latin1')
+  for (const n of ['9007199254740991', '2000000000']) {
+    const f = B(`Title: t\nPlotname: x\nFlags: real\nNo. Points: ${n}\nBinary:\n`)
+    assert.throws(() => parseRaw(f), /0 variables listed/)
+    quick('no variables ' + n, () => parseRaw(f, true))
+  }
+  const sparse = B('Title: t\nPlotname: x\nFlags: real unpadded\nNo. Variables: 2\nNo. Points: 500000000\nVariables:\n\t0\ttime\ttime dims=0\n\t1\tv\tvoltage dims=0\nBinary:\n')
+  quick('unpadded dims=0', () => assert.equal(parseRaw(sparse)[0].points, 0))
+  const one = B('Title: t\nPlotname: x\nFlags: real unpadded\nNo. Variables: 2\nNo. Points: 500000000\nVariables:\n\t0\ttime\ttime dims=1\n\t1\tv\tvoltage dims=0\nBinary:\n' + 'x'.repeat(8))
+  quick('unpadded, one value', () => assert.equal(parseRaw(one)[0].points, 1))
+  const huge = B(`Title: t\nPlotname: x\nFlags: real unpadded\nNo. Variables: 2\nNo. Points: 500000000\nVariables:\n\t0\ttime\ttime dims=100000\n\t1\tv\tvoltage dims=0\nBinary:\n`)
+  quick('unpadded, claims 100000 values', () => assert.throws(() => parseRaw(huge), /truncated/))
+  for (const n of ['400000000', '4000000000']) {
+    const a = B(`Title: t\nPlotname: x\nFlags: real\nNo. Variables: 1\nNo. Points: ${n}\nVariables:\n\t0\ttime\ttime\nValues:\n0\t1\n`)
+    quick('ascii ' + n, () => assert.throws(() => parseRaw(a), /truncated/))
+    quick('ascii partial ' + n, () => assert.equal(parseRaw(a, true)[0].points, 1))
+  }
+  for (const h of ['No. Variables: 999999999', 'No. Variables: -3', 'No. Variables: x', 'No. Points: -5', 'No. Points: NaN'])
+    quick(h, () => parseRaw(B(`Title: t\nPlotname: x\nFlags: complex\n${h}\nVariables:\n\t0\tf\tfrequency\nBinary:\n` + 'z'.repeat(64)), true))
+  let seed = 1
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31)
+  for (let i = 0; i < 200; i++) {
+    const g = Buffer.from(Array.from({ length: 200 }, () => Math.floor(rnd() * 256)))
+    const head = B(`Title: g\nPlotname: x\nFlags: ${['real', 'complex', 'real unpadded', 'real forward fastaccess'][i % 4]}\nNo. Variables: ${1 + (i % 3)}\nNo. Points: ${Math.floor(rnd() * 1e12)}\nVariables:\n\t0\ttime\ttime dims=${i}\n\t1\tv\tvoltage\n\t2\tw\tvoltage\n${i % 2 ? 'Binary' : 'Values'}:\n`)
+    const f = Buffer.concat([head, g])
+    quick(`garbage ${i}`, () => parseRaw(f)), quick(`garbage partial ${i}`, () => parseRaw(f, true))
+  }
+})
+
+test('cut anywhere: a rawfile truncated at every byte returns or throws at once; strict never invents values', () => {
+  const bin = Buffer.concat([raw('Operating Point', 'real', ['v(a) voltage'], [[1]]), raw('Transient Analysis', 'real', ['time time', 'v(a) voltage'], [[0, 1.25], [1, 2.5], [2, 3.75]])])
+  const asc = Buffer.from('Title: t\nPlotname: Transient Analysis\nFlags: real\nNo. Variables: 2\nNo. Points: 2\nVariables:\n\t0\ttime\ttime\n\t1\tv(a)\tvoltage\nValues:\n0\t0.000000e+00\n\t1.234567e+00\n\n1\t1.000000e-03\n\t2.345678e+00\n\n')
+  for (const f of [bin, asc])
+    for (let n = 0; n <= f.length; n++) {
+      const cut = f.subarray(0, n)
+      quick(`cut ${n}`, () => parseRaw(cut, true))
+      let plots: RawPlot[] = []
+      try { plots = parseRaw(cut) } catch (e) { assert.match((e as Error).message, /truncated|variables listed/); continue }
+      for (const p of plots) for (const v of p.vars) for (const x of v.re) assert.ok([0, 1, 2, 1.25, 2.5, 3.75, 1e-3, 1.234567, 2.345678].includes(x), `cut ${n}: ${x}`)
+    }
+  // a number cut short at the end of an ASCII file is dropped, not read as 2.3
+  const cut = asc.subarray(0, asc.indexOf('2.345678') + 3)
+  assert.throws(() => parseRaw(cut), /truncated/)
+  assert.equal(parseRaw(cut, true)[0].points, 1)
+})
+
+test('RawTail: a plot that ended with 0 points does not swallow the next header', () => {
+  const file = Buffer.concat([raw('DC transfer characteristic', 'real', ['v-sweep voltage', 'v(a) voltage'], []), raw('Transient Analysis', 'real', ['time time', 'v(a) voltage'], [[0, 1], [1, 2]])])
+  for (const step of [1, 5, 9, 300]) {
+    const tail = new RawTail(), heads: string[] = [], rows: number[][] = [[], []]
+    for (let i = 0; i < file.length; i += step) {
+      const at = tail.countAt
+      for (const c of tail.feed(file.subarray(i, i + step), at >= 0 ? parseInt(file.subarray(at, at + 12).toString(), 10) : 0)) {
+        if (c.head) heads.push(c.head.plotname)
+        rows[c.plot].push(...c.rows)
+      }
+    }
+    assert.deepEqual(heads, ['DC transfer characteristic', 'Transient Analysis'], `step ${step}`)
+    assert.deepEqual(rows, [[], [0, 1, 1, 2]], `step ${step}`)
+  }
+})

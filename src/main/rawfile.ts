@@ -34,6 +34,7 @@ function header(line: () => string | null): (Head & { data: 'binary' | 'values' 
     // ngspice's reader allows the first var on the "Variables:" line itself
     let v: string | null = t.slice(i + 1).trim() || line()
     for (let n = parseInt(h['no. variables'] ?? '0', 10); n > 0 && v != null; n--, v = n ? line() : null) {
+      if (/^(binary|values):$/i.test(v.trim())) return { h, vars, data: v.trim().slice(0, -1).toLowerCase() as 'binary' | 'values' } // fewer vars than declared
       const [, name = '', type = '', ...opt] = v.trim().split(/\s+/)
       const d = opt.find((o) => /^dims=/i.test(o))
       vars.push({ name, type, len: d ? dims(d.slice(5)) : -1 })
@@ -59,25 +60,36 @@ export function parseRaw(buf: Uint8Array, partial = false): RawPlot[] {
     return s
   }
 
+  // Every count in the header is checked against what the bytes can hold BEFORE anything is allocated or looped over:
+  // the file may come from anywhere (File > Open Raw File), and a 100-byte header can claim 2^53 points.
   for (let hd; pos < buf.length && (hd = header(line)); ) {
     const { h, vars: names, data } = hd
+    const bad = (why: string) => new Error(`rawfile plot "${h['plotname'] ?? ''}": ${why}`)
+    if (!names.length || names.length !== parseInt(h['no. variables'] ?? '', 10)) throw bad(`${names.length} variables listed, the header says ${h['no. variables'] ?? 'none'}`)
     const flags = (h['flags'] ?? '').toLowerCase().split(/\s+/)
-    const complex = flags.includes('complex'), unpadded = flags.includes('unpadded')
+    const complex = flags.includes('complex'), unpadded = flags.includes('unpadded'), fast = flags.includes('fastaccess')
     const lt = u16 || /lt ?spice|linear tech/i.test(h['command'] ?? '') || flags.includes('forward')
     const nv = names.length, stride = complex ? 2 : 1
-    let points = parseInt(h['no. points'] ?? '0', 10) || 0
+    let points = Math.max(0, parseInt(h['no. points'] ?? '0', 10) || 0)
+    // unpadded: a vector's own length is its dims=; no point lies beyond the longest vector
+    const own = (v: number) => (unpadded && names[v].len >= 0 ? names[v].len : Infinity)
+    if (unpadded) points = Math.min(points, Math.max(...names.map((_, v) => own(v))))
+    const len = (v: number) => Math.min(own(v), points)
     // bytes per value: complex = 2 float64; LTspice real = float32, except a float64 scale (not .op/.tf) or `double`
     const axis = !/^(operating point|transfer function)/i.test(h['plotname'] ?? '')
     const size = names.map((_, v) => (complex ? 16 : !lt || flags.includes('double') || (v === 0 && axis) ? 8 : 4))
-    const len = (v: number) => (unpadded && names[v].len >= 0 ? Math.min(names[v].len, points) : points)
+    const truncated = () => bad('truncated')
+    const alloc = () => {
+      if (nv * points > Math.max(1024, buf.length)) throw bad('too sparse to show (an unpadded plot with almost no values)') // NaN-padding cap
+      return names.map(({ name, type }, v): RawVar => ({ name, type, re: new Float64Array(points).fill(len(v) < points ? NaN : 0), ...(complex ? { im: new Float64Array(points) } : {}) }))
+    }
 
     if (data === 'binary') {
-      const row = size.reduce((a, b) => a + b, 0), left = buf.length - pos
-      const fast = flags.includes('fastaccess')
-      if (partial && !unpadded && !fast && (!points || points * row > left)) points = Math.floor(left / row)
-      const need = names.reduce((a, _, v) => a + len(v) * size[v], 0)
-      if (need > left) throw new Error(`rawfile truncated in plot "${h['plotname']}"`)
-      const vars: RawVar[] = names.map(({ name, type }, v) => ({ name, type, re: new Float64Array(points).fill(len(v) < points ? NaN : 0), ...(complex ? { im: new Float64Array(points) } : {}) }))
+      const row = size.reduce((a, b) => a + b, 0), left = buf.length - pos, fit = Math.floor(left / row)
+      if (partial && !unpadded && !fast && (!points || points > fit)) points = fit
+      if (!unpadded && points > fit) throw truncated()
+      if (names.reduce((a, _, v) => a + len(v) * size[v], 0) > left) throw truncated()
+      const vars = alloc()
       const get = (v: number, p: number) => {
         if (size[v] === 4) vars[v].re[p] = view.getFloat32(pos, true)
         else vars[v].re[p] = view.getFloat64(pos, true)
@@ -86,31 +98,34 @@ export function parseRaw(buf: Uint8Array, partial = false): RawPlot[] {
       }
       if (fast) for (let v = 0; v < nv; v++) for (let p = 0; p < len(v); p++) get(v, p)
       else for (let p = 0; p < points; p++) for (let v = 0; v < nv; v++) if (p < len(v)) get(v, p)
-      if (lt && names[0]?.type === 'time') vars[0].re = vars[0].re.map(Math.abs)
+      if (lt && names[0].type === 'time') vars[0].re = vars[0].re.map(Math.abs)
       plots.push({ title: h['title'] ?? '', plotname: h['plotname'] ?? '', complex, points, vars })
       continue
     }
 
     // ASCII: " <point>\t<value>\n\t<value>\n…", complex values as "re,im"; runs until the next header line
     const lines: string[] = []
+    let eof = true
     for (let at = pos, l: string | null; (l = line()) !== null; at = pos) {
-      if (/^[a-z]/i.test(l)) { pos = at; break }
+      if (/^[a-z]/i.test(l)) { pos = at, (eof = false); break }
       lines.push(l)
     }
     const tok = lines.join(' ').split(/[\s,]+/).filter(Boolean)
-    const vars: RawVar[] = names.map(({ name, type }) => ({ name, type, re: new Float64Array(points).fill(NaN), ...(complex ? { im: new Float64Array(points) } : {}) }))
-    let k = 0, p = 0
-    for (; p < points && k < tok.length; p++) {
+    if (eof && buf[buf.length - (u16 ? 2 : 1)] !== 10) tok.pop() // the file stops mid-line: its last number may be cut short
+    const per = 1 + nv * stride, fit = Math.floor(tok.length / per)
+    if (partial && !unpadded && (!points || points > fit)) points = fit
+    if (points + names.reduce((a, _, v) => a + len(v) * stride, 0) > tok.length) throw truncated()
+    const vars = alloc()
+    let k = 0
+    for (let p = 0; p < points; p++) {
       k++ // point index
       for (let v = 0; v < nv; v++) {
         if (p >= len(v)) continue
-        if (k + stride > tok.length) throw new Error(`rawfile truncated in plot "${h['plotname']}"`)
         vars[v].re[p] = +tok[k++]
         if (complex) vars[v].im![p] = +tok[k++]
       }
     }
-    if (p < points && !partial) throw new Error(`rawfile truncated in plot "${h['plotname']}"`)
-    plots.push({ title: h['title'] ?? '', plotname: h['plotname'] ?? '', complex, points: p, vars: vars.map((x) => ({ ...x, re: x.re.subarray(0, p), ...(x.im && { im: x.im.subarray(0, p) }) })) })
+    plots.push({ title: h['title'] ?? '', plotname: h['plotname'] ?? '', complex, points, vars })
   }
   return plots
 }
@@ -120,8 +135,7 @@ export function parseRaw(buf: Uint8Array, partial = false): RawPlot[] {
 // the analysis ends (outitf.c fileEnd: fseek, write, fseek back, which flushes), so the patch is on disk before the
 // next plot's header. The caller reads the bytes appended since the last call, THEN the count field at `countAt`
 // (current plot), and passes both to feed(): a 0 count means no later plot's bytes can be in this chunk.
-// ponytail: a finished plot with 0 points looks unfinished, so the next header would read as its data; the final
-// parseRaw of the whole file is unaffected, so a glitch at most until the run ends.
+// A plot that ended with 0 points also reads 0: it is over when the next "Title:" follows its header directly.
 export type LiveHead = { title: string; plotname: string; complex: boolean; vars: { name: string; type: string }[] }
 export type LiveChunk = { plot: number; head?: LiveHead; rows: Float64Array } // rows: point-major, re[,im] per var
 
@@ -162,12 +176,13 @@ export class RawTail {
         this.drop(end + 9)
       }
       const c = this.cur, row = c.width * 8
-      let n = Math.floor(this.pending.length / row)
+      const empty = !c.total && !c.got && ascii(this.pending.subarray(0, 6), 'Title:') === 0
+      let n = empty ? 0 : Math.floor(this.pending.length / row)
       if (c.total) n = Math.min(n, c.total - c.got)
       if (n || head) out.push({ plot: this.plot, ...(head && { head }), rows: new Float64Array(this.pending.slice(0, n * row).buffer) }) // little-endian hosts only (x64/arm64)
       c.got += n
       this.drop(n * row)
-      if (!c.total || c.got < c.total) break
+      if (!empty && (!c.total || c.got < c.total)) break
       this.cur = null
     }
     return out
