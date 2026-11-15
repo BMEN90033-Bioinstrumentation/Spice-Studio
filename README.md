@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  <img alt="macOS | Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-383838?style=flat-square&labelColor=1f1f1f">
-  <img alt="Electron 45" src="https://img.shields.io/badge/Electron-45-383838?style=flat-square&labelColor=1f1f1f&logo=electron&logoColor=white">
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-383838?style=flat-square&labelColor=1f1f1f&logo=typescript&logoColor=white">
-  <img alt="React 19" src="https://img.shields.io/badge/React-19-383838?style=flat-square&labelColor=1f1f1f&logo=react&logoColor=white">
-  <img alt="ngspice 47" src="https://img.shields.io/badge/ngspice-47-383838?style=flat-square&labelColor=1f1f1f">
+  <img alt="macOS | Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-404650?style=flat-square&labelColor=1c1e22">
+  <img alt="Electron 45" src="https://img.shields.io/badge/Electron-45-404650?style=flat-square&labelColor=1c1e22&logo=electron&logoColor=white">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-404650?style=flat-square&labelColor=1c1e22&logo=typescript&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-404650?style=flat-square&labelColor=1c1e22&logo=react&logoColor=white">
+  <img alt="ngspice 47" src="https://img.shields.io/badge/ngspice-47-404650?style=flat-square&labelColor=1c1e22">
 </p>
 
 <p align="center">
