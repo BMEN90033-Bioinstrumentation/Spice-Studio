@@ -99,6 +99,7 @@ jobs:
         with:
           name: spice-studio-${{ matrix.os }}
           if-no-files-found: error
+          retention-days: 1 # only a hand-off to the release job; ~600 MB per run against a 500 MB quota
           path: |
             dist/*.dmg
             dist/*.zip

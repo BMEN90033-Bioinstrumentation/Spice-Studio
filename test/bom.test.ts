@@ -9,8 +9,9 @@ import { crc32 } from '../src/renderer/src/plot/export.ts'
 import { BUNDLED, resolver } from '../src/renderer/src/library/library.ts'
 import { parseProject } from '../src/renderer/src/project/project.ts'
 
-const ECG = new URL('../docs/guide/examples/ECG-Frontend/', import.meta.url).pathname
-const sheets = Object.fromEntries(readdirSync(ECG).filter((f) => f.endsWith('.nsch')).map((f) => [f, JSON.parse(readFileSync(ECG + f, 'utf8'))]))
+// a URL, not .pathname: on Windows that is '/D:/…', which fs resolves to 'D:\\D:\\…'
+const ECG = new URL('../docs/guide/examples/ECG-Frontend/', import.meta.url)
+const sheets = Object.fromEntries(readdirSync(ECG).filter((f) => f.endsWith('.nsch')).map((f) => [f, JSON.parse(readFileSync(new URL(f, ECG), 'utf8'))]))
 
 test('bom: ECG example, blocks expanded with paths, sim-only parts skipped', () => {
   const { rows, skipped } = bom(sheets, 'main.nsch', resolver(BUNDLED))
