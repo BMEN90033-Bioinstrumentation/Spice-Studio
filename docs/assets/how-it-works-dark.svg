@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 510" width="1280" height="510" role="img" aria-labelledby="t d">
+  <title id="t">How Spice Studio works</title>
+  <desc id="d">In the renderer, the schematic editor feeds the netlister, then the checks, then Run. Run sends the netlist over IPC to the main process, which starts ngspice as a separate batch process. ngspice writes a binary rawfile, the rawfile parser reads it while it grows, and the points go back over IPC to the plots. The main process also reads and writes project files and libraries.</desc>
+  <!-- Same flat style as the banner. Colours live in this <style> block only: how-it-works-light.svg differs in nothing else. -->
+  <style>
+    .bg { fill: #1c1e22; stroke: #ffffff; stroke-opacity: 0.13 }
+    .lane { fill: #ffffff; fill-opacity: 0.03; stroke: #ffffff; stroke-opacity: 0.1 }
+    .box { fill: #262a30; stroke: #404650 }
+    .hot { fill: #262a30; stroke: #f0b35a }
+    .t { fill: #e6e6e6 }
+    .m { fill: #9aa3ad }
+    .a { fill: #f0b35a }
+    .line { stroke: #6b7480 }
+    .flow { stroke: #f0b35a }
+    .head { fill: #6b7480 }
+    .fhead { fill: #f0b35a }
+    .pill { fill: #1c1e22; stroke: #f0b35a }
+    text { font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif }
+    .mono { font-family: 'SF Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+  </style>
+  <defs>
+    <marker id="h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 1L10 5L0 9Z"/></marker>
+    <marker id="fh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="fhead" d="M0 1L10 5L0 9Z"/></marker>
+  </defs>
+
+  <rect class="bg" x="0.5" y="0.5" width="1279" height="509" rx="8"/>
+
+  <!-- lanes -->
+  <rect class="lane" x="20" y="20" width="1240" height="250" rx="10"/>
+  <rect class="lane" x="20" y="330" width="1240" height="160" rx="10"/>
+  <g font-size="12" font-weight="600" letter-spacing="1.2">
+    <text class="t" x="50" y="52">RENDERER</text>
+    <text class="t" x="50" y="468">MAIN PROCESS</text>
+  </g>
+  <g class="m" font-size="12">
+    <text x="136" y="52">React + TypeScript</text>
+    <text x="164" y="468">Electron</text>
+  </g>
+
+  <!-- arrows: grey for drawing and files, amber for the path of one simulation -->
+  <g fill="none" stroke-width="1.5" class="line">
+    <path d="M230 112H268" marker-end="url(#h)"/>
+    <path d="M470 112H508" marker-end="url(#h)"/>
+    <path d="M690 112H728" marker-end="url(#h)"/>
+    <path d="M600 184V150" marker-end="url(#h)"/>
+    <path d="M140 350V150" stroke-dasharray="4 5" marker-start="url(#h)" marker-end="url(#h)"/>
+    <path d="M370 350V150" stroke-dasharray="4 5" marker-end="url(#h)"/>
+  </g>
+  <g fill="none" stroke-width="2" class="flow">
+    <path d="M815 148V350" marker-end="url(#fh)"/>
+    <path d="M930 388H1008" marker-end="url(#fh)"/>
+    <path d="M1120 352V150" marker-end="url(#fh)"/>
+  </g>
+
+  <!-- IPC crossings -->
+  <g font-size="11" font-weight="600" text-anchor="middle">
+    <rect class="pill" x="793" y="289" width="44" height="22" rx="11"/><text class="a" x="815" y="304">IPC</text>
+    <rect class="pill" x="1098" y="289" width="44" height="22" rx="11"/><text class="a" x="1120" y="304">IPC</text>
+  </g>
+  <g class="m" font-size="11">
+    <text x="847" y="304">netlist</text>
+    <text x="1152" y="304">points, live</text>
+    <text class="mono" x="969" y="378" text-anchor="middle">out.raw</text>
+    <text x="150" y="304">open, save</text>
+    <text x="380" y="304">models</text>
+  </g>
+
+  <!-- renderer -->
+  <g text-anchor="middle">
+    <rect class="box" x="50" y="76" width="180" height="72" rx="8"/>
+    <text class="t" x="140" y="108" font-size="15" font-weight="600">Schematic editor</text>
+    <text class="m" x="140" y="129" font-size="12">SVG canvas</text>
+
+    <rect class="box" x="270" y="76" width="200" height="72" rx="8"/>
+    <text class="t" x="370" y="108" font-size="15" font-weight="600">Netlister</text>
+    <text class="m" x="370" y="129" font-size="12">nets, .subckt hierarchy, models</text>
+
+    <rect class="box" x="510" y="76" width="180" height="72" rx="8"/>
+    <text class="t" x="600" y="108" font-size="15" font-weight="600">Checks</text>
+    <text class="m" x="600" y="129" font-size="12">netlist errors, rule check</text>
+
+    <rect class="hot" x="730" y="76" width="170" height="72" rx="8"/>
+    <text class="t" x="815" y="108" font-size="15" font-weight="600">Run</text>
+    <text class="m" x="815" y="129" font-size="12">.step and .mc sweeps</text>
+
+    <rect class="hot" x="1010" y="76" width="220" height="72" rx="8"/>
+    <text class="t" x="1120" y="108" font-size="15" font-weight="600">Plots</text>
+    <text class="m" x="1120" y="129" font-size="12">uPlot: cursors, maths, FFT</text>
+
+    <rect class="box" x="510" y="184" width="180" height="60" rx="8"/>
+    <text class="t" x="600" y="210" font-size="15" font-weight="600">Netlist editor</text>
+    <text class="m" x="600" y="230" font-size="12">CodeMirror</text>
+  </g>
+
+  <!-- main process -->
+  <g text-anchor="middle">
+    <rect class="box" x="50" y="352" width="180" height="72" rx="8"/>
+    <text class="t" x="140" y="384" font-size="15" font-weight="600">Project files</text>
+    <text class="m mono" x="140" y="405" font-size="12">.nsproj .nsch libs/</text>
+
+    <rect class="box" x="270" y="352" width="200" height="72" rx="8"/>
+    <text class="t" x="370" y="384" font-size="15" font-weight="600">Libraries</text>
+    <text class="m" x="370" y="405" font-size="12">bundled packs, imports</text>
+
+    <rect class="hot" x="700" y="352" width="230" height="72" rx="8"/>
+    <text class="t" x="815" y="384" font-size="15" font-weight="600">ngspice</text>
+    <text class="m" x="815" y="405" font-size="12">its own process, one per run</text>
+
+    <rect class="hot" x="1010" y="352" width="220" height="72" rx="8"/>
+    <text class="t" x="1120" y="384" font-size="15" font-weight="600">Rawfile parser</text>
+    <text class="m" x="1120" y="405" font-size="12">binary, read as it grows</text>
+  </g>
+</svg>

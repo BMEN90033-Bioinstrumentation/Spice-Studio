@@ -173,20 +173,13 @@ Each pack's source, checksums and build notes are in [`library-packs/`](library-
 
 ## How it works
 
-```mermaid
-flowchart LR
-  subgraph Renderer["Renderer · React + TypeScript"]
-    S["Schematic editor<br/>(SVG canvas)"] --> N["Netlister<br/>union-find nets, .subckt hierarchy,<br/>library models"]
-    E["Netlist editor<br/>(CodeMirror)"] --> R
-    N --> R["Run<br/>.step sweep expansion"]
-    P["Plots<br/>(uPlot)"]
-  end
-  subgraph Main["Main process · Electron"]
-    X["ngspice -b -n -r out.raw"] --> Raw["Binary rawfile parser"]
-  end
-  R -- IPC --> X
-  Raw -- IPC --> P
-```
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/how-it-works-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/how-it-works-light.svg">
+    <img alt="The schematic editor feeds the netlister, the checks and Run in the renderer. Run sends the netlist over IPC to the main process, which starts ngspice as its own process. ngspice writes a binary rawfile, the parser reads it as it grows, and the points go back over IPC to the plots." src="docs/assets/how-it-works-dark.svg" width="100%">
+  </picture>
+</p>
 
 - **Engine:** ngspice runs as a separate batch process for each simulation, so a crashing circuit can't take the app down. Results come back in ngspice's binary rawfile format, parsed in [`src/main/rawfile.ts`](src/main/rawfile.ts).
 - **Connectivity:** the netlist follows the same rules the editor uses to draw connections. Wire ends and pins join where they meet, a wire ending on another wire makes a T-junction, and a pin never connects to the middle of a wire.
@@ -249,15 +242,7 @@ npm run dist:linux    # AppImage + .deb
 
 ## Roadmap
 
-- [ ] Dependent and behavioural sources (E/F/G/H, B), switches, transformers (K)
-- [ ] Stop button and timeouts for long runs, with live progress
-- [ ] Cursors with Δ readouts, waveform maths, FFT
-- [ ] Source waveform editor (PULSE, SIN, PWL…) and `.options` / convergence help
-- [ ] Export plots (PNG/SVG/CSV) and schematics (SVG/PDF)
-- [ ] Electrical rule check before simulating
-- [ ] PSpice/LTspice compatibility mode for imported vendor models
-- [ ] `.meas` results table, temperature sweeps, Monte Carlo
-- [ ] Digital / mixed-signal (XSPICE) parts and waveform view
+Planned features are tracked as [enhancement issues](https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement). Open one there to suggest something.
 
 ## Licences
 
