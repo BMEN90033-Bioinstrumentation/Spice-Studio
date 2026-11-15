@@ -15,7 +15,7 @@ Libraries come from four places:
 
 ## Browsing the library
 
-Open the full-page library with **Library** in the editor header, **Tools › Component Library**, or the **Component library** card on the Home page. To find a part, do the following:
+Open the full-page library with **Library** in the editor header, **Tools › Component Library**, or **Component library** in the Home page's sidebar. To find a part, do the following:
 
 1. Pick a category on the left, or **All parts**.
 2. Type in **Search library** to filter.

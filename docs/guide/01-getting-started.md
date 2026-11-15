@@ -2,11 +2,34 @@
 
 [Guide index](README.md) · Next: [Drawing schematics](02-drawing-schematics.md)
 
-## Install and run
+## Install
 
-Download the installer for macOS or Windows from the [releases page](https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio/releases/latest). ngspice is included.
+You can install Spice Studio in two ways: download a ready-made installer from GitHub, or build the app from its source code. The installers include ngspice, so there is nothing else to install.
 
-You can also run Spice Studio from source. You need Git and Node.js. The following commands clone the repository, install its dependencies and start the app:
+### Download the installer
+
+Installers for macOS and Windows are on the [releases page](https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio/releases/latest) on GitHub. Under **Assets**, pick the file for your computer:
+
+| Computer | File |
+|---|---|
+| Mac with Apple silicon (M1 or later) | `Spice-Studio-<version>-mac-arm64.dmg` |
+| Mac with an Intel processor | `Spice-Studio-<version>-mac-x64.dmg` |
+| Windows | `Spice-Studio-<version>-setup.exe` |
+
+To check which Mac you have, open the Apple menu and choose **About This Mac**. It shows either a *Chip* (Apple silicon) or a *Processor* (Intel).
+
+- **macOS:** open the `.dmg` file and drag Spice Studio into the Applications folder. The app is signed and notarised by Apple, so it opens like any other app.
+- **Windows:** run the `setup.exe` file and follow the installer. If Windows SmartScreen shows a warning, click **More info**, then **Run anyway**.
+
+When a newer version is released, the app shows an update card in the bottom-right corner. Click **Download**, then **Restart to update**.
+
+There is no Linux download. On Linux, build the app from source.
+
+### Build it from source
+
+Building from source works on macOS, Windows and Linux. You need [Git](https://git-scm.com/) and [Node.js](https://nodejs.org/) 22 or later.
+
+The following commands clone the repository, install its dependencies and start the app:
 
 ```sh
 git clone https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio.git
@@ -15,24 +38,45 @@ npm install
 npm run dev
 ```
 
-The app needs an ngspice program. It uses the first one that it finds: the program you chose in [Settings](#settings), the `NGSPICE_PATH` environment variable, a bundled build in `vendor/ngspice/`, Homebrew (`brew install ngspice`), then your `PATH`. The [project README](../../README.md#run-it-from-source) has the details, and [Building and packaging](../../README.md#building-and-packaging) explains how to build the bundled ngspice and the installers.
+`npm run dev` starts the app in development mode, straight from the source code. To build an installer of your own instead, run the command for your platform. The installer appears in the `dist/` folder:
+
+```sh
+npm run dist:mac      # macOS: .dmg and .zip
+npm run dist:win      # Windows: setup.exe
+npm run dist:linux    # Linux: AppImage and .deb
+```
+
+An installer that you build yourself isn't signed by Apple or Microsoft, so a Mac build runs only on the Mac that built it.
+
+A source build doesn't come with ngspice, so the app looks for one on your computer. It uses the first one that it finds, in the following order:
+
+1. The program you chose in [Settings](#settings), under **Simulation engine**
+2. The `NGSPICE_PATH` environment variable
+3. A bundled build in `vendor/ngspice/`
+4. Homebrew (`brew install ngspice`)
+5. Your `PATH`
+
+The quickest option is to install ngspice yourself: `brew install ngspice` on macOS, your package manager on Linux, or the [ngspice download](https://ngspice.sourceforge.io/download.html) on Windows. If the app doesn't find it, choose the ngspice program in Settings. To put ngspice inside your own installer, build the bundled copy first. [Building and packaging](../../README.md#building-and-packaging) in the project README explains how.
 
 ## The Home page
 
 The app opens on the Home page.
 
-![The Home page with the example projects in Recent projects](images/01-home.png)
+![The Home page with the example projects under Recent](images/01-home.png)
 
-The Home page has the following commands:
+The sidebar on the left and the **Start** cards have the following commands:
 
 - **New project** (⌘N) creates an empty project folder.
-- **Open project** (⌘O) opens a `.nsproj` file.
-- **Open file** (⇧⌘O) opens a single `.nsch` schematic or `.cir` netlist without a project.
+- **Open project…** (⌘O) opens a `.nsproj` file.
+- **Open file…** (⇧⌘O) opens a single `.nsch` schematic or `.cir` netlist without a project.
 - **Examples** shows ready-made circuits to start a project from.
-- **Recent projects** lists the projects you opened before. Click one to open it.
 - **Component library** browses the parts and their models (see [chapter 8](08-libraries.md)).
+- **Component builder** makes your own parts and symbols (see [chapter 8](08-libraries.md)).
+- **Settings** opens the app's [settings](#settings).
 
-The top-right corner shows which ngspice the app found, for example `ngspice-47+ (bundled)`. If it's red, the app found no ngspice and can't simulate anything.
+**Recent** lists the projects you opened before. Click one to open it. The two icons at the end of a row show the project in Finder (File Explorer on Windows) and remove it from the list. When you remove a project, you can also move its folder to the Trash.
+
+The bottom of the sidebar shows which ngspice the app found, for example `ngspice-47+` and `Bundled`. If the dot beside it is red, the app found no ngspice and can't simulate anything.
 
 ## Create a project
 

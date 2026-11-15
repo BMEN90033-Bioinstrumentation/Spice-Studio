@@ -8,7 +8,7 @@ Keyboard shortcuts are written for macOS (⌘). On Windows and Linux, use Ctrl w
 
 The guide has the following chapters:
 
-1. [Getting started](01-getting-started.md): install, the Home page, your first project and your first simulation, recovering unsaved work, and Settings (theme, autosave, defaults).
+1. [Getting started](01-getting-started.md): download the installer for macOS or Windows or build from source, the Home page, your first project and your first simulation, recovering unsaved work, and Settings (theme, autosave, defaults).
 2. [Drawing schematics](02-drawing-schematics.md): parts, wires, buses, labels, ground, editing values, Clean up, directives, importing LTspice and KiCad schematics, notes, undo and the source waveform editor.
 3. [Component reference](03-components.md): every part kind, its pins and its value syntax, with worked examples.
 4. [Simulating](04-simulating.md): the Simulation setup dialog, `.options`, initial conditions, Run and Stop, Run settings, the rules check and convergence help.

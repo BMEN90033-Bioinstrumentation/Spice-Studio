@@ -90,7 +90,7 @@ To place cursors, do the following:
 
 A readout table appears under the plot. For each trace it shows the value at A, at B, the difference **B − A** and the **slope** (ΔY/ΔX). The first row shows the x values, their difference, and **1/Δ**, which is the frequency when A and B are one period apart. Click **×** in the table to remove both cursors.
 
-![Cursors A and B one period apart: 1/Δ reads 1.009 kHz](images/05-cursors.png)
+![Cursors A and B one period apart: 1/Δ reads 998.5 Hz](images/05-cursors.png)
 
 Cursors stay where they are when you switch tabs or pop the plot out, until the next run.
 

@@ -52,7 +52,7 @@ node docs/guide/images/symbols/make-symbols.ts docs/guide/images/symbols
    node docs/guide/images/cdp.mjs shot raw.png
    ```
 
-   [`cdp.mjs`](cdp.mjs) also does `key`, `type`, `move` and `drag`; its header lists them. Set `TARGET='Plots'` or `TARGET='Manage Libraries'` to talk to the pop-out windows instead of the main one. Most screenshots hid the Sheets and Parts panels (⌘1, ⌘2) to give the plots room.
+   [`cdp.mjs`](cdp.mjs) also does `key`, `type`, `move` and `drag`; its header lists them. Set `TARGET='Plots'` or `TARGET='Manage Libraries'` to talk to the pop-out windows instead of the main one. Most screenshots hid the Sheets and Parts panels (⌘1, ⌘2) to give the plots room. A new profile keeps the results panel hidden after a run: click the chart icon at the top right (⌘3) to show it.
 
 5. Crop to the region that matters, limit the size to 1600 px, and reduce to a 256-colour palette (the dark UI has few colours, so this cuts the files to about a third with no visible change):
 
