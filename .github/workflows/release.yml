@@ -46,6 +46,8 @@ jobs:
       # keep LF endings on Windows: CRLF breaks the shell scripts and ngspice's autogen in MSYS2
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # this job's token can write releases: keep it out of .git/config, away from npm and build scripts
 
       # the ngspice build is ~10 min per job and only changes with the ref or the build scripts.
       # ponytail: keyed on scripts, not toolchain version; bump the key if a runner image change breaks a cached binary
