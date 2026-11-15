@@ -14,6 +14,7 @@ import { measDeck, measSection } from '../renderer/src/sim/meas'
 import './userlib' // personal library + packs IPC
 import { getPrefs, windowBg } from './prefs' // preferences, theme, crash-recovery IPC
 import { installMenu, refreshMenu } from './menu'
+import { installUpdater } from './updater'
 
 export interface SimResult {
   ok: boolean
@@ -369,6 +370,7 @@ let closeNow = false
 let ackTimer: NodeJS.Timeout | undefined
 ipcMain.on('app:closeAck', () => clearTimeout(ackTimer))
 ipcMain.on('app:closeNow', () => ((closeNow = true), win?.close()))
+installUpdater(() => win, () => (closeNow = true)) // updater.ts; Restart to update goes through the renderer's unsaved-work guard first
 function guardClose(w: BrowserWindow) {
   w.on('close', (e) => {
     if (closeNow || w.webContents.isCrashed()) return

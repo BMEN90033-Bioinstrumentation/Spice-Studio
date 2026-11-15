@@ -6,6 +6,7 @@ import type { ImportedLib } from '../renderer/src/library/library'
 import type { Filter, SimOptions } from '../renderer/src/contracts'
 import type { Prefs } from '../renderer/src/prefs'
 import type { Recovery, RecoveryDraft } from '../main/recovery'
+import type { UpdateStatus } from '../main/updater'
 
 type Opened = { dir: string; file: string; text: string }
 // a file the OS asked us to open (double-click / Open With): a project, a loose sheet, or why it failed
@@ -96,6 +97,13 @@ const api = {
     write: (r: RecoveryDraft): Promise<void> => inv('recovery:write', r),
     remove: (id: string): Promise<void> => inv('recovery:remove', id),
     check: (r: Recovery): Promise<{ missing: boolean; changed: [string, 'changed' | 'gone'][] }> => inv('recovery:check', r) // saved files newer than the copy
+  },
+  // auto-update (main/updater.ts, renderer Update.tsx)
+  update: {
+    check: (): Promise<void> => inv('update:check'),
+    download: (): Promise<void> => inv('update:download'),
+    install: (): Promise<void> => inv('update:install'),
+    onStatus: (cb: (s: UpdateStatus) => void) => on('update:status', cb)
   }
 }
 

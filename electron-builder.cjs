@@ -30,6 +30,9 @@ module.exports = {
   directories: { output: 'dist', buildResources: 'build' },
   files: ['out/**', 'package.json', '!node_modules/**'], // Vite bundles the renderer deps; main/preload only use electron + node builtins
   asar: true,
+  // auto-update feed (src/main/updater.ts): the GitHub release's latest*.yml. CI uploads them (release.yml), so builds run with --publish never.
+  publish: { provider: 'github', owner: 'BMEN90033-Bioinstrumentation', repo: 'Spice-Studio' },
+  extraMetadata: { macAutoUpdate: signed }, // ad-hoc mac builds can't self-update: the app links to the download page instead
   npmRebuild: false, // no native modules
   fileAssociations: [
     { ext: 'nsproj', name: 'Spice Studio project', role: 'Editor' },
@@ -43,7 +46,7 @@ module.exports = {
   mac: {
     target: [{ target: 'dmg', arch: macArch }, { target: 'zip', arch: macArch }],
     category: 'public.app-category.developer-tools',
-    artifactName: '${productName}-${version}-mac-${arch}.${ext}', // dmg + zip, both arches side by side
+    artifactName: 'Spice-Studio-${version}-mac-${arch}.${ext}', // dmg + zip (the zip is what the updater installs), both arches side by side. No spaces: GitHub renames them on upload and the feed's urls would miss
     extraResources: ngspice('darwin'),
     // osx-sign signs every Mach-O in the bundle, so bin/ngspice and lib/ngspice/*.cm get the same identity and entitlements.
     // Ad-hoc has no Team ID, so the hardened runtime's library validation would refuse ngspice's .cm code models: off then.
@@ -54,7 +57,7 @@ module.exports = {
     notarize: signed ? undefined : false // undefined: notarise when APPLE_ID/APPLE_API_KEY/APPLE_KEYCHAIN_PROFILE env is set
   },
   win: { target: [{ target: 'nsis', arch: ['x64'] }], extraResources: ngspice('win32') },
-  nsis: { artifactName: '${productName}-${version}-setup.${ext}' },
+  nsis: { artifactName: 'Spice-Studio-${version}-setup.${ext}' },
   linux: {
     target: [{ target: 'AppImage', arch: ['x64'] }, { target: 'deb', arch: ['x64'] }],
     category: 'Development',

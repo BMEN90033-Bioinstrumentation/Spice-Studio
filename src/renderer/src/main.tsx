@@ -17,6 +17,7 @@ import { keyLabel, usePanels } from './layout/Panel'
 const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
 import { newSim, openSettings, prefs, Preferences } from './Preferences'
 import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Recovery'
+import { UpdateCard } from './Update'
 import { focusPopout } from './layout/PopOut'
 import { paneKey, ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
@@ -1081,4 +1082,4 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   )
 }
 
-createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /><Preferences /><RecoveryPrompt /></TooltipProvider>)
+createRoot(document.getElementById('root')!).render(<TooltipProvider><App /><Help /><Preferences /><RecoveryPrompt /><UpdateCard guard={(f) => leaving.guard(f)} /></TooltipProvider>)
