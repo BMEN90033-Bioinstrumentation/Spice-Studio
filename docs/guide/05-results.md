@@ -6,37 +6,36 @@ The screenshots in this chapter use [examples/CE-Amplifier](examples/CE-Amplifie
 
 ## The results panel
 
-After a run, the results panel on the right has:
+After a run, the results panel on the right has the following parts:
 
 - **Tabs**, one per analysis (*Operating Point*, *Transient Analysis*, *AC Analysis*, *DC transfer characteristic*, *Noise…*, *Transfer Function*, *Sensitivity Analysis*, *Pole-Zero Analysis*, *DISTORTION…*, *SP Analysis*) in the order of your analysis directives, plus **Measurements** when the deck has `.meas` lines and **Fourier** when it has `.four` lines. The first tab is shown after a run.
 - **The vector list** on the left of the plot: **Voltages**, **Currents** and **Expressions**. Tick a box to plot that vector. The first few voltages are ticked for you. **Search vectors** at the top filters the list by name (`ecg`, `i(d1)`, `x3`); **Enter** ticks the first match, **Esc** clears the search.
 - **The plot.** Voltages and currents get separate, titled y axes (currents on the right), so a milliamp trace isn't flattened next to a 10 V one. The legend under it names each trace and shows its value under the mouse.
 - **The console** under the plot: the netlist that was run and ngspice's output.
 
-Plot controls:
+The plot has the following controls:
 
-- Drag across the plot to zoom; drag mostly sideways to zoom in time only. Double-click to zoom back out.
-- AC plots open in the **Bode** view: magnitude above phase on one log-frequency axis. **Magnitude** and **Phase** show one of them on its own; **Nyquist**, **Polar** and **Smith** draw the complex values (see [AC views](#ac-views-bode-nyquist-polar-smith)).
-- Transient plots have **Time**, **FFT** and **Eye** buttons (see below).
-- The legend under the plot shows the values under the mouse.
+- Drag across the plot to zoom. Drag mostly sideways to zoom in time only. Double-click to zoom back out.
+- AC plots open in the **Bode** view: magnitude above phase on one log-frequency axis. **Magnitude** and **Phase** show one of them on its own. **Nyquist**, **Polar** and **Smith** draw the complex values (see [AC views](#ac-views-bode-nyquist-polar-smith)).
+- Transient plots have **Time**, **FFT** and **Eye** buttons (see [FFT](#fft) and [Eye diagram](#eye-diagram)).
 
 An analysis that produces a single point, such as `.op`, is shown as a table instead of a plot.
 
 ### Tables for `.tf`, `.sens` and `.pz`
 
-These results are numbers rather than waveforms, so their tabs show a table in place of the plot. With a sweep there is one column per run (for `.pz`, a **Run** column).
+These results are numbers rather than waveforms, so their tabs show a table in place of the plot. With a sweep there is one column per run (for `.pz`, a **Run** column). The tables hold the following:
 
-- **Transfer Function**: the gain (output over input source; no unit for V/V or A/A, Ω or S when the kinds differ), the input resistance at the source and the output resistance. A capacitor-coupled input shows a huge input resistance (such as `1e+20 Ω`): at DC the input is open.
-- **Sensitivity Analysis** (DC): one row per part value or model parameter that moves the output, largest first. `r1` is the change per ohm of R1, `r1_m` the change per unit of its multiplier `m`. Parameters with no effect are left out. An AC sensitivity (`.sens … ac …`) is plotted against frequency instead; at a single frequency (`ac lin 1 1k 1k`) it is a table of magnitude ∠ phase.
+- **Transfer Function**: the gain (output over input source; no unit for V/V or A/A, Ω or S when the kinds differ), the input resistance at the source and the output resistance. A capacitor-coupled input shows a huge input resistance (such as `1e+20 Ω`), because at DC the input is open.
+- **Sensitivity Analysis** (DC): one row per part value or model parameter that moves the output, largest first. `r1` is the change per ohm of R1, `r1_m` the change per unit of its multiplier `m`. Parameters with no effect are left out. An AC sensitivity (`.sens … ac …`) is plotted against frequency instead. At a single frequency (`ac lin 1 1k 1k`) it is a table of magnitude ∠ phase.
 - **Pole-Zero Analysis**: each pole and zero with its real and imaginary parts in rad/s, its natural frequency f = |s|/2π and, for a complex pair, Q.
 
 ### A DC sweep with two sources
 
-`.dc V1 0 5 0.05 V2 0 2 0.5` sweeps V1 for each value of V2. The plot shows a family of curves, one per V2 value, shaded light to dark like a [sweep](06-sweeps.md); the legend names each one (`V(out) · V2=500m`). Set it up with **Second source** on the DC sweep tab ([chapter 4](04-simulating.md#the-simulation-setup-dialog)).
+`.dc V1 0 5 0.05 V2 0 2 0.5` sweeps V1 for each value of V2. The plot shows a family of curves, one per V2 value, shaded light to dark like a [sweep](06-sweeps.md), and the legend names each one (`V(out) · V2=500m`). Set it up with **Second source** on the DC sweep tab ([chapter 4](04-simulating.md#the-simulation-setup-dialog)).
 
 ### Opening a raw file
 
-**File › Open Raw File…** shows the results in an existing `.raw` file without running anything: one written by ngspice (`ngspice -b -r out.raw`, `write` in a `.control` block, binary or ASCII) or by LTspice. Each plot in the file gets a tab, and the plot tools (cursors, expressions, FFT, export) work as usual. From the Home page it opens in an untitled workspace; in an open project it replaces the results panel's contents until the next run.
+**File › Open Raw File…** shows the results in an existing `.raw` file without running anything. The file can be one written by ngspice (`ngspice -b -r out.raw`, `write` in a `.control` block, binary or ASCII) or by LTspice. Each plot in the file gets a tab, and the plot tools (cursors, expressions, FFT, export) work as usual. From the Home page it opens in an untitled workspace. In an open project it replaces the results panel's contents until the next run.
 
 ### Choosing the plots with `.plot`
 
@@ -54,12 +53,12 @@ The word after `.plot` names the analysis (`tran`, `ac`, `dc` or `noise`). An en
 
 ## Probing the schematic
 
-You can add traces straight from the schematic after a run. Probing works on the top sheet, which is the circuit that was simulated.
+You can add traces straight from the schematic after a run. Probing works on the top sheet, which is the circuit that was simulated. Probe in the following ways:
 
 - **Alt+click a wire, label or pin** to add that net's voltage to the current tab.
 - **Alt+click a part** to add the current through it (for a transistor, the collector or drain current).
 - Alt+click the same thing again to remove its trace.
-- Or press **P** (or click **Probe**) to use the probe tool, where a plain click probes. **Esc** goes back to Select.
+- Press **P** (or click **Probe**) to use the probe tool, where a plain click probes. **Esc** goes back to Select.
 
 While Alt is held, the net or part under the mouse is highlighted.
 
@@ -83,6 +82,8 @@ The **Operating Point** tab lists the node voltages and device currents as a tab
 
 ## Cursors
 
+To place cursors, do the following:
+
 1. Click on the plot to place cursor **A**.
 2. **Shift+click** to place cursor **B**.
 3. Drag a cursor line to move it.
@@ -97,6 +98,8 @@ Cursors stay where they are when you switch tabs or pop the plot out, until the 
 
 Type a formula into **＋ expression** under the vector list and press **Enter**. It is plotted like any other trace and kept across runs. Click **×** to remove it. A formula with a mistake shows the error in red under the box.
 
+The following table lists what a formula can use:
+
 | You can use | Example |
 |---|---|
 | Any vector by its raw or display name | `v(out)`, `i(r3)`, `ic(q1)` |
@@ -108,69 +111,83 @@ Type a formula into **＋ expression** under the vector list and press **Enter**
 | `ph(x)` | phase in degrees |
 | `re(x)`, `im(x)` | real and imaginary parts (AC) |
 | `sqrt(x)` | square root |
-| `deriv(x)` | derivative with respect to the x axis, e.g. `deriv(v(out))` in V/s |
+| `deriv(x)` | derivative with respect to the x axis, for example `deriv(v(out))` in V/s |
 | `gd(x)` | group delay of an AC result, in seconds |
 
-Units follow the maths: volts times amps is watts, so `v(out)*i(r1)` or `(v(vcc)-v(out))*i(r3)` is plotted as power in W on its own axis. In AC results, expressions work on complex values, so `db(v(out)/v(in))` is the true gain.
+Units follow the maths. Volts times amps is watts, so `v(out)*i(r1)` or `(v(vcc)-v(out))*i(r3)` is plotted as power in W on its own axis. In AC results, expressions work on complex values, so `db(v(out)/v(in))` is the true gain.
 
 ## AC views: Bode, Nyquist, polar, Smith
 
-An AC tab has two rows of view buttons.
+An AC tab has two rows of view buttons. The views are as follows:
 
-- **Bode** (the default) stacks the magnitude in dB over the phase in degrees. The two charts share the frequency axis: zooming one zooms the other, and cursors A and B show in both. One legend, under the phase chart, shows both values under the mouse (`-3.01dB · -45.0°`). The cursor readout lists each trace twice, once in dB and once in degrees.
-- **Magnitude** and **Phase** show one chart, as before.
+- **Bode** (the default) stacks the magnitude in dB over the phase in degrees. The two charts share the frequency axis, so zooming one zooms the other, and cursors A and B show in both. One legend, under the phase chart, shows both values under the mouse (`-3.01dB · -45.0°`). The cursor readout lists each trace twice, once in dB and once in degrees.
+- **Magnitude** and **Phase** show one chart on its own.
 - **Unwrap phase** (Bode and Phase) removes the jumps from −180° to +180°, so a fourth-order filter's phase runs smoothly down to −360°.
 - **Nyquist** plots Im against Re with equal scales, with −1 marked when it is in view.
 - **Polar** draws the same points on a polar grid: magnitude rings and angle spokes.
 - **Smith** draws reflection coefficients on a Smith chart. S-parameters (from a `.sp` analysis) are drawn as they are. A trace in ohms, such as the expression `v(in)/i(v1)` or a `Z_1_1` vector, is converted with Γ = (Z − Z0)/(Z + Z0); set **Z0** in the sidebar (50 Ω by default). Any other trace is drawn as if it were Γ. Parts of a trace outside |Γ| = 1 are cut off at the edge of the chart.
 
-In the Nyquist, polar and Smith views, hover over a trace to read its frequency and value in the top-right corner (on the Smith chart also the impedance). Click a trace to put cursor A at that frequency, Shift+click for cursor B; dots mark each trace at A and B. In the Nyquist and polar views, scroll to zoom (Nyquist zooms about the mouse) and double-click to see everything again. All ticked traces share one scale, so a small trace next to a large one (a current next to a voltage) can shrink to a dot: untick the large one or zoom in. Only complex traces are drawn there: `db(…)` and other real expressions are left out. **PNG**, **SVG** and **CSV** export these views too; the CSV has the real and imaginary parts.
+The Nyquist, polar and Smith views share the following behaviour:
+
+- Hover over a trace to read its frequency and value in the top-right corner. The Smith chart also shows the impedance.
+- Click a trace to put cursor A at that frequency, and Shift+click for cursor B. Dots mark each trace at A and B.
+- In the Nyquist and polar views, scroll to zoom (Nyquist zooms about the mouse) and double-click to see everything again.
+- All ticked traces share one scale, so a small trace next to a large one (a current next to a voltage) can shrink to a dot. Untick the large one or zoom in.
+- Only complex traces are drawn. `db(…)` and other real expressions are left out.
+- **PNG**, **SVG** and **CSV** export these views too. The CSV has the real and imaginary parts.
 
 ## Eye diagram
 
-On a transient tab, click **Eye** to overlay a waveform period by period, as an oscilloscope eye diagram does.
+On a transient tab, click **Eye** to overlay a waveform period by period, as an oscilloscope eye diagram does. To set it up, do the following:
 
 1. Pick the **Trace** (one of the ticked traces).
 2. Type the **Bit period**, for example `1u`.
-3. Optionally type an **Offset**: periods start at offset + k × period, so an offset moves the eye sideways (use it to centre the crossings).
+3. Optional: type an **Offset**. Periods start at offset + k × period, so an offset moves the eye sideways. Use it to centre the crossings.
 
-Every whole period in the run is drawn over the others, up to 2,000; with more, the axis title says how many of them are shown (`the first 2000 of 5000 periods`). The app resamples the waveform at 256 points per period, so set a small **Max step** in the `.tran` line for sharp edges. Drag to zoom, double-click to zoom back out. PNG and SVG export the eye.
+Every whole period in the run is drawn over the others, up to 2,000. With more, the axis title says how many of them are shown (`the first 2000 of 5000 periods`). The app resamples the waveform at 256 points per period, so set a small **Max step** in the `.tran` line for sharp edges. Drag to zoom, double-click to zoom back out. PNG and SVG export the eye.
 
 ## Tuning values with sliders
 
-**Tune** in the results tab bar opens a row of sliders above the plots.
+**Tune** in the results tab bar opens a row of sliders above the plots. To tune a value, do the following:
 
 1. Pick a value in **Add a parameter or part…**: a `.param` with a plain number, or a resistor, capacitor or inductor whose value is a number. Parameters a `.step` line sweeps aren't offered, since the sweep sets them.
 2. Each slider covers a decade either side of the value on a log scale. Edit the minimum and maximum, or untick **log** for a linear scale.
 3. Move the slider. The app runs the simulation again a moment after you stop moving it, and stops a run that is still going if you move it again.
 
-The plot updates in place: the zoom, the cursors and the ticked traces stay as they are. Every run while the sliders are open uses the slider values, and the console starts with a `Tuned:` line listing them. The values are not written back to the schematic. Remove a slider (**×**) to go back to the netlist value. Closing the row goes back to all the netlist values and runs the simulation once more with them, so the plot matches the schematic again. The sliders, with their ranges, stay in use if you pop the results out or dock them. If you press **Stop** during a tuning run, the plot keeps the last run that finished.
+The plot updates in place: the zoom, the cursors and the ticked traces stay as they are. Every run while the sliders are open uses the slider values, and the console starts with a `Tuned:` line listing them. The values aren't written back to the schematic.
+
+To go back to the netlist values, do one of the following:
+
+- Remove a slider (**×**) to go back to the netlist value for that slider.
+- Close the row to go back to all the netlist values. The app runs the simulation once more with them, so the plot matches the schematic again.
+
+The sliders, with their ranges, stay in use if you pop the results out or dock them. If you press **Stop** during a tuning run, the plot keeps the last run that finished.
 
 ## FFT
 
-On a transient tab, click **FFT** to see the spectrum of the ticked traces.
+On a transient tab, click **FFT** to see the spectrum of the ticked traces. The full procedure is as follows:
 
-1. Optional: place cursors A and B first. The FFT then uses only the time between them; for a clean spectrum, span a whole number of periods after the circuit has settled.
+1. Optional: place cursors A and B first. The FFT then uses only the time between them. For a clean spectrum, span a whole number of periods after the circuit has settled.
 2. Click **FFT**. **Log f** and **Linear f** switch the frequency axis.
 3. Click **Time** to go back.
 
-The hint line under the plot shows the settings: a Hann window, the number of points N (a power of two, up to 65,536) and the bin spacing Δf. ngspice's time steps are uneven, so the app resamples the waveform first; for an accurate spectrum, set a small **Max step** in the `.tran` line.
+The hint line under the plot shows the settings: a Hann window, the number of points N (a power of two, up to 65,536) and the bin spacing Δf. ngspice's time steps are uneven, so the app resamples the waveform first. For an accurate spectrum, set a small **Max step** in the `.tran` line.
 
 ![FFT of V(out) and of the power in R3](images/05-fft.png)
 
 ## Measurements (`.meas`)
 
-A `.meas` directive makes ngspice compute a single number from a result, such as a peak-to-peak value, a rise time or an average. The CE-Amplifier example has
+A `.meas` directive makes ngspice compute a single number from a result, such as a peak-to-peak value, a rise time or an average. The CE-Amplifier example has the following line:
 
 ```
 .meas tran vpp PP v(out) from=2m to=5m
 ```
 
-After a run, the **Measurements** tab lists each measurement by name. A measurement that failed (for example, a `WHEN` condition that never happens) shows **failed**; hover over it to see ngspice's message.
+After a run, the **Measurements** tab lists each measurement by name. A measurement that failed (for example, a `WHEN` condition that never happens) shows **failed**. Hover over it to see ngspice's message.
 
 ![The Measurements tab](images/05-measurements.png)
 
-Some useful forms:
+The following forms are often useful:
 
 ```
 .meas tran vavg AVG v(out) from=1m to=2m
@@ -192,8 +209,8 @@ The transient must cover at least one period of the fundamental. For a clean spe
 
 ## The pop-out window
 
-Click **⧉** at the top right of the results panel (or **View › Results in Separate Window**) to move the results into their own window. You can put it on a second screen and make it as large as you like. It stays live: new runs, probes and expressions appear there. Click **Dock** (or close the window) to bring the results back.
+Click **⧉** at the top right of the results panel (or **View › Results in Separate Window**) to move the results into their own window. You can put it on a second screen and make it as large as you like. It stays live, so new runs, probes and expressions appear there. Click **Dock** (or close the window) to bring the results back.
 
-While the results are popped out, the right edge of the main window shows a **Results** rail; a dot on it means new results arrived. ⌘3 shows or hides the docked results panel.
+While the results are popped out, the right edge of the main window shows a **Results** rail. A dot on it means new results arrived. ⌘3 shows or hides the docked results panel.
 
 Next: [Sweeps and Monte Carlo](06-sweeps.md).

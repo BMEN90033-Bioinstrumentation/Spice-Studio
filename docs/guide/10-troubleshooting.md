@@ -16,11 +16,13 @@ Warnings are yellow and errors red. When a line names a part or net on the schem
 
 ![ngspice can't find the model D1N914X; D1 is marked in red](images/10-cant-find-model.png)
 
-The log is not saved to disk; it is replaced by the next run. To keep it, select the text in the console and copy it. **File › Export Netlist…** saves the netlist so you can run it in ngspice yourself ([chapter 9](09-exporting.md#netlists)).
+The log isn't saved to disk, and the next run replaces it. To keep it, select the text in the console and copy it. **File › Export Netlist…** saves the netlist so you can run it in ngspice yourself ([chapter 9](09-exporting.md#netlists)).
 
 **Tools › Simulation Engine…** shows which ngspice the app uses and where it is. If none is found, the Home page shows the engine name in red and the console says `ngspice was not found` and lists the places the app looked.
 
 ## Common errors
+
+The following sections cover the errors you're most likely to see.
 
 ### "No ground"
 
@@ -32,10 +34,10 @@ The log is not saved to disk; it is replaced by the next run. To keep it, select
 Warning: singular matrix:  check node out
 ```
 
-ngspice can't solve the circuit because a node's voltage is undefined. Usual causes:
+ngspice can't solve the circuit because a node's voltage is undefined. The usual causes are the following:
 
 - **A node with no DC path to ground.** Every node needs a path to ground through resistors, inductors, sources or semiconductors. Capacitors and current sources don't count at DC. Typical cases: two capacitors in series, a capacitor-coupled input with no bias resistor, a floating op-amp input, or a transformer secondary that isn't grounded anywhere. The rules check warns `No DC path to ground from net …` before the run.
-- **A loop of voltage sources or inductors** (the message names a `…#branch`). See below.
+- **A loop of voltage sources or inductors** (the message names a `…#branch`). See [Voltage-source loop](#voltage-source-loop).
 
 What to do: add a resistor to ground at the named node (a large value such as 1 MΩ or 1 GΩ is fine), or bias the node properly. As a stopgap, the convergence banner offers **Add a 1 TΩ resistor from every node to ground** (`.options rshunt=1e12`).
 
@@ -56,11 +58,11 @@ warning, can't find model 'd1n914x' from line
 could not find a valid modelname
 ```
 
-The part's value names a model that isn't in the netlist. Causes:
+The part's value names a model that isn't in the netlist. The causes are the following:
 
 - A typo in the value.
 - A model name typed by hand into a plain part. Place the part from the Parts panel instead, so the library brings its model ([chapter 3](03-components.md#semiconductors)), or define it yourself with `.model` or `.include` in a directive.
-- A library part whose library is missing. The inspector then says `Unknown library part …`. Import the library again ([chapter 8](08-libraries.md#importing-a-vendor-model-lib-mod)) or check the project's `libs/` folder.
+- A library part whose library is missing. The properties popup then says `Unknown library part …`. Import the library again ([chapter 8](08-libraries.md#importing-a-vendor-model-lib-mod)) or check the project's `libs/` folder.
 - A model written for PSpice or LTspice that ngspice can't parse, so the model never gets defined. Try the compatibility mode in **Run settings** ([chapter 8](08-libraries.md#compatibility-mode-for-pspice-and-ltspice-models)).
 
 ### Timestep too small
@@ -69,7 +71,7 @@ The part's value names a model that isn't in the netlist. Causes:
 doAnalyses: TRAN:  Timestep too small; time = 0.002, timestep = 1.25e-18: trouble with dmod-instance d1
 ```
 
-During a transient run, ngspice had to shrink its time step to almost nothing to follow a change, and gave up. The message gives the time and often the part involved. Common causes:
+During a transient run, ngspice had to shrink its time step to almost nothing to follow a change, and gave up. The message gives the time and often the part involved. The common causes are the following:
 
 - Ideal, instantaneous edges: switches with very low on-resistance, sources with zero rise and fall times, ideal diodes switching hard.
 - An inductor current that is suddenly interrupted with nowhere to go (it produces a huge voltage spike). Add a snubber (an RC across the switch) or a clamp diode, as in the [Flyback](examples/Flyback/) example.
@@ -84,6 +86,8 @@ What to do: give edges a finite rise and fall time, add small series resistances
 ngspice couldn't find a DC solution. Check the circuit first: a transistor or op-amp with no bias, positive feedback, or a part with an extreme value. Then try the banner's fixes (more iterations, finer source or gmin stepping, larger `gmin`). You can also help ngspice with a starting guess: `.nodeset v(out)=2.5`.
 
 ### Other messages
+
+The following table explains other messages you might see:
 
 | Message | Meaning |
 |---|---|

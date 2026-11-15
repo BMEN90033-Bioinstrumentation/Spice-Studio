@@ -19,9 +19,9 @@ The symbol images show the pins in netlist order: pin 1 is the first node writte
 | <img src="images/symbols/kcouple.svg" width="72" alt="coupling"> | Mutual coupling (K) | none | `L1 L2 0.99`: two inductors on the sheet and their coupling | Parts › Passives › K |
 | <img src="images/symbols/tline.svg" width="72" alt="transmission line"> | Lossless transmission line (T) | port1+, port1−, port2+, port2− | `Z0=50 TD=1n` (or `Z0=50 F=… NL=…`) | Parts › Passives › T |
 
-The pot and the crystal are small subcircuits from the built-in library. Place them from the Parts panel; a pot or crystal without its library entry stops the netlist with an error.
+The pot and the crystal are small subcircuits from the built-in library. Place them from the Parts panel. A pot or crystal without its library entry stops the netlist with an error.
 
-The transformer is netlisted as two inductors and a coupling line: a transformer named XF1 becomes `LXF1_P`, `LXF1_S` and `KXF1`. The dots on the symbol mark pri+ and sec+: current flowing into pri+ induces a voltage that makes sec+ positive.
+The transformer is netlisted as two inductors and a coupling line: a transformer named XF1 becomes `LXF1_P`, `LXF1_S` and `KXF1`. The dots on the symbol mark pri+ and sec+. Current flowing into pri+ induces a voltage that makes sec+ positive.
 
 ## Sources
 
@@ -42,9 +42,9 @@ The transformer is netlisted as two inductors and a coupling line: a transformer
 | <img src="images/symbols/vccs.svg" width="72" alt="VCCS"> | Voltage-controlled current source (G) | out+, out−, ctrl+, ctrl− | transconductance in siemens: `1m` gives 1 mA per volt, flowing from out+ through the source to out− | Parts › Controlled sources › G |
 | <img src="images/symbols/ccvs.svg" width="72" alt="CCVS"> | Current-controlled voltage source (H) | out+, out− | `V1 1k`: the **name of a voltage source** whose current is sensed, then the transresistance in ohms | Parts › Controlled sources › H |
 | <img src="images/symbols/cccs.svg" width="72" alt="CCCS"> | Current-controlled current source (F) | out+, out− | `V1 10`: the **name of a voltage source**, then the current gain | Parts › Controlled sources › F |
-| <img src="images/symbols/bv.svg" width="72" alt="behavioural voltage"> | Behavioural voltage source (B) | +, − | `V=<expression>`, e.g. `V=V(a)*V(b)` or `V=2*sin(6.283*1k*time)` | Parts › Controlled sources › BV |
-| <img src="images/symbols/bi.svg" width="72" alt="behavioural current"> | Behavioural current source (B) | +, − | `I=<expression>`, e.g. `I=V(in)/1k` | Parts › Controlled sources › BI |
-| <img src="images/symbols/opamp.svg" width="72" alt="ideal op-amp"> | Ideal op-amp (E) | out, in+, in− | open-loop gain, `1e6` by default. It is an E source with its output referred to ground, so it needs no supply pins and never clips | **Place › Op-amp** |
+| <img src="images/symbols/bv.svg" width="72" alt="behavioural voltage"> | Behavioural voltage source (B) | +, − | `V=<expression>`, for example `V=V(a)*V(b)` or `V=2*sin(6.283*1k*time)` | Parts › Controlled sources › BV |
+| <img src="images/symbols/bi.svg" width="72" alt="behavioural current"> | Behavioural current source (B) | +, − | `I=<expression>`, for example `I=V(in)/1k` | Parts › Controlled sources › BI |
+| <img src="images/symbols/opamp.svg" width="72" alt="ideal op-amp"> | Ideal op-amp (E) | out, in+, in− | open-loop gain, `1e6` by default. It's an E source with its output referred to ground, so it needs no supply pins and never clips | **Place › Op-amp** |
 
 F and H measure the current through a **voltage source**, because that is how SPICE senses current. To sense the current in a wire, put a `DC 0` voltage source in series with it (an ammeter) and name that source in the value. If the named source isn't on the same sheet, the netlist shows a warning.
 
@@ -72,11 +72,11 @@ To change the switching point or the on/off resistance, write your own model in 
 | <img src="images/symbols/pjf.svg" width="72" alt="P-JFET"> | P-channel JFET (J) | D, G, S | a model name, or `PJF` | Parts › JFETs |
 | <img src="images/symbols/nmos.svg" width="72" alt="NMOS"> | NMOS transistor (M) | D, G, S (body tied to S) | a model name, or `NMOS` (a simple level-1 model) | **M**, Parts › MOSFETs |
 | <img src="images/symbols/pmos.svg" width="72" alt="PMOS"> | PMOS transistor (M) | D, G, S (body tied to S) | a model name, or `PMOS` | **Place › PMOS Transistor**, Parts › MOSFETs |
-| <img src="images/symbols/opamp5.svg" width="72" alt="op-amp"> | Op-amp macromodel (X) | in+, in−, V+, V−, out | the subcircuit name, e.g. `OA_GENERIC` | Parts › Op-amps |
+| <img src="images/symbols/opamp5.svg" width="72" alt="op-amp"> | Op-amp macromodel (X) | in+, in−, V+, V−, out | the subcircuit name, for example `OA_GENERIC` | Parts › Op-amps |
 
 If the value is one of the default names (`D`, `DZ`, `LED`, `NPN`, `PNP`, `NJF`, `PJF`, `NMOS`, `PMOS`, `SW`, `CSW`), the app adds a basic `.model` for it. Your own `.model` line with the same name wins. Parts placed from the library bring their own model text.
 
-Parts from a library carry more than a value: placing `2N3904` from the Parts panel links the part to its library entry, so the right model goes into the netlist. Typing `2N3904` into the value of a plain NPN does not; ngspice will then report that it can't find the model, unless you add the model yourself with `.model` or `.include`.
+Parts from a library carry more than a value: placing `2N3904` from the Parts panel links the part to its library entry, so the right model goes into the netlist. Typing `2N3904` into the value of a plain NPN doesn't. ngspice then reports that it can't find the model, unless you add the model yourself with `.model` or `.include`.
 
 ## Digital parts
 
@@ -90,23 +90,23 @@ The **Digital** category of the Parts panel has logic gates and a flip-flop. The
 
 The value sets the logic family: `vdd=<logic high>` (output levels 0 and vdd, inputs switch at vdd/2) and `tpd=<delay>` (input to output; outputs then take 1 ns to swing). For 3.3 V logic, use `vdd=3.3`. For a clock, use a voltage source with a pulse, such as `PULSE(0 5 0 2n 2n 0.5u 1u)` for 1 MHz.
 
-Inputs draw no current, and an unconnected input reads as low. An output is an ideal voltage source, so two outputs can't share a net, and neither can an output and a voltage source: the rules check stops the run and names the parts. The project template **Digital counter (mixed-signal)** and the [Digital-Counter](examples/Digital-Counter/) example show a 2-bit counter made from two DFFs, an XOR gate and an RC filter.
+Inputs draw no current, and an unconnected input reads as low. An output is an ideal voltage source, so two outputs can't share a net, and neither can an output and a voltage source. In either case the rules check stops the run and names the parts. The **Digital counter (mixed-signal)** example on the Home page and the [Digital-Counter](examples/Digital-Counter/) example show a 2-bit counter made from two DFFs, an XOR gate and an RC filter.
 
 ## Blocks
 
-A **block** is another sheet of the project used as one part; its pins are that sheet's ports. See [chapter 7](07-projects-and-hierarchy.md).
+A **block** is another sheet of the project used as one part. Its pins are that sheet's ports. For more information, see [chapter 7](07-projects-and-hierarchy.md).
 
 ## Worked example: an E-source amplifier
 
-[examples/E-Amplifier](examples/E-Amplifier/) amplifies a 0.1 V, 1 kHz sine by 10.
+[examples/E-Amplifier](examples/E-Amplifier/) amplifies a 0.1 V, 1 kHz sine by 10. The circuit is wired as follows:
 
-1. V1 is `DC 0 SIN(0 0.1 1k)`. Its top is labelled `in`.
-2. E1 (Parts › Controlled sources › E) has ctrl+ wired to `in` and ctrl− to ground.
-3. E1's out− goes to ground and out+ drives a 1 kΩ load labelled `out`.
-4. E1's value is `10`, the gain.
-5. The directive is `.tran 10u 3m`.
+- V1 is `DC 0 SIN(0 0.1 1k)`. Its top is labelled `in`.
+- E1 (Parts › Controlled sources › E) has ctrl+ wired to `in` and ctrl− to ground.
+- E1's out− goes to ground and out+ drives a 1 kΩ load labelled `out`.
+- E1's value is `10`, the gain.
+- The directive is `.tran 10u 3m`.
 
-Run it: V(out) is a 1 V sine in phase with V(in). The netlist line is `E1 out 0 in 0 10`: out+, out−, ctrl+, ctrl−, gain.
+When you run it, V(out) is a 1 V sine in phase with V(in). The netlist line is `E1 out 0 in 0 10`: out+, out−, ctrl+, ctrl−, gain.
 
 ![The E-source amplifier and its input and output](images/03-e-amplifier.png)
 
@@ -114,17 +114,17 @@ To turn E1 into an op-amp, give it a large gain (say `1e5`) and connect ctrl− 
 
 ## Worked example: a transformer in a flyback converter
 
-[examples/Flyback](examples/Flyback/) steps 12 V up through a 1:2 transformer.
+[examples/Flyback](examples/Flyback/) steps 12 V up through a 1:2 transformer. The circuit is wired as follows:
 
-1. XF1 (Parts › Passives › XFMR) has the value `Lp=100u Ls=400u k=0.98`. The turns ratio is √(400µ/100µ) = 2.
-2. The primary dot (pri+) goes to the 12 V supply V1; pri− goes to the switch node `sw`.
-3. S1 (Parts › Switches › S) switches `sw` to ground. Its control is V2, `PULSE(0 1 0 10n 10n 5u 10u)`: 100 kHz, 50 % duty, above the default 0.5 V threshold for half of each period.
-4. C2 (10 nF) from `sw` to ground is a snubber. Without it, the energy in the leakage inductance (k < 1) has nowhere to go when the switch opens, and the switch voltage spikes to many kilovolts.
-5. The secondary dot (sec+) is grounded and sec− feeds D1 (a 1N4148 from the library), so energy reaches the output only while the switch is off. That is what makes it a flyback.
-6. C1 (10 µF) and R1 (1 kΩ) are the output filter and load.
-7. The directive card holds `.tran 100n 2m` and `.meas tran vout AVG v(out) from=1.5m to=2m`.
+- XF1 (Parts › Passives › XFMR) has the value `Lp=100u Ls=400u k=0.98`. The turns ratio is √(400µ/100µ) = 2.
+- The primary dot (pri+) goes to the 12 V supply V1, and pri− goes to the switch node `sw`.
+- S1 (Parts › Switches › S) switches `sw` to ground. Its control is V2, `PULSE(0 1 0 10n 10n 5u 10u)`. That pulse is 100 kHz at 50 % duty, so it is above the default 0.5 V threshold for half of each period.
+- C2 (10 nF) from `sw` to ground is a snubber. Without it, the energy in the leakage inductance (k < 1) has nowhere to go when the switch opens, and the switch voltage spikes to many kilovolts.
+- The secondary dot (sec+) is grounded and sec− feeds D1 (a 1N4148 from the library), so energy reaches the output only while the switch is off. That is what makes it a flyback.
+- C1 (10 µF) and R1 (1 kΩ) are the output filter and load.
+- The directive card holds `.tran 100n 2m` and `.meas tran vout AVG v(out) from=1.5m to=2m`.
 
-After a run, the **Measurements** tab shows `vout` ≈ 30 V. The plot below is zoomed to 1.8–1.9 ms and shows V(out) and the switch node V(sw):
+After a run, the **Measurements** tab shows `vout` ≈ 30 V. The following plot is zoomed to 1.8-1.9 ms and shows V(out) and the switch node V(sw):
 
 ![The flyback converter with V(out) and V(sw)](images/03-flyback.png)
 

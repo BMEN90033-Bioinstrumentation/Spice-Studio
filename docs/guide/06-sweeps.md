@@ -6,20 +6,22 @@ Spice Studio can run the same circuit several times with different values and ov
 
 In the plots, each run is drawn in the trace's colour, from light (first run) to dark (last run). The legend and the cursor readout name each run, for example `V(out) · R=1k`. The status bar shows how many runs finished.
 
-Limits: at most 50 runs for `.step` (all nested steps together), at most three nested `.step` lines, at most 500 runs for `.mc`, and 2⁸ = 256 corners for `.wc`.
+The following limits apply: at most 50 runs for `.step` (all nested steps together), at most three nested `.step` lines, at most 500 runs for `.mc`, and 2⁸ = 256 corners for `.wc`.
 
 ## Parameter sweep: `.step param`
+
+To sweep a parameter, do the following:
 
 1. Give the part a parameter as its value, in braces: set R1's value to `{R}`.
 2. Define the parameter's default: `.param R=1k`.
 3. Add the sweep: `.step param R list 500 1k 2k`.
 4. Run.
 
-[examples/RC-Sweep](examples/RC-Sweep/) does exactly this on the RC filter. The AC tab shows three curves; the corner frequency moves down as R goes up:
+[examples/RC-Sweep](examples/RC-Sweep/) does this on the RC filter. The AC tab shows three curves, and the corner frequency moves down as R goes up:
 
 ![Three AC sweeps for R = 500, 1k and 2k](images/06-step-param.png)
 
-The forms of `.step`:
+The following table lists the forms of `.step`:
 
 | Directive | Values |
 |---|---|
@@ -29,7 +31,7 @@ The forms of `.step`:
 | `.step dec param C 1n 1u 3` | 1 nF to 1 µF, 3 points per decade |
 | `.step oct param F 1k 8k 1` | 1 kHz to 8 kHz, 1 point per octave |
 
-You can step up to three parameters with separate `.step` lines. The first `.step` changes slowest. The parameter doesn't need a `.param` line; if there is none the app adds one, and if there is one the app replaces its value in each run, so expressions such as `{2*R}` follow along.
+You can step up to three parameters with separate `.step` lines. The first `.step` changes slowest. The parameter doesn't need a `.param` line. If there is none, the app adds one. If there is one, the app replaces its value in each run, so expressions such as `{2*R}` follow along.
 
 ## Temperature sweep: `.step temp`
 
@@ -57,8 +59,10 @@ Each run replaces any `.temp` line on the sheet with its own. A `temp=` setting 
 
 `.mc N` runs the circuit N times. Each run uses a different random seed (run 1 uses seed 1, run 2 seed 2…), so values written with ngspice's random functions change from run to run, and the same project gives the same results each time with the same ngspice.
 
-1. Give each toleranced part a parameter as its value, e.g. R1 = `{R}`.
-2. Define the parameter with a random function (see the gotcha below).
+To set up a Monte Carlo run, do the following:
+
+1. Give each toleranced part a parameter as its value, for example R1 = `{R}`.
+2. Define the parameter with a random function (see [`gauss` is relative, `agauss` is absolute](#gauss-is-relative-agauss-is-absolute)).
 3. Add `.mc 20` and an analysis.
 4. Add a `.meas` line for the number you care about.
 5. Run, then open the **Measurements** tab.
@@ -84,9 +88,9 @@ The **Measurements** tab starts with the statistics over all runs, **mean**, **�
 
 Here σ is about 13 µs, about 1.9 % of the mean. That matches a resistor with a 1.67 % standard deviation (5 % / 3).
 
-`.mc` can't be combined with `.step` or `.wc` in the same project, and a sheet may have only one `.mc` line.
+`.mc` can't be combined with `.step` or `.wc` in the same project, and a sheet can have only one `.mc` line.
 
-### Gotcha: `gauss` is relative, `agauss` is absolute
+### `gauss` is relative, `agauss` is absolute
 
 ngspice has two Gaussian functions, and they differ in what the second argument means:
 
@@ -97,21 +101,9 @@ ngspice has two Gaussian functions, and they differ in what the second argument 
 
 In both, the variation is reached at `sigma` standard deviations, so `sigma = 3` means ±5 % is the 3σ limit (σ = 16.7 Ω here).
 
-A common mistake is `agauss(1k, 0.05, 3)`: that is ±0.05 Ω, not ±5 %. The runs then look identical and σ comes out near zero. If your Monte Carlo spread looks too small, check this first.
+A common mistake is `agauss(1k, 0.05, 3)`, which is ±0.05 Ω, not ±5 %. The runs then look identical and σ comes out near zero. If your Monte Carlo spread looks too small, check this first.
 
 The uniform functions work the same way: `unif(nom, rel_var)` is relative and `aunif(nom, abs_var)` is absolute.
-
-## Histograms, statistics and yield
-
-With more than two runs (`.step`, `.mc` or `.wc`) you can look at how one number spreads over the runs:
-
-- **A measurement:** on the **Measurements** tab, click the chart icon next to its name.
-- **A trace at a moment or frequency:** place cursor A on the plot, then click the chart icon next to the trace in the cursor readout. Moving cursor A updates the histogram.
-- **An operating-point value:** in a `.op` table, click the chart icon next to the vector.
-
-The panel shows a histogram, the number of runs, the mean, σ (sample standard deviation, n − 1), the minimum and maximum, and which run gave the minimum and the maximum. For `.wc` runs the mean and σ are left out: the runs are corners, not a random sample. Type a **low** and/or **high** limit (SPICE numbers such as `680u` or `1.2k`) to get the **yield**: the share of runs inside the limits. A run where the measurement failed counts as out of spec. The limits are drawn on the histogram as red dashed lines; the mean is the solid line.
-
-The Measurements table also names, under its **min** and **max** columns, the run each came from.
 
 ## Worst case: `.wc`
 
@@ -134,8 +126,24 @@ With more than 8 values the corners would be too many (512 or more), so the app 
 1. It runs the nominal circuit, then each value on its own at its high limit, to see which way each measurement moves.
 2. For each measurement, it runs the corner that should give the maximum (every value at the end that raises it) and the one that should give the minimum.
 
-This needs a `.meas` line. List the measurements to use after `.wc`, for example `.wc t50 vpp`; with no names it uses every `.meas` in the deck. A name with no `.meas` line is an error. If a measurement has no value in the nominal run or in one of the sensitivity runs (it failed, or ngspice didn't print it), the app can't tell which way it moves: it skips that measurement's two corners and says so in the console (`--- max vo: skipped, … ---`), and the status bar counts fewer runs. The estimate assumes each measurement rises or falls steadily with each value, which holds for most passive tolerances but not, for example, for a value that tunes a filter through a peak.
+This estimate needs a `.meas` line. List the measurements to use after `.wc`, for example `.wc t50 vpp`. With no names, the app uses every `.meas` in the deck. A name with no `.meas` line is an error.
+
+If a measurement has no value in the nominal run or in one of the sensitivity runs (it failed, or ngspice didn't print it), the app can't tell which way it moves. It skips that measurement's two corners and says so in the console (`--- max vo: skipped, … ---`), and the status bar counts fewer runs.
+
+The estimate assumes each measurement rises or falls steadily with each value. That holds for most passive tolerances but not, for example, for a value that tunes a filter through a peak.
 
 A toleranced value inside a subcircuit takes the same corner in every instance of that subcircuit. `.wc` can't be combined with `.step` or `.mc`.
+
+## Histograms, statistics and yield
+
+With more than two runs (`.step`, `.mc` or `.wc`) you can look at how one number spreads over the runs:
+
+- **A measurement:** on the **Measurements** tab, click the chart icon next to its name.
+- **A trace at a moment or frequency:** place cursor A on the plot, then click the chart icon next to the trace in the cursor readout. Moving cursor A updates the histogram.
+- **An operating-point value:** in a `.op` table, click the chart icon next to the vector.
+
+The panel shows a histogram, the number of runs, the mean, σ (sample standard deviation, n − 1), the minimum and maximum, and which run gave the minimum and the maximum. For `.wc` runs the mean and σ are left out, because the runs are corners, not a random sample. Type a **low** limit, a **high** limit, or both (SPICE numbers such as `680u` or `1.2k`) to get the **yield**, which is the share of runs inside the limits. A run where the measurement failed counts as out of spec. The limits are drawn on the histogram as red dashed lines, and the mean is the solid line.
+
+The Measurements table also names, under its **min** and **max** columns, the run each came from.
 
 Next: [Projects and hierarchy](07-projects-and-hierarchy.md).

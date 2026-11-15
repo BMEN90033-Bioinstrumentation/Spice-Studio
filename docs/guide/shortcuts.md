@@ -2,9 +2,9 @@
 
 [Guide index](README.md)
 
-Taken from the app's code: the menu (`src/main/menu.ts`), the registered commands (`useCommands` in `main.tsx`, `Help.tsx`, `layout/Panel.tsx`) and the canvas key handler (`schematic/Schematic.tsx`). In the app, **Help › Keyboard Shortcuts** (⌘/) shows the main ones.
+<!-- Sources: the menu (src/main/menu.ts), the registered commands (useCommands in main.tsx, Help.tsx, layout/Panel.tsx) and the canvas key handler (schematic/Schematic.tsx). -->
 
-These are the defaults. Most can be changed in **Settings › Keyboard shortcuts** ([chapter 1](01-getting-started.md#settings)), which is also what **Help › Keyboard Shortcuts** (⌘/) opens.
+This page lists the default shortcuts. You can change most of them in **Settings › Keyboard shortcuts** ([chapter 1](01-getting-started.md#settings)), which is also what **Help › Keyboard Shortcuts** (⌘/) opens.
 
 On Windows and Linux, use **Ctrl** for **⌘**. Rotate and mirror use **Ctrl** on every platform.
 
@@ -70,6 +70,8 @@ These work when the canvas is active and no text field has focus.
 
 ## Parts panel search
 
+These work while the search box in the Parts panel has focus.
+
 | Keys | Action |
 |---|---|
 | ↵ | Place the first match |
@@ -77,6 +79,8 @@ These work when the canvas is active and no text field has focus.
 | Esc | Clear the search |
 
 ## Plots
+
+These work on a plot in the results panel.
 
 | Keys | Action |
 |---|---|
@@ -89,7 +93,7 @@ These work when the canvas is active and no text field has focus.
 
 ## Dialogs
 
-In the Simulation setup, waveform, import and other dialogs:
+These work in the Simulation setup, waveform, import and other dialogs.
 
 | Keys | Action |
 |---|---|

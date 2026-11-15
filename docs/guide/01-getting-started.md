@@ -4,22 +4,26 @@
 
 ## Install and run
 
-Spice Studio runs from source with Node.js:
+Download the installer for macOS or Windows from the [releases page](https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio/releases/latest). ngspice is included.
+
+You can also run Spice Studio from source. You need Git and Node.js. The following commands clone the repository, install its dependencies and start the app:
 
 ```sh
-git clone https://github.com/BMEN90033-Bioinstrumentation/Ngspice_tool.git
-cd Ngspice_tool
+git clone https://github.com/BMEN90033-Bioinstrumentation/Spice-Studio.git
+cd Spice-Studio
 npm install
 npm run dev
 ```
 
-The app needs an ngspice program. It uses the first one it finds: the program you chose in [Settings](#settings), the `NGSPICE_PATH` environment variable, a bundled build in `vendor/ngspice/`, Homebrew (`brew install ngspice`), then your `PATH`. The [project README](../../README.md#run-it-from-source) has the details, and [Building and packaging](../../README.md#building-and-packaging) explains how to build the bundled ngspice and the installers.
+The app needs an ngspice program. It uses the first one that it finds: the program you chose in [Settings](#settings), the `NGSPICE_PATH` environment variable, a bundled build in `vendor/ngspice/`, Homebrew (`brew install ngspice`), then your `PATH`. The [project README](../../README.md#run-it-from-source) has the details, and [Building and packaging](../../README.md#building-and-packaging) explains how to build the bundled ngspice and the installers.
 
 ## The Home page
 
 The app opens on the Home page.
 
 ![The Home page with the example projects in Recent projects](images/01-home.png)
+
+The Home page has the following commands:
 
 - **New project** (⌘N) creates an empty project folder.
 - **Open project** (⌘O) opens a `.nsproj` file.
@@ -28,7 +32,7 @@ The app opens on the Home page.
 - **Recent projects** lists the projects you opened before. Click one to open it.
 - **Component library** browses the parts and their models (see [chapter 8](08-libraries.md)).
 
-The top-right corner shows which ngspice the app found, for example `ngspice-47+ (bundled)`. If it is red, no ngspice was found and nothing will simulate.
+The top-right corner shows which ngspice the app found, for example `ngspice-47+ (bundled)`. If it's red, the app found no ngspice and can't simulate anything.
 
 ## Create a project
 
@@ -39,11 +43,11 @@ The top-right corner shows which ngspice the app found, for example `ngspice-47+
 
 ![The New project form with the RC low-pass example selected](images/01-new-project.png)
 
-The project opens in the editor. A project is a folder holding a `<Name>.nsproj` file, one `.nsch` file per sheet (the first is `main.nsch`) and a `libs/` folder for imported models.
+The project opens in the editor. A project is a folder holding a `<Name>.nsproj` file, one `.nsch` file per sheet and a `libs/` folder for imported models. The first sheet is `main.nsch`.
 
 ## Your first simulation: an RC low-pass filter
 
-This section draws a 1 kΩ / 1 µF low-pass filter (corner frequency 1/(2π·RC) ≈ 159 Hz) and runs a transient and an AC analysis. The finished project is [examples/RC-Filter](examples/RC-Filter/); the *RC low-pass* example gives you the same circuit.
+This section draws a 1 kΩ / 1 µF low-pass filter (corner frequency 1/(2π·RC) ≈ 159 Hz) and runs a transient and an AC analysis. The finished project is [examples/RC-Filter](examples/RC-Filter/). The *RC low-pass* example gives you the same circuit.
 
 ### Draw it
 
@@ -60,13 +64,13 @@ Start from a new, empty project. [Chapter 2](02-drawing-schematics.md) explains 
 
 ### Set the source
 
-1. Double-click V1. Its properties open in a popup beside it (Enter on a selected part, or **Properties…** in the right-click menu, opens it too; Esc closes it).
+1. Double-click V1. Its properties open in a popup beside it. **Enter** on a selected part, or **Properties…** in the right-click menu, opens the popup too, and **Esc** closes it.
 2. Click **Waveform…**.
 3. Set **DC value** to `0` and **AC magnitude** to `1`.
 4. Set **Transient waveform** to *Pulse* and fill in 0, 1, 0, 1u, 1u, 5m and 10m (initial value, pulsed value, delay, rise, fall, width, period).
 5. Click **Apply**. V1's value becomes `DC 0 AC 1 PULSE(0 1 0 1u 1u 5m 10m)`.
 
-The AC magnitude is used by the AC analysis; the pulse is used by the transient analysis.
+The AC analysis uses the AC magnitude, and the transient analysis uses the pulse.
 
 ### Add the analyses
 
@@ -78,7 +82,7 @@ The AC magnitude is used by the AC analysis; the pulse is used by the transient 
    .ac dec 50 1 100k
    ```
 
-`.tran 10u 20m` simulates 20 ms in 10 µs output steps. `.ac dec 50 1 100k` sweeps from 1 Hz to 100 kHz with 50 points per decade. You can also build each line in the **Analysis** dialog (press **A**); see [chapter 4](04-simulating.md).
+`.tran 10u 20m` simulates 20 ms in 10 µs output steps. `.ac dec 50 1 100k` sweeps from 1 Hz to 100 kHz with 50 points per decade. You can also build each line in the Simulation setup dialog (press **A**). For more information, see [chapter 4](04-simulating.md).
 
 ### Run
 
@@ -100,11 +104,11 @@ Press ⌘S, or click **Save**, to save every changed sheet. Unsaved sheets show 
 
 ### If the app quits unexpectedly
 
-While you have unsaved changes, the app keeps a recovery copy of them: every 30 seconds, when you pause for a moment and when you switch to another window. The copy goes in the app's own settings folder, never over your files. Saving, or choosing **Discard** when you close, removes it.
+While you have unsaved changes, the app keeps a recovery copy of them. It updates the copy every 30 seconds, when you pause for a moment and when you switch to another window. The copy goes in the app's own settings folder, never over your files. Saving, or choosing **Discard** when you close, removes it.
 
-If the app crashes or is force-quit, the Home page shows **Unsaved work from an earlier session** the next time you start it, with the project or file, the sheets that changed and when. Opening that project or file again also asks first.
+If the app crashes or is force-quit, the Home page shows **Unsaved work from an earlier session** the next time you start it, with the project or file, the sheets that changed and when. Opening that project or file again also asks first. You have the following choices:
 
-- **Restore** opens the project with the changes put back. They are marked unsaved (•): your files on disk stay as they were until you press ⌘S.
+- **Restore** opens the project with the changes put back. They're marked unsaved (•), and your files on disk stay as they were until you press ⌘S.
 - **Discard** deletes the recovery copy.
 - **Later** (when opening a project) opens your saved files and keeps the copy for next time.
 
@@ -120,16 +124,16 @@ You can change how often copies are made, or turn them off, in [Settings](#setti
 
 ## Settings
 
-Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar. Settings fills the window, with a tab down the left for each section: Appearance, Schematic, Autosave, New projects and files, Simulation engine, Keyboard shortcuts and About. **Back** at the top left (or Esc) returns to where you were. Changes apply at once to every open window, and are kept for next time.
+Open Settings with ⌘, (**Spice Studio › Settings…** on macOS, **File › Preferences…** on Windows), or click **Settings** at the bottom of the Home page's sidebar. Settings fills the window, with a tab down the left for each section: Appearance, Schematic, Simulation and plots, Autosave, New projects and files, Simulation engine, Keyboard shortcuts and About. **Back** at the top left (or **Esc**) returns to where you were. Changes apply at once to every open window, and are kept for next time.
 
-- **Theme**: **Light**, **Dark** or **System** (follows your computer's setting). Dark is the default. Exported and printed schematics are always black on white.
-- **Appearance** also has **Interface scale** (80 % to 150 %, for every window) and **Netlist text size** for the netlist editor.
-- **Schematic**: show or hide the grid, and whether operating-point values appear on the schematic after a run. The **OP** button on the canvas toolbar still turns them on and off for the sheet you are on.
-- **Schematic** also has the **Grid style** (dots or lines), the **Label text size** for part names and values, the **Line weight** of symbols and wires, and what the **Scroll wheel** does: pan (the default; pinch or Ctrl+wheel zooms) or zoom (Shift+wheel then pans).
+The tabs hold the following settings:
+
+- **Appearance**: the **Theme**, which is **Light**, **Dark** or **System** (follows your computer's setting). Dark is the default. Exported and printed schematics are always black on white. This tab also has **Interface scale** (80 % to 150 %, for every window) and **Netlist text size** for the netlist editor.
+- **Schematic**: show or hide the grid, and whether operating-point values appear on the schematic after a run. The **OP** button on the canvas toolbar still turns them on and off for the sheet you are on. This tab also has the **Grid style** (dots or lines), the **Label text size** for part names and values, the **Line weight** of symbols and wires, and what the **Scroll wheel** does. The wheel either pans, which is the default (pinch or Ctrl+wheel zooms), or zooms (Shift+wheel then pans).
 - **Simulation and plots**: whether waveforms are drawn while a simulation runs, and the **Trace thickness** of plots.
 - **Autosave**: keep recovery copies of unsaved work, and how often (5 to 600 seconds).
-- **Keyboard shortcuts**: every shortcut that can be changed, by group. Click one and press the new keys; Esc cancels, and Backspace leaves the command with no shortcut. A key that is already taken, or one of the standard editing keys, is refused with the reason. The arrow beside a changed shortcut puts it back, and **Reset all** restores every default. Menus and tooltips show your keys. The fixed keys (undo, copy and paste, Esc, zoom and the mouse gestures) are listed at the bottom.
+- **Keyboard shortcuts**: every shortcut that can be changed, by group. Click one and press the new keys. **Esc** cancels, and **Backspace** leaves the command with no shortcut. The app refuses a key that is already taken, or one of the standard editing keys, and says why. The arrow beside a changed shortcut puts it back, and **Reset all** restores every default. Menus and tooltips show your keys. The fixed keys (undo, copy and paste, Esc, zoom and the mouse gestures) are listed at the bottom.
 - **New projects and files**: the folder New project suggests, and the compatibility mode and timeout that new projects and single files start with. Each project then keeps its own in **Run settings** ([chapter 4](04-simulating.md#run-settings)).
-- **Simulation engine**: the ngspice the app uses, its version and where it is. **Choose…** picks another ngspice program; **Use bundled** goes back to the built-in one. If the chosen program doesn't run, this shows the error.
+- **Simulation engine**: the ngspice the app uses, its version and where it is. **Choose…** picks another ngspice program, and **Use bundled** goes back to the built-in one. If the chosen program doesn't run, this shows the error.
 
 Next: [Drawing schematics](02-drawing-schematics.md).
