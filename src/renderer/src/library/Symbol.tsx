@@ -89,9 +89,9 @@ export function SymBody({ kind, part }: { kind: Kind; part?: Shape }) {
   return (
     <>
       {shade(d.path) && <path className="shade" d={shade(d.path)} />}
+      {d.circle && <circle r={d.circle} />} {/* first: a colour theme fills it solid, which would cover the +/- marks */}
       <path d={d.path} />
       {d.fill && <path className="f" d={d.fill} />}
-      {d.circle && <circle r={d.circle} />}
     </>
   )
 }
