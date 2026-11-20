@@ -21,9 +21,15 @@ const send = (id: string, accel = false) => opts.window()?.webContents.send('men
 // the label shows the user's changed shortcut (Settings › Keyboard shortcuts) when there is one
 const shown = (id: string, accelerator?: string) => (id in getPrefs().keys && plainKeys ? accelOf(getPrefs().keys[id]) : accelerator)
 let plainKeys = true // false after a changed shortcut turned out not to be a valid Electron accelerator: defaults are shown
-const cmd = (id: string, label: string, accelerator?: string, extra: Partial<Item> = {}): Item => (ids.add(id), {
-  id, label, accelerator: shown(id, accelerator), registerAccelerator: false, enabled: false, click: () => send(id), ...extra
-})
+// macOS ignores registerAccelerator: every accelerator is a live key equivalent, and Electron offers it each key press the
+// page didn't cancel, which includes every letter typed into a text box (typing "W" in a comment picked the wire tool).
+// So there a shortcut without ⌘ / Ctrl / Alt is not an accelerator at all: it is shown in the label, "Wire  (W)".
+const bare = (a?: string): a is string => mac && !!a && !/cmd|command|ctrl|control|alt|option|super|meta/i.test(a)
+const cmd = (id: string, label: string, accelerator?: string, extra: Partial<Item> = {}): Item => {
+  const a = shown(id, accelerator)
+  ids.add(id)
+  return { id, label: bare(a) ? `${label}  (${a.replace(/Shift\+/i, '⇧')})` : label, accelerator: bare(a) ? undefined : a, registerAccelerator: false, enabled: false, click: () => send(id), ...extra }
+}
 const check = (id: string, label: string, accelerator?: string) => cmd(id, label, accelerator, { type: 'checkbox' })
 // text-editing command: accelerator registered; the renderer runs the native op when a text field has focus
 const edit = (id: string, label: string, accelerator: string): Item => (ids.add(id), {
