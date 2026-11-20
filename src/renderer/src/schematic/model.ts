@@ -35,12 +35,13 @@ export interface Directive {
   y: number
   text: string
 }
-// Annotations, never netlisted: shapes from a to b, free text notes (size = font size, default 10), and the
+// Annotations, never netlisted: shapes from a to b, free text notes (size = font size, default 10; md: a comment
+// block, its text markdown drawn on a card), and the
 // sheet's title block (one per sheet; "sheet n of m" is filled in when drawn).
 export type Drawing =
   | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt; fill?: boolean } // fill: rect / ellipse drawn solid
   | { id: string; t: 'poly'; pts: Pt[]; fill?: boolean } // closed outline (a triangle…): custom symbols only, the sheet has no tool for it
-  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number }
+  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number; md?: boolean }
   | { id: string; t: 'title'; x: number; y: number; title: string; author: string; date: string; rev: string }
 export interface Sheet {
   version: 1
@@ -235,7 +236,7 @@ export function turnSeg<T extends { a: Pt; b: Pt }>(w: T, rot: boolean): T {
 const num = (v: unknown) => typeof v === 'number' && isFinite(v)
 const pt = (p: any) => num(p?.x) && num(p?.y)
 const str = (v: unknown) => typeof v === 'string'
-export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size))
+export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size)) && (d.md === undefined || typeof d.md === 'boolean')
   : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
   : (d.fill === undefined || typeof d.fill === 'boolean') && (d.t === 'poly' ? Array.isArray(d.pts) && d.pts.length >= 3 && d.pts.length <= 64 && d.pts.every(pt)
   : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b)))

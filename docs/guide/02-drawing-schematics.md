@@ -203,9 +203,10 @@ After the import, a report lists what wasn't converted or was converted with a c
 
 ## Notes, shapes and the title block
 
-Annotations explain a drawing. They're never written to the netlist, even when a note looks like SPICE. There are three kinds:
+Annotations explain a drawing. They're never written to the netlist, even when a note looks like SPICE. There are four kinds:
 
 - **Text note**: press **T** (or **Place › Text Note**, or the pen button in the toolbar), then click. Type in the popup. A note can hold several lines. **Size** picks Small, Normal, Large or Huge.
+- **Comment block**: choose **Comment block** from the pen button or **Place › Comment Block**, then click. Type markdown in the popup and it's drawn on a card: `#`, `##` and `###` headings, `**bold**`, `*italic*`, `` `code` `` and fenced code, `-` lists, `- [ ]` checkboxes, `>` quotes, `---` rules and `[links](url)` (shown as underlined text). Each line you type is one line on the card; text isn't wrapped.
 - **Shapes**: choose **Line**, **Arrow**, **Rectangle** or **Ellipse** from the pen button or **Place › Shape**. Click where the shape starts, then click where it ends. The line tool keeps going from the last point, so you can draw a polyline. Double-click or press **Esc** to stop.
 - **Title block**: choose **Title block** from the pen button or **Place › Title Block**. It appears under the bottom-right corner of the drawing with the sheet name, today's date and revision A. Select it to edit **Title**, **Author**, **Date** and **Revision**. In a project, **Sheet n of m** is filled in from the Sheets panel. Choose **Title block** again to remove it. Each sheet has its own.
 

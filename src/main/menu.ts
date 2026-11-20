@@ -122,6 +122,7 @@ function template(recents: Recent[]): Item[] {
     cmd('place.directive', 'SPICE Directive', 'S'),
     sep,
     cmd('place.note', 'Text Note', 'T'),
+    cmd('place.comment', 'Comment Block'),
     { label: 'Shape', submenu: [cmd('place.line', 'Line'), cmd('place.arrow', 'Arrow'), cmd('place.rect', 'Rectangle'), cmd('place.ellipse', 'Ellipse')] },
     check('place.titleBlock', 'Title Block'),
     sep,

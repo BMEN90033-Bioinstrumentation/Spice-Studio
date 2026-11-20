@@ -77,6 +77,11 @@
 .sch .drw.title text { font-size: 9px; fill: var(--text); }
 .sch .drw.title .tt { font-size: 13px; font-weight: 600; }
 .sch .drw.title .lb { fill: var(--dim); font-size: 7px; }
+/* comment block (a note with md): markdown on a floating card */
+.sch .drw.md .bg { fill: var(--s2); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
+.sch .drw.md text { fill: var(--text); }
+.sch .drw.md .c { fill: var(--note, #8fa3ba); }
+.sch .drw.md.on .bg { stroke: var(--sel); }
 .sch .drw.on { color: var(--sel); }
 .sch .drw.on text, .sch .drw.on.title text { fill: var(--sel); }
 .sch .drw.ghost { color: var(--hl); opacity: 0.6; pointer-events: none; }

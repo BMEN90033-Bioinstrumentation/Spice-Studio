@@ -9,7 +9,7 @@ export const SHORTCUTS: Shortcut[] = [
   ...g('View', [['view.sheets', 'Sheets panel', 'Mod+1'], ['view.parts', 'Parts panel', 'Mod+2'], ['view.partsToggle', 'Parts panel (canvas)', 'Shift+L'], ['view.plots', 'Results panel', 'Mod+3'],
     ['place.fromLibrary', 'Search parts', '/'], ['view.fit', 'Fit to window', 'F'], ['help.shortcuts', 'Keyboard shortcuts', 'Mod+/']]),
   ...g('Edit', [['edit.duplicate', 'Duplicate', 'Mod+D'], ['edit.rotate', 'Rotate', 'Ctrl+R'], ['edit.mirror', 'Mirror', 'Ctrl+E']]),
-  ...g('Place', [['place.wire', 'Wire', 'W'], ['place.bus', 'Bus', 'B'], ['place.directive', 'SPICE directive', 'S'], ['place.note', 'Text note', 'T'], ['place.res', 'Resistor', 'R'],
+  ...g('Place', [['place.wire', 'Wire', 'W'], ['place.bus', 'Bus', 'B'], ['place.directive', 'SPICE directive', 'S'], ['place.note', 'Text note', 'T'], ['place.comment', 'Comment block', ''], ['place.res', 'Resistor', 'R'],
     ['place.cap', 'Capacitor', 'C'], ['place.ind', 'Inductor', 'L'], ['place.vsrc', 'Voltage source', 'V'], ['place.isrc', 'Current source', 'I'], ['place.diode', 'Diode', 'D'],
     ['place.npn', 'NPN transistor', 'Q'], ['place.nmos', 'NMOS transistor', 'M'], ['place.gnd', 'Ground', 'G'], ['place.label', 'Net label', 'N'], ['place.port', 'Sheet port', 'H']])
 ]

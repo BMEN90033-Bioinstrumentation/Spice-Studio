@@ -17,7 +17,7 @@ import { keysOf, matches, useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { prefs, usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
+import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, MessageSquareText, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -46,7 +46,7 @@ export interface Overlay {
 }
 
 type ShapeTool = 'line' | 'arrow' | 'rect' | 'ellipse'
-type Tool = 'select' | 'wire' | 'bus' | 'text' | 'note' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
+type Tool = 'select' | 'wire' | 'bus' | 'text' | 'note' | 'comment' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
 const SHAPES: { t: ShapeTool; title: string; icon: ReactNode }[] = [
   { t: 'line', title: 'Line', icon: <Minus /> }, { t: 'arrow', title: 'Arrow', icon: <MoveUpRight /> },
   { t: 'rect', title: 'Rectangle', icon: <Square /> }, { t: 'ellipse', title: 'Ellipse', icon: <Circle /> }
@@ -146,6 +146,9 @@ function Card({ t, cls }: { t: Directive; cls: string }) {
 const isSrc = (p: Part) => p.kind === 'vsrc' || p.kind === 'isrc'
 const optLine = (text: string, k: SetupKind = 'options') => text.split('\n').find((l) => setupKind(l) === k)
 
+// a new comment block: a note with md set, its text markdown (md.ts)
+const COMMENT = { text: '## Comment\nMarkdown: **bold**, *italic*, `code`\n- lists', md: true }
+
 // export palette: black on white, sizes in world units (the export has no zoom)
 const PRINT_CSS = [
   '.sym path,.sym circle{fill:none;stroke:#000;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}',
@@ -156,6 +159,7 @@ const PRINT_CSS = [
   '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}',
   '.drw path{fill:none;stroke:#333;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}.drw .f{fill:#333}.drw .hit,.drw .hitf{display:none}',
   '.drw text{fill:#222;white-space:pre}.drw.title text{font-size:9px}.drw.title .tt{font-size:13px;font-weight:600}.drw.title .lb{fill:#777;font-size:7px}',
+  '.drw.md .bg{fill:#fafafa;stroke:#999;stroke-width:0.6}.drw.md .c{fill:#555}',
   '.bus line{stroke:#000;stroke-width:3.5;stroke-linecap:round}.bjn{fill:#000}'
 ].join('')
 
@@ -502,7 +506,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   // the canvas' changeable shortcuts (shortcuts.ts ids; Settings › Keyboard shortcuts)
   const HOT: [string, () => void][] = [
     ['edit.rotate', () => orient(true)], ['edit.mirror', () => orient(false)], ['edit.duplicate', () => void paste(picked())],
-    ['place.wire', () => use('wire')], ['place.bus', () => use('bus')], ['place.directive', () => use('text')], ['place.note', () => use('note')],
+    ['place.wire', () => use('wire')], ['place.bus', () => use('bus')], ['place.directive', () => use('text')], ['place.note', () => use('note')], ['place.comment', () => use('comment')],
     ['sim.probe', () => use('probe')], ['sim.setup', () => setDlg('analysis')], ['view.fit', () => fit()], ['view.partsToggle', () => toggleLib()],
     ['place.fromLibrary', () => (toggleLib(true), setTimeout(() => search.current?.focus()))],
     ...Object.values(KEYS).map((kind): [string, () => void] => ['place.' + kind, () => use({ place: kind, title: SYMBOLS[kind].title })])
@@ -594,6 +598,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     { id: 'place.bustap', run: () => use({ place: 'bustap', title: SYMBOLS.bustap.title }) },
     { id: 'place.directive', run: () => use('text') },
     { id: 'place.note', run: () => use('note') },
+    { id: 'place.comment', run: () => use('comment') },
     ...SHAPES.map(({ t }) => ({ id: 'place.' + t, run: () => use(t) })),
     { id: 'place.titleBlock', run: toggleTitle, checked: () => !!titleOf(cur.current) },
     { id: 'file.import', run: () => void importFile() },
@@ -657,8 +662,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       commit({ ...s, draw: [...(s.draw ?? []), { id: uid(), t: tool, a: start, b: p }] })
       return setStart(tool === 'line' ? p : null) // lines chain into a polyline until Esc / double-click
     }
-    if (tool === 'note') {
-      const d: Drawing = { id: uid(), t: 'note', x: p.x, y: p.y, text: 'Note' }
+    if (tool === 'note' || tool === 'comment') {
+      const d: Drawing = { id: uid(), t: 'note', x: p.x, y: p.y, ...(tool === 'note' ? { text: 'Note' } : COMMENT) }
       commit({ ...s, draw: [...(s.draw ?? []), d] })
       setSel(new Set([d.id]))
       use('select')
@@ -902,8 +907,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
     : tool === 'text'
       ? 'Click to place a SPICE directive · Esc returns to select'
-      : tool === 'note'
-      ? 'Click to place a text note (not part of the netlist) · Esc returns to select'
+      : tool === 'note' || tool === 'comment'
+      ? `Click to place a ${tool === 'note' ? 'text note' : 'comment block'} (not part of the netlist) · Esc returns to select`
       : isShape(tool)
       ? start
         ? `Click to finish the ${shapeName(tool)}${tool === 'line' ? ' and start the next segment · double-click or Esc ends' : ' · Esc cancels'}`
@@ -931,7 +936,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         </defs>
         <rect width="100%" height="100%" fill={`url(#${gridId})`} />
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
-          {sheet.draw?.map((d) => <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} sheetNo={sheetNo} />)}
+          {sheet.draw?.map((d) => !(d.t === 'note' && d.md) && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} sheetNo={sheetNo} />)}
           {sheet.parts.map((p) => (
             <g key={p.id} data-id={p.id} className={`part${p.kind === 'block' && !p.sheet && !p.lib ? ' ph' : ''}${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
               <g className="sym" transform={tf(p)}>
@@ -957,6 +962,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           ))}
           {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
+          {/* comment blocks float over the circuit; the other annotations sit under it */}
+          {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} />)}
           {dots.j.map((q) => <circle key={`j${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
           {dots.nc.map((q, i) => <rect key={i} className="nc" x={q.x - 2} y={q.y - 2} width={4} height={4} />)}
           {placing && cursor && (
@@ -967,7 +974,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             </g>
           )}
           {tool === 'text' && cursor && <Card t={{ id: '', ...cursor, text: '.op' }} cls="ghost" />}
-          {tool === 'note' && cursor && <DrawingEl d={{ id: '', t: 'note', ...cursor, text: 'Note' }} cls="ghost" />}
+          {(tool === 'note' || tool === 'comment') && cursor && <DrawingEl d={{ id: '', t: 'note', ...cursor, ...(tool === 'note' ? { text: 'Note' } : COMMENT) }} cls="ghost" />}
           {isShape(tool) && cursor && (start ? <DrawingEl d={{ id: '', t: tool, a: start, b: cursor }} cls="ghost" />
             : <g className="preview"><circle cx={cursor.x} cy={cursor.y} r={2.5} /></g>)}
           {(tool === 'wire' || tool === 'bus') && cursor && (
@@ -1006,11 +1013,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <DropdownMenu>
           <Tip label="Draw: text, shapes, title block, buses">
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" aria-label="Draw" className={cn(TBTN, (tool === 'note' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /><span>Draw</span></Button>
+              <Button variant="ghost" size="sm" aria-label="Draw" className={cn(TBTN, (tool === 'note' || tool === 'comment' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /><span>Draw</span></Button>
             </DropdownMenuTrigger>
           </Tip>
           <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>T</DropdownMenuShortcut></DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => use('comment')}><MessageSquareText />Comment block</DropdownMenuItem>
             {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => use('bus')}><Spline className="stroke-[3]" />Bus<DropdownMenuShortcut>B</DropdownMenuShortcut></DropdownMenuItem>
@@ -1104,7 +1112,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
       {drw?.t === 'note' && pop?.id === drw.id && (
         <div className={INSP} style={popAt} onPointerDown={dragPop} key={drw.id}>
-          <Label className={FLD}>Text note (not netlisted)
+          <Label className={FLD}>{drw.md ? 'Comment block (markdown, not netlisted)' : 'Text note (not netlisted)'}
             <Textarea ref={ta} {...keptSize('note')} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />

@@ -1,6 +1,7 @@
 // Sheet annotations (model.ts Drawing): geometry and SVG. Never netlisted. The same shapes draw custom library symbols.
 import type { Drawing, Pt } from './model'
 import type { Box } from '../library/Symbol'
+import { mdChars, parseMd, type MdLine } from './md'
 
 export type Shape = Exclude<Drawing, { t: 'note' } | { t: 'title' }>
 export const NOTE = 10 // default note font size
@@ -10,11 +11,15 @@ const r1 = (v: number) => Math.round(v * 10) / 10
 
 const norm = (a: Pt, b: Pt): Box => ({ x0: Math.min(a.x, b.x), y0: Math.min(a.y, b.y), x1: Math.max(a.x, b.x), y1: Math.max(a.y, b.y) })
 const noteLines = (d: { text: string }) => d.text.split('\n')
+const MD_PAD = 6, MD_LH = 1.4 // comment block: card padding, line height in em
+const mdBox = (d: { x: number; y: number }, s: number, ls: MdLine[]): Box =>
+  ({ x0: d.x, y0: d.y, x1: d.x + Math.max(40, ...ls.map((l) => mdChars(l) * l.k * s * 0.6)) + 2 * MD_PAD, y1: d.y + ls.reduce((h, l) => h + l.k * s * MD_LH, 0) + 2 * MD_PAD })
 
 // ponytail: monospace estimate (char = 0.6em), like the directive cards
 export function dbox(d: Drawing): Box {
   if (d.t === 'note') {
     const s = d.size ?? NOTE, l = noteLines(d)
+    if (d.md) return mdBox(d, s, parseMd(d.text))
     return { x0: d.x, y0: d.y, x1: d.x + Math.max(1, ...l.map((x) => x.length)) * s * 0.6, y1: d.y + l.length * s * 1.25 }
   }
   if (d.t === 'title') return { x0: d.x, y0: d.y, x1: d.x + TB.w, y1: d.y + TB.h }
@@ -46,6 +51,25 @@ export function DrawingEl({ d, cls = '', sheetNo = '1 of 1' }: { d: Drawing; cls
   const id = cls === 'ghost' ? undefined : d.id
   if (d.t === 'note') {
     const s = d.size ?? NOTE, b = dbox(d)
+    if (d.md) {
+      const ls = parseMd(d.text)
+      let y = d.y + MD_PAD
+      return (
+        <g data-id={id} className={`drw md ${cls}`}>
+          <rect className="bg" x={b.x0} y={b.y0} width={b.x1 - b.x0} height={b.y1 - b.y0} rx={3} />
+          {ls.map((l, i) => {
+            const fs = l.k * s, y0 = y
+            y += fs * MD_LH
+            if (l.rule) return <path key={i} d={`M${b.x0 + MD_PAD} ${y0 + fs * 0.7}H${b.x1 - MD_PAD}`} />
+            return (
+              <text key={i} x={d.x + MD_PAD} y={y0 + fs} fontSize={fs}>
+                {l.spans.map((p, j) => <tspan key={j} className={p.c ? 'c' : undefined} fontWeight={p.b ? 700 : undefined} fontStyle={p.i ? 'italic' : undefined} textDecoration={p.u ? 'underline' : undefined}>{p.s}</tspan>)}
+              </text>
+            )
+          })}
+        </g>
+      )
+    }
     return (
       <g data-id={id} className={`drw note ${cls}`}>
         <rect className="hitf" x={b.x0} y={b.y0} width={b.x1 - b.x0} height={b.y1 - b.y0} />
