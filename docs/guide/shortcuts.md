@@ -84,9 +84,10 @@ These work on a plot in the results panel.
 
 | Keys | Action |
 |---|---|
-| Click | Place cursor A |
-| Shift+click | Place cursor B |
+| A | Place cursor A at the mouse |
+| B | Place cursor B at the mouse |
 | Drag a cursor line | Move that cursor |
+| Right-click | Menu: place or remove a cursor, reset the zoom |
 | Drag on the plot | Zoom |
 | Double-click | Reset the zoom |
 | ↵ in **＋ expression** | Add the expression |

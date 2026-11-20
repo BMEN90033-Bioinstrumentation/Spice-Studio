@@ -8,7 +8,7 @@ import { emptySheet, newPart, pins, uid, type Pt, type Sheet } from '../src/rend
 import type { Kind } from '../src/renderer/src/schematic/symbols.ts'
 import { netlist, type NetlistResult } from '../src/renderer/src/schematic/netlist.ts'
 import { parseRaw, type RawPlot } from '../src/main/rawfile.ts'
-import { SAVE_CURRENTS, blame, currentVectors, findVector, opVoltages, voltageVector } from '../src/renderer/src/sim/probe.ts'
+import { SAVE_CURRENTS, blame, currentVectors, findVector, instPath, instances, opVoltages, voltageVector } from '../src/renderer/src/sim/probe.ts'
 
 function flag(s: Sheet, q: Pt, n: string) {
   const f = newPart(s, n === '0' ? 'gnd' : 'label', q.x, q.y)
@@ -248,4 +248,16 @@ test('phase 9 kinds: current vectors in .op/.tran, branch/T-line ones also in .a
   }
   near(tr, 's1', 1e-3), near(tr, 'w1', 1e-3) // on: 1 V across 1 Ω + 999 Ω
   near(op, 's1', 1e-9), near(op, 'w1', 1e-9) // ngspice-47 .op quirk: switch @[i] uses Roff (see SAVE_CURRENTS note)
+})
+
+test('instances / instPath: vectors grouped by the block they are in', () => {
+  const insts = instances('* t\nX1 in out filter\nXU2 a b 0 amp gain=2\nR1 in 0 1k\n.subckt filter a b\nX2 a b stage\nR1 a b 1k\n.ends\n.subckt stage a b\nC1 a b 1n\n.ends\n.subckt amp a b c\n.ends\n.end')
+  assert.deepEqual(insts, { x1: 'filter', 'x1.x2': 'stage', xu2: 'amp' })
+  assert.equal(instPath('v(out)', insts), '')
+  assert.equal(instPath('i(@r1[i])', insts), '')
+  assert.equal(instPath('v(x1.mid)', insts), 'x1')
+  assert.equal(instPath('V(X1.X2.n)', insts), 'x1.x2')
+  assert.equal(instPath('i(@c.x1.x2.c1[i])', insts), 'x1.x2')
+  assert.equal(instPath('i(v.x1.v1)', insts), 'x1')
+  assert.equal(instPath('v(a.b)', insts), '') // a dotted top-level net
 })

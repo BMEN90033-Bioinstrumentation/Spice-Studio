@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { keepSel, liveRun, progress } from '../src/renderer/src/sim/live.ts'
+import { eta, keepSel, liveRun, progress, runProgress } from '../src/renderer/src/sim/live.ts'
 
 const vars = [{ name: 'time' }, { name: 'v(a)' }, { name: 'v(b)' }]
 
@@ -24,4 +24,9 @@ test('liveRun: chunks build growing plots; progress follows the analysis line', 
   const ac = { ...p, plotname: 'AC Analysis', vars: [{ ...p.vars[0], re: new Float64Array([100]) }], points: 1 }
   assert.equal(progress(ac, '.ac dec 10 1 10k'), 0.5) // log sweep: 100 Hz is half way from 1 Hz to 10 kHz
   assert.equal(progress(p, '* no analysis line'), null)
+  assert.equal(runProgress([p, ac], '.tran 1u 8m\n.ac dec 10 1 10k\n.op'), 1.5 / 3) // tran done, half way through ac, .op to come
+  assert.equal(runProgress([], '.tran 1u 8m'), 0)
+  assert.equal(eta(10, 0.25), ' · about 30 s left')
+  assert.equal(eta(50, 0.2), ' · about 3 min 20 s left')
+  assert.deepEqual([eta(0.5, 0.5), eta(10, 0.01), eta(10, 1)], ['', '', '']) // too early to say; done
 })

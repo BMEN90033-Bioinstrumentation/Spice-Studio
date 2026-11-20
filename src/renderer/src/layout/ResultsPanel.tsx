@@ -1,7 +1,7 @@
 // Plot tabs + plot + console. Presentational: the workspace owns the state; rendered docked or inside the pop-out window.
 import { Component, useMemo, useState, type ReactNode } from 'react'
-import { ChartColumn, SlidersHorizontal } from 'lucide-react'
-import { eng, Plot, type PlotRun } from '../Plot'
+import { ChartColumn, Maximize2, Minimize2, Plus, SlidersHorizontal, X } from 'lucide-react'
+import { eng, Plot, type Chart, type PlotRun } from '../Plot'
 import { keysOf } from '../commands'
 import { keyLabel } from './Panel'
 import { Histogram } from '../plot/Histogram'
@@ -43,13 +43,14 @@ class Guard extends Component<{ children: ReactNode; reset?: unknown }, { err: E
   }
 }
 
-export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic?: Record<string, number> } // logic: plot/logic.ts logicNets
-// sels key of a tab's pane i (.plot lines stack several charts); pane 0 is the tab's own key, so probing lands there
-export const paneKey = (key: string, i: number) => (i ? `${key}|${i}` : key)
+export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic?: Record<string, number>; insts?: Record<string, string> } // logic: plot/logic.ts logicNets; insts: sim/probe.ts instances
+const NO_CHART: Chart = { id: 0, title: '', sel: [] }
 
-export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed, onBlame, actions, meas, tune }: {
+// plots: each tab's charts (the plot builder: add, title, remove; .plot lines start a tab with several). pane: the chart
+// shown alone, null = all of them stacked
+export function ResultsPanel({ tabs, cur, ran, onTab, plots, onPlots, pane, onPane, log, blamed, onBlame, actions, meas, tune }: {
   tabs: ResultTab[]; cur?: ResultTab; ran: boolean; onTab: (key: string) => void
-  sels: Record<string, string[]>; onSels: (s: Record<string, string[]>) => void
+  plots: Record<string, Chart[]>; onPlots: (p: Record<string, Chart[]>) => void; pane: number | null; onPane: (i: number | null) => void
   log: string[]; blamed: { line: string; blame: Blame }[]; onBlame: (b: Blame) => void; actions?: ReactNode
   meas?: MeasTable
   tune?: TuneHost // live tuning sliders (plot/Tune.tsx)
@@ -80,23 +81,50 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
       </nav>
       {tune && <Guard><Tune host={tune} swept={steppedNames(tabs[0]?.runs.map((r) => r.label) ?? [])} hidden={!tuning} onClose={() => setTuning(false)} /></Guard>}
       <div className="plotarea">
-        {cur && (
-          <div className="plotpanes">
-            {(cur.panes?.length ? cur.panes : [null]).map((p, i) => {
-              const k = paneKey(cur.key, i)
-              return (
-                <div key={k} className="plotpane">
-                  {p?.title && <h3 className="panetitle">{p.title}</h3>}
-                  <div className="panebody">
-                    <Guard reset={cur.runs}>
-                      {tableKind(cur.runs[0].plot) ? <ScalarTable runs={cur.runs} /> : <Plot runs={cur.runs} logic={cur.logic} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} hold={tuning} />}
-                    </Guard>
+        {cur && (() => {
+          const first = cur.runs[0].plot, charts = plots[cur.key] ?? [], set = (cs: Chart[]) => onPlots({ ...plots, [cur.key]: cs })
+          const plot = (c: Chart, i: number) => (
+            <Guard reset={cur.runs}>
+              {tableKind(first) ? <ScalarTable runs={cur.runs} /> : <Plot runs={cur.runs} logic={cur.logic} insts={cur.insts} chart={c} onChart={(n) => set(charts.map((o, j) => (j === i ? n : o)))} hold={tuning} />}
+            </Guard>
+          )
+          // tables (.op, .tf, .sens, .pz): nothing to build
+          if (tableKind(first) || first.points < 2) return <div className="plotpanes"><div className="panebody">{plot(charts[0] ?? NO_CHART, 0)}</div></div>
+          const one = pane != null && charts[pane] ? pane : null, many = charts.length > 1
+          return (
+            <div className="plotpanes">
+              <div className="flex shrink-0 items-center gap-0.5 overflow-x-auto border-b px-2 py-0.5">
+                {many && <TabBtn on={one == null} onClick={() => onPane(null)}>All plots</TabBtn>}
+                {many && charts.map((c, i) => <TabBtn key={c.id} on={one === i} onClick={() => onPane(i)}>{c.title || `Plot ${i + 1}`}</TabBtn>)}
+                <Tip label="Add another plot to this tab, with its own traces, title and labels">
+                  <Button variant="ghost" size="xs" className="h-7 px-2 font-normal text-muted-foreground"
+                    onClick={() => (set([...charts, { id: Math.max(-1, ...charts.map((c) => c.id)) + 1, title: '', sel: [] }]), one != null && onPane(charts.length))}><Plus />Add plot</Button>
+                </Tip>
+              </div>
+              <div className="panestack">
+                {charts.map((c, i) => (
+                  <div key={c.id} className="plotpane" hidden={one != null && one !== i}>
+                    <div className="flex items-center gap-0.5 pr-2">
+                      <input className="panetitle" value={c.title} placeholder={`Plot ${i + 1}: click to add a title`} aria-label={`Title of plot ${i + 1}`}
+                        onChange={(e) => set(charts.map((o, j) => (j === i ? { ...o, title: e.target.value } : o)))} />
+                      {many && (
+                        <Tip label={one == null ? 'Show only this plot' : 'Show all plots'}>
+                          <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label={one == null ? 'Show only this plot' : 'Show all plots'} onClick={() => onPane(one == null ? i : null)}>{one == null ? <Maximize2 /> : <Minimize2 />}</Button>
+                        </Tip>
+                      )}
+                      {many && (
+                        <Tip label="Remove this plot">
+                          <Button variant="ghost" size="icon-xs" className="text-muted-foreground" aria-label={`Remove plot ${i + 1}`} onClick={() => (set(charts.filter((_, j) => j !== i)), onPane(null))}><X /></Button>
+                        </Tip>
+                      )}
+                    </div>
+                    <div className="panebody">{plot(c, i)}</div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                ))}
+              </div>
+            </div>
+          )
+        })()}
         {showMeas && <Guard reset={meas}><Measurements meas={meas!} /></Guard>}
         {showFour && <Guard reset={four}><FourierTables four={four} /></Guard>}
       </div>

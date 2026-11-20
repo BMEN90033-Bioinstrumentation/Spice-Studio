@@ -61,10 +61,14 @@ main.sch { grid-template-columns: minmax(420px, 58%) 1fr; }
 
 .plotarea { min-height: 0; position: relative; }
 /* .plot lines: stacked charts, each with its own vector list */
-.plotpanes { position: absolute; inset: 0; display: flex; flex-direction: column; overflow-y: auto; }
+.plotpanes { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.panestack { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
 .plotpane { flex: 1 0 280px; display: flex; flex-direction: column; } /* many charts scroll rather than squash */
 .panebody { flex: 1; min-height: 0; position: relative; }
-.panetitle { margin: 0; padding: 5px 12px 3px; font-size: 12px; font-weight: 600; color: var(--text); }
+/* a chart's title: an input that reads as a heading until hovered or edited */
+.panetitle { flex: 1; min-width: 0; margin: 2px 4px 0; padding: 3px 8px; font-size: 12px; font-weight: 600; color: var(--text); background: none; border: 0; border-radius: var(--r); outline: 0; }
+.panetitle::placeholder { font-weight: 400; color: var(--dim); }
+.panetitle:is(:hover, :focus) { background: var(--s2); }
 .plotpane + .plotpane { border-top: 1px solid var(--line); }
 .plot { position: absolute; inset: 0; display: grid; grid-template-columns: 200px 1fr; grid-template-rows: 1fr auto auto; }
 .chart { min-height: 0; min-width: 0; overflow: hidden; padding: 8px 8px 0; } /* = PAD_X / PAD_Y in Plot.tsx */

@@ -37,6 +37,18 @@ These results are numbers rather than waveforms, so their tabs show a table in p
 
 **File › Open Raw File…** shows the results in an existing `.raw` file without running anything. The file can be one written by ngspice (`ngspice -b -r out.raw`, `write` in a `.control` block, binary or ASCII) or by LTspice. Each plot in the file gets a tab, and the plot tools (cursors, expressions, FFT, export) work as usual. From the Home page it opens in an untitled workspace. In an open project it replaces the results panel's contents until the next run.
 
+### Building plots
+
+A tab starts with one plot. Build more in the tab as follows:
+
+- **Add plot** in the bar above the plots adds another chart with its own vector list. With several plots, the bar also has **All plots** (every chart, stacked) and one button per plot (that chart on its own). The arrows at the top right of a plot do the same.
+- Click the line above a plot (**Plot 1: click to add a title**) and type its title.
+- In a project with blocks, the vector list has one group per sheet: **Top sheet**, then each block as `X1 · filter` (the instance and its sheet). Click a group to open it and tick what you want plotted. A closed group says how many of its vectors are plotted.
+- The axes get their titles from what is plotted. To change one, or the name of a trace in the legend, open **Labels** at the bottom of the vector list, type the text and press **Enter**. Clear the box to go back to the automatic label.
+- **×** removes a plot.
+
+Plots, titles and labels are kept across runs until you close the project. Alt+click probes go into the plot shown on its own, or the top one when all are shown.
+
 ### Choosing the plots with `.plot`
 
 Put `.plot` lines in a directive to pick what is plotted after each run. Each line becomes its own chart, stacked in the analysis's tab, so signals of very different sizes (millivolts at the electrodes, volts after the amplifier) each get a readable scale:
@@ -84,11 +96,13 @@ The **Operating Point** tab lists the node voltages and device currents as a tab
 
 To place cursors, do the following:
 
-1. Click on the plot to place cursor **A**.
-2. **Shift+click** to place cursor **B**.
+1. Move the mouse over the plot and press **A** to place cursor **A** there.
+2. Press **B** to place cursor **B**.
 3. Drag a cursor line to move it.
 
-A readout table appears under the plot. For each trace it shows the value at A, at B, the difference **B − A** and the **slope** (ΔY/ΔX). The first row shows the x values, their difference, and **1/Δ**, which is the frequency when A and B are one period apart. Click **×** in the table to remove both cursors.
+Right-click the plot for the same as a menu: **Place cursor A here**, **Place cursor B here**, **Remove cursor A** / **B** and **Reset zoom**.
+
+A readout table appears under the plot. For each trace it shows the value at A, at B, the difference **B − A** and the **slope** (ΔY/ΔX). The first row shows the x values, their difference, and **1/Δ**, which is the frequency when A and B are one period apart. Click **×** in the table to remove both cursors, or right-click and choose **Remove cursor A** or **B** to remove one.
 
 ![Cursors A and B one period apart: 1/Δ reads 998.5 Hz](images/05-cursors.png)
 

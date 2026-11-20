@@ -2,6 +2,7 @@
 import type { Part } from '../schematic/model.ts'
 import type { NetlistResult } from '../schematic/netlist.ts'
 import type { RawPlot } from '../../../main/rawfile.ts'
+import { logicalLines } from './analysis.ts'
 
 // Observed on ngspice-47 (`ngspice -b -r out.raw`) with `.options savecurrents`:
 //  - .op / .tran / .dc plots gain device currents named `i(@r1[i])`, `i(@c1[i])`, `i(@l1[i])`, `i(@i1[current])`,
@@ -60,6 +61,39 @@ export function opVoltages(nl: NetlistResult, op: RawPlot): Record<string, numbe
     if (name) out[net] = op.vars.find((v) => v.name === name)!.re[0]
   }
   return out
+}
+
+// Block / subcircuit instances of a netlist: instance path (lowercase, 'x1' or 'x1.x2') -> its subckt name (for a
+// block, its sheet). The plot's vector list groups by these.
+export function instances(netlist: string): Record<string, string> {
+  const xs: Record<string, [string, string][]> = {}, scope = [''] // X lines per scope: '' = top level, else the subckt
+  for (const { text } of logicalLines(netlist)) {
+    const t = text.split(/\s+/)
+    if (/^\.subckt$/i.test(t[0])) scope.push((t[1] ?? '').toLowerCase())
+    else if (/^\.ends$/i.test(t[0])) scope.length > 1 && scope.pop()
+    else if (/^x/i.test(t[0])) {
+      const end = t.findIndex((w, i) => i > 0 && (/^params:$/i.test(w) || w.includes('='))), at = (end < 0 ? t.length : end) - 1
+      if (at >= 1) (xs[scope[scope.length - 1]] ??= []).push([t[0].toLowerCase(), t[at]])
+    }
+  }
+  const out: Record<string, string> = {}
+  const walk = (s: string, pre: string, depth: number) => {
+    for (const [ref, name] of xs[s] ?? []) {
+      out[pre + ref] = name
+      if (depth < 16) walk(name.toLowerCase(), `${pre}${ref}.`, depth + 1) // 16: a netlist that instances itself
+    }
+  }
+  walk('', '', 0)
+  return out
+}
+// the instance a vector belongs to ('' = the top level): v(x1.out) -> x1, i(@r.x1.x2.r1[i]) -> x1.x2, i(v.x1.v1) -> x1
+export function instPath(name: string, insts: Record<string, string>): string {
+  const segs = name.toLowerCase().replace(/^[a-z]+\(@?|(\[\w+\])?\)$/g, '').split('.')
+  for (const from of [0, 1]) { // 1: past a device's type letter
+    const p = segs.slice(from, -1).join('.')
+    if (p && Object.hasOwn(insts, p)) return p
+  }
+  return ''
 }
 
 export interface Blame { parts: string[]; nets: string[] } // part ids, net names

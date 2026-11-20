@@ -50,3 +50,19 @@ export function progress(p: RawPlot, netlist: string): number | null {
       : a.kind === 'dc' ? f(spiceValue(a.start), spiceValue(a.stop)) : NaN
   return Number.isFinite(r) ? Math.min(1, Math.max(0, r)) : null
 }
+
+// 0…1 through a whole run: the analyses already written plus the way through the one being written
+export function runProgress(plots: RawPlot[], netlist: string): number {
+  if (!plots.length) return 0
+  const total = Math.max(plots.length, netlist.match(/^[ \t]*\.(op|tran|ac|dc|noise|tf|sens|pz|disto|sp)\b/gim)?.length ?? 0)
+  return Math.min(1, (plots.length - 1 + (progress(plots[plots.length - 1], netlist) ?? 0)) / total)
+}
+
+// time left, from the time taken so far and the fraction done: " · about 12 s left", " · about 3 min 20 s left";
+// '' in the first second or the first 2%, when the guess would jump about
+// ponytail: a straight-line guess; transient steps aren't evenly priced, smooth it if it reads jumpy
+export function eta(elapsedS: number, done: number): string {
+  if (!(elapsedS >= 1 && done >= 0.02 && done < 1)) return ''
+  const s = Math.ceil((elapsedS * (1 - done)) / done)
+  return ` · about ${s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`} left`
+}

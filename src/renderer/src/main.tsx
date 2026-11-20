@@ -19,8 +19,8 @@ import { newSim, openSettings, prefs, Preferences } from './Preferences'
 import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Recovery'
 import { UpdateCard } from './Update'
 import { focusPopout } from './layout/PopOut'
-import { paneKey, ResultsPanel } from './layout/ResultsPanel'
-import { defaultSel, pretty, type PlotRun } from './Plot'
+import { ResultsPanel } from './layout/ResultsPanel'
+import { defaultSel, pretty, type Chart, type PlotRun } from './Plot'
 import { logicNets } from './plot/logic'
 import { bom, bomCsv, bomXlsx } from './project/bom'
 import { BOMWIN, BomWindow } from './project/BomWindow'
@@ -30,14 +30,14 @@ import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
 import { TEMPLATES } from './schematic/templates'
 import { annotate } from './schematic/annotate'
-import { blame, currentVectors, findVector, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
+import { blame, currentVectors, findVector, instances, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
 import { parseMeas } from './sim/meas'
 import { plotRuns, startSel } from './sim/results'
 import { expandSweep } from './sim/sweep'
-import { keepSel, liveRun, progress } from './sim/live'
+import { eta, keepSel, liveRun, runProgress } from './sim/live'
 import { tunedNote, withKnobs, type Knob } from './sim/tune'
 import { ArrowUpToLine, BookOpen, ChevronLeft, FileCode, FolderOpen, House, Pencil, Play, Plus, Save, Settings, SlidersHorizontal, Square, Trash2, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -74,7 +74,7 @@ const json = (x: unknown) => JSON.stringify(x, null, 1)
 const msg = (e: unknown) => String((e as Error)?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 type Run = { label: string; result: SimResult; netlist: string }
-type Tab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic: Record<string, number> } // panes: .plot lines
+type Tab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic: Record<string, number>; insts: Record<string, string> } // panes: .plot lines
 // plots keyed by plotname + occurrence, so the same analysis lines up across sweep runs
 const keyed = (plots: RawPlot[]) => {
   const n: Record<string, number> = {}
@@ -87,8 +87,16 @@ function tabsOf(runs: Run[]): Tab[] {
     name: p.plotname,
     runs: runs.flatMap((r, i) => (maps[i].has(key) ? plotRuns(r.label, maps[i].get(key)!, r.netlist, +key.slice(key.lastIndexOf('#') + 1)) : [])), // nested .dc: a run per outer value
     panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name)),
-    logic: logicNets(runs[0].netlist) // digital nets: Plot draws them as logic rows
+    logic: logicNets(runs[0].netlist), // digital nets: Plot draws them as logic rows
+    insts: instances(runs[0].netlist) // blocks: Plot groups the vector list by sheet
   })).sort((a, b) => analysisPos(runs[0].netlist, a.name) - analysisPos(runs[0].netlist, b.name))
+}
+// a tab's charts after a run: the user's (old), their picks kept where the vectors still exist, else the .plot lines' or
+// one chart of the default vectors. A chart left with nothing gets its default back; one the user added stays empty.
+function chartsFor(old: Chart[] | undefined, { runs: [{ plot }], panes }: Tab): Chart[] {
+  const defs: Chart[] = panes?.length ? panes.map((p, id) => ({ id, title: p.title, sel: p.sel })) : [{ id: 0, title: '', sel: startSel(plot) ?? defaultSel(plot) }]
+  if (!old?.length) return defs
+  return old.map((c, i) => { const sel = keepSel(c.sel, plot.vars); return { ...c, sel: sel.length || !defs[i] ? sel : defs[i].sel } })
 }
 
 // pack dialect hints (LibEntry.compat, e.g. 'ltspice') of the parts in use -> ngspice compat mode
@@ -269,11 +277,14 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [runs, setRuns] = useState<Run[] | null>(null)
   const [log, setLog] = useState('')
   const [blamed, setBlamed] = useState<{ line: string; blame: Blame }[]>([]) // blame().lines
-  const [sels, setSels] = useState<Record<string, string[]>>({}) // plot tab key -> selected vectors
+  const [plots, setPlots] = useState<Record<string, Chart[]>>({}) // plot tab key -> its charts (the plot builder)
+  const [pane, setPane] = useState<number | null>(null) // the chart shown alone (probes go there), null = all stacked
+  const plotSrc = useRef<Record<string, string>>({}) // each tab's .plot lines at the last run: edited ones restart its charts
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const [tab, setTab] = useState('') // plot tab key: survives re-runs that add/remove analyses
   const [status, setStatus] = useState(session.kind === 'project' && session.warn ? session.warn : 'Ready')
   const [running, setRunning] = useState(false)
+  const [prog, setProg] = useState<number | null>(null) // 0…1 through the whole simulation (every sweep run); null = not known yet
   const stopReq = useRef(false) // Stop between sweep runs, when no ngspice is alive to kill
   const tuned = useRef<Knob[]>([]), superseded = useRef(false) // live tuning (plot/Tune.tsx): slider values for every run; a run a slider move stopped keeps the old plot
   const [meas, setMeas] = useState<MeasTable | null>(null)
@@ -497,12 +508,17 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     await writeProj(p).catch((e) => setStatus(`Can't update the project: ${msg(e)}`))
   }
   const stop = () => ((stopReq.current = true), window.api.stopSim())
-  // tabs with no usable selection get the default one (live results and opened raw files; run() does its own pass at the end)
-  const fillSels = (rs: Run[]) => setSels((prev) => {
-    const add = tabsOf(rs).flatMap(({ key, runs: [{ plot }], panes }) =>
-      (panes?.length ? panes.map((p) => p.sel) : [startSel(plot) ?? defaultSel(plot)]).map((d, i) => [paneKey(key, i), d] as const).filter(([k]) => !keepSel(prev[k], plot.vars).length))
-    return add.length ? { ...prev, ...Object.fromEntries(add) } : prev
-  })
+  // every tab's charts for new results (chartsFor). drop: forget tabs the results don't have (a finished run; live results
+  // arrive an analysis at a time)
+  const syncPlots = (tabs: Tab[], drop = false) => {
+    const fresh = new Set<string>()
+    for (const t of tabs) {
+      const src = JSON.stringify(t.panes ?? [])
+      if (plotSrc.current[t.key] !== src) fresh.add(t.key), (plotSrc.current[t.key] = src)
+    }
+    setPlots((prev) => ({ ...(drop ? {} : prev), ...Object.fromEntries(tabs.map((t) => [t.key, chartsFor(fresh.has(t.key) ? undefined : prev[t.key], t)])) }))
+  }
+  const fillSels = (rs: Run[]) => syncPlots(tabsOf(rs))
   // File > Open Raw File…: an existing ngspice / LTspice .raw in the plots panel, nothing simulated
   async function openRaw(r?: { path: string; plots: RawPlot[] } | null) {
     r ??= await window.api.openRaw().catch((e) => (setStatus(`Can't open that raw file: ${msg(e)}`), null))
@@ -556,15 +572,17 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       for (const [i, s] of sweep.runs.entries()) {
         if (stopReq.current) { stopped = 'user'; break }
         if (s.skip) { out += `--- ${s.label} ---\n`; continue } // .wc: a corner it couldn't pick (sim/sweep.ts)
-        setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…` : 'Running…')
+        const left = () => eta((performance.now() - t0) / 1000, pc)
+        let pc = i / n
+        setStatus(n > 1 ? `Running ${i + 1}/${n} (${s.label})…${left()}` : 'Running…'), setProg(n > 1 ? pc : null)
         // live: the plots fill in while ngspice runs (sim/live.ts), with progress in the status bar
         const lv = liveRun()
         const r = await window.api.runSim(s.netlist, dir, opts, !prefs().live ? undefined : (c) => { // Settings › Simulation: live waveforms
           lv.add(c)
           const plots = lv.plots(), last = plots.at(-1)
           if (!last || last.points < 2) return
-          const pc = progress(last, s.netlist)
-          setStatus(`${n > 1 ? `Running ${i + 1}/${n} (${s.label})` : 'Running'}…${pc == null ? '' : ` ${Math.floor(pc * 100)}%`}`)
+          pc = (i + runProgress(plots, s.netlist)) / n
+          setProg(pc), setStatus(`${n > 1 ? `Running ${i + 1}/${n} (${s.label})` : 'Running'}… ${Math.floor(pc * 100)}%${left()}`)
           const rs = [...done, { label: s.label, result: { ok: true, log: '', plots }, netlist: s.netlist }]
           if (!quiet) setRuns(rs), fillSels(rs)
         })
@@ -592,15 +610,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     const tabs = tabsOf(done)
     setRuns(done)
     setLog(pre + out)
-    setSels((prev) =>
-      Object.fromEntries(
-        tabs.flatMap(({ key, runs: [{ plot }], panes }) => {
-          const keep = (k: string) => keepSel(prev[k], plot.vars) // keep the user's picks when the vectors still exist
-          const defs = panes?.length ? panes.map((p) => p.sel) : [startSel(plot) ?? defaultSel(plot)]
-          return defs.map((d, i) => { const k = paneKey(key, i), kept = keep(k); return [k, kept?.length ? kept : d] })
-        })
-      )
-    )
+    syncPlots(tabs, true)
     if (nl) {
       const b = blame(nl.warnings.map((w) => 'Warning: ' + w).join('\n') + '\n' + out, nl)
       const op = done[0]?.result.plots.find((p) => p.plotname === 'Operating Point')
@@ -627,6 +637,12 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setStatus(`Added ${options} to ${stem(top)}: run again`)
   }
 
+  // tick / untick an entry in the current tab's chart: the one shown alone, else the top one. true = now ticked
+  function toggleSel(e: string) {
+    const charts = plots[cur!.key] ?? [], i = pane != null && charts[pane] ? pane : 0, sel = charts[i]?.sel ?? []
+    setPlots({ ...plots, [cur!.key]: charts.map((c, j) => (j === i ? { ...c, sel: sel.includes(e) ? sel.filter((s) => s !== e) : [...sel, e] } : c)) })
+    return !sel.includes(e)
+  }
   // Alt+click in the schematic: toggle that net's voltage / part's current in the current plot tab
   function probe(t: ProbeTarget) {
     if (view !== top) return setStatus(`Probing works on the top sheet (${stem(top)}): results are for that circuit`)
@@ -636,9 +652,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     if ('net2' in t) {
       // differential probe: a maths entry Plot evaluates (contracts.ts isExpr)
       const d = t, term = (n: string) => (n === '0' ? '0' : `v(${n.toLowerCase()})`)
-      const e = `=${term(d.net)}-${term(d.net2)}`, sel = sels[cur.key] ?? []
-      setSels({ ...sels, [cur.key]: sel.includes(e) ? sel.filter((s) => s !== e) : [...sel, e] })
-      return setStatus(`${sel.includes(e) ? 'Removed' : 'Added'} ${e.slice(1)}`)
+      const e = `=${term(d.net)}-${term(d.net2)}`
+      return setStatus(`${toggleSel(e) ? 'Added' : 'Removed'} ${e.slice(1)}`)
     }
     if ('net' in t) {
       const n = voltageVector(t.net)
@@ -650,9 +665,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       ;(want = `i(${ref})`), (v = findVector(plot, currentVectors(part, ref)))
     }
     if (!v) return setStatus(`${want} isn't in ${cur.name}`)
-    const n = v.toLowerCase(), sel = sels[cur.key] ?? []
-    setSels({ ...sels, [cur.key]: sel.includes(n) ? sel.filter((s) => s !== n) : [...sel, n] })
-    setStatus(`${sel.includes(n) ? 'Removed' : 'Added'} ${pretty(v)}`)
+    setStatus(`${toggleSel(v.toLowerCase()) ? 'Added' : 'Removed'} ${pretty(v)}`)
   }
 
   // jump from a console line to the parts/wires it blames (always on the top sheet)
@@ -1042,14 +1055,17 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
               </div>
             </section>
             {panels.results((actions) => (
-              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} sels={sels} onSels={setSels} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined}
+              <ResultsPanel tabs={tabs} cur={cur} ran={!!runs} onTab={setTab} plots={plots} onPlots={setPlots} pane={pane} onPane={setPane} log={logLines} blamed={blamed} onBlame={show} actions={actions} meas={meas ?? undefined}
                 tune={{ netlist: runs?.[0]?.netlist ?? '', knobs: tuned.current, running, set: (k) => void (tuned.current = k), run, cancel: () => ((superseded.current = true), stop()) }} />
             ))}
           </main>
         </div>
 
         <footer className="flex h-6 shrink-0 items-center justify-between border-t bg-card px-3 text-xs text-muted-foreground">
-          <span>{status}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            {running && <progress className="h-1.5 w-40 shrink-0 accent-(--ok)" max={1} value={prog ?? undefined} aria-label="Simulation progress" />}
+            <span className="truncate">{status}</span>
+          </span>
           {plot && (
             <span>
               {plot.points} point{plot.points === 1 ? '' : 's'} · {plot.vars.length - (plot.points >= 2 ? 1 : 0)} vectors{cur.runs.length > 1 ? ` · ${cur.runs.length} runs` : ''}
