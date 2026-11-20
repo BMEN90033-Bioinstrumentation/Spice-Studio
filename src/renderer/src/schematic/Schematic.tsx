@@ -1238,12 +1238,35 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               <SelectContent>{NOTE_SIZES.map(([l, v]) => <SelectItem key={v} value={String(v)}>{l}</SelectItem>)}</SelectContent>
             </Select>
           </Label>
-          {drw.md && (
-            <div className="flex flex-wrap gap-1.5">
-              <Tip label="Draw arrows from this comment to parts: click each part, Esc when done"><InspBtn onClick={() => (setPop(null), setPinFor(drw.id))}>Point at parts…</InspBtn></Tip>
-              {!!drw.pins?.length && <InspBtn onClick={() => commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === drw.id && x.t === 'note' ? { ...x, pins: undefined } : x)) })}>Remove arrows</InspBtn>}
-            </div>
-          )}
+          {drw.md && (() => {
+            // the parts this comment points at, one row each (a part since deleted is listed so its arrow can be cleared)
+            const setPins = (pins: string[]) => commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === drw.id && x.t === 'note' ? { ...x, pins: pins.length ? pins : undefined } : x)) })
+            const pins = drw.pins ?? []
+            return (
+              <>
+                {pins.length > 0 && (
+                  <div className={FLD}>Points at
+                    <div role="list" aria-label="Parts this comment points at" className="max-h-40 overflow-auto rounded-sm border">
+                      {pins.map((id) => {
+                        const q = sheet.parts.find((x) => x.id === id)
+                        return (
+                          <div key={id} role="listitem" className="flex h-7 items-center gap-1.5 pr-0.5 pl-2 text-xs hover:bg-accent/60" onPointerEnter={() => q && setHov({ partId: id })} onPointerLeave={() => setHov(null)}>
+                            <span className={cn('flex-1 truncate', MONO, !q && 'text-muted-foreground')}>{q ? q.name || q.value || SYMBOLS[q.kind].title : 'deleted part'}</span>
+                            {q && <span className="truncate text-muted-foreground">{SYMBOLS[q.kind].title}</span>}
+                            <Button variant="ghost" size="icon" className="size-6 [&_svg]:size-4" aria-label={`Remove the arrow to ${q?.name || 'this part'}`} onClick={() => setPins(pins.filter((x) => x !== id))}><X /></Button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  <Tip label="Draw arrows from this comment to parts: click each part, Esc when done"><InspBtn onClick={() => (setPop(null), setPinFor(drw.id))}>{pins.length ? 'Point at more…' : 'Point at parts…'}</InspBtn></Tip>
+                  {pins.length > 1 && <InspBtn onClick={() => setPins([])}>Remove all</InspBtn>}
+                </div>
+              </>
+            )
+          })()}
         </div>
       )}
       {drw?.t === 'title' && pop?.id === drw.id && (
