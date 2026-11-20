@@ -13,7 +13,8 @@ import { useCommands } from './commands'
 import { isDark, useDark, usePrefs } from './Preferences'
 import { evalExpr, isCurrent, pretty } from './plot/expr'
 import { fft, nextPow2 } from './plot/fft'
-import { toCsv, toPng, toSvg, type CsvRun } from './plot/export'
+import { busSegs, toCsv, toPng, toSvg, type BusOpt, type CsvRun } from './plot/export'
+import { bits, busOf, busText, busValues, stepAt, threshold } from './plot/logic'
 import { traceWav } from './sim/wav'
 import { ComplexView, type CTrace, type CvApi, type CvKind } from './plot/ComplexView'
 import { Eye } from './plot/Eye'
@@ -65,8 +66,9 @@ export function defaultSel(plot: RawPlot): string[] {
 }
 
 // One drawn line: a vector or expression in one run. x/y as drawn (dB/° for AC, dB for FFT); re/im the raw values, vu
-// their unit. pane: which stacked chart (Bode: 0 magnitude, 1 phase).
-type Trace = { key: string; name: string; run: number; unit: string; scale: string; x: Float64Array; y: ArrayLike<number | null>; re: Float64Array; im: Float64Array | null; vu: string; pane: number }
+// their unit. pane: which stacked chart (Bode: 0 magnitude, 1 phase; logic rows: 1).
+// logic: a row of the logic chart (a digital signal as 0/1, or a bus); re = the bits / the bus value per sample
+type Trace = { logic?: BusOpt & { bus: boolean }; key: string; name: string; run: number; unit: string; scale: string; x: Float64Array; y: ArrayLike<number | null>; re: Float64Array; im: Float64Array | null; vu: string; pane: number }
 
 // dB of an exactly-zero AC magnitude (e.g. a DC supply node) is -Infinity, which wrecks uPlot's y range for the
 // whole chart: non-finite points become gaps (null) instead
@@ -95,7 +97,8 @@ function at(x: ArrayLike<number>, y: ArrayLike<number | null>, v: number): numbe
 }
 
 // hold: new data replaces the old for the same view (live tuning): keep the x zoom
-export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void; hold?: boolean }) {
+// logic: the digital nets and their thresholds (plot/logic.ts logicNets): drawn as rows of a logic chart under the analog one
+export function Plot({ runs, sel, onSel, hold, logic = NONE }: { runs: PlotRun[]; sel: string[]; onSel: (sel: string[]) => void; hold?: boolean; logic?: Record<string, number> }) {
   const first = runs[0].plot
   const [scale, ...signals] = first.vars
   const dark = useDark() // re-render (and redraw the canvas) when the theme changes
@@ -106,6 +109,8 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   const [view, setView] = useState<View>('time')
   const [fftLog, setFftLog] = useState(true)
   const [fftRange, setFftRange] = useState<[number, number] | null>(null)
+  const [logicOn, setLogicOn] = useState(true) // digital signals as logic rows (off: as voltages)
+  const [radix, setRadix] = useState<'hex' | 'dec'>('hex') // bus values
   const [eye, setEye] = useState({ key: '', period: '', offset: '0' }) // eye diagram: trace, bit period, offset (SPICE numbers)
   const [hist, setHist] = useState<string | null>(null) // histogram over the runs: a trace at cursor A (id) or an .op row ('op:' + name)
   const [curs, setCurs] = useState<Record<View, Cur>>(() => CURS.get(first) ?? { time: {}, fft: {}, eye: {} })
@@ -125,7 +130,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   const list = [...signals.filter((v) => !isCurrent(v.name)), ...signals.filter((v) => isCurrent(v.name) && !dup(v))]
   // .op rawfiles have no scale vector (vars[0] is a real result): the table lists every vector
   const rows = first.points >= 2 ? list : [scale, ...list]
-  const exprs = sel.filter(isExpr)
+  const exprs = sel.filter(isExpr) // buses too: '=bus(q1,q0)'
   const hue = (key: string) => (isExpr(key) ? signals.length + exprs.indexOf(key) : signals.findIndex((v) => lc(v) === key))
   const grouped = isCurrent(list[0]?.name ?? '') !== isCurrent(list[list.length - 1]?.name ?? '') // both kinds present
   const canFft = scale.type === 'time' && !first.complex
@@ -133,15 +138,30 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   const eyev = view === 'eye' && canFft
   const bodev = first.complex && mode === 'bode'
   const cplxv = first.complex && CPLX.includes(mode)
+  const timev = canFft && !fftv && !eyev // the view with logic rows and buses
 
   const { traces, errors, fftInfo } = useMemo(() => {
     const shown = [...signals.filter((v) => sel.includes(lc(v))).map(lc), ...sel.filter(isExpr)]
     const traces: Trace[] = [], errors: Record<string, string> = {}
+    // logic rows, top to bottom: ticked digital signals and buses, one row per run
+    const has = (p: RawPlot, n: string) => p.vars.find((w) => lc(w) === n)
+    const lkeys = shown.filter((k) => { const b = busOf(k); return timev && (b ? b.length > 0 && b.every((n) => has(first, n)) : logicOn && k in logic) })
+    const rows = lkeys.length * runs.length
     const n = nextPow2(Math.max(...runs.map((r) => r.plot.points)))
     let df = 0
     runs.forEach(({ plot }, run) => {
       const x = plot.vars[0].re
       for (const key of shown) {
+        const bus = busOf(key), row = lkeys.indexOf(key) * runs.length + run
+        if (bus) {
+          const vs = bus.map((n) => has(plot, n)), miss = bus.find((_, i) => !vs[i])
+          if (miss || !bus.length) errors[key] ??= miss ? `No vector ${miss}` : 'bus(…) takes nets, most significant first: bus(q1,q0)'
+          else if (timev) {
+            const v = busValues(vs.map((w) => bits(w!.re, threshold(w!.re, logic[lc(w!)]))))
+            traces.push({ key, name: key.slice(1), run, unit: '', scale: 'L', x, y: v, re: v, im: null, vu: '', pane: 1, logic: { row, rows, bus: true, text: (n) => busText(n, bus.length, radix) } })
+          }
+          continue
+        }
         let re: Float64Array, im: Float64Array | null, unit: string, name: string, sc: string, vu: string
         if (isExpr(key)) {
           const v = evalExpr(key.slice(1), plot)
@@ -160,7 +180,10 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
           // volts and amps get separate y scales (mA next to V would draw as a flat line); dB/phase share one
           sc = plot.complex ? 'y' : isCurrent(v.name) ? 'A' : 'V'
         }
-        if (fftv) {
+        if (lkeys.includes(key)) {
+          const b = bits(re, threshold(re, logic[key]))
+          traces.push({ key, name, run, unit: '', scale: 'L', x, y: b.map((v) => rows - row - 0.85 + 0.7 * v), re: b, im: null, vu, pane: 1, logic: { row, rows, bus: false, text: String } })
+        } else if (fftv) {
           const s = fft(x, re, { n, t0: fftRange?.[0], t1: fftRange?.[1] }), k = fftLog ? 1 : 0 // log axis: no DC bin
           df = s.df
           traces.push({ key, name, run, unit: 'dB' + (unit === 'V' || unit === 'A' ? unit : ''), scale: 'y', x: s.f.subarray(k), y: clean(s.mag.subarray(k).map((m) => 20 * Math.log10(m))), re, im: null, vu, pane: 0 })
@@ -172,7 +195,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
       }
     })
     return { traces, errors, fftInfo: { n, df } }
-  }, [runs, sel, mode, unw, fftv, fftLog, fftRange])
+  }, [runs, sel, mode, unw, fftv, fftLog, fftRange, timev, logic, logicOn, radix])
 
   useEffect(() => {
     if (first.points < 2 || !host.current) return
@@ -182,9 +205,29 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
       ? { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } }
       : { stroke: '#737373', grid: { stroke: 'rgba(0,0,0,0.08)' }, ticks: { stroke: 'rgba(0,0,0,0.15)' } }
     // one chart per pane: Bode stacks magnitude over phase, both following one x zoom and one hover cursor
-    const panes = bodev ? [0, 1] : [0], sync = bodev ? { key: `bode${++SYNC}` } : undefined
+    // logic rows: their own chart (pane 1) under the analog one, or alone when every trace is a logic row
+    const rowNames: string[] = []
+    for (const t of traces) if (t.logic) rowNames[t.logic.row] ??= t.name.length > 10 ? t.name.slice(0, 9) + '…' : t.name
+    const nRows = traces.find((t) => t.logic)?.logic!.rows ?? 0
+    const panes = bodev ? [0, 1] : nRows ? (traces.some((t) => !t.logic) ? [0, 1] : [1]) : [0], sync = panes.length > 1 ? { key: `bode${++SYNC}` } : undefined
     const boxes = panes.map(() => el.appendChild(doc.createElement('div')))
-    const height = () => Math.max(40, (el.clientHeight - PAD_Y - boxes.reduce((h, b) => h + legendH(b), 0)) / panes.length)
+    const height = (pi: number) => {
+      const all = el.clientHeight - PAD_Y - boxes.reduce((h, b) => h + legendH(b), 0), lh = Math.min(all * 0.7, nRows * 24 + 76) // the logic chart: 24 px a row + its x axis, at most 70%
+      return Math.max(40, !nRows || panes.length < 2 ? all / panes.length : panes[pi] ? lh : all - lh)
+    }
+    const drawBus = (u: uPlot) => {
+      const segs = busSegs(u)
+      if (!segs.length) return
+      const c = u.ctx, r = c.canvas.width / u.width, { left, top, width, height } = u.bbox
+      c.save(), c.beginPath(), c.rect(left, top, width, height), c.clip()
+      c.font = `${11 * r}px ui-monospace, Menlo, monospace`, c.textAlign = 'center', c.textBaseline = 'middle', c.lineWidth = lw * r, c.fillStyle = axis.stroke
+      for (const s of segs) {
+        c.strokeStyle = s.color
+        c.strokeRect(left + s.x0 * r, top + s.y0 * r, (s.x1 - s.x0) * r, (s.y1 - s.y0) * r)
+        if (s.text) c.fillText(s.text, left + ((s.x0 + s.x1) / 2) * r, top + ((s.y0 + s.y1) / 2) * r)
+      }
+      c.restore()
+    }
     const built = panes.map((p) => {
       const yUnit = fftv ? 'dB' : first.complex ? (bodev ? ['dB', '°'][p] : mode === 'db' ? 'dB' : '°') : ''
       const ser: uPlot.Series[] = [], tables: uPlot.AlignedData[] = []
@@ -199,7 +242,10 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
             stroke: color(hue(t.key), r, runs.length),
             width: lw,
             spanGaps: true,
-            value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)) // blank off-hover: reads as a plain legend
+            value: (_u: uPlot, y: number | null) => (y == null ? '' : fmt(y, t.unit)), // blank off-hover: reads as a plain legend
+            // logic rows read 0/1 (drawn at row + 0.15 / 0.85); a bus (data = its value) is drawn by drawBus, not as a line
+            ...(t.logic && { value: (_u: uPlot, y: number | null) => (y == null ? '' : t.logic!.bus ? t.logic!.text(y) : String(+(y % 1 > 0.5))) }),
+            ...(t.logic?.bus && { bus: t.logic, paths: () => null })
           })
       })
       if (!tables.length) tables.push([fftv ? new Float64Array([1, 2]) : scale.re])
@@ -240,11 +286,15 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
         }
       }))
     built.forEach(({ yUnit, ser, data, used }, pi) => {
-      const yAxes: uPlot.Axis[] = used.map((k, i) => ({
+      const yAxes: uPlot.Axis[] = used.map((k, i) => k === 'L' ? {
+        // one tick per row, labelled with the signal; sized like the analog chart's axis so the plot areas line up
+        ...axis, scale: k, size: 72, labelSize: 18, label: 'Logic', grid: { show: false },
+        splits: () => Array.from({ length: nRows }, (_, r) => nRows - r - 0.5), values: () => Array.from({ length: nRows }, (_, r) => rowNames[r] ?? '')
+      } : {
         ...axis, scale: k, size: i ? 84 : 72, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, labelSize: 18,
         label: axisTitle(k === 'y' ? yUnit : k === '1' ? '' : k),
         values: (_u, t) => t.map((v) => (k === 'y' && yUnit ? v + yUnit : eng(v, k === 'y' || k === '1' ? '' : k)))
-      }))
+      })
       while (yAxes.length < axesN) yAxes.push({ scale: used[0], side: 1, size: 84, values: (_u, t) => t.map(() => ''), grid: { show: false }, ticks: { show: false } })
       // the top Bode chart: x grid without labels
       const xAxis: uPlot.Axis = pi < panes.length - 1
@@ -253,13 +303,13 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
       const u: uPlot = new uPlot(
         {
           width: el.clientWidth - PAD_X,
-          height: height(),
-          scales: { x: { time: false, distr: (fftv ? fftLog : first.complex) ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, { auto: true }])) },
+          height: height(pi),
+          scales: { x: { time: false, distr: (fftv ? fftLog : first.complex) ? 3 : 1, log: 10 }, ...Object.fromEntries(used.map((k) => [k, k === 'L' ? { range: [0, nRows] as uPlot.Range.MinMax } : { auto: true }])) },
           series: [{ label: fftv ? 'frequency' : scale.name, value: (_u, v) => (v == null ? '' : eng(v, xUnit)) }, ...ser],
           axes: [xAxis, ...yAxes],
-          cursor: { drag: { x: true, y: true, uni: 20, dist: 4 }, sync }, // dist: a click must not zoom (it places cursor A)
+          cursor: { drag: { x: true, y: true, uni: 20, dist: 4 }, sync, ...(used[0] === 'L' && { points: { show: false } }) }, // dist: a click must not zoom (it places cursor A)
           legend: { live: true, show: pi > 0 || topLegend },
-          hooks: { draw: [draw], setScale: [follow] }
+          hooks: { draw: [drawBus, draw], setScale: [follow] }
         },
         data,
         // mount by callback: uPlot's `instanceof HTMLElement` check fails for the pop-out window's elements (other realm)
@@ -303,7 +353,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
     if (hold && zoom.current?.key === zk) us[0].setScale('x', { min: zoom.current.x[0], max: zoom.current.x[1] }) // follow() zooms the rest
 
     // the element's own window: an opener-window observer never fires for the pop-out's elements
-    const ro = new (doc.defaultView ?? window).ResizeObserver(() => us.forEach((u) => u.setSize({ width: el.clientWidth - PAD_X, height: height() })))
+    const ro = new (doc.defaultView ?? window).ResizeObserver(() => us.forEach((u, i) => u.setSize({ width: el.clientWidth - PAD_X, height: height(i) })))
     ro.observe(el)
     return () => {
       // remember a zoom (a range inside the data) for the next chart, see `hold`
@@ -325,7 +375,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
         cols: ts.flatMap((t) =>
           t.im
             ? t.pane ? [] : [{ name: `${t.name} dB`, y: ac(t.re, t.im, 'db') }, { name: `${t.name} phase °`, y: ac(t.re, t.im, 'phase', unw) }] // Bode: once, not per pane
-            : [{ name: fftv ? `${t.name} ${t.unit}` : t.name, y: t.y }]
+            : [{ name: fftv ? `${t.name} ${t.unit}` : t.name, y: t.logic ? t.re : t.y }] // logic rows: 0/1, buses: the value
         )
       }
     })
@@ -336,7 +386,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
     if (!u.length && !c) return
     try {
       const marks = eyev ? [] : [cur.a, cur.b], base = (first.plotname.split(' ')[0] || 'plot').toLowerCase() + (fftv ? '-fft' : eyev ? '-eye' : cplxv ? '-' + mode : '')
-      const ts = traces.filter((t) => t.run === 0), w = kind === 'wav' ? traceWav(ts[0].x, ts.map((t) => t.y)) : null // one channel per trace, 44.1 kHz
+      const ts = traces.filter((t) => t.run === 0), w = kind === 'wav' ? traceWav(ts[0].x, ts.map((t) => (t.logic ? t.re : t.y))) : null // one channel per trace, 44.1 kHz
       const data = w ? w.wav : c ? (kind === 'png' ? await c.png() : kind === 'svg' ? c.svg() : c.csv()) : kind === 'png' ? await toPng(u, marks) : kind === 'svg' ? toSvg(u, marks) : csv()
       const p = await window.api.exportSave(`${base}.${kind}`, data, [{ name: { png: 'PNG image', svg: 'SVG image', csv: 'CSV', wav: 'WAV audio' }[kind], extensions: [kind] }])
       if (p && w) return setNote(`Saved ${p}: ${ts.length} channel${ts.length > 1 ? 's' : ''}, 44.1 kHz, full scale ±${eng(w.scale)}`)
@@ -402,8 +452,13 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   const addExpr = () => {
     const t = draft.trim().replace(/^=\s*/, '')
     if (!t) return
-    const r = evalExpr(t, first)
-    if ('error' in r) return setDraftErr(r.error)
+    const bus = busOf(t), miss = bus?.find((n) => !signals.some((v) => lc(v) === n))
+    if (bus) {
+      if (!canFft || !bus.length || miss) return setDraftErr(!canFft ? 'Buses are for transient results' : miss ? `No vector ${miss}` : 'List the nets, most significant first: bus(q1,q0)')
+    } else {
+      const r = evalExpr(t, first)
+      if ('error' in r) return setDraftErr(r.error)
+    }
     if (!sel.includes('=' + t)) onSel([...sel, '=' + t])
     setDraft(''), setDraftErr('')
   }
@@ -438,6 +493,12 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
         )}
         {canFft && seg([['time', 'Time'], ['fft', 'FFT'], ['eye', 'Eye']], view, (v) => (v === 'fft' ? toFft() : setView(v)))}
         {fftv && seg([['log', 'Log f'], ['lin', 'Linear f']], fftLog ? 'log' : 'lin', (v) => setFftLog(v === 'log'))}
+        {timev && signals.some((v) => lc(v) in logic) && (
+          <Tip label="Draw the nets on digital parts as high/low rows under the plot, split at each part's threshold (vdd/2). Off: as voltages" side="right">
+            <label className="mb-2 flex cursor-pointer items-center gap-1.5 text-xs"><Checkbox checked={logicOn} onCheckedChange={(c) => setLogicOn(!!c)} className="size-3.5" />Logic rows</label>
+          </Tip>
+        )}
+        {timev && sel.some((k) => busOf(k)) && seg([['hex', 'Bus: hex'], ['dec', 'Bus: decimal']], radix, setRadix)}
         {eyev && (
           <div className="mb-2 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 text-xs">
             <span>Trace</span>
@@ -489,7 +550,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
             {errors[e] && <div className={bad}>{errors[e]}</div>}
           </div>
         ))}
-        <Tip label="e.g. v(out)-v(in), v(a,b)*i(r1), db(v(out)/v(in)), deriv(v(out)), gd(v(out)) · functions: db mag abs ph re im sqrt deriv gd" side="right">
+        <Tip label="e.g. v(out)-v(in), v(a,b)*i(r1), db(v(out)/v(in)), deriv(v(out)), gd(v(out)) · functions: db mag abs ph re im sqrt deriv gd · bus(q1,q0): nets as one logic bus, most significant first" side="right">
           <Input
             className={'mt-0.5 ' + field}
             value={draft}
@@ -531,16 +592,17 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
                 <TableCell className={RD}>{dx != null && dx !== 0 && `1/Δ ${eng(1 / Math.abs(dx), INV[xUnit] ?? '')}`}</TableCell>
               </TableRow>
               {traces.map((t) => {
-                const ya = cur.a != null ? at(t.x, t.y, cur.a) : null, yb = cur.b != null ? at(t.x, t.y, cur.b) : null
-                const dy = ya != null && yb != null ? yb - ya : null
+                const rd = (c?: number) => (c == null ? null : t.logic ? stepAt(t.x, t.re, c) : at(t.x, t.y, c)), ya = rd(cur.a), yb = rd(cur.b)
+                const dy = ya != null && yb != null && !t.logic ? yb - ya : null // logic rows: levels only
+                const show = (v: number | null) => (t.logic ? (v == null ? '—' : t.logic.text(v)) : fmt(v, t.unit))
                 const label = runs.length > 1 && runs[t.run].label ? `${t.name} · ${runs[t.run].label}` : t.name
                 return (
                   <TableRow key={t.run + ' ' + t.key + ' ' + t.pane}>
                     <TableCell className={RD} style={{ '--c': color(hue(t.key), t.run, runs.length) } as CSSProperties}>
-                      <span className="sw" />{label}{many && !t.run && cur.a != null && histBtn(`${t.key}|${t.pane}`, `${t.name}${bodev ? ` (${t.unit})` : ''} at A`)}
+                      <span className="sw" />{label}{many && !t.run && !t.logic && cur.a != null && histBtn(`${t.key}|${t.pane}`, `${t.name}${bodev ? ` (${t.unit})` : ''} at A`)}
                     </TableCell>
-                    <TableCell className={RD}>{fmt(ya, t.unit)}</TableCell>
-                    <TableCell className={RD}>{fmt(yb, t.unit)}</TableCell>
+                    <TableCell className={RD}>{show(ya)}</TableCell>
+                    <TableCell className={RD}>{show(yb)}</TableCell>
                     <TableCell className={RD}>{dy != null && fmt(dy, t.unit)}</TableCell>
                     <TableCell className={RD}>{dy != null && dx ? eng(dy / dx, `${t.unit}/${xUnit}`) : ''}</TableCell>
                   </TableRow>
@@ -577,6 +639,7 @@ export function Plot({ runs, sel, onSel, hold }: { runs: PlotRun[]; sel: string[
   )
 }
 
+const NONE: Record<string, number> = {}
 const PAD_X = 16, PAD_Y = 8 // .chart padding (style.css): uPlot sizes the canvas, not the box
 const H4 = 'mt-2 mb-0.5 text-xs font-medium text-muted-foreground first-of-type:mt-0'
 // per-trace colour from the row's --c

@@ -21,6 +21,7 @@ import { UpdateCard } from './Update'
 import { focusPopout } from './layout/PopOut'
 import { paneKey, ResultsPanel } from './layout/ResultsPanel'
 import { defaultSel, pretty, type PlotRun } from './Plot'
+import { logicNets } from './plot/logic'
 import { bom, bomCsv, bomXlsx } from './project/bom'
 import { BOMWIN, BomWindow } from './project/BomWindow'
 import { COMPATS, newProject, type PartInfo, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
@@ -73,7 +74,7 @@ const json = (x: unknown) => JSON.stringify(x, null, 1)
 const msg = (e: unknown) => String((e as Error)?.message ?? e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
 
 type Run = { label: string; result: SimResult; netlist: string }
-type Tab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[] } // panes: .plot lines
+type Tab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic: Record<string, number> } // panes: .plot lines
 // plots keyed by plotname + occurrence, so the same analysis lines up across sweep runs
 const keyed = (plots: RawPlot[]) => {
   const n: Record<string, number> = {}
@@ -85,7 +86,8 @@ function tabsOf(runs: Run[]): Tab[] {
     key,
     name: p.plotname,
     runs: runs.flatMap((r, i) => (maps[i].has(key) ? plotRuns(r.label, maps[i].get(key)!, r.netlist, +key.slice(key.lastIndexOf('#') + 1)) : [])), // nested .dc: a run per outer value
-    panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name))
+    panes: plotPanes(runs[0].netlist, p.plotname, p.vars.map((v) => v.name)),
+    logic: logicNets(runs[0].netlist) // digital nets: Plot draws them as logic rows
   })).sort((a, b) => analysisPos(runs[0].netlist, a.name) - analysisPos(runs[0].netlist, b.name))
 }
 

@@ -116,6 +116,16 @@ The following table lists what a formula can use:
 
 Units follow the maths. Volts times amps is watts, so `v(out)*i(r1)` or `(v(vcc)-v(out))*i(r3)` is plotted as power in W on its own axis. In AC results, expressions work on complex values, so `db(v(out)/v(in))` is the true gain.
 
+## Logic view
+
+In a transient plot, the nets on [digital parts](03-components.md#digital-parts) are drawn as logic rows instead of voltages. Each ticked signal gets its own row in a chart under the analog traces: high when the voltage is above the part's threshold (vdd/2), low otherwise. The logic chart follows the same zoom and the same cursors as the analog chart, and the cursor table reads `0` or `1` for each row.
+
+Clear **Logic rows** above the vector list to plot these nets as voltages again, for example to look at an edge.
+
+To show several signals as one value, add a bus: type `bus(q1,q0)` into **＋ expression**, most significant bit first, and press **Enter**. The bus gets a row with its value written in each interval. **Bus: hex** and **Bus: decimal** switch how the value is written. A bus can use any voltage: a net that isn't on a digital part is split halfway between its lowest and highest value.
+
+The logic view covers the nets of the top sheet. Nets inside a hierarchical block plot as voltages.
+
 ## AC views: Bode, Nyquist, polar, Smith
 
 An AC tab has two rows of view buttons. The views are as follows:

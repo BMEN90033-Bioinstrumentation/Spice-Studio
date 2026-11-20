@@ -43,7 +43,7 @@ class Guard extends Component<{ children: ReactNode; reset?: unknown }, { err: E
   }
 }
 
-export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[] }
+export type ResultTab = { key: string; name: string; runs: PlotRun[]; panes?: { title: string; sel: string[] }[]; logic?: Record<string, number> } // logic: plot/logic.ts logicNets
 // sels key of a tab's pane i (.plot lines stack several charts); pane 0 is the tab's own key, so probing lands there
 export const paneKey = (key: string, i: number) => (i ? `${key}|${i}` : key)
 
@@ -89,7 +89,7 @@ export function ResultsPanel({ tabs, cur, ran, onTab, sels, onSels, log, blamed,
                   {p?.title && <h3 className="panetitle">{p.title}</h3>}
                   <div className="panebody">
                     <Guard reset={cur.runs}>
-                      {tableKind(cur.runs[0].plot) ? <ScalarTable runs={cur.runs} /> : <Plot runs={cur.runs} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} hold={tuning} />}
+                      {tableKind(cur.runs[0].plot) ? <ScalarTable runs={cur.runs} /> : <Plot runs={cur.runs} logic={cur.logic} sel={sels[k] ?? []} onSel={(s) => onSels({ ...sels, [k]: s })} hold={tuning} />}
                     </Guard>
                   </div>
                 </div>

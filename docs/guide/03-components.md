@@ -80,7 +80,7 @@ Parts from a library carry more than a value: placing `2N3904` from the Parts pa
 
 ## Digital parts
 
-The **Digital** category of the Parts panel has logic gates and a flip-flop. They simulate with ngspice's XSPICE digital models, and each part converts between analog and digital at its pins. You can wire them to each other, to sources and to analog parts like any other part, and every net plots as a voltage.
+The **Digital** category of the Parts panel has logic gates and a flip-flop. They simulate with ngspice's XSPICE digital models, and each part converts between analog and digital at its pins. You can wire them to each other, to sources and to analog parts like any other part, and every net is an ordinary voltage. In transient results the plot draws these nets as [logic rows](05-results.md#logic-view).
 
 | Part | Pins in order | Netlisted as |
 |---|---|---|

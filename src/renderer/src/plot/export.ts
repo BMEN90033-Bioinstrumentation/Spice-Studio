@@ -102,6 +102,33 @@ export function legendRows(list: Item[], width: number, charW: number) {
   return rows
 }
 
+// A bus row of the logic view (Plot.tsx): a series carrying `bus`, its data the bus value per sample, on the row scale
+// 'L' (row r of `rows` spans rows-r-1 … rows-r). Drawn as one box per run of equal values, the value written inside.
+export type BusOpt = { row: number; rows: number; text: (v: number) => string }
+// the boxes in CSS px relative to the plot area; text '' where it doesn't fit
+// ponytail: one box per value change, however narrow; merge sub-pixel runs if huge buses get slow
+export function busSegs(u: uPlot) {
+  const { w } = area(u), out: { x0: number; x1: number; y0: number; y1: number; text: string; color: string }[] = []
+  u.series.forEach((s, i) => {
+    const b = (s as { bus?: BusOpt }).bus, xs = u.data[0], ys = u.data[i]
+    if (!b || s.show === false || !xs.length) return
+    const y0 = u.valToPos(b.rows - b.row - 0.15, 'L'), y1 = u.valToPos(b.rows - b.row - 0.85, 'L'), color = strokeOf(u, i)
+    let start = -1, val = NaN
+    const flush = (end: number) => {
+      if (start < 0) return
+      const x0 = Math.max(-2, u.valToPos(xs[start], 'x')), x1 = Math.min(w + 2, u.valToPos(end, 'x')), text = b.text(val)
+      if (x1 > 0 && x0 < w && x1 > x0) out.push({ x0, x1, y0, y1, text: x1 - x0 > text.length * 7 + 6 ? text : '', color })
+    }
+    for (let k = 0; k < xs.length; k++) {
+      const y = ys[k]
+      if (y == null || (start >= 0 && y === val)) continue // gaps (other runs' x points) hold the value
+      flush(xs[k]), (start = k), (val = y)
+    }
+    flush(xs[xs.length - 1])
+  })
+  return out
+}
+
 // cursors: x values (data units) drawn as dashed lines labelled A, B
 export function toSvg(u: uPlot | uPlot[], cursors: (number | undefined)[] = []): string {
   if (Array.isArray(u)) {
@@ -143,8 +170,13 @@ export function toSvg(u: uPlot | uPlot[], cursors: (number | undefined)[] = []):
   o.push(`<rect x="${l}" y="${t}" width="${w}" height="${h}" fill="none" stroke="#999"/>`, '<g clip-path="url(#plot)" fill="none" stroke-width="1.5" stroke-linejoin="round">')
   const xs = u.data[0], xmin = u.scales.x.min ?? xs[0], xmax = u.scales.x.max ?? xs[xs.length - 1]
   for (const { i, color } of items(u)) {
+    if ((u.series[i] as { bus?: BusOpt }).bus) continue
     const ys = u.data[i] as ArrayLike<number | null | undefined>, key = u.series[i].scale ?? 'y'
     o.push(`<polyline stroke="${color}" points="${decimate(u, xs, ys, key, lo(xs, xmin), hi(xs, xmax)).join(' ')}"/>`)
+  }
+  for (const b of busSegs(u)) {
+    o.push(`<rect x="${f(l + b.x0)}" y="${f(t + b.y0)}" width="${f(b.x1 - b.x0)}" height="${f(b.y1 - b.y0)}" stroke="${b.color}"/>`)
+    if (b.text) o.push(`<text x="${f(l + (b.x0 + b.x1) / 2)}" y="${f(t + (b.y0 + b.y1) / 2 + 4)}" text-anchor="middle" fill="#333" stroke="none">${esc(b.text)}</text>`)
   }
   o.push('</g>')
   cursors.forEach((c, k) => {

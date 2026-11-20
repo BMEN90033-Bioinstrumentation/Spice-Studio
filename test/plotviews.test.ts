@@ -107,3 +107,27 @@ test('steppedNames: the .step params of a sweep, from its run labels; isWorstCas
   assert.equal(isWorstCase(['run 1', 'run 2']), false)
   assert.equal(isWorstCase(['nominal, V2=1', 'nominal, V2=2']), true) // nested .dc splits each run
 })
+
+test('logic view: digital nets and thresholds from the netlist, buses', async () => {
+  const { logicNets, threshold, bits, busOf, busValues, busText, stepAt } = await import('../src/renderer/src/plot/logic.ts')
+  const nets = logicNets(`* t
+V1 clk 0 PULSE(0 5 0 2n 2n 0.5u 1u)
+XU1 q0n clk Q0 q0n DFF params: vdd=3.3 tpd=10n
+XU3 q0 q1 x XOR2
+XU4 a b other vdd=9
+XU5 p y INV params: vdd={vcc}
+R1 q1 avg 1k
+.subckt DFF d clk q qn params: vdd=5 tpd=10n
+XU9 inner y2 BUF
+.ends DFF
+.end`)
+  assert.deepEqual(Object.keys(nets).sort(), ['v(clk)', 'v(p)', 'v(q0)', 'v(q0n)', 'v(q1)', 'v(x)', 'v(y)'])
+  assert.equal(nets['v(q0n)'], 1.65), assert.equal(nets['v(x)'], 2.5), assert.ok(Number.isNaN(nets['v(y)']))
+  assert.equal(threshold([0, 3, 1], NaN), 1.5), assert.equal(threshold([0, 3], 2.5), 2.5)
+  assert.deepEqual([...bits([0, 2.6, 5, 2.5], 2.5)], [0, 1, 1, 0])
+  assert.deepEqual(busOf('=bus(Q1, v(q0) clk)'), ['v(q1)', 'v(q0)', 'v(clk)'])
+  assert.equal(busOf('=v(a)-v(b)'), null)
+  assert.deepEqual([...busValues([[0, 1, 1], [1, 0, 1]])], [1, 2, 3])
+  assert.deepEqual([busText(10, 5, 'hex'), busText(10, 5, 'dec'), busText(3, 2, 'hex')], ['0A', '10', '3'])
+  assert.deepEqual([stepAt([0, 1, 2], [5, 6, 7], 1.9), stepAt([0, 1, 2], [5, 6, 7], 2), stepAt([0, 1], [5, 6], 3)], [6, 7, null])
+})
