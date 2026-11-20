@@ -333,12 +333,20 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const needFit = useRef(true)
   const ta = useRef<HTMLTextAreaElement>(null)
   const bar = useRef<HTMLDivElement>(null), root = useRef<HTMLDivElement>(null)
-  // toolbar wraps in narrow panes: keep the inspector below it
+  // The toolbar never wraps: when the canvas is narrower than it, it is scaled down to fit (to half size at most).
+  // offsetWidth is its full-size width whatever the scale; `left` is its inset (36 / 248 px beside the parts panel), 8 px on the right.
   useEffect(() => {
-    const ro = new ResizeObserver(() => root.current?.style.setProperty('--bar-h', bar.current!.offsetHeight + 'px'))
-    ro.observe(bar.current!)
+    const fit = () => {
+      const b = bar.current, r = root.current
+      if (!b || !r) return
+      const k = Math.max(0.5, Math.min(1, (r.clientWidth - parseFloat(getComputedStyle(b).left) - 8) / b.offsetWidth))
+      b.style.transform = k < 1 ? `scale(${k})` : ''
+    }
+    const ro = new ResizeObserver(fit)
+    ro.observe(bar.current!), ro.observe(root.current!)
+    fit() // the parts panel opened or closed: the inset changed, the sizes didn't
     return () => ro.disconnect()
-  }, [])
+  }, [libOpen])
   // ponytail: re-netlists on every sheet change (incl. drag frames); fine for hand-drawn sizes, gate on use if it shows up in profiles
   const nl = useMemo(() => netlist(sheet, undefined, netCtx), [sheet, netCtx])
   const wn = overlay?.wireNets ?? nl.wireNets, pn = overlay?.nets ?? nl.nets
@@ -1086,7 +1094,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
         : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts${kl('view.parts')}`} onOpen={() => toggleLib(true)} />}
-      <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
+      <div className="sch-bar items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
         {barIds.map((id, i) => {
           const t = id === '|' ? undefined : barTool(id)
           if (editBar) { // being edited: every tool is a plain button that drags to its new place (and does nothing when clicked)

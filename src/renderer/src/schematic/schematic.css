@@ -32,7 +32,7 @@
 .sch .boxsel { fill: color-mix(in srgb, var(--hl) 8%, transparent); stroke: var(--hl); stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
 
 /* floating toolbar + inspectors: positions only (the parts panel/rail shift them, layout.css); looks are Tailwind in Schematic.tsx */
-.sch-bar { position: absolute; top: 8px; left: 8px; right: 8px; width: fit-content; margin-inline: auto; display: flex; justify-content: center; } /* width shrinks to its content, centred over the canvas, wraps when narrow */
+.sch-bar { position: absolute; top: 8px; left: 8px; right: 8px; width: max-content; margin-inline: auto; display: flex; transform-origin: top left; } /* one row, centred over the canvas; scaled down from its left edge when the canvas is narrower (Schematic.tsx) */
 .sch-bar [aria-pressed=true] .symp { color: var(--hl); }
 .sch-bar .sym path, .sch-bar .sym circle { stroke-width: 1.2; }
 .sch-insp { position: absolute; width: 230px; z-index: 5; } /* popup at the double-clicked element: left/top set inline */
