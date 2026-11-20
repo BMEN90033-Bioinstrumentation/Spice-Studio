@@ -161,7 +161,7 @@ export function toSvg(u: uPlot | uPlot[], cursors: (number | undefined)[] = []):
         if (lab != null && lab !== '') o.push(`<text x="${f(l + p)}" y="${t + h + 15}" text-anchor="middle" fill="#333">${esc(String(lab))}</text>`)
         return
       }
-      if (ai === 1) o.push(`<line x1="${l}" y1="${f(t + p)}" x2="${l + w}" y2="${f(t + p)}" stroke="#e3e6ea"/>`)
+      if (ai === 1 && a.grid?.show !== false) o.push(`<line x1="${l}" y1="${f(t + p)}" x2="${l + w}" y2="${f(t + p)}" stroke="#e3e6ea"/>`) // the logic chart has no y grid
       const right = a.side === 1
       if (lab != null && lab !== '')
         o.push(`<text x="${right ? l + w + 6 : l - 6}" y="${f(t + p + 4)}" text-anchor="${right ? 'start' : 'end'}" fill="#333">${esc(String(lab))}</text>`)
