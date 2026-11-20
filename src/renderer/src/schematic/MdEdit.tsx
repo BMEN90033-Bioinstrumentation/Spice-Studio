@@ -58,6 +58,7 @@ export function MdEdit({ text, size, minW, minH, fresh, onChange, onDone, onUndo
     <div ref={ref} className="ed" contentEditable="plaintext-only" suppressContentEditableWarning spellCheck={false} role="textbox" aria-multiline aria-label="Comment markdown"
       style={{ fontSize: size, minWidth: minW, minHeight: minH }}
       onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()} onBlur={onBlur}
+      onFocus={(e) => { const el = e.currentTarget; if (!el.contains(getSelection()?.anchorNode ?? null)) select(el, (el.textContent ?? '').length) /* focused again from outside: carry on at the end */ }}
       onInput={(e) => { if (!(e.nativeEvent as InputEvent).isComposing) { const el = e.currentTarget, [a, b] = caret(el); set(el, el.textContent ?? '', a, b); onChange(el.textContent ?? '') } }}
       onCompositionEnd={(e) => edit(e.currentTarget.textContent ?? '', caret(e.currentTarget)[1])}
       onKeyDown={(e) => {

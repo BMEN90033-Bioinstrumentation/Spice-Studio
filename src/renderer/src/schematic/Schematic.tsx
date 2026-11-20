@@ -548,6 +548,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function onKey(e: KeyboardEvent) {
     if (!active || modal || typing(e)) return
     const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey
+    // A properties popup (or a comment block's editor) is open but the keyboard isn't in a field: a click on the popup or
+    // the toolbar took it. Plain keys are then never tool hotkeys or Delete: a character goes back into the text box.
+    if (pop && !mod && k !== 'escape') {
+      if (e.key.length === 1) (ta.current ?? root.current?.querySelector<HTMLElement>('.mded .ed'))?.focus()
+      return
+    }
     let done = true
     if (k === ' ') setSpace(true)
     else if (mod && k === 'z') e.shiftKey ? redo() : undo()
