@@ -1,5 +1,5 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
-import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model'
+import { GRID, blockShape, callout, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model'
 import { PALETTE, SYMBOLS, isFlag, type Kind } from './symbols'
 import { cleanUp as cleanSheet, clusters, flagAt, labelAt } from './cleanup'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
@@ -92,6 +92,15 @@ const tbox = (t: Directive): Box => {
 const subset = (s: Sheet, ids: Set<string>, keep = true): Sheet => {
   const f = (i: { id: string }) => ids.has(i.id) === keep
   return { version: 1, parts: s.parts.filter(f), wires: s.wires.filter(f), texts: s.texts.filter(f), draw: (s.draw ?? []).filter(f), buses: (s.buses ?? []).filter(f) }
+}
+// What a comment's call-out arrow stops at: the part's body and its name / value labels, so the head never lands on a label.
+// ponytail: label widths estimated (monospace, char = 0.6em of 9 px, like the export crop), whatever Settings › Label text size says
+function aimBox(p: Part): Box {
+  const b = placed(p, bodyBox(p.kind, p))
+  if (isFlag(p.kind) || p.sheet) return pbox(p)
+  const { n, v, anchor } = labelAt(pbox(p))
+  const lb = ([x, y]: number[], t: string, o?: Pt) => { const w = Math.min(t.length, 16) * 5.4, l = x - (anchor === 'middle' ? w / 2 : 0) + (o?.x ?? 0), top = y - 8 + (o?.y ?? 0); return { x0: l, y0: top, x1: l + w, y1: top + 10 } }
+  return [lb(n, p.name, p.lo), lb(v, p.value, p.vo)].reduce((r, q) => ({ x0: Math.min(r.x0, q.x0), y0: Math.min(r.y0, q.y0), x1: Math.max(r.x1, q.x1), y1: Math.max(r.y1, q.y1) }), b)
 }
 const corners = (b: Box) => [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y1 }]
 const count = (s: Sheet) => s.parts.length + s.wires.length + s.texts.length + (s.draw?.length ?? 0) + (s.buses?.length ?? 0)
@@ -214,7 +223,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     const d = cur.current.draw?.find((x) => x.id === id), kind: PopKind = cur.current.texts.some((t) => t.id === id) ? 'dir' : d ? (d.t === 'title' ? 'title' : 'note') : 'part', k = kept[kind]
     setPop({ id, kind, left: Math.max(8, Math.min(k?.left ?? left, r.width - W - 8)), top: Math.max(8, Math.min(k?.top ?? b.top - r.top, r.height - (k?.top == null ? 220 : 60))) })
   }
-  useEffect(() => { pop && ta.current?.focus() }, [pop?.id])
+  // the popup's (or the comment block's own) text box takes the keyboard: a just-placed item's starter text is selected, so
+  // typing replaces it; otherwise the caret goes to the end
+  const fresh = useRef(false)
+  useEffect(() => {
+    const t = pop && ta.current
+    if (t) t.focus(), fresh.current ? t.select() : t.setSelectionRange(t.value.length, t.value.length)
+    fresh.current = false
+  }, [pop?.id])
   // a popup wider than the 230 px openPop assumed (a directive's is as wide as its text, and grows as you type): back
   // inside the canvas. Every render: one measurement, and it only moves a popup that sticks out
   useLayoutEffect(() => {
@@ -288,6 +304,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [ghost, setGhost] = useState({ rot: 0, mirror: false })
   const [cursor, setCursor] = useState<Pt | null>(null)
   const [start, setStart] = useState<Pt | null>(null)
+  const [pinFor, setPinFor] = useState<string | null>(null) // the comment block whose call-out arrows are being picked: a click on a part adds or removes one
   const [vFirst, setVFirst] = useState(false)
   const [box, setBox] = useState<Box | null>(null)
   const [space, setSpace] = useState(false)
@@ -405,6 +422,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
   function use(t: Tool) {
     setTool(t)
+    setPinFor(null)
     setStart(null)
     setGhost({ rot: 0, mirror: false })
     setHov(null)
@@ -479,12 +497,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       const n = { id: uid(), a: add(w.a, { x: 20, y: 20 }), b: add(w.b, { x: 20, y: 20 }) }
       next.buses!.push(n), out.buses!.push(n)
     }
-    const off = (q: Pt) => add(q, { x: 20, y: 20 })
+    const off = (q: Pt) => add(q, { x: 20, y: 20 }), ids = new Map<string, string>()
     for (const p of c.parts) {
       const pre = SYMBOLS[p.kind].prefix
       const n = { ...p, ...off(p), id: uid(), name: pre ? nextName(next, pre) : p.name }
-      next.parts.push(n), out.parts.push(n)
+      next.parts.push(n), out.parts.push(n), ids.set(p.id, n.id)
     }
+    // a pasted comment block points at the copies of its parts pasted with it (and still at the originals of the rest)
+    for (const d of out.draw!) if (d.t === 'note' && d.pins) d.pins = d.pins.map((x) => ids.get(x) ?? x)
     for (const w of c.wires) {
       const n = { id: uid(), a: off(w.a), b: off(w.b) }
       next.wires.push(n), out.wires.push(n)
@@ -498,6 +518,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     return out
   }
   function esc() {
+    if (pinFor) return setPinFor(null)
     if (pop) return setPop(null)
     if (start) setStart(null)
     else if (tool !== 'select') use('select')
@@ -649,6 +670,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     }
     if (e.button !== 0) return
     const w = world(e), p = snapPt(w), s = cur.current
+    if (pinFor) {
+      // a click on a part points the comment at it, or stops pointing at it; a click anywhere else ends the picking
+      const id = (e.target as Element).closest('[data-id]')?.getAttribute('data-id')
+      if (!s.parts.some((q) => q.id === id)) return setPinFor(null)
+      return commit({ ...s, draw: s.draw?.map((d) => (d.id === pinFor && d.t === 'note' ? { ...d, pins: d.pins?.includes(id!) ? d.pins.filter((x) => x !== id) : [...(d.pins ?? []), id!] } : d)) })
+    }
     if (tool === 'probe' || (tool === 'select' && e.altKey)) {
       // a net (wire, flag or pin) may start a differential drag; a click without dragging probes as before
       const t = probeAt(e.target as Element), net = netAt(w, e.target as Element)
@@ -668,7 +695,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       commit({ ...s, draw: [...(s.draw ?? []), d] })
       setSel(new Set([d.id]))
       use('select')
-      setTimeout(() => (openPop(d.id), setTimeout(() => ta.current?.select())))
+      setTimeout(() => ((fresh.current = true), openPop(d.id))) // after mousedown's default focus change, once the note is drawn
       return
     }
     if (tool === 'text') {
@@ -676,7 +703,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       commit({ ...s, texts: [...s.texts, t] })
       setSel(new Set([t.id]))
       use('select')
-      setTimeout(() => (openPop(t.id), setTimeout(() => ta.current?.select()))) // after mousedown's default focus change, once the card is drawn
+      setTimeout(() => ((fresh.current = true), openPop(t.id))) // after mousedown's default focus change, once the card is drawn
       return
     }
     if (typeof tool === 'object') return commit({ ...s, parts: [...s.parts, newPart(s, tool.place, p.x, p.y, ghost.rot, ghost.mirror, tool.extra)] })
@@ -847,7 +874,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function exportSvg(): string {
     const g = svg.current!.querySelector(':scope > g')!.cloneNode(true) as SVGGElement
     g.removeAttribute('transform')
-    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .hitf, .band, title').forEach((e) => e.remove())
+    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .hitf, .band, .mded, title').forEach((e) => e.remove())
     g.querySelectorAll('[data-id]').forEach((e) => e.removeAttribute('data-id'))
     g.querySelectorAll('.on, .hl, .blame').forEach((e) => e.classList.remove('on', 'hl', 'blame'))
     // crop: bounds() plus the part labels, estimated like the cards (monospace, char = 0.6em)
@@ -940,7 +967,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const setBar = (ids: string[]) => void window.api.prefs.set({ toolbar: ids.join() === DEFAULT_BAR.join() ? [] : ids })
   const hoverDraw = (open: boolean) => { clearTimeout(drawTimer.current); drawTimer.current = window.setTimeout(() => setDrawOpen(open), open ? 80 : 300) }
   const g = view.k * GRID < 6 ? GRID * 5 : GRID
-  const hint = placing
+  const hint = pinFor
+    ? 'Click a part to point the comment at it · click it again to remove the arrow · Esc or a click elsewhere finishes'
+    : placing
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
     : tool === 'text'
       ? 'Click to place a SPICE directive · Esc returns to select'
@@ -963,7 +992,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       : '' // select: nothing to explain (the shortcuts are in Help)
 
   return (
-    <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}`}>
+    <div ref={root} className={`sch${tool === 'probe' ? ' probe' : tool !== 'select' ? ' draw' : ''}${space ? ' pan' : ''}${libOpen ? ' lib' : ''}${pinFor ? ' pin' : ''}`}>
       <svg ref={svg} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
         onPointerLeave={() => !drag.current && (setCursor(null), setHov(null))} onDoubleClick={dbl} onContextMenu={context}>
         <defs>
@@ -1000,7 +1029,19 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
           {/* comment blocks float over the circuit; the other annotations sit under it */}
-          {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} />)}
+          {sheet.draw?.map((d) => d.t === 'note' && d.md && d.pins?.map((id) => {
+            const q = sheet.parts.find((x) => x.id === id), l = q && callout(dbox(d), aimBox(q)) // a deleted part's arrow just isn't drawn
+            return l && <DrawingEl key={d.id + id} d={{ id: '', t: 'arrow', ...l }} cls={`callout ${sel.has(d.id) || pinFor === d.id ? 'on' : ''}`} />
+          }))}
+          {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />)}
+          {/* a comment block is edited in place: its markdown source in a text box drawn over the card, in sheet units so it zooms with it */}
+          {drw?.t === 'note' && drw.md && pop?.id === drw.id && (() => { const b = dbox(drw); return (
+            <foreignObject className="mded" x={b.x0} y={b.y0} width={4000} height={4000}>
+              <textarea ref={ta} value={drw.text} spellCheck={false} aria-label="Comment markdown" style={{ fontSize: drw.size ?? NOTE, minWidth: b.x1 - b.x0, minHeight: b.y1 - b.y0 }}
+                onChange={(e) => editDraw(drw, 'text', e.target.value)} onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.key === 'Escape' && setPop(null)} onBlur={() => (hist.current.merge = undefined)} />
+            </foreignObject>
+          ) })()}
           {dots.j.map((q) => <circle key={`j${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
           {dots.nc.map((q, i) => <rect key={i} className="nc" x={q.x - 2} y={q.y - 2} width={4} height={4} />)}
           {placing && cursor && (
@@ -1162,17 +1203,25 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 
       {drw?.t === 'note' && pop?.id === drw.id && (
         <div className={INSP} style={popAt} onPointerDown={dragPop} key={drw.id}>
-          <Label className={FLD}>{drw.md ? 'Comment block (markdown, not netlisted)' : 'Text note (not netlisted)'}
+          {drw.md ? <><div className="text-xs font-semibold">Comment block</div><div className={D}>Type markdown on the block itself · Esc when done. Not netlisted.</div></> : (
+          <Label className={FLD}>Text note (not netlisted)
             <Textarea ref={ta} {...keptSize('note')} rows={4} value={drw.text} spellCheck={false} onChange={(e) => editDraw(drw, 'text', e.target.value)}
               className={cn('max-h-[50vh] min-h-[60px] resize-y px-2 py-1.5 leading-snug', MONO)}
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </Label>
+          )}
           <Label className={FLD}>Size
             <Select value={String(drw.size ?? NOTE)} onValueChange={(v) => editDraw(drw, 'size', +v)}>
               <SelectTrigger size="sm" className="h-7 w-full text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>{NOTE_SIZES.map(([l, v]) => <SelectItem key={v} value={String(v)}>{l}</SelectItem>)}</SelectContent>
             </Select>
           </Label>
+          {drw.md && (
+            <div className="flex flex-wrap gap-1.5">
+              <Tip label="Draw arrows from this comment to parts: click each part, Esc when done"><InspBtn onClick={() => (setPop(null), setPinFor(drw.id))}>Point at parts…</InspBtn></Tip>
+              {!!drw.pins?.length && <InspBtn onClick={() => commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === drw.id && x.t === 'note' ? { ...x, pins: undefined } : x)) })}>Remove arrows</InspBtn>}
+            </div>
+          )}
         </div>
       )}
       {drw?.t === 'title' && pop?.id === drw.id && (

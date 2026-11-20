@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { mdChars, parseMd } from '../src/renderer/src/schematic/md.ts'
-import { parseSheet } from '../src/renderer/src/schematic/model.ts'
+import { callout, parseSheet } from '../src/renderer/src/schematic/model.ts'
 
 test('comment block markdown: headings, inline styles, lists, code fences, rules; markup is never passed through as HTML', () => {
   const l = parseMd('# Title\nplain **bold** *it* `v(out)` [doc](http://x)\n- item\n  - [x] done\n> quote\n---\n```\n**raw**\n```\n<b>2*3</b>')
@@ -21,4 +21,14 @@ test('parseSheet keeps a comment block (note with md) and rejects a bad md flag'
   const sheet = (md: unknown) => JSON.stringify({ version: 1, parts: [], wires: [], texts: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: '# hi', md }] })
   assert.equal((parseSheet(sheet(true)).draw![0] as { md?: boolean }).md, true)
   assert.throws(() => parseSheet(sheet('yes')))
+})
+
+test('call-out arrow: from the edge of the comment to just short of the part, along the line between centres; none when they overlap', () => {
+  const card = { x0: 0, y0: 0, x1: 100, y1: 40 }
+  assert.deepEqual(callout(card, { x0: 190, y0: 10, x1: 210, y1: 30 }), { a: { x: 100, y: 20 }, b: { x: 186, y: 20 } }) // straight right, 4 short
+  assert.deepEqual(callout(card, { x0: 40, y0: 100, x1: 60, y1: 120 }, 0), { a: { x: 50, y: 40 }, b: { x: 50, y: 100 } }) // straight down
+  assert.equal(callout(card, { x0: 90, y0: 10, x1: 110, y1: 30 }), null)
+  const s = (pins: unknown) => JSON.stringify({ version: 1, parts: [], wires: [], texts: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: '', md: true, pins }] })
+  assert.deepEqual((parseSheet(s(['p1'])).draw![0] as { pins?: string[] }).pins, ['p1'])
+  assert.throws(() => parseSheet(s([1])))
 })

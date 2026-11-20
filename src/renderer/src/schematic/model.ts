@@ -41,7 +41,7 @@ export interface Directive {
 export type Drawing =
   | { id: string; t: 'line' | 'arrow' | 'rect' | 'ellipse'; a: Pt; b: Pt; fill?: boolean } // fill: rect / ellipse drawn solid
   | { id: string; t: 'poly'; pts: Pt[]; fill?: boolean } // closed outline (a triangle…): custom symbols only, the sheet has no tool for it
-  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number; md?: boolean }
+  | { id: string; t: 'note'; x: number; y: number; text: string; size?: number; md?: boolean; pins?: string[] } // pins: ids of the parts a comment block points at (call-out arrows)
   | { id: string; t: 'title'; x: number; y: number; title: string; author: string; date: string; rev: string }
 export interface Sheet {
   version: 1
@@ -225,6 +225,19 @@ export function remap(s: Sheet, sel: Set<string>, f: (p: Part) => Part, g: (q: P
   return { ...s, parts, wires: [...wires, ...added] }
 }
 
+// A comment block's call-out arrow: the straight line between the centres of boxes p and q, from where it leaves p to
+// `gap` short of where it enters q; null when the boxes touch or overlap (nothing to draw).
+type Rect = { x0: number; y0: number; x1: number; y1: number }
+export function callout(p: Rect, q: Rect, gap = 4): { a: Pt; b: Pt } | null {
+  const c = (r: Rect) => ({ x: (r.x0 + r.x1) / 2, y: (r.y0 + r.y1) / 2 }), cp = c(p), cq = c(q), dx = cq.x - cp.x, dy = cq.y - cp.y
+  // fraction of the centre line inside a box of half-size hw x hh
+  const t = (hw: number, hh: number) => Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity)
+  const tp = t((p.x1 - p.x0) / 2, (p.y1 - p.y0) / 2), tq = t((q.x1 - q.x0) / 2 + gap, (q.y1 - q.y0) / 2 + gap)
+  if (!(tp + tq < 1)) return null
+  const r = (v: number) => Math.round(v * 10) / 10
+  return { a: { x: r(cp.x + dx * tp), y: r(cp.y + dy * tp) }, b: { x: r(cq.x - dx * tq), y: r(cq.y - dy * tq) } }
+}
+
 export const NOTE_MIN = 4, NOTE_MAX = 72 // note font sizes kept on load
 // a shape or bus segment turned a quarter clockwise (rot) or mirrored left-right about its own grid-snapped centre;
 // notes and the title block stay as they are (their text reads upright)
@@ -236,7 +249,7 @@ export function turnSeg<T extends { a: Pt; b: Pt }>(w: T, rot: boolean): T {
 const num = (v: unknown) => typeof v === 'number' && isFinite(v)
 const pt = (p: any) => num(p?.x) && num(p?.y)
 const str = (v: unknown) => typeof v === 'string'
-export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size)) && (d.md === undefined || typeof d.md === 'boolean')
+export const okDrawing = (d: any): d is Drawing => str(d?.id) && (d.t === 'note' ? pt(d) && str(d.text) && (d.size === undefined || num(d.size)) && (d.md === undefined || typeof d.md === 'boolean') && (d.pins === undefined || (Array.isArray(d.pins) && d.pins.length <= 64 && d.pins.every(str)))
   : d.t === 'title' ? pt(d) && ['title', 'author', 'date', 'rev'].every((k) => str(d[k]))
   : (d.fill === undefined || typeof d.fill === 'boolean') && (d.t === 'poly' ? Array.isArray(d.pts) && d.pts.length >= 3 && d.pts.length <= 64 && d.pts.every(pt)
   : ['line', 'arrow', 'rect', 'ellipse'].includes(d.t) && pt(d.a) && pt(d.b)))
