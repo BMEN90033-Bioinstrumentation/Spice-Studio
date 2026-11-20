@@ -21,6 +21,10 @@ test('parseSheet keeps a comment block (note with md) and rejects a bad md flag'
   const sheet = (md: unknown) => JSON.stringify({ version: 1, parts: [], wires: [], texts: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: '# hi', md }] })
   assert.equal((parseSheet(sheet(true)).draw![0] as { md?: boolean }).md, true)
   assert.throws(() => parseSheet(sheet('yes')))
+  // a size saved on a comment block (it once had a Size setting) is dropped on load; a plain note keeps its size
+  const sized = (md?: boolean) => parseSheet(JSON.stringify({ version: 1, parts: [], wires: [], texts: [], draw: [{ id: 'a', t: 'note', x: 0, y: 0, text: 'x', size: 20, md }] })).draw![0]
+  assert.equal('size' in sized(true), false)
+  assert.equal((sized() as { size?: number }).size, 20)
 })
 
 test('call-out arrow: from the edge of the comment to just short of the part, along the line between centres; none when they overlap', () => {

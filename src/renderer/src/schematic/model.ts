@@ -283,6 +283,7 @@ export function parseSheet(text: string): Sheet {
     // one title block per sheet; note sizes within reason
     s.draw = s.draw.filter((d: Drawing, i: number) => d.t !== 'title' || s.draw.findIndex((x: Drawing) => x.t === 'title') === i)
     for (const d of s.draw) if (d.t === 'note' && d.size !== undefined) d.size = Math.min(NOTE_MAX, Math.max(NOTE_MIN, d.size))
+    for (const d of s.draw) if (d.t === 'note' && d.md) delete d.size // comment blocks have no size setting (headings size the text): older ones go back to Normal
   }
   if (s.buses !== undefined && !(Array.isArray(s.buses) && s.buses.every((w: any) => pt(w?.a) && pt(w?.b) && typeof w.id === 'string'))) throw new Error('Malformed buses')
   return s
