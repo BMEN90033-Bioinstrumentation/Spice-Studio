@@ -8,8 +8,9 @@ The schematic editor is the canvas in the middle of the window. The toolbar abov
 
 You can move around the canvas in the following ways:
 
-- **Pan**: scroll with the trackpad or mouse wheel, hold **Space** and drag, or drag with the middle button.
-- **Zoom**: pinch on a trackpad (or Ctrl + scroll wheel), or press **+** and **−**.
+- **Zoom**: turn the scroll wheel, pinch on a trackpad, or press **+** and **−**. The zoom stays centred on the pointer.
+- **Pan**: hold **Shift** and scroll, hold **Space** and drag, or drag with the middle button.
+- To make the wheel (and a two-finger trackpad scroll) pan instead, set **Settings › Schematic › Scroll wheel** to pan. Pinch and Ctrl + wheel still zoom.
 - **Fit**: press **F** or click **⤢** to fit the whole drawing in the window.
 - **Panels**: ⌘1 shows or hides the Sheets panel, ⌘2 (or **Shift+L**) the Parts panel and ⌘3 the results.
 

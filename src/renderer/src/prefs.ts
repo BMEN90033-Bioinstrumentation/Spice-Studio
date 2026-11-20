@@ -3,7 +3,7 @@
 import type { ProjectSim } from './contracts.ts'
 import { COMPATS } from './project/project.ts'
 import { cleanKeys } from './shortcuts.ts'
-import { SCH_DEFAULT, SCH_THEME_IDS } from './schematic/themes.ts'
+import { SCH_THEME_IDS } from './schematic/themes.ts'
 
 export type Theme = 'dark' | 'light' | 'system'
 export interface Prefs {
@@ -28,8 +28,8 @@ export interface Prefs {
   showResults: boolean // a finished run opens the results panel if it is hidden
   resultsOnOpen: 'hidden' | 'docked' | 'window' // the results panel when a project opens
 }
-export const DEFAULT_PREFS: Prefs = { theme: 'dark', schTheme: SCH_DEFAULT, autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
-  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'pan', live: true, plotWidth: 1.5, showResults: false, resultsOnOpen: 'hidden' }
+export const DEFAULT_PREFS: Prefs = { theme: 'dark', schTheme: 'fusion_slate_amber', autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
+  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'zoom', live: true, plotWidth: 1.5, showResults: false, resultsOnOpen: 'hidden' }
 export const UI_SCALES = [0.8, 0.9, 1, 1.1, 1.25, 1.5], EDITOR_FONTS = [0, 11, 12, 13, 14, 16, 18], PLOT_WIDTHS = [1, 1.5, 2, 3]
 export const AUTOSAVE_MIN = 5, AUTOSAVE_MAX = 600
 
