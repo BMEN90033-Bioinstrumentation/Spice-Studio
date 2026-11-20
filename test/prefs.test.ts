@@ -30,6 +30,12 @@ test('prefs: schematic colour themes — known ids kept, unknown back to default
   for (const t of SCH_THEMES) assert.match(schThemeCss(t.id), /--bg:#[0-9a-f]{6};.*--err:#[0-9a-f]{6,8};/, t.id), assert.doesNotMatch(schThemeCss(t.id), /undefined/, t.id)
   assert.match(schThemeCss('tokyo_night'), /--wire:#9ece6a;.*--sel:#f0b35a/) // dark background: the dark selection colours
   assert.match(schThemeCss('altium_light'), /--bg:#ffffff;.*--sel:#c2410c/)
+  // comment blocks: the theme accent furthest from its outlines, labels and wires
+  const { commentColor } = await import('../src/renderer/src/schematic/themes.ts')
+  const fusion = SCH_THEMES.find((x) => x.id === 'fusion_slate_amber')!.c
+  assert.equal(commentColor(fusion), fusion.junction) // green: its note and bus blues sit next to the blue labels
+  assert.match(schThemeCss('fusion_slate_amber'), /--cmt:#64d282;/)
+  for (const x of SCH_THEMES) assert.ok([x.c.junction, x.c.bus, x.c.note].includes(commentColor(x.c)), x.id)
 })
 
 test('prefs: toolbar layout — a list of short ids, each tool once, separators repeat; anything else is the default', () => {

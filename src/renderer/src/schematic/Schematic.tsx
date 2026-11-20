@@ -1058,10 +1058,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
           {/* comment blocks float over the circuit; the other annotations sit under it */}
+          {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />)}
           {sheet.draw?.map((d) => d.t === 'note' && d.md && !!d.pins?.length && ( // a deleted part's arrow just isn't drawn
             <Callouts key={'c' + d.id} card={dbox(d)} targets={d.pins.flatMap((id) => { const q = sheet.parts.find((x) => x.id === id); return q ? [aimBox(q)] : [] })} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />
           ))}
-          {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />)}
           {/* a comment block is edited in place: MdEdit over the card, formatted as it is typed, in sheet units so it zooms with it */}
           {drw?.t === 'note' && drw.md && pop?.id === drw.id && (() => { const b = dbox(drw); return (
             <foreignObject className="mded" x={b.x0} y={b.y0 + MD_BAN} width={4000} height={4000}>

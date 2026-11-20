@@ -32,6 +32,14 @@ const colors = (c: string) => Object.fromEntries(c.split(' ').map((v, i) => [KEY
 export const SCH_THEMES = Object.entries(RAW).map(([id, t]) => ({ id, name: t.name, dark: t.dark, c: colors(t.c) }))
 export const SCH_THEME_IDS = [SCH_DEFAULT, ...Object.keys(RAW)]
 
+// Comment blocks get a colour of their own: of the theme's accents (junction, bus, note), the one furthest from what the
+// circuit is drawn in (outlines, labels, wires), so a comment never reads as part of the schematic.
+export function commentColor(c: SchColors): string {
+  const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+  const far = (h: string) => Math.min(...[c.component_outline, c.reference, c.value, c.wire].map((o) => Math.hypot(...rgb(h).map((v, i) => v - rgb(o)[i]))))
+  return [c.junction, c.bus, c.note].reduce((best, h) => (far(h) > far(best) ? h : best))
+}
+
 // The canvas' CSS variables for a theme ('' for the default). KiCad themes have no selection / probe colours, so those
 // take style.css' dark or light set by the theme's background, whatever the app theme is.
 // ponytail: those two sets are copied from style.css; fold them into one place if they ever change
@@ -43,6 +51,6 @@ export function schThemeCss(id: string): string {
   const c = colors(t.c)
   const tag = `color-mix(in srgb,${c.background},${c.reference}` // OP tags and directive cards: a step off the canvas
   return `.sch>svg,.sch>.sch-hint{--bg:${c.background};--line-strong:${c.grid};--sym:${c.component_outline};--sym-body:${c.component_body};` +
-    `--text:${c.reference};--dim:${c.value};--wire:${c.wire};--jn:${c.junction};--bus:${c.bus};--note:${c.note};--nc:${c.no_connect};--err:${c.erc_error};` +
+    `--text:${c.reference};--dim:${c.value};--wire:${c.wire};--jn:${c.junction};--bus:${c.bus};--note:${c.note};--nc:${c.no_connect};--err:${c.erc_error};--cmt:${commentColor(c)};` +
     `--s1:${tag} 8%);--s2:${tag} 14%);${t.dark ? DARK : LIGHT}}.sch>svg{background:var(--bg)}.sch>.sch-hint{color:var(--dim)}`
 }

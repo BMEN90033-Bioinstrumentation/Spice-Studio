@@ -110,17 +110,16 @@ export function DrawingEl({ d, cls = '', sheetNo = '1 of 1' }: { d: Drawing; cls
   )
 }
 
-// A comment block's call-outs: one dot just outside the card, on the side its targets are, and an arrow from the dot to
-// each target box (stopping short of it). Nothing when the targets sit on the card.
+// A comment block's call-outs: one dot on the card's edge, on the side its targets are, and an arrow from the dot to
+// each target box (stopping short of it). Nothing when the targets sit on the card. Drawn over the card, so the dot shows whole.
 export function Callouts({ card, targets, cls = '' }: { card: Box; targets: Box[]; cls?: string }) {
   const h = calloutHub(card, targets)
   if (!h) return null
-  const at = { x0: h.hub.x, y0: h.hub.y, x1: h.hub.x, y1: h.hub.y }
+  const at = { x0: h.x, y0: h.y, x1: h.x, y1: h.y }
   return (
     <g className={`drw callout ${cls}`}>
-      <path d={`M${h.edge.x} ${h.edge.y}L${h.hub.x} ${h.hub.y}`} />
       {targets.map((q, i) => { const l = callout(at, q); if (!l) return null; const { path, fill } = shapePath({ id: '', t: 'arrow', ...l }); return <g key={i}><path d={path} /><path className="f" d={fill} /></g> })}
-      <circle cx={h.hub.x} cy={h.hub.y} r={2.5} />
+      <circle cx={h.x} cy={h.y} r={3} />
     </g>
   )
 }

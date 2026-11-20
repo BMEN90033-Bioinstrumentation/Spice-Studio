@@ -78,31 +78,37 @@
 .sch .drw.title .tt { font-size: 13px; font-weight: 600; }
 .sch .drw.title .lb { fill: var(--dim); font-size: 7px; }
 /* comment block (a note with md): markdown on a floating card */
-.sch .drw.md .bg { fill: var(--s2); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
+/* its own colour, --cmt: an accent from the schematic colour theme (themes.ts commentColor), amber without a theme */
+.sch .drw.md, .sch .drw.callout { color: var(--cmt, #d9a441); }
+.sch .drw.md .bg { fill: color-mix(in srgb, currentColor 12%, var(--bg)); stroke: color-mix(in srgb, currentColor 65%, var(--bg)); stroke-width: 1; vector-effect: non-scaling-stroke; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }
 .sch .drw.md text { fill: var(--text); }
-.sch .drw.md .c { fill: var(--note, #8fa3ba); }
+.sch .drw.md .c { fill: currentColor; }
+.sch .drw.md.on, .sch .drw.callout.on { color: var(--sel); }
 .sch .drw.md.on .bg { stroke: var(--sel); }
+.sch .drw.md.on text:not(.bant) { fill: var(--text); } /* selected: the frame, banner and arrows change colour, the writing stays readable */
 /* a comment block being edited in place (MdEdit.tsx): formatted as it is typed, the markdown syntax dimmed; sizes in sheet units */
 .sch .mded { pointer-events: none; overflow: visible; }
 .sch .mded .ed { pointer-events: auto; display: block; box-sizing: border-box; width: max-content; padding: 6px; border-radius: 3px; outline: 1px solid var(--hl); cursor: text; user-select: text;
-  background: var(--s2); color: var(--text); font-family: var(--mono); line-height: 1.4; white-space: pre; }
+  background: color-mix(in srgb, var(--cmt, #d9a441) 12%, var(--bg)); color: var(--text); font-family: var(--mono); line-height: 1.4; white-space: pre; }
 .sch .mded .m { opacity: 0.45; }
 .sch .mded .b { font-weight: 700; }
 .sch .mded .i { font-style: italic; }
 .sch .mded .u { text-decoration: underline; }
-.sch .mded .c { color: var(--note, #8fa3ba); }
+.sch .mded .c { color: var(--cmt, #d9a441); }
 .sch .drw.callout { pointer-events: none; } /* a comment block's arrows to the parts it points at */
-.sch .drw.callout circle { fill: currentColor; } /* the dot the arrows leave from */
-.sch .drw.md path.ban { fill: color-mix(in srgb, var(--text) 10%, transparent); stroke: none; }
+.sch .drw.callout circle { fill: currentColor; stroke: var(--bg, #1c1e22); stroke-width: 1; vector-effect: non-scaling-stroke; } /* the dot on the card's edge that the arrows leave from */
+.sch .drw.md path.ban { fill: color-mix(in srgb, currentColor 26%, var(--bg)); stroke: none; }
 .sch .drw.md path.ico { stroke-width: 1; }
-.sch .drw.md .bant { fill: var(--dim); letter-spacing: 0.04em; }
-.sch .drw.md.on .bant { fill: var(--sel); }
+.sch .drw.md .bant { fill: currentColor; letter-spacing: 0.04em; }
 /* picking the parts a comment points at: the part under the pointer lights up, with a + cursor (a − on one already pointed at) */
 .sch.pin .part { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='11' cy='11' r='9' fill='%23ffd54f' stroke='%23111' stroke-width='1.3'/%3E%3Cpath d='M11 6.5v9M6.5 11h9' stroke='%23111' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 11 11, copy; }
 .sch.pin .part.hl { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Ccircle cx='11' cy='11' r='9' fill='%23ffd54f' stroke='%23111' stroke-width='1.3'/%3E%3Cpath d='M6.5 11h9' stroke='%23111' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 11 11, no-drop; }
 .sch.pin .part:hover { color: var(--hl); }
 .sch.pin .part:hover text { fill: var(--hl); }
 .sch.pin .part:hover .sym { filter: drop-shadow(0 0 3px var(--hl)); }
+/* …and everything else fades, apart from the comment being pinned and its arrows */
+.sch.pin > svg :is(.part, .wire, .bus, .dir, .jn, .bjn, .drw) { transition: opacity 0.12s; }
+.sch.pin > svg:has(.part:hover) :is(.part:not(:hover), .wire, .bus, .dir, .jn, .bjn, .drw:not(.on)) { opacity: 0.25; }
 .sch .drw.on { color: var(--sel); }
 .sch .drw.on text, .sch .drw.on.title text { fill: var(--sel); }
 .sch .drw.ghost { color: var(--hl); opacity: 0.6; pointer-events: none; }
@@ -120,6 +126,9 @@
 /* light theme: annotations and buses need darker ink on the white canvas */
 @media (prefers-color-scheme: light) {
   .sch .drw { color: var(--note, #4a5d73); }
+  .sch .drw.md, .sch .drw.callout { color: var(--cmt, #9a6b00); }
+  .sch .mded .ed { background: color-mix(in srgb, var(--cmt, #9a6b00) 12%, var(--bg)); }
+  .sch .mded .c { color: var(--cmt, #9a6b00); }
   .sch .bus line { stroke: var(--bus, #2f6fb0); }
   .sch .bjn { fill: var(--bus, #2f6fb0); }
 }
