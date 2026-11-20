@@ -4,6 +4,8 @@
 
 The schematic editor is the canvas in the middle of the window. The toolbar above it holds the drawing tools, and the hint line at the bottom says what the current tool does.
 
+A toolbar button with a small arrow, such as **Draw**, holds a menu of tools: point at it or click it to open the menu. **Edit** at the end of the toolbar changes the toolbar itself: drag a row (or use its arrows) to reorder, **×** to remove a tool, and pick from **Add to the toolbar** to add any other tool, part or separator. **Reset** brings back the standard layout. The layout is saved with your settings.
+
 ## Moving around
 
 You can move around the canvas in the following ways:

@@ -27,9 +27,10 @@ export interface Prefs {
   plotWidth: number // trace thickness in px
   showResults: boolean // a finished run opens the results panel if it is hidden
   resultsOnOpen: 'hidden' | 'docked' | 'window' // the results panel when a project opens
+  toolbar: string[] // the schematic toolbar's tools in order (Schematic.tsx ids, '|' = separator); [] = the default layout
 }
 export const DEFAULT_PREFS: Prefs = { theme: 'dark', schTheme: 'fusion_slate_amber', autosave: true, autosaveSecs: 30, sim: {}, projectDir: '', grid: true, showOp: true, ngspicePath: '', keys: {},
-  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'zoom', live: true, plotWidth: 1.5, showResults: false, resultsOnOpen: 'hidden' }
+  uiScale: 1, editorFont: 0, gridStyle: 'dots', labelSize: 'm', lineWeight: 'normal', wheel: 'zoom', live: true, plotWidth: 1.5, showResults: false, resultsOnOpen: 'hidden', toolbar: [] }
 export const UI_SCALES = [0.8, 0.9, 1, 1.1, 1.25, 1.5], EDITOR_FONTS = [0, 11, 12, 13, 14, 16, 18], PLOT_WIDTHS = [1, 1.5, 2, 3]
 export const AUTOSAVE_MIN = 5, AUTOSAVE_MAX = 600
 
@@ -60,6 +61,8 @@ export function cleanPrefs(x: unknown): Prefs {
     live: bool('live'),
     plotWidth: one(PLOT_WIDTHS, p.plotWidth, d.plotWidth),
     showResults: bool('showResults'),
-    resultsOnOpen: one(['hidden', 'docked', 'window'] as const, p.resultsOnOpen, d.resultsOnOpen)
+    resultsOnOpen: one(['hidden', 'docked', 'window'] as const, p.resultsOnOpen, d.resultsOnOpen),
+    // ids are checked where they are drawn (an unknown one is skipped); here just a sane list, each tool once
+    toolbar: Array.isArray(p.toolbar) ? p.toolbar.filter((t: unknown, i: number) => typeof t === 'string' && /^[\w|]{1,20}$/.test(t) && (t === '|' || p.toolbar.indexOf(t) === i)).slice(0, 80) : d.toolbar
   }
 }

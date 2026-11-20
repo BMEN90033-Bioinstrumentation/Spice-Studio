@@ -31,3 +31,8 @@ test('prefs: schematic colour themes — known ids kept, unknown back to default
   assert.match(schThemeCss('tokyo_night'), /--wire:#9ece6a;.*--sel:#f0b35a/) // dark background: the dark selection colours
   assert.match(schThemeCss('altium_light'), /--bg:#ffffff;.*--sel:#c2410c/)
 })
+
+test('prefs: toolbar layout — a list of short ids, each tool once, separators repeat; anything else is the default', () => {
+  assert.deepEqual(cleanPrefs({ toolbar: ['wire', '|', 'res', 'wire', '|', 7, 'a b', 'x'.repeat(21)] }).toolbar, ['wire', '|', 'res', '|'])
+  assert.deepEqual(cleanPrefs({ toolbar: 'wire' }).toolbar, [])
+})

@@ -1,6 +1,6 @@
 import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as RKE, type MouseEvent as RME, type PointerEvent as RPE, type ComponentProps, type ReactNode, type Ref } from 'react'
 import { GRID, blockShape, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model'
-import { SYMBOLS, isFlag, type Kind } from './symbols'
+import { PALETTE, SYMBOLS, isFlag, type Kind } from './symbols'
 import { cleanUp as cleanSheet, clusters, flagAt, labelAt } from './cleanup'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
@@ -17,7 +17,7 @@ import { keysOf, matches, useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { prefs, usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { Circle, Cpu, Crosshair, FlipHorizontal2, Maximize, MessageSquareText, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, Circle, Cpu, Crosshair, FlipHorizontal2, GripVertical, ListOrdered, Maximize, Plus, Settings2, X, MessageSquareText, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -27,8 +27,6 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { Tip } from '@/components/ui/tip'
-import { Toggle } from '@/components/ui/toggle'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 
 export interface SchematicHandle {
@@ -63,7 +61,7 @@ type Drag =
   | { t: 'diff'; net: string; a: Pt; cx: number; cy: number; click: ProbeTarget | null }
 
 const KEYS = Object.fromEntries(Object.entries(SYMBOLS).flatMap(([k, d]) => (d.key ? [[d.key, k]] : []))) as Record<string, Kind>
-const QUICK: Kind[] = ['gnd', 'power', 'label', 'port']
+const BAR_KINDS: Kind[] = [...PALETTE, 'bustap'] // the parts the toolbar can hold
 const QUICK_LABEL: Partial<Record<Kind, string>> = { gnd: 'Ground', power: 'Power', label: 'Label', port: 'Port' } // short toolbar labels
 const LIBW = 240 // library panel width, keep in sync with .libp in library.css
 const clampK = (k: number) => Math.min(8, Math.max(0.2, k))
@@ -173,9 +171,11 @@ const blurOnEnter = (e: RKE<HTMLInputElement>) => (e.key === 'Enter' || e.key ==
 const Sep = () => <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-8" />
 // toolbar button: icon over its label
 const TBTN = "h-12 min-w-12 flex-col gap-1 px-2 text-[11px] leading-none font-normal text-muted-foreground [&_svg:not([class*='size-'])]:size-5"
-const BarBtn = ({ label, aria, onClick, disabled, children }: { label: string; aria: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
-  <Tip label={label}><Button variant="ghost" size="sm" className={TBTN} aria-label={aria} onClick={onClick} disabled={disabled}>{children}<span>{aria.split(' ')[0]}</span></Button></Tip>
-)
+// The toolbar's default tools, in order ('|' = separator). Settings keep a changed list (prefs.toolbar); the Edit button
+// at its end reorders it and adds any other tool or part.
+const DEFAULT_BAR = ['parts', '|', 'select', 'wire', 'text', 'probe', 'draw', '|', 'gnd', 'power', 'label', 'port', '|', 'rotate', 'mirror', 'delete', 'undo', 'redo', 'fit', 'cleanup', '|', 'analysis', 'op']
+type BarTool = { label: string; tip: string; icon: ReactNode; run: () => void; on?: boolean; disabled?: boolean; aria?: string; hidden?: boolean }
+const moved = <T,>(a: T[], from: number, to: number) => { const b = [...a]; b.splice(to, 0, ...b.splice(from, 1)); return b }
 // Property popups remember, per kind and across sessions, where they were dragged to and the size their text box was
 // dragged to. ponytail: no reset control; clear localStorage 'ngs.pops' (add a Settings button if anyone asks)
 type PopKind = 'part' | 'dir' | 'note' | 'title'
@@ -292,7 +292,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [box, setBox] = useState<Box | null>(null)
   const [space, setSpace] = useState(false)
   const [hov, setHov] = useState<ProbeTarget | null>(null)
-  const { showOp: opPref, gridStyle } = usePrefs() // Settings › Schematic; the OP toggle overrides showOp per canvas (usePrefs also re-renders on a changed shortcut)
+  const [drawOpen, setDrawOpen] = useState(false), drawTimer = useRef(0), [dragI, setDragI] = useState<number | null>(null) // toolbar: the Draw menu's hover, the row dragged in its editor
+  const { showOp: opPref, gridStyle, toolbar: savedBar } = usePrefs() // Settings › Schematic; the OP toggle overrides showOp per canvas (usePrefs also re-renders on a changed shortcut)
   const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
   const [showOp, setShowOp] = useState(opPref)
   useEffect(() => setShowOp(opPref), [opPref])
@@ -902,6 +903,42 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     commit({ ...cur.current, texts: cur.current.texts.map((t) => (t.id === id ? { ...t, text } : t)) }, `edit:${id}:text`)
   const edit = (p: Part, f: 'name' | 'value', v: string) =>
     commit({ ...cur.current, parts: cur.current.parts.map((q) => (q.id === p.id ? { ...q, [f]: v } : q)) }, `edit:${p.id}:${f}`)
+  // ---- toolbar: every tool it can hold, by id; a part kind (PALETTE, bus tap) is a tool too
+  const tl = (t: Tool & string, label: string, tip: string, icon: ReactNode, aria?: string): BarTool => ({ label, tip, icon, aria, run: () => use(t), on: tool === t })
+  const act = (label: string, tip: string, icon: ReactNode, run: () => void, x: Partial<BarTool> = {}): BarTool => ({ label, tip, icon, run, ...x })
+  const barTools: Record<string, BarTool> = {
+    parts: act('Parts', `Parts library${kl('view.partsToggle')} · search${kl('place.fromLibrary')}`, <Cpu />, () => toggleLib(), { on: libOpen }),
+    select: tl('select', 'Select', 'Select (Esc)', <MousePointer2 />),
+    wire: tl('wire', 'Wire', 'Wire' + kl('place.wire'), <Spline />),
+    text: tl('text', 'Directive', 'SPICE directive' + kl('place.directive'), <span className="grid h-5 place-items-center font-mono text-xs">.op</span>, 'SPICE directive'),
+    probe: tl('probe', 'Probe', `Probe${kl('sim.probe')} · or Alt+click`, <Crosshair />),
+    draw: act('Draw', 'Draw menu: text, shapes, title block, buses', <PenLine />, () => {}, { on: tool === 'note' || tool === 'comment' || isShape(tool) }),
+    note: tl('note', 'Note', 'Text note' + kl('place.note'), <Type />),
+    comment: tl('comment', 'Comment', 'Comment block' + kl('place.comment'), <MessageSquareText />),
+    ...Object.fromEntries(SHAPES.map((s) => [s.t, tl(s.t, s.t === 'rect' ? 'Rect' : s.title, s.title, s.icon)])),
+    bus: tl('bus', 'Bus', 'Bus' + kl('place.bus'), <Spline className="stroke-[3]" />),
+    title: act('Title', 'Title block', <PanelBottom />, toggleTitle, { on: !!titleOf(sheet) }),
+    rotate: act('Rotate', 'Rotate' + kl('edit.rotate'), <RotateCw />, () => orient(true)),
+    mirror: act('Mirror', 'Mirror' + kl('edit.mirror'), <FlipHorizontal2 />, () => orient(false)),
+    delete: act('Delete', 'Delete (Del)', <Trash2 />, del, { disabled: !sel.size }),
+    undo: act('Undo', 'Undo (⌘Z)', <Undo2 />, undo, { disabled: !hist.current.undo.length }),
+    redo: act('Redo', 'Redo (⇧⌘Z)', <Redo2 />, redo, { disabled: !hist.current.redo.length }),
+    fit: act('Fit', 'Fit' + kl('view.fit'), <Maximize />, () => fit(), { aria: 'Fit to window' }),
+    cleanup: act('Clean up', 'Clean up: space out overlapping parts, straighten wires and put labels beside their parts (with parts selected: just their labels)', <Sparkles />, cleanUp),
+    annotate: act('Annotate', 'Annotate: renumber the parts on this sheet', <ListOrdered />, () => { const r = annotate([cur.current]); if (r.renamed) commit(r.sheets[0]) }, { disabled: !sheet.parts.length }),
+    analysis: act('Analysis', 'Simulation setup' + kl('sim.setup'), <Activity />, () => setDlg('analysis')),
+    op: act('OP', 'Show DC operating point voltages', <Gauge />, () => setShowOp((v) => !v), { on: showOp, aria: 'Operating point values', hidden: !overlay?.op })
+  }
+  const barTool = (id: string): BarTool | undefined => {
+    if (barTools[id]) return barTools[id]
+    if (!BAR_KINDS.includes(id as Kind)) return undefined
+    const k = id as Kind, title = SYMBOLS[k].title
+    return { label: QUICK_LABEL[k] ?? title.split(/[ (:,]/)[0], tip: title + kl('place.' + k), aria: title, icon: <SymbolPreview kind={k} size="small" />, run: () => use({ place: k, title }), on: placing?.place === k && !placing.id }
+  }
+  const BAR_ALL = [...Object.keys(barTools), ...BAR_KINDS]
+  const barIds = savedBar.length ? savedBar : DEFAULT_BAR
+  const setBar = (ids: string[]) => void window.api.prefs.set({ toolbar: ids.join() === DEFAULT_BAR.join() ? [] : ids })
+  const hoverDraw = (open: boolean) => { clearTimeout(drawTimer.current); drawTimer.current = window.setTimeout(() => setDrawOpen(open), open ? 80 : 300) }
   const g = view.k * GRID < 6 ? GRID * 5 : GRID
   const hint = placing
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
@@ -997,65 +1034,78 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       {libOpen ? <LibraryPanel entries={browse ?? library} sheets={sheets} onPick={pick} active={placing?.id} search={search} />
         : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts${kl('view.parts')}`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
-        <Tip label={`Parts library${kl('view.partsToggle')} · search${kl('place.fromLibrary')}`}>
-          <Toggle size="sm" className={TBTN} pressed={libOpen} onPressedChange={() => toggleLib()}><Cpu /><span>Parts</span></Toggle>
-        </Tip>
-        <Sep />
-        {/* items keep their own onClick: re-clicking the current tool still resets it (ends a wire in progress) */}
-        <ToggleGroup type="single" size="sm" aria-label="Tool" value={typeof tool === 'string' ? tool : ''}>
-          {([['select', 'Select (Esc)', 'Select', <MousePointer2 />], ['wire', 'Wire' + kl('place.wire'), 'Wire', <Spline />], ['text', 'SPICE directive' + kl('place.directive'), 'Directive', <span className="grid h-5 place-items-center font-mono text-xs">.op</span>],
-            ['probe', `Probe${kl('sim.probe')} · or Alt+click`, 'Probe', <Crosshair />]] as [Tool & string, string, string, ReactNode][]).map(([k, label, aria, body]) => (
-            <Tip key={k} label={label}>
-              <ToggleGroupItem value={k} aria-label={k === 'text' ? 'SPICE directive' : aria} className={TBTN} onClick={() => use(k)}>{body}<span>{aria}</span></ToggleGroupItem>
-            </Tip>
-          ))}
-        </ToggleGroup>
-        <DropdownMenu>
-          <Tip label="Draw: text, shapes, title block, buses">
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" aria-label="Draw" className={cn(TBTN, (tool === 'note' || tool === 'comment' || isShape(tool)) && 'bg-accent text-foreground')}><PenLine /><span>Draw</span></Button>
-            </DropdownMenuTrigger>
-          </Tip>
-          <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()}>
-            <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>T</DropdownMenuShortcut></DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => use('comment')}><MessageSquareText />Comment block</DropdownMenuItem>
-            {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => use('bus')}><Spline className="stroke-[3]" />Bus<DropdownMenuShortcut>B</DropdownMenuShortcut></DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => use({ place: 'bustap', title: SYMBOLS.bustap.title })}><SymbolPreview kind="bustap" size="small" />Bus tap</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem checked={!!titleOf(sheet)} onSelect={toggleTitle}><PanelBottom className="text-muted-foreground" />Title block</DropdownMenuCheckboxItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Sep />
-        {QUICK.map((k) => {
-          const on = placing?.place === k && !placing.id
+        {barIds.map((id, i) => {
+          if (id === '|') return <Sep key={i} />
+          const t = barTool(id)
+          if (!t || t.hidden) return null
+          if (id === 'draw') return (
+            // a menu of tools: the chevron says so, and it opens on hover as well as on a click
+            <DropdownMenu key={id} open={drawOpen} onOpenChange={setDrawOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" aria-label="Draw" className={cn(TBTN, t.on && 'bg-accent text-foreground')} onPointerEnter={() => hoverDraw(true)} onPointerLeave={() => hoverDraw(false)}
+                  onPointerDown={(e) => drawOpen && e.preventDefault() /* already open from the hover: a click keeps it open */}>
+                  {t.icon}<span className="flex items-center gap-0.5">Draw<ChevronDown className="size-3" /></span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()} onPointerEnter={() => hoverDraw(true)} onPointerLeave={() => hoverDraw(false)}
+                onInteractOutside={(e) => (e.target as Element).closest?.('[aria-label=Draw]') && e.preventDefault()}>
+                <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>{keyLabel(keysOf('place.note'))}</DropdownMenuShortcut></DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => use('comment')}><MessageSquareText />Comment block<DropdownMenuShortcut>{keyLabel(keysOf('place.comment'))}</DropdownMenuShortcut></DropdownMenuItem>
+                {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => use('bus')}><Spline className="stroke-[3]" />Bus<DropdownMenuShortcut>{keyLabel(keysOf('place.bus'))}</DropdownMenuShortcut></DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => use({ place: 'bustap', title: SYMBOLS.bustap.title })}><SymbolPreview kind="bustap" size="small" />Bus tap</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked={!!titleOf(sheet)} onSelect={toggleTitle}><PanelBottom className="text-muted-foreground" />Title block</DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )
           return (
-            <Tip key={k} label={SYMBOLS[k].title + kl('place.' + k)}>
-              <Button variant="ghost" size="sm" aria-label={SYMBOLS[k].title} aria-pressed={on} className={cn(TBTN, '[&_.symp]:size-5!', on && 'bg-accent text-foreground')}
-                onClick={() => use({ place: k, title: SYMBOLS[k].title })}>
-                <SymbolPreview kind={k} size="small" /><span>{QUICK_LABEL[k] ?? SYMBOLS[k].title}</span>
+            <Tip key={id} label={t.tip}>
+              <Button variant="ghost" size="sm" aria-label={t.aria ?? t.label} aria-pressed={t.on} disabled={t.disabled} className={cn(TBTN, '[&_.symp]:size-5!', t.on && 'bg-accent text-foreground')} onClick={t.run}>
+                {t.icon}<span>{t.label}</span>
               </Button>
             </Tip>
           )
         })}
         <Sep />
-        <BarBtn label={'Rotate' + kl('edit.rotate')} aria="Rotate" onClick={() => orient(true)}><RotateCw /></BarBtn>
-        <BarBtn label={'Mirror' + kl('edit.mirror')} aria="Mirror" onClick={() => orient(false)}><FlipHorizontal2 /></BarBtn>
-        <BarBtn label="Delete (Del)" aria="Delete" onClick={del} disabled={!sel.size}><Trash2 /></BarBtn>
-        <BarBtn label="Undo (⌘Z)" aria="Undo" onClick={undo} disabled={!hist.current.undo.length}><Undo2 /></BarBtn>
-        <BarBtn label="Redo (⇧⌘Z)" aria="Redo" onClick={redo} disabled={!hist.current.redo.length}><Redo2 /></BarBtn>
-        <BarBtn label={'Fit' + kl('view.fit')} aria="Fit to window" onClick={() => fit()}><Maximize /></BarBtn>
-        <Tip label="Clean up: space out overlapping parts, straighten wires and put labels beside their parts (with parts selected: just their labels)">
-          <Button variant="ghost" size="sm" className={TBTN} aria-label="Clean up" onClick={cleanUp}><Sparkles /><span>Clean up</span></Button>
-        </Tip>
-        <Sep />
-        <Tip label={'Simulation setup' + kl('sim.setup')}><Button variant="ghost" size="sm" className={TBTN} onClick={() => setDlg('analysis')}><Activity /><span>Analysis</span></Button></Tip>
-        {overlay?.op && (
-          <Tip label="Show DC operating point voltages">
-            <Toggle size="sm" className={TBTN} aria-label="Operating point values" pressed={showOp} onPressedChange={() => setShowOp((v) => !v)}><Gauge /><span>OP</span></Toggle>
+        <DropdownMenu modal={false}>
+          <Tip label="Edit the toolbar: reorder, remove and add tools">
+            <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="Edit toolbar" className={TBTN}><Settings2 /><span>Edit</span></Button></DropdownMenuTrigger>
           </Tip>
-        )}
+          <DropdownMenuContent align="end" className="w-72 p-2 text-xs" onCloseAutoFocus={(e) => e.preventDefault()}>
+            <div className="mb-1 flex items-center justify-between font-semibold">Toolbar
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" disabled={!savedBar.length} onClick={() => setBar(DEFAULT_BAR)}>Reset</Button>
+            </div>
+            <div className="max-h-[38vh] overflow-auto" role="list" aria-label="Tools on the toolbar">
+              {barIds.map((id, i) => {
+                const t = id === '|' ? undefined : barTool(id)
+                if (id !== '|' && !t) return null
+                return (
+                  <div key={id + i} role="listitem" draggable className={cn('flex h-7 items-center gap-1.5 rounded-sm pr-0.5 hover:bg-accent/60 [&_svg]:size-4 [&_.symp]:size-4!', dragI === i && 'opacity-40')}
+                    onDragStart={(e) => (setDragI(i), (e.dataTransfer.effectAllowed = 'move'))} onDragEnd={() => setDragI(null)}
+                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => (e.preventDefault(), dragI != null && setBar(moved(barIds, dragI, i)), setDragI(null))}>
+                    <GripVertical className="cursor-grab text-muted-foreground" />
+                    {t ? <>{t.icon}<span className="flex-1 truncate">{t.tip.replace(/ \(.*$| ·.*$|:.*$/, '')}</span></> : <span className="flex-1 text-muted-foreground">Separator</span>}
+                    <Button variant="ghost" size="icon" className="size-6" aria-label="Move up" disabled={i === 0} onClick={() => setBar(moved(barIds, i, i - 1))}><ArrowUp /></Button>
+                    <Button variant="ghost" size="icon" className="size-6" aria-label="Move down" disabled={i === barIds.length - 1} onClick={() => setBar(moved(barIds, i, i + 1))}><ArrowDown /></Button>
+                    <Button variant="ghost" size="icon" className="size-6" aria-label="Remove" onClick={() => setBar(barIds.filter((_, k) => k !== i))}><X /></Button>
+                  </div>
+                )
+              })}
+            </div>
+            <DropdownMenuSeparator />
+            <div className="mb-1 font-semibold">Add to the toolbar</div>
+            <div className="max-h-[28vh] overflow-auto">
+              <Button variant="ghost" size="sm" className="h-7 w-full justify-start gap-1.5 px-1 text-xs font-normal" onClick={() => setBar([...barIds, '|'])}><Plus className="text-muted-foreground" /><span className="text-muted-foreground">Separator</span></Button>
+              {BAR_ALL.filter((id) => !barIds.includes(id)).map((id) => { const t = barTool(id)!; return (
+                <Button key={id} variant="ghost" size="sm" className="h-7 w-full justify-start gap-1.5 px-1 text-xs font-normal [&_.symp]:size-4!" onClick={() => setBar([...barIds, id])}>
+                  <Plus className="text-muted-foreground" />{t.icon}<span className="truncate">{t.tip.replace(/ \(.*$| ·.*$|:.*$/, '')}</span>
+                </Button>
+              ) })}
+            </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {one && pop?.id === one.id && (
