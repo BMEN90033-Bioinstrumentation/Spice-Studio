@@ -82,10 +82,15 @@
 .sch .drw.md text { fill: var(--text); }
 .sch .drw.md .c { fill: var(--note, #8fa3ba); }
 .sch .drw.md.on .bg { stroke: var(--sel); }
-/* a comment block being edited: its markdown source in a text box over the card (sizes in sheet units) */
+/* a comment block being edited in place (MdEdit.tsx): formatted as it is typed, the markdown syntax dimmed; sizes in sheet units */
 .sch .mded { pointer-events: none; overflow: visible; }
-.sch .mded textarea { pointer-events: auto; display: block; box-sizing: border-box; field-sizing: content; padding: 6px; margin: 0; border: 0; border-radius: 3px; outline: 1px solid var(--hl); resize: none; overflow: hidden;
+.sch .mded .ed { pointer-events: auto; display: block; box-sizing: border-box; width: max-content; padding: 6px; border-radius: 3px; outline: 1px solid var(--hl); cursor: text; user-select: text;
   background: var(--s2); color: var(--text); font-family: var(--mono); line-height: 1.4; white-space: pre; }
+.sch .mded .m { opacity: 0.45; }
+.sch .mded .b { font-weight: 700; }
+.sch .mded .i { font-style: italic; }
+.sch .mded .u { text-decoration: underline; }
+.sch .mded .c { color: var(--note, #8fa3ba); }
 .sch .drw.callout { pointer-events: none; } /* a comment block's arrows to the parts it points at */
 .sch.pin .part { cursor: crosshair; }
 .sch .drw.on { color: var(--sel); }

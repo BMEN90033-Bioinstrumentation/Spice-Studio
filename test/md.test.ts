@@ -32,3 +32,13 @@ test('call-out arrow: from the edge of the comment to just short of the part, al
   assert.deepEqual((parseSheet(s(['p1'])).draw![0] as { pins?: string[] }).pins, ['p1'])
   assert.throws(() => parseSheet(s([1])))
 })
+
+test('comment editor (keep mode): one line per source line, the spans joining back to exactly what was typed', () => {
+  const src = '# Title\nplain **bold** *it* `v(out)` [doc](http://x)\n- item\n  - [x] done\n> quote\n---\n```\n**raw**\n```\n\n<b>2*3</b>'
+  const l = parseMd(src, true)
+  assert.equal(l.map((x) => x.spans.map((p) => p.s).join('')).join('\n'), src)
+  assert.deepEqual(l[0], { spans: [{ s: '# ', b: true, m: true }, { s: 'Title', b: true }], k: 1.6 })
+  assert.deepEqual(l[1].spans.slice(1, 4), [{ s: '**', m: true }, { s: 'bold', b: true }, { s: '**', m: true }])
+  assert.deepEqual(l[1].spans.slice(-3), [{ s: '[', m: true }, { s: 'doc', u: true }, { s: '](http://x)', m: true }])
+  assert.deepEqual(l[7].spans, [{ s: '**raw**', c: true }])
+})

@@ -2,6 +2,7 @@ import { useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef
 import { GRID, blockShape, callout, junctions, reshapeBlocks, newPart, nextName, onSegment, parseSheet, pins, route, remap, same, snap, turnSeg, uid, sheetPorts, unconnectedPins, xform, type Directive, type Drawing, type Part, type Pt, type Sheet, type Wire } from './model'
 import { PALETTE, SYMBOLS, isFlag, type Kind } from './symbols'
 import { cleanUp as cleanSheet, clusters, flagAt, labelAt } from './cleanup'
+import { MdEdit } from './MdEdit'
 import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
@@ -17,7 +18,7 @@ import { keysOf, matches, useCommands } from '../commands'
 import { keyLabel, Rail, RAILW } from '../layout/Panel'
 import { prefs, usePrefs } from '../Preferences'
 import { createPortal } from 'react-dom'
-import { ArrowDown, ArrowUp, ChevronDown, Circle, Cpu, Crosshair, FlipHorizontal2, GripVertical, ListOrdered, Maximize, Plus, Settings2, X, MessageSquareText, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
+import { ChevronDown, Circle, Cpu, Crosshair, FlipHorizontal2, GripVertical, ListOrdered, Maximize, Plus, Settings2, X, MessageSquareText, Minus, MousePointer2, MoveUpRight, PanelBottom, PenLine, Redo2, RotateCw, Spline, Square, Trash2, Type, Undo2, Activity, Gauge, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -309,7 +310,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const [box, setBox] = useState<Box | null>(null)
   const [space, setSpace] = useState(false)
   const [hov, setHov] = useState<ProbeTarget | null>(null)
-  const [drawOpen, setDrawOpen] = useState(false), drawTimer = useRef(0), [dragI, setDragI] = useState<number | null>(null) // toolbar: the Draw menu's hover, the row dragged in its editor
+  const [drawOpen, setDrawOpen] = useState(false), drawTimer = useRef(0), [dragI, setDragI] = useState<number | null>(null) // toolbar: the Draw menu's hover, the tool dragged while editing it
+  const [editBar, setEditBar] = useState(false), [overI, setOverI] = useState<number | null>(null) // the toolbar is being edited (its Edit panel is open): its buttons drag to reorder; the one under the drag
   const { showOp: opPref, gridStyle, toolbar: savedBar } = usePrefs() // Settings › Schematic; the OP toggle overrides showOp per canvas (usePrefs also re-renders on a changed shortcut)
   const kl = (id: string) => { const k = keysOf(id); return k ? ` (${keyLabel(k)})` : '' } // live shortcut hint for a tooltip
   const [showOp, setShowOp] = useState(opPref)
@@ -518,6 +520,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     return out
   }
   function esc() {
+    if (editBar) return setEditBar(false)
     if (pinFor) return setPinFor(null)
     if (pop) return setPop(null)
     if (start) setStart(null)
@@ -669,6 +672,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
       return e.currentTarget.setPointerCapture(e.pointerId)
     }
     if (e.button !== 0) return
+    if (editBar) setEditBar(false)
     const w = world(e), p = snapPt(w), s = cur.current
     if (pinFor) {
       // a click on a part points the comment at it, or stops pointing at it; a click anywhere else ends the picking
@@ -965,6 +969,15 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const BAR_ALL = [...Object.keys(barTools), ...BAR_KINDS]
   const barIds = savedBar.length ? savedBar : DEFAULT_BAR
   const setBar = (ids: string[]) => void window.api.prefs.set({ toolbar: ids.join() === DEFAULT_BAR.join() ? [] : ids })
+  // drag-to-reorder, shared by the toolbar's buttons (while it is being edited) and the rows of its Edit panel: dropping on a tool puts the dragged one in its place
+  const dnd = (i: number) => ({
+    draggable: true,
+    onDragStart: (e: React.DragEvent) => (setDragI(i), (e.dataTransfer.effectAllowed = 'move')),
+    onDragEnd: () => (setDragI(null), setOverI(null)),
+    onDragOver: (e: React.DragEvent) => (e.preventDefault(), overI !== i && setOverI(i)),
+    onDrop: (e: React.DragEvent) => (e.preventDefault(), dragI != null && dragI !== i && setBar(moved(barIds, dragI, i)), setDragI(null), setOverI(null))
+  })
+  const dndMark = (i: number) => (dragI === i ? 'opacity-40' : overI === i && dragI != null ? 'shadow-[-2px_0_0_0_var(--primary)]' : '')
   const hoverDraw = (open: boolean) => { clearTimeout(drawTimer.current); drawTimer.current = window.setTimeout(() => setDrawOpen(open), open ? 80 : 300) }
   const g = view.k * GRID < 6 ? GRID * 5 : GRID
   const hint = pinFor
@@ -1034,12 +1047,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
             return l && <DrawingEl key={d.id + id} d={{ id: '', t: 'arrow', ...l }} cls={`callout ${sel.has(d.id) || pinFor === d.id ? 'on' : ''}`} />
           }))}
           {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />)}
-          {/* a comment block is edited in place: its markdown source in a text box drawn over the card, in sheet units so it zooms with it */}
+          {/* a comment block is edited in place: MdEdit over the card, formatted as it is typed, in sheet units so it zooms with it */}
           {drw?.t === 'note' && drw.md && pop?.id === drw.id && (() => { const b = dbox(drw); return (
             <foreignObject className="mded" x={b.x0} y={b.y0} width={4000} height={4000}>
-              <textarea ref={ta} value={drw.text} spellCheck={false} aria-label="Comment markdown" style={{ fontSize: drw.size ?? NOTE, minWidth: b.x1 - b.x0, minHeight: b.y1 - b.y0 }}
-                onChange={(e) => editDraw(drw, 'text', e.target.value)} onPointerDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.key === 'Escape' && setPop(null)} onBlur={() => (hist.current.merge = undefined)} />
+              <MdEdit text={drw.text} size={drw.size ?? NOTE} minW={b.x1 - b.x0} minH={b.y1 - b.y0} fresh={fresh} onChange={(t) => editDraw(drw, 'text', t)}
+                onDone={() => setPop(null)} onUndo={(re) => (re ? redo() : undo())} onBlur={() => (hist.current.merge = undefined)} />
             </foreignObject>
           ) })()}
           {dots.j.map((q) => <circle key={`j${q.x},${q.y}`} className="jn" cx={q.x} cy={q.y} r={3} />)}
@@ -1076,8 +1088,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         : <Rail side="left" label="Parts" icon={Cpu} title={`Show parts${kl('view.parts')}`} onOpen={() => toggleLib(true)} />}
       <div className="sch-bar flex-wrap items-center gap-0.5 rounded-lg border bg-card/95 p-1.5 shadow-sm" ref={bar}>
         {barIds.map((id, i) => {
+          const t = id === '|' ? undefined : barTool(id)
+          if (editBar) { // being edited: every tool is a plain button that drags to its new place (and does nothing when clicked)
+            if (id === '|') return <div key={i} {...dnd(i)} aria-label="Separator" className={cn('flex h-12 cursor-grab items-center px-1.5', dndMark(i))}><Separator orientation="vertical" className="data-[orientation=vertical]:h-8" /></div>
+            return t && <Button key={id} variant="ghost" size="sm" {...dnd(i)} aria-label={t.aria ?? t.label} className={cn(TBTN, 'cursor-grab [&_.symp]:size-5!', dndMark(i))}>{t.icon}<span>{t.label}</span></Button>
+          }
           if (id === '|') return <Sep key={i} />
-          const t = barTool(id)
           if (!t || t.hidden) return null
           if (id === 'draw') return (
             // a menu of tools: the chevron says so, and it opens on hover as well as on a click
@@ -1089,7 +1105,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48" onCloseAutoFocus={(e) => e.preventDefault()} onPointerEnter={() => hoverDraw(true)} onPointerLeave={() => hoverDraw(false)}
-                onInteractOutside={(e) => (e.target as Element).closest?.('[aria-label=Draw]') && e.preventDefault()}>
+                onInteractOutside={(e) => (e.detail.originalEvent.target as Element).closest?.('[aria-label=Draw]') && e.preventDefault()}>
                 <DropdownMenuItem onSelect={() => use('note')}><Type />Text note<DropdownMenuShortcut>{keyLabel(keysOf('place.note'))}</DropdownMenuShortcut></DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => use('comment')}><MessageSquareText />Comment block<DropdownMenuShortcut>{keyLabel(keysOf('place.comment'))}</DropdownMenuShortcut></DropdownMenuItem>
                 {SHAPES.map((s) => <DropdownMenuItem key={s.t} onSelect={() => use(s.t)}>{s.icon}{s.title}</DropdownMenuItem>)}
@@ -1110,32 +1126,30 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           )
         })}
         <Sep />
-        <DropdownMenu modal={false}>
-          <Tip label="Edit the toolbar: reorder, remove and add tools">
-            <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="Edit toolbar" className={TBTN}><Settings2 /><span>Edit</span></Button></DropdownMenuTrigger>
-          </Tip>
-          <DropdownMenuContent align="end" className="w-72 p-2 text-xs" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <Tip label="Edit the toolbar: drag to reorder, remove and add tools">
+          <Button variant="ghost" size="sm" aria-label="Edit toolbar" aria-pressed={editBar} className={cn(TBTN, editBar && 'bg-accent text-foreground')} onClick={() => setEditBar((v) => !v)}><Settings2 /><span>{editBar ? 'Done' : 'Edit'}</span></Button>
+        </Tip>
+        {/* the Edit panel: a plain box under the toolbar's end, open until Done / Esc / a click on the canvas (a menu would close on the first drag) */}
+        {editBar && (
+          <div className="absolute top-full right-0 z-10 mt-1 w-72 rounded-md border bg-popover p-2 text-xs text-popover-foreground shadow-md" role="dialog" aria-label="Edit toolbar">
             <div className="mb-1 flex items-center justify-between font-semibold">Toolbar
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" disabled={!savedBar.length} onClick={() => setBar(DEFAULT_BAR)}>Reset</Button>
             </div>
+            <div className={cn(D, 'mb-1.5')}>Drag a button on the toolbar, or a row here, to where it should go.</div>
             <div className="max-h-[38vh] overflow-auto" role="list" aria-label="Tools on the toolbar">
               {barIds.map((id, i) => {
                 const t = id === '|' ? undefined : barTool(id)
                 if (id !== '|' && !t) return null
                 return (
-                  <div key={id + i} role="listitem" draggable className={cn('flex h-7 items-center gap-1.5 rounded-sm pr-0.5 hover:bg-accent/60 [&_svg]:size-4 [&_.symp]:size-4!', dragI === i && 'opacity-40')}
-                    onDragStart={(e) => (setDragI(i), (e.dataTransfer.effectAllowed = 'move'))} onDragEnd={() => setDragI(null)}
-                    onDragOver={(e) => e.preventDefault()} onDrop={(e) => (e.preventDefault(), dragI != null && setBar(moved(barIds, dragI, i)), setDragI(null))}>
+                  <div key={id + i} role="listitem" {...dnd(i)} className={cn('flex h-7 items-center gap-1.5 rounded-sm pr-0.5 hover:bg-accent/60 [&_svg]:size-4 [&_.symp]:size-4!', dragI === i ? 'opacity-40' : overI === i && dragI != null && 'shadow-[0_-2px_0_0_var(--primary)]')}>
                     <GripVertical className="cursor-grab text-muted-foreground" />
                     {t ? <>{t.icon}<span className="flex-1 truncate">{t.tip.replace(/ \(.*$| ·.*$|:.*$/, '')}</span></> : <span className="flex-1 text-muted-foreground">Separator</span>}
-                    <Button variant="ghost" size="icon" className="size-6" aria-label="Move up" disabled={i === 0} onClick={() => setBar(moved(barIds, i, i - 1))}><ArrowUp /></Button>
-                    <Button variant="ghost" size="icon" className="size-6" aria-label="Move down" disabled={i === barIds.length - 1} onClick={() => setBar(moved(barIds, i, i + 1))}><ArrowDown /></Button>
                     <Button variant="ghost" size="icon" className="size-6" aria-label="Remove" onClick={() => setBar(barIds.filter((_, k) => k !== i))}><X /></Button>
                   </div>
                 )
               })}
             </div>
-            <DropdownMenuSeparator />
+            <Separator className="my-1.5" />
             <div className="mb-1 font-semibold">Add to the toolbar</div>
             <div className="max-h-[28vh] overflow-auto">
               <Button variant="ghost" size="sm" className="h-7 w-full justify-start gap-1.5 px-1 text-xs font-normal" onClick={() => setBar([...barIds, '|'])}><Plus className="text-muted-foreground" /><span className="text-muted-foreground">Separator</span></Button>
@@ -1145,8 +1159,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
                 </Button>
               ) })}
             </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+        )}
       </div>
 
       {one && pop?.id === one.id && (
