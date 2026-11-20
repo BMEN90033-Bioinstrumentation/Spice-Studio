@@ -1232,12 +1232,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()} onBlur={() => (hist.current.merge = undefined)} />
           </Label>
           )}
+          {!drw.md && ( // a comment block sizes its text with markdown headings instead
           <Label className={FLD}>Size
             <Select value={String(drw.size ?? NOTE)} onValueChange={(v) => editDraw(drw, 'size', +v)}>
               <SelectTrigger size="sm" className="h-7 w-full text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>{NOTE_SIZES.map(([l, v]) => <SelectItem key={v} value={String(v)}>{l}</SelectItem>)}</SelectContent>
             </Select>
           </Label>
+          )}
           {drw.md && (() => {
             // the parts this comment points at, one row each (a part since deleted is listed so its arrow can be cleared)
             const setPins = (pins: string[]) => commit({ ...cur.current, draw: cur.current.draw!.map((x) => (x.id === drw.id && x.t === 'note' ? { ...x, pins: pins.length ? pins : undefined } : x)) })
