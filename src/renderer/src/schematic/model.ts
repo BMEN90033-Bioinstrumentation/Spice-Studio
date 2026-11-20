@@ -238,6 +238,18 @@ export function callout(p: Rect, q: Rect, gap = 4): { a: Pt; b: Pt } | null {
   return { a: { x: r(cp.x + dx * tp), y: r(cp.y + dy * tp) }, b: { x: r(cq.x - dx * tq), y: r(cq.y - dy * tq) } }
 }
 
+// Where a comment block's arrows start: one point just outside the card, on the side facing the middle of the boxes it
+// points at (`out` beyond the edge). null when that middle is inside the card. `edge` is the point on the card's edge.
+export function calloutHub(card: Rect, targets: Rect[], out = 8): { hub: Pt; edge: Pt } | null {
+  if (!targets.length) return null
+  const cx = (card.x0 + card.x1) / 2, cy = (card.y0 + card.y1) / 2
+  const dx = targets.reduce((s, q) => s + (q.x0 + q.x1) / 2, 0) / targets.length - cx, dy = targets.reduce((s, q) => s + (q.y0 + q.y1) / 2, 0) / targets.length - cy
+  const t = Math.min(dx ? (card.x1 - card.x0) / 2 / Math.abs(dx) : Infinity, dy ? (card.y1 - card.y0) / 2 / Math.abs(dy) : Infinity), len = Math.hypot(dx, dy)
+  if (!(t < 1)) return null
+  const r = (v: number) => Math.round(v * 10) / 10, ex = cx + dx * t, ey = cy + dy * t
+  return { edge: { x: r(ex), y: r(ey) }, hub: { x: r(ex + (dx / len) * out), y: r(ey + (dy / len) * out) } }
+}
+
 export const NOTE_MIN = 4, NOTE_MAX = 72 // note font sizes kept on load
 // a shape or bus segment turned a quarter clockwise (rot) or mirrored left-right about its own grid-snapped centre;
 // notes and the title block stay as they are (their text reads upright)

@@ -3,7 +3,7 @@ import { GRID, blockShape, callout, junctions, reshapeBlocks, newPart, nextName,
 import { PALETTE, SYMBOLS, isFlag, type Kind } from './symbols'
 import { cleanUp as cleanSheet, clusters, flagAt, labelAt } from './cleanup'
 import { MdEdit } from './MdEdit'
-import { DrawingEl, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
+import { Callouts, DrawingEl, MD_BAN, dbox, moveD, NOTE, NOTE_SIZES, TB } from './drawings'
 import { annotate, rewriteRefs, rewriteValue } from './annotate'
 import { importSchematic } from './importer'
 import { netlist, type NetCtx } from './netlist'
@@ -167,7 +167,7 @@ const PRINT_CSS = [
   '.dir rect{fill:#f7f7f7;stroke:#999;stroke-width:0.6}.dir text{fill:#000;font-size:10px;white-space:pre}',
   '.drw path{fill:none;stroke:#333;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}.drw .f{fill:#333}.drw .hit,.drw .hitf{display:none}',
   '.drw text{fill:#222;white-space:pre}.drw.title text{font-size:9px}.drw.title .tt{font-size:13px;font-weight:600}.drw.title .lb{fill:#777;font-size:7px}',
-  '.drw.md .bg{fill:#fafafa;stroke:#999;stroke-width:0.6}.drw.md .c{fill:#555}',
+  '.drw.md .bg{fill:#fafafa;stroke:#999;stroke-width:0.6}.drw.md .c{fill:#555}.drw.md path.ban{fill:#e6e6e6;stroke:none}.drw.md .bant{fill:#555}.drw.callout circle{fill:#333}',
   '.bus line{stroke:#000;stroke-width:3.5;stroke-linecap:round}.bjn{fill:#000}'
 ].join('')
 
@@ -925,6 +925,8 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const dirA = dir ? parseAnalysis(dir.text.trim()) : null
   const hovNet = hov && 'net' in hov ? hov.net : null, hovPart = hov && 'partId' in hov ? hov.partId : null
   const blamed = new Set(overlay?.blame?.parts)
+  // the parts the selected comment blocks (or the one whose arrows are being picked) point at: highlighted
+  const pointed = new Set(sheet.draw?.flatMap((d) => (d.t === 'note' && d.md && d.pins && (sel.has(d.id) || pinFor === d.id) ? d.pins : [])))
   const fs = Math.min(24, Math.max(4, 10 / view.k)) // OP tag font: ~10px on screen, clamped in world units
   // one tag per non-ground net: above its label if it has one, else above the middle of its longest wire
   const tags = useMemo(() => {
@@ -995,7 +997,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   const hoverDraw = (open: boolean) => { clearTimeout(drawTimer.current); drawTimer.current = window.setTimeout(() => setDrawOpen(open), open ? 80 : 300) }
   const g = view.k * GRID < 6 ? GRID * 5 : GRID
   const hint = pinFor
-    ? 'Click a part to point the comment at it · click it again to remove the arrow · Esc or a click elsewhere finishes'
+    ? 'Click a part to point the comment at it (+) · click a highlighted part to remove its arrow (−) · Esc or a click elsewhere finishes'
     : placing
     ? `Placing ${placing.title} · click to place · Ctrl+R rotate · Ctrl+E mirror · Esc done`
     : tool === 'text'
@@ -1031,7 +1033,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
           {sheet.draw?.map((d) => !(d.t === 'note' && d.md) && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) ? 'on' : ''} sheetNo={sheetNo} />)}
           {sheet.parts.map((p) => (
-            <g key={p.id} data-id={p.id} className={`part${p.kind === 'block' && !p.sheet && !p.lib ? ' ph' : ''}${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
+            <g key={p.id} data-id={p.id} className={`part${p.kind === 'block' && !p.sheet && !p.lib ? ' ph' : ''}${sel.has(p.id) ? ' on' : ''}${hovPart === p.id || pointed.has(p.id) || (hovNet && isFlag(p.kind) && pn[p.id]?.[0] === hovNet) ? ' hl' : ''}${blamed.has(p.id) ? ' blame' : ''}`}>
               <g className="sym" transform={tf(p)}>
                 <Hit b={localBox(p.kind, p)} />
                 <SymBody kind={p.kind} part={p} />
@@ -1056,15 +1058,14 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
           {dots.b.map((q) => <circle key={`b${q.x},${q.y}`} className="bjn" cx={q.x} cy={q.y} r={4.5} />)}
           {sheet.texts.map((t) => <Card key={t.id} t={t} cls={sel.has(t.id) ? 'on' : ''} />)}
           {/* comment blocks float over the circuit; the other annotations sit under it */}
-          {sheet.draw?.map((d) => d.t === 'note' && d.md && d.pins?.map((id) => {
-            const q = sheet.parts.find((x) => x.id === id), l = q && callout(dbox(d), aimBox(q)) // a deleted part's arrow just isn't drawn
-            return l && <DrawingEl key={d.id + id} d={{ id: '', t: 'arrow', ...l }} cls={`callout ${sel.has(d.id) || pinFor === d.id ? 'on' : ''}`} />
-          }))}
+          {sheet.draw?.map((d) => d.t === 'note' && d.md && !!d.pins?.length && ( // a deleted part's arrow just isn't drawn
+            <Callouts key={'c' + d.id} card={dbox(d)} targets={d.pins.flatMap((id) => { const q = sheet.parts.find((x) => x.id === id); return q ? [aimBox(q)] : [] })} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />
+          ))}
           {sheet.draw?.map((d) => d.t === 'note' && d.md && <DrawingEl key={d.id} d={d} cls={sel.has(d.id) || pinFor === d.id ? 'on' : ''} />)}
           {/* a comment block is edited in place: MdEdit over the card, formatted as it is typed, in sheet units so it zooms with it */}
           {drw?.t === 'note' && drw.md && pop?.id === drw.id && (() => { const b = dbox(drw); return (
-            <foreignObject className="mded" x={b.x0} y={b.y0} width={4000} height={4000}>
-              <MdEdit text={drw.text} size={drw.size ?? NOTE} minW={b.x1 - b.x0} minH={b.y1 - b.y0} fresh={fresh} onChange={(t) => editDraw(drw, 'text', t)}
+            <foreignObject className="mded" x={b.x0} y={b.y0 + MD_BAN} width={4000} height={4000}>
+              <MdEdit text={drw.text} size={drw.size ?? NOTE} minW={b.x1 - b.x0} minH={b.y1 - b.y0 - MD_BAN} fresh={fresh} onChange={(t) => editDraw(drw, 'text', t)}
                 onDone={() => setPop(null)} onUndo={(re) => (re ? redo() : undo())} onBlur={() => (hist.current.merge = undefined)} />
             </foreignObject>
           ) })()}

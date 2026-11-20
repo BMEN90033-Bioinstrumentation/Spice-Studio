@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { mdChars, parseMd } from '../src/renderer/src/schematic/md.ts'
-import { callout, parseSheet } from '../src/renderer/src/schematic/model.ts'
+import { callout, calloutHub, parseSheet } from '../src/renderer/src/schematic/model.ts'
 
 test('comment block markdown: headings, inline styles, lists, code fences, rules; markup is never passed through as HTML', () => {
   const l = parseMd('# Title\nplain **bold** *it* `v(out)` [doc](http://x)\n- item\n  - [x] done\n> quote\n---\n```\n**raw**\n```\n<b>2*3</b>')
@@ -45,4 +45,12 @@ test('comment editor (keep mode): one line per source line, the spans joining ba
   assert.deepEqual(l[1].spans.slice(1, 4), [{ s: '**', m: true }, { s: 'bold', b: true }, { s: '**', m: true }])
   assert.deepEqual(l[1].spans.slice(-3), [{ s: '[', m: true }, { s: 'doc', u: true }, { s: '](http://x)', m: true }])
   assert.deepEqual(l[7].spans, [{ s: '**raw**', c: true }])
+})
+
+test('call-out hub: one point just outside the card, on the side facing the middle of the targets', () => {
+  const card = { x0: 0, y0: 0, x1: 100, y1: 40 }, box = (x: number, y: number) => ({ x0: x - 10, y0: y - 10, x1: x + 10, y1: y + 10 })
+  assert.deepEqual(calloutHub(card, [box(250, 20)]), { edge: { x: 100, y: 20 }, hub: { x: 108, y: 20 } }) // to the right
+  assert.deepEqual(calloutHub(card, [box(20, 220), box(80, 220)]), { edge: { x: 50, y: 40 }, hub: { x: 50, y: 48 } }) // two below: the middle of the bottom edge
+  assert.equal(calloutHub(card, [box(50, 20)]), null) // on the card
+  assert.equal(calloutHub(card, []), null)
 })
