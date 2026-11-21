@@ -1,6 +1,6 @@
 // A probe plot on the schematic: a small chart of the probed points, floating over the canvas at a fixed place and size
 // (the canvas pans and zooms under it). The chart is uPlot set up like the results panel's (Plot.tsx): same colours
-// and axes, drag to zoom, double-click to reset; kept compact, so the hover values go in the title bar beside each
+// and axes, drag or wheel to zoom, double-click to reset; kept compact, so the hover values go in the title bar beside each
 // point's name instead of a legend row. The Schematic owns the plots and their points.
 import { useEffect, useMemo, useRef, type PointerEvent as RPE } from 'react'
 import uPlot from 'uplot'
@@ -75,7 +75,22 @@ export function ProbePlot({ x, y, w, h, series, scale, ran, mode, adding, onMode
       has ? [scale.x, ...live.map((t) => t.y!)] : [[0, 1], [null, null]],
       (u, init) => (el.appendChild(u.root), init())
     )
-    return () => (u.destroy(), slots.forEach((s) => (s.textContent = '')))
+    // the wheel over a plot zooms its x axis about the pointer (pinch too; sideways scrolls it), within the data; it
+    // never reaches the page or the canvas under the plot
+    const wheel = (e: WheelEvent) => {
+      e.preventDefault()
+      if (!has) return
+      const log = scale.log, T = (v: number) => (log ? Math.log10(v) : v), xs = scale.x, lo = T(xs[0]), hi = T(xs[xs.length - 1])
+      const r = u.over.getBoundingClientRect(), a = T(u.scales.x.min!), b = T(u.scales.x.max!), at = T(u.posToVal(e.clientX - r.left, 'x'))
+      const f = Math.exp(Math.max(-50, Math.min(50, e.deltaY)) * (e.ctrlKey ? 0.01 : 0.002)), pan = (e.deltaX / r.width) * (b - a)
+      let min = at - (at - a) * f + pan, max = at + (b - at) * f + pan
+      if (max - min >= hi - lo) (min = lo), (max = hi)
+      else if (min < lo) (max += lo - min), (min = lo)
+      else if (max > hi) (min -= max - hi), (max = hi)
+      if (max - min > (hi - lo) * 1e-6) u.setScale('x', { min: log ? 10 ** min : min, max: log ? 10 ** max : max })
+    }
+    el.addEventListener('wheel', wheel, { passive: false })
+    return () => (el.removeEventListener('wheel', wheel), u.destroy(), slots.forEach((s) => (s.textContent = '')))
   }, [traces, scale, dark, lw, w, h, single])
 
   const none = !live.length ? (ran ? (series.find((s) => s.why)?.why ?? 'No results for this point in the analysis on show') : 'Run the simulation to fill this plot') : ''
