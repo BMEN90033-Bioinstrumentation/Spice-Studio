@@ -41,7 +41,7 @@ export interface SchematicHandle {
 export type ProbeTarget = { net: string } | { net: string; net2: string } | { partId: string }
 export type { ProbeSeries, ProbeSrc } from './ProbePlot'
 // a probe plot (ProbePlot.tsx): its points on the sheet (what each probes, and where), and its card's place and size
-// on the canvas in screen px, so it stays put while the sheet pans and zooms
+// in sheet units, so it pans and zooms with the sheet like a part
 type Probe = { id: string; pts: { id: string; t: ProbeTarget; at: Pt }[]; mode: ProbeMode; x: number; y: number; w: number; h: number }
 const sameT = (a: ProbeTarget, b: ProbeTarget) => JSON.stringify(a) === JSON.stringify(b)
 export interface Overlay {
@@ -450,11 +450,12 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, pro
     if (into) editProbe(into.id, (p) => ({ ...p, pts: [...p.pts, { id: uid(), t, at }] }))
     else if (dup) setProbes((ps) => ps.filter((p) => p !== dup))
     else {
-      const r = svg.current!.getBoundingClientRect(), w = 270, h = 160, sx = at.x * view.k + view.x, sy = at.y * view.k + view.y
+      // sheet units throughout: s = screen px as sheet units, [x0, y0]…[x1, y1] = the part of the sheet in view
+      const r = svg.current!.getBoundingClientRect(), w = 270, h = 160, s = 1 / view.k, x0 = -view.x * s, y0 = -view.y * s, x1 = x0 + r.width * s, y1 = y0 + r.height * s
       const fit = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
-      const b = { x: fit(sx + 24, 8, r.width - w - 8), y: fit(sy - 24 - h, 64, r.height - h - 8) }
-      if (sx > b.x - 8 && sx < b.x + w + 8 && sy > b.y - 8 && sy < b.y + h + 8) b.y = fit(sy + 24, 64, r.height - h - 8) // it would cover its own point: below it
-      for (let i = 0, hit; i < 8 && (hit = probes.find((o) => b.x < o.x + o.w && o.x < b.x + w && b.y < o.y + o.h && o.y < b.y + h)); i++) (b.x = hit.x + 28), (b.y = hit.y + 28) // cascade off the ones in the way
+      const b = { x: fit(at.x + 24 * s, x0 + 8 * s, x1 - w - 8 * s), y: fit(at.y - 24 * s - h, y0 + 64 * s, y1 - h - 8 * s) }
+      if (at.x > b.x - 8 * s && at.x < b.x + w + 8 * s && at.y > b.y - 8 * s && at.y < b.y + h + 8 * s) b.y = fit(at.y + 24 * s, y0 + 64 * s, y1 - h - 8 * s) // it would cover its own point: below it
+      for (let i = 0, hit; i < 8 && (hit = probes.find((o) => b.x < o.x + o.w && o.x < b.x + w && b.y < o.y + o.h && o.y < b.y + h)); i++) (b.x = hit.x + 28 * s), (b.y = hit.y + 28 * s) // cascade off the ones in the way
       setProbes((ps) => [...ps, { id: uid(), pts: [{ id: uid(), t, at }], mode: 'all', ...b, w, h }])
     }
     onProbe?.(t, !dup)
@@ -479,9 +480,9 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, pro
   }
   const moveCard = (e: RPE<HTMLDivElement>, p: Probe) => {
     if (e.button !== 0) return
-    const g = e.currentTarget, sx = e.clientX - p.x, sy = e.clientY - p.y
+    const g = e.currentTarget, k = view.k, sx = e.clientX / k - p.x, sy = e.clientY / k - p.y
     g.setPointerCapture(e.pointerId)
-    g.onpointermove = (m) => editProbe(p.id, (q) => ({ ...q, x: m.clientX - sx, y: Math.max(0, m.clientY - sy) }))
+    g.onpointermove = (m) => editProbe(p.id, (q) => ({ ...q, x: m.clientX / k - sx, y: m.clientY / k - sy }))
     g.onpointerup = g.onpointercancel = () => (g.onpointermove = null)
   }
   const dropProbe = (p: Probe, pts = p.pts) => (pts.forEach((q) => onProbe?.(q.t, false)), editProbe(p.id, (q) => (pts.length === q.pts.length ? null : { ...q, pts: q.pts.filter((o) => !pts.includes(o)) })))
@@ -1162,10 +1163,10 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, pro
         {/* probe points, in screen px: a dot on the sheet (drag it to probe something else) tied to its plot's card by a line */}
         <g className="pdots">
           {probes.flatMap((p) => p.pts.map((q, i) => {
-            const sx = q.at.x * view.k + view.x, sy = q.at.y * view.k + view.y
+            const sx = q.at.x * view.k + view.x, sy = q.at.y * view.k + view.y, cx = p.x * view.k + view.x, cy = p.y * view.k + view.y
             return (
               <g key={q.id} style={{ color: seriesColor(i) }}>
-                <line x1={sx} y1={sy} x2={Math.max(p.x, Math.min(p.x + p.w, sx))} y2={Math.max(p.y, Math.min(p.y + p.h, sy))} />
+                <line x1={sx} y1={sy} x2={Math.max(cx, Math.min(cx + p.w * view.k, sx))} y2={Math.max(cy, Math.min(cy + p.h * view.k, sy))} />
                 <circle cx={sx} cy={sy} r={5} onPointerDown={(e) => dragDot(e, p, i)}><title>{probeData.get(q.id)?.label}: drag to probe another wire or part</title></circle>
               </g>
             )
@@ -1174,7 +1175,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, pro
       </svg>
       <div className="pov">
         {probes.map((p) => (
-          <ProbePlot key={p.id} x={p.x} y={p.y} w={p.w} h={p.h} mode={p.mode} adding={addTo === p.id} series={p.pts.map((q) => probeData.get(q.id)!)} scale={probeSrc?.scale ?? null} ran={!!probeSrc?.ran}
+          <ProbePlot key={p.id} x={p.x * view.k + view.x} y={p.y * view.k + view.y} k={view.k} w={p.w} h={p.h} mode={p.mode} adding={addTo === p.id} series={p.pts.map((q) => probeData.get(q.id)!)} scale={probeSrc?.scale ?? null} ran={!!probeSrc?.ran}
             onMode={(mode) => editProbe(p.id, (q) => ({ ...q, mode }))} onSize={(w, h) => editProbe(p.id, (q) => ({ ...q, w, h }))} onMove={(e) => moveCard(e, p)}
             onAdd={() => (addTo === p.id ? setAddTo(null) : (use('probe'), setAddTo(p.id)))} onRemove={(i) => dropProbe(p, [p.pts[i]])} onClose={() => dropProbe(p)} />
         ))}

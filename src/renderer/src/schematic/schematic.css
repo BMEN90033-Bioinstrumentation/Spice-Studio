@@ -57,7 +57,8 @@
 .sch .op { pointer-events: none; }
 .sch .op rect { fill: var(--s1); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .sch .op text { fill: var(--probe); font-family: var(--mono); }
-/* probe plots (ProbePlot.tsx): cards in a layer over the canvas, in screen px; dots and lines in the trace colour */
+/* probe plots (ProbePlot.tsx): cards in a layer over the canvas, in sheet units scaled by the zoom; dots and lines in the trace colour */
+/* ponytail: the chart canvas is drawn at 1× and CSS-scaled, so it softens when zoomed in past 100%; redraw at the zoom if that matters */
 .sch > .pov { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sch.lib > .pov { left: 240px; }
 .sch .pcard { pointer-events: auto; resize: both; min-width: 180px; min-height: 110px; }

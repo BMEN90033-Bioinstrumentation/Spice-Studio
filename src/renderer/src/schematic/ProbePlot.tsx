@@ -1,5 +1,5 @@
-// A probe plot on the schematic: a small chart of the probed points, floating over the canvas at a fixed place and size
-// (the canvas pans and zooms under it). The chart is uPlot set up like the results panel's (Plot.tsx): same colours
+// A probe plot on the schematic: a small chart of the probed points, at a fixed place and size on the sheet (it pans and
+// zooms with it: the card is laid out in sheet units, w × h, and CSS-scaled by the view's zoom k; x, y are screen px). The chart is uPlot set up like the results panel's (Plot.tsx): same colours
 // and axes, drag or wheel to zoom, double-click to reset; kept compact, so the hover values go in the title bar beside each
 // point's name instead of a legend row. The Schematic owns the plots and their points.
 import { useEffect, useMemo, useRef, type PointerEvent as RPE } from 'react'
@@ -22,13 +22,18 @@ const val = (v: number, unit: string) => (unit === 'dB' ? +v.toFixed(2) + 'dB' :
 const stop = (e: RPE) => e.stopPropagation() // header buttons don't start a move
 const FONT = '10px system-ui, sans-serif' // smaller than the results panel's 12px
 
-export function ProbePlot({ x, y, w, h, series, scale, ran, mode, adding, onMode, onAdd, onRemove, onClose, onMove, onSize }: {
-  x: number; y: number; w: number; h: number; series: ProbeSeries[]; scale: ProbeSrc['scale']; ran: boolean; mode: ProbeMode; adding: boolean
+export function ProbePlot({ x, y, k, w, h, series, scale, ran, mode, adding, onMode, onAdd, onRemove, onClose, onMove, onSize }: {
+  x: number; y: number; k: number; w: number; h: number; series: ProbeSeries[]; scale: ProbeSrc['scale']; ran: boolean; mode: ProbeMode; adding: boolean
   onMode: (m: ProbeMode) => void; onAdd: () => void; onRemove: (i: number) => void; onClose: () => void
   onMove: (e: RPE<HTMLDivElement>) => void; onSize: (w: number, h: number) => void
 }) {
   const dark = useDark(), lw = usePrefs().plotWidth
   const card = useRef<HTMLDivElement>(null), host = useRef<HTMLDivElement>(null)
+  // uPlot knows nothing of the CSS scale: its pointer maths gets k (cursor.move), and its cached place on screen is
+  // dropped whenever the card moves or scales (no syncRect on a chart without a cursor: the empty one before a run)
+  const kr = useRef(k), chart = useRef<uPlot | null>(null)
+  kr.current = k
+  useEffect(() => chart.current?.syncRect?.(true), [x, y, k])
   const traces = useMemo(() => {
     const all = series.map((s, i) => ({ label: s.label, unit: s.unit, y: s.y, color: seriesColor(i) }))
     if (mode !== 'delta' || all.length < 2) return all
@@ -68,20 +73,21 @@ export function ProbePlot({ x, y, w, h, series, scale, ran, mode, adding, onMode
               ...units.map((unit, i): uPlot.Axis => ({ ...axis, scale: 'y' + i, size: 46, side: i ? 1 : 3, grid: i ? { show: false } : axis.grid, label: axisTitle(unit), values: (_u, t) => t.map((v) => val(v, unit)) }))
             ]
           : [{ ...axis, size: 26, values: blank }, { ...axis, scale: 'y0', size: 46, values: blank }],
-        cursor: has ? { drag: { x: true, y: true, uni: 20, dist: 4 } } : { show: false },
+        cursor: has ? { drag: { x: true, y: true, uni: 20, dist: 4 }, move: (_u, l, t) => [l / kr.current, t / kr.current] } : { show: false },
         legend: { show: false },
         hooks: { setCursor: [hover] }
       },
       has ? [scale.x, ...live.map((t) => t.y!)] : [[0, 1], [null, null]],
       (u, init) => (el.appendChild(u.root), init())
     )
+    chart.current = u
     // the wheel over a plot zooms its x axis about the pointer (pinch too; sideways scrolls it), within the data; it
     // never reaches the page or the canvas under the plot
     const wheel = (e: WheelEvent) => {
       e.preventDefault()
       if (!has) return
       const log = scale.log, T = (v: number) => (log ? Math.log10(v) : v), xs = scale.x, lo = T(xs[0]), hi = T(xs[xs.length - 1])
-      const r = u.over.getBoundingClientRect(), a = T(u.scales.x.min!), b = T(u.scales.x.max!), at = T(u.posToVal(e.clientX - r.left, 'x'))
+      const r = u.over.getBoundingClientRect(), a = T(u.scales.x.min!), b = T(u.scales.x.max!), at = T(u.posToVal((e.clientX - r.left) / kr.current, 'x'))
       const f = Math.exp(Math.max(-50, Math.min(50, e.deltaY)) * (e.ctrlKey ? 0.01 : 0.002)), pan = (e.deltaX / r.width) * (b - a)
       let min = at - (at - a) * f + pan, max = at + (b - at) * f + pan
       if (max - min >= hi - lo) (min = lo), (max = hi)
@@ -95,7 +101,7 @@ export function ProbePlot({ x, y, w, h, series, scale, ran, mode, adding, onMode
 
   const none = !live.length ? (ran ? (series.find((s) => s.why)?.why ?? 'No results for this point in the analysis on show') : 'Run the simulation to fill this plot') : ''
   return (
-    <div ref={card} className="pcard absolute flex flex-col overflow-hidden rounded-md border bg-card text-card-foreground shadow-md" style={{ left: x, top: y, width: w, height: h }}>
+    <div ref={card} className="pcard absolute flex flex-col overflow-hidden rounded-md border bg-card text-card-foreground shadow-md" style={{ left: x, top: y, width: w, height: h, transform: `scale(${k})`, transformOrigin: '0 0' }}>
       <div className="flex h-6 shrink-0 cursor-move items-center gap-1 border-b pr-0.5 pl-2 text-[11px] select-none" onPointerDown={onMove}>
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
           {series.map((s, i) => (
