@@ -80,7 +80,7 @@ The sheet opens in a new tab, with a breadcrumb trail above the canvas (**main â
 
 ![Inside filter.nsch: ports in and out, with the trail main â€º filter](images/07-descend.png)
 
-Edits inside the sheet change every block that uses it. You can probe inside the sheet after a run: a wire plots that net inside the block (`V(xa.n001)`), a part its current (`I(XA.R1)`), and a wire on a port plots the net the block pin is wired to. When several blocks use the sheet, the probe reads the first one and the status bar says which; the vector list has the others.
+Edits inside the sheet change every block that uses it. You can probe inside the sheet: a wire plots that net inside the block (`V(xa.n001)`), a part its current (`I(XA.R1)`), and a wire on a port plots the net the block pin is wired to. When several blocks use the sheet, the probe reads the first one and the status bar says which; the vector list has the others.
 
 ## Updating a block after its ports change
 

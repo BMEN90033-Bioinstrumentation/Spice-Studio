@@ -34,9 +34,11 @@ const PREFIX: [number, string][] = [
   [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n'], [1e-12, 'p'], [1e-15, 'f']
 ]
 
-// the colour Plot gives a chart entry (first run): the probe tags on the schematic match their trace with it
-export const traceColor = (plot: RawPlot, sel: string[], key: string) =>
-  color(isExpr(key) ? plot.vars.length - 1 + sel.filter(isExpr).indexOf(key) : plot.vars.findIndex((v) => v.name.toLowerCase() === key) - 1)
+// the trace colours and axis look, shared with the probe plots on the schematic (schematic/ProbePlot.tsx)
+export const seriesColor = (i: number) => color(i)
+export const axisLook = (dark: boolean) => dark // ≈ --muted-foreground / --border (canvas can't read CSS vars)
+  ? { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } }
+  : { stroke: '#737373', grid: { stroke: 'rgba(0,0,0,0.08)' }, ticks: { stroke: 'rgba(0,0,0,0.15)' } }
 
 export function eng(v: number | null, unit = ''): string {
   if (v == null || !isFinite(v)) return '—'
@@ -223,9 +225,7 @@ export function Plot({ runs, chart, onChart, hold, logic = NONE, insts = NO_INST
     if (first.points < 2 || !host.current) return
     const el = host.current, doc = el.ownerDocument
     const xUnit = fftv ? 'Hz' : UNIT[scale.type]
-    const axis = dark // ≈ --muted-foreground / --border (canvas can't read CSS vars)
-      ? { stroke: '#a1a1a1', grid: { stroke: 'rgba(255,255,255,0.1)' }, ticks: { stroke: 'rgba(255,255,255,0.15)' } }
-      : { stroke: '#737373', grid: { stroke: 'rgba(0,0,0,0.08)' }, ticks: { stroke: 'rgba(0,0,0,0.15)' } }
+    const axis = axisLook(dark)
     // one chart per pane: Bode stacks magnitude over phase, both following one x zoom and one hover cursor
     // logic rows: their own chart (pane 1) under the analog one, or alone when every trace is a logic row
     const rowNames: string[] = []

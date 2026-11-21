@@ -65,16 +65,24 @@ The word after `.plot` names the analysis (`tran`, `ac`, `dc` or `noise`). An en
 
 ## Probing the schematic
 
-You can add traces straight from the schematic after a run. It works on every sheet the top sheet uses ([inside a block's sheet](07-projects-and-hierarchy.md) the traces are that block's), and it shows the results panel if it was hidden. Probe in the following ways:
+Probe the schematic to put small plots on it, each tied to the point it reads. It works on every sheet the top sheet uses ([inside a block's sheet](07-projects-and-hierarchy.md) the traces are that block's). Probe in the following ways:
 
-- **Alt+click a wire, label or pin** to add that net's voltage to the current tab.
-- **Alt+click a part** to add the current through it (for a transistor, the collector or drain current).
-- Alt+click the same thing again to remove its trace.
+- **Alt+click a wire, label or pin** to plot that net's voltage.
+- **Alt+click a part** to plot the current through it (for a transistor, the collector or drain current).
+- **Alt+drag from one net to another** to plot the difference between them.
 - Press **P** (or click **Probe**) to use the probe tool, where a plain click probes. **Esc** goes back to Select.
 
 While Alt is held, the net or part under the mouse is highlighted.
 
-Each probe also puts a small plot on the schematic beside the point you clicked, in the colour of its trace, with its own axes (time or frequency along the bottom; volts, amps or dB up the side). A line with a dot ties it to the probed point. Drag a plot to move it; probe more points to add more. An operating point shows the value instead of a plot. The plots follow the tab you are looking at and update on every run. One goes away when you probe the same thing again or untick its trace in the results.
+Each probe opens a plot beside the point, a compact version of the results panel's charts: drag across it to zoom, double-click to reset, and hover to read each value in the title bar. A dot marks the probed point and a line ties it to its plot. You can do the following with a plot:
+
+- **Move it** by its title bar, and resize it from its bottom-right corner. Plots keep their place and size while you pan and zoom the schematic.
+- **Move the probe point**: drag its dot onto another wire or part.
+- **Add points**: click **＋** on the plot, then click more wires or parts. Press **Esc** when done. **×** beside a name takes that point off.
+- **All / Δ**: with two or more points, **All** draws each as its own trace and **Δ** draws the first point minus each of the others.
+- **Remove it** with **×**.
+
+You can probe before running: the plot is empty until the next run fills it. The plots show the analysis tab you last looked at in the results panel, and update on every run. When there are results, a probed point is also ticked in the results panel's chart (the panel is not opened for you).
 
 ![Alt+click on the out wire and on the in wire added V(out) and V(in)](images/05-probe.png)
 

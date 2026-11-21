@@ -20,19 +20,18 @@ import { offerRecovery, RecoveryPrompt, restoreSession, useAutosave } from './Re
 import { UpdateCard } from './Update'
 import { focusPopout } from './layout/PopOut'
 import { ResultsPanel } from './layout/ResultsPanel'
-import { axisTitle, defaultSel, eng, pretty, traceColor, UNIT, type Chart, type PlotRun } from './Plot'
-import { isExpr } from './contracts'
+import { defaultSel, pretty, UNIT, type Chart, type PlotRun } from './Plot'
 import { logicNets } from './plot/logic'
 import { bom, bomCsv, bomXlsx } from './project/bom'
 import { BOMWIN, BomWindow } from './project/BomWindow'
 import { FindDialog } from './project/FindDialog'
 import { COMPATS, findParts, type Hit, newProject, type PartInfo, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
-import { emptySheet, parseSheet, uid, type Pt, type Sheet } from './schematic/model'
+import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
-import { Schematic, type Overlay, type ProbeTag, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
+import { Schematic, type Overlay, type ProbeSeries, type ProbeSrc, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
 import { TEMPLATES } from './schematic/templates'
 import { annotate } from './schematic/annotate'
-import { blame, currentVectors, findVector, hierNet, hierRef, hopPath, instances, instancesOf, seriesOf, sparkline, tagTicks, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
+import { blame, currentVectors, findVector, hierNet, hierRef, hopPath, instances, instancesOf, seriesOf, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
@@ -269,7 +268,6 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [guard, setGuard] = useState<(() => void) | null>(null) // pending leave() continuation
   const pendingSel = useRef<{ f: string; ids: string[] } | null>(null) // select these once sheet f is on screen
   const [finding, setFinding] = useState(false) // Edit › Find…
-  const [marks, setMarks] = useState<{ id: string; file: string; at: Pt; sel: string }[]>([]) // probed points: where, and the chart entry
 
   const [schPath, setSchPath] = useState(session.kind === 'loose' ? session.path : null)
   const net0 = session.net
@@ -641,49 +639,23 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     setStatus(`Added ${options} to ${stem(top)}: run again`)
   }
 
-  // tick / untick an entry in the current tab's chart: the one shown alone, else the top one. true = now ticked
-  function toggleSel(e: string) {
-    const charts = plots[cur!.key] ?? [], i = pane != null && charts[pane] ? pane : 0, sel = charts[i]?.sel ?? []
-    setPlots({ ...plots, [cur!.key]: charts.map((c, j) => (j === i ? { ...c, sel: sel.includes(e) ? sel.filter((s) => s !== e) : [...sel, e] } : c)) })
-    return !sel.includes(e)
+  // tick / untick an entry in the current tab's chart: the one shown alone, else the top one
+  function tick(e: string, on: boolean) {
+    const k = cur!.key
+    setPlots((all) => {
+      const charts = all[k] ?? [], i = pane != null && charts[pane] ? pane : 0
+      return { ...all, [k]: charts.map((c, j) => (j === i ? { ...c, sel: on ? (c.sel.includes(e) ? c.sel : [...c.sel, e]) : c.sel.filter((s) => s !== e) } : c)) }
+    })
   }
-  // Alt+click in the schematic: toggle that net's voltage / part's current in the current plot tab
-  function probe(t: ProbeTarget, at: Pt) {
-    // tick / untick e, and put (or take) its tag at the probed point
-    const tog = (e: string, name: string) => {
-      const on = toggleSel(e)
-      setMarks((m) => [...m.filter((k) => k.sel !== e || (on && k.file !== view)), ...(on ? [{ id: uid(), file: view, at, sel: e }] : [])])
-      setStatus(`${on ? 'Added' : 'Removed'} ${name}${note}`)
-    }
-    if (!cur) return setStatus('Run a simulation first')
-    panels.reveal() // a probe with the results hidden would look like nothing happened
-    const plot = cur.runs[0].plot
-    // another sheet than the top one: its nets and parts are inside the block that instances it (the first, if several)
-    const sheets = Object.fromEntries(Object.keys(disk.current).map((f) => [f, live(f)])), nls: Record<string, NetlistResult> = {}
-    const nlOf = (f: string) => (nls[f] ??= f === top ? gen() : netlist(sheets[f], undefined, ctx()))
-    const ways = instancesOf(sheets, top, view, nlOf), hops = ways[0]
-    if (!hops) return setStatus(`${stem(view)} isn't used by the top sheet ${stem(top)}, so the run has no results for it`)
-    const note = ways.length > 1 ? ` (block ${hopPath(hops)}; ${ways.length - 1} more use this sheet)` : ''
-    const up = (n: string) => hierNet(sheets, hops, view, n, nlOf)
-    let want: string, v: string | null
-    if ('net2' in t) {
-      // differential probe: a maths entry Plot evaluates (contracts.ts isExpr)
-      const d = t, term = (n: string) => (n === '0' ? '0' : `v(${n.toLowerCase()})`)
-      const e = `=${term(up(d.net))}-${term(up(d.net2))}`
-      return tog(e, e.slice(1))
-    }
-    if ('net' in t) {
-      const n = voltageVector(up(t.net))
-      if (!n) return setStatus('Ground is the 0 V reference')
-      ;(want = n), (v = findVector(plot, [n]))
-    } else {
-      const part = sheets[view].parts.find((p) => p.id === t.partId), ref = nlOf(view).refs[t.partId]
-      if (!part || !ref) return
-      if (part.kind === 'block') return setStatus(`${ref} is a block: open its sheet and probe the part or wire inside`)
-      ;(want = `i(${ref})`), (v = findVector(plot, currentVectors(part, hierRef(hops, ref))))
-    }
-    if (!v) return setStatus(`${want} isn't in ${cur.name}`)
-    tog(v.toLowerCase(), pretty(v))
+  // a probe point was added to / taken off the sheet in view (the Schematic owns the probe plots): the results
+  // chart follows when there are results, and the status bar says what happened
+  function probe(t: ProbeTarget, on: boolean) {
+    const [r] = probeSrc.of([t])
+    if (r.why) return setStatus(on ? r.why : `Removed the probe on ${r.label}`)
+    if (!cur) return setStatus(on ? `Probe on ${r.label}: run the simulation to fill its plot` : `Removed the probe on ${r.label}`)
+    if (!r.key || !r.y) return setStatus(on ? `${r.label} isn't in ${cur.name}` : `Removed the probe on ${r.label}`)
+    tick(r.key, on)
+    setStatus(`${on ? 'Added' : 'Removed'} ${r.label}${r.note ?? ''}`)
   }
 
   // jump from a console line to the parts/wires it blames (always on the top sheet)
@@ -835,22 +807,41 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const tabs = useMemo(() => tabsOf(runs ?? []), [runs])
   const cur = tabs.find((t) => t.key === tab) ?? tabs[0]
   const plot = cur?.runs[0].plot
-  // tags on the sheet in view: every probed point whose trace is ticked in this tab, with its waveform and range
+  // what the probe plots on the sheet in view show: each probe target's vector in the current tab (none before a run).
+  // Another sheet than the top one: its nets and parts are inside the block that instances it (the first, if several).
   // ponytail: the first run only; sweeps would need a line per run
-  const tags: ProbeTag[] = useMemo(() => {
-    if (!plot) return []
-    const charts = plots[cur!.key] ?? [], xv = plot.vars[0], x = plot.complex ? xv.re.map(Math.log10) : xv.re
-    return marks.filter((m) => m.file === view).flatMap((m) => {
-      const c = charts.find((c) => c.sel.includes(m.sel)), s = c && seriesOf(plot, m.sel)
-      if (!c || !s) return []
-      const { d, lo, hi } = sparkline(x, s.y), tk = (a: number, b: number, log = false) => tagTicks(a, b, log).map((t) => ({ p: t.p, t: eng(t.v) }))
-      return [{
-        id: m.id, ...m.at, label: c.names?.[m.sel] || (isExpr(m.sel) ? m.sel.slice(1) : pretty(m.sel)), color: traceColor(plot, c.sel, m.sel), d,
-        text: s.unit === 'dB' ? s.y[0].toFixed(1) + ' dB' : eng(s.y[0], s.unit), // a single point (.op)
-        xl: axisTitle(UNIT[xv.type] ?? '', xv.name), yl: axisTitle(s.unit), xt: d ? tk(x[0], x[x.length - 1], plot.complex) : [], yt: d ? tk(lo, hi) : []
-      }]
-    })
-  }, [marks, plots, plot, view])
+  const probeSrc: ProbeSrc = useMemo(() => {
+    const xv = plot?.vars[0]
+    return {
+      scale: plot && xv && plot.points > 1 ? { x: xv.re, log: plot.complex, unit: UNIT[xv.type] ?? '', name: xv.name } : null,
+      ran: !!plot,
+      of(ts) {
+        if (!isSch || !ts.length) return []
+        const sheets = Object.fromEntries(Object.keys(disk.current).map((f) => [f, live(f)])), nls: Record<string, NetlistResult> = {}
+        const nlOf = (f: string) => (nls[f] ??= f === top ? gen() : netlist(sheets[f], undefined, ctx()))
+        const ways = instancesOf(sheets, top, view, nlOf), hops = ways[0]
+        const note = ways.length > 1 ? ` (block ${hopPath(hops)}; ${ways.length - 1} more use this sheet)` : ''
+        const up = (n: string) => (hops ? hierNet(sheets, hops, view, n, nlOf) : n), term = (n: string) => (n === '0' ? '0' : `v(${n.toLowerCase()})`)
+        return ts.map((t): ProbeSeries => {
+          let key: string | null = null, label: string, unit = 'V', why = hops ? undefined : `${stem(view)} isn't used by the top sheet ${stem(top)}, so a run has no results for it`
+          if ('net2' in t) (key = `=${term(up(t.net))}-${term(up(t.net2))}`), (label = key.slice(1)) // differential: a maths entry (contracts.ts isExpr)
+          else if ('net' in t) {
+            const n = voltageVector(up(t.net))
+            label = n ? pretty(n) : 'Ground'
+            if (!n) why = 'Ground is the 0 V reference'
+            key = n && plot ? (findVector(plot, [n])?.toLowerCase() ?? null) : n
+          } else {
+            const part = sheets[view]?.parts.find((p) => p.id === t.partId), ref = nlOf(view).refs[t.partId] ?? part?.name ?? '?'
+            const v = part && plot && hops ? findVector(plot, currentVectors(part, hierRef(hops, ref))) : null
+            ;(unit = 'A'), (key = v?.toLowerCase() ?? null), (label = v ? pretty(v) : `I(${[hops && hopPath(hops), ref].filter(Boolean).join('.')})`)
+            if (part?.kind === 'block') (label = ref), (why = `${ref} is a block: open its sheet and probe the part or wire inside`)
+          }
+          const s = plot && key && hops ? seriesOf(plot, key) : null
+          return { key, label, unit: s?.unit ?? unit, y: s?.y, why, note }
+        })
+      }
+    }
+  }, [plot, view, top, isSch, proj, resolve])
   const logLines = log ? log.split('\n') : []
   const trail = crumbs.length > 1 && crumbs.at(-1) === view ? crumbs : null
   const panels = usePanels({ active: route === 'editor', hasSheets: !!proj, isSch, runs, title: proj?.name ?? name, onOpen: prefs().resultsOnOpen, autoShow: prefs().showResults })
@@ -1083,7 +1074,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
                     onDirty={() => dirtied(f)}
                     overlay={f === top ? overlay : null}
                     onProbe={probe}
-                    probes={view === f ? tags : undefined}
+                    probeSrc={view === f ? probeSrc : undefined}
                     library={library}
                     browse={browse}
                     sheets={sheetList.filter((s) => s.file !== f)}

@@ -5,7 +5,6 @@ import type { RawPlot } from '../../../main/rawfile.ts'
 import { logicalLines } from './analysis.ts'
 import { evalExpr, isCurrent } from '../plot/expr.ts'
 import { isExpr } from '../contracts.ts'
-import { ticks } from '../plot/views.ts'
 
 // Observed on ngspice-47 (`ngspice -b -r out.raw`) with `.options savecurrents`:
 //  - .op / .tran / .dc plots gain device currents named `i(@r1[i])`, `i(@c1[i])`, `i(@l1[i])`, `i(@i1[current])`,
@@ -81,7 +80,7 @@ export function hierNet(sheets: Record<string, Sheet>, hops: Hop[], f: string, n
 // a part's SPICE name inside a block, the way ngspice spells flattened devices: R1 in XA.XB -> r.xa.xb.r1
 export const hierRef = (hops: Hop[], ref: string) => (hops.length ? `${ref[0]}.${hopPath(hops)}.${ref}` : ref)
 
-// ---- probe tags on the schematic: a chart entry's numbers, and its waveform squeezed into a small box ----
+// ---- probe plots on the schematic ----
 // y of a chart entry (a vector's lowercase name, or '=expression'); AC plots: magnitude in dB. null = not in this plot
 export function seriesOf(plot: RawPlot, key: string): { y: Float64Array; unit: string } | null {
   let re: Float64Array, im: Float64Array | null | undefined, unit: string
@@ -96,39 +95,6 @@ export function seriesOf(plot: RawPlot, key: string): { y: Float64Array; unit: s
   }
   return im ? { y: re.map((r, i) => 20 * Math.log10(Math.hypot(r, im![i]))), unit: 'dB' } : { y: re, unit }
 }
-// SVG path of y over x in a w × h box, one column per x step with that column's min and max (so a narrow spike
-// survives), plus the range. d is '' with fewer than two points.
-export function sparkline(x: ArrayLike<number>, y: ArrayLike<number>, w = 100, h = 20, cols = 60): { d: string; lo: number; hi: number } {
-  const n = Math.min(x.length, y.length), mn = new Array<number>(cols).fill(Infinity), mx = new Array<number>(cols).fill(-Infinity)
-  const x0 = x[0], span = x[n - 1] - x0
-  let lo = Infinity, hi = -Infinity
-  for (let i = 0; i < n; i++) {
-    const v = y[i], c = span ? Math.max(0, Math.min(cols - 1, Math.floor(((x[i] - x0) / span) * cols))) : 0
-    if (!Number.isFinite(v)) continue
-    if (v < mn[c]) mn[c] = v
-    if (v > mx[c]) mx[c] = v
-    if (v < lo) lo = v
-    if (v > hi) hi = v
-  }
-  if (lo > hi) return { d: '', lo: NaN, hi: NaN }
-  const py = (v: number) => +(hi > lo ? h - ((v - lo) / (hi - lo)) * h : h / 2).toFixed(2), seg: string[] = []
-  for (let c = 0; c < cols; c++) if (mn[c] <= mx[c]) {
-    const px = +(((c + 0.5) / cols) * w).toFixed(2)
-    seg.push(`${px} ${py(mx[c])}`)
-    if (mn[c] !== mx[c]) seg.push(`${px} ${py(mn[c])}`)
-  }
-  return { d: n > 1 && span ? 'M' + seg.join('L') : '', lo, hi }
-}
-
-// a few round-numbered ticks for a probe tag's axis over [lo, hi]: p = position 0…1 along it. log: lo and hi are
-// log10 of the values (an AC sweep), so ticks sit on the decades
-export function tagTicks(lo: number, hi: number, log = false, n = 3): { p: number; v: number }[] {
-  if (!(hi > lo)) return Number.isFinite(lo) ? [{ p: 0.5, v: log ? 10 ** lo : lo }] : []
-  let ts = log ? ticks(lo, hi, n).filter(Number.isInteger) : ticks(lo, hi, n)
-  if (ts.length < 2) ts = [lo, hi] // less than a decade (or an odd span): the ends
-  return ts.map((v) => ({ p: (v - lo) / (hi - lo), v: log ? 10 ** v : v }))
-}
-
 export function findVector(plot: RawPlot, candidates: string[]): string | null {
   const junk = plot.complex || /noise/i.test(plot.plotname) // see SAVE_CURRENTS note
   for (const c of candidates) {
