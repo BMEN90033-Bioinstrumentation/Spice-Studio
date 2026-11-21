@@ -65,7 +65,7 @@ The word after `.plot` names the analysis (`tran`, `ac`, `dc` or `noise`). An en
 
 ## Probing the schematic
 
-You can add traces straight from the schematic after a run. Probing works on the top sheet, which is the circuit that was simulated. Probe in the following ways:
+You can add traces straight from the schematic after a run. It works on every sheet the top sheet uses ([inside a block's sheet](07-projects-and-hierarchy.md) the traces are that block's), and it shows the results panel if it was hidden. Probe in the following ways:
 
 - **Alt+click a wire, label or pin** to add that net's voltage to the current tab.
 - **Alt+click a part** to add the current through it (for a transistor, the collector or drain current).

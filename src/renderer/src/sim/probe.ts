@@ -1,5 +1,5 @@
 // Probe helpers: raw-file vector names for nets/parts, .op voltages, and mapping ngspice errors back to the schematic.
-import type { Part } from '../schematic/model.ts'
+import { sheetPorts, type Part, type Sheet } from '../schematic/model.ts'
 import type { NetlistResult } from '../schematic/netlist.ts'
 import type { RawPlot } from '../../../main/rawfile.ts'
 import { logicalLines } from './analysis.ts'
@@ -41,6 +41,42 @@ export function currentVectors(p: Part, ref: string): string[] {
     default: return []
   }
 }
+
+// ---- probing on a sub-sheet: its nets and parts live under the block(s) that instance it ----
+export interface Hop { file: string; block: Part; ref: string } // a block on sheet `file`, one step down from the top
+type Nl = (file: string) => Pick<NetlistResult, 'nets' | 'refs'> // a sheet's own netlist
+
+// every way down from the top sheet to sheet f ([] = f is the top sheet itself); none = the design doesn't use f
+export function instancesOf(sheets: Record<string, Sheet>, top: string, f: string, nl: Nl): Hop[][] {
+  const out: Hop[][] = []
+  const walk = (file: string, hops: Hop[]) => {
+    if (file === f) return void out.push(hops)
+    if (hops.some((h) => h.file === file)) return // hierarchy cycle: the netlister reports it
+    for (const b of sheets[file]?.parts ?? []) {
+      const ref = b.kind === 'block' && b.sheet ? nl(file).refs[b.id] : undefined
+      if (ref) walk(b.sheet!, [...hops, { file, block: b, ref }])
+    }
+  }
+  walk(top, [])
+  return out
+}
+export const hopPath = (hops: Hop[]) => hops.map((h) => h.ref).join('.')
+// net `net` of sheet f, instanced through hops, as ngspice names it after flattening: ground and power flags are
+// global, a port's net is whatever the block pin is wired to on the parent, the rest get the instance path (xa.n001).
+// ponytail: goes by the net's name on its own sheet; a net carrying both a label and a port is named by the label
+// there and won't resolve to the parent's net. Match by port position if that turns up.
+export function hierNet(sheets: Record<string, Sheet>, hops: Hop[], f: string, net: string, nl: Nl): string {
+  for (let i = hops.length; i > 0; i--) {
+    const s = sheets[i === hops.length ? f : hops[i].file], lc = net.toLowerCase(), h = hops[i - 1]
+    if (net === '0' || s?.parts.some((p) => p.kind === 'power' && p.value.toLowerCase() === lc)) return net
+    const pin = (h.block.pins ?? []).findIndex((q) => q.name.toLowerCase() === lc), up = nl(h.file).nets[h.block.id]?.[pin]
+    if (!up || !s || !sheetPorts(s).some((n) => n.toLowerCase() === lc)) return `${hopPath(hops.slice(0, i))}.${net}`
+    net = up
+  }
+  return net
+}
+// a part's SPICE name inside a block, the way ngspice spells flattened devices: R1 in XA.XB -> r.xa.xb.r1
+export const hierRef = (hops: Hop[], ref: string) => (hops.length ? `${ref[0]}.${hopPath(hops)}.${ref}` : ref)
 
 export function findVector(plot: RawPlot, candidates: string[]): string | null {
   const junk = plot.complex || /noise/i.test(plot.plotname) // see SAVE_CURRENTS note

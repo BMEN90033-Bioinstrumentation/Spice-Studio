@@ -32,7 +32,7 @@ To find a part without knowing its sheet, press ⌘F (**Edit › Find…**) and 
 
 The list shows the top sheet first, then the rest by name with numbers in order. Number the sheets to list them in signal order (`1-body`, `2-inamp`, … in the [ECG-Frontend](examples/ECG-Frontend/) example).
 
-The **top sheet** (marked `TOP`) is the circuit that runs. **▶ Run** always simulates the top sheet, even when another sheet is on screen, and probing only works on the top sheet. The other sheets are used through blocks.
+The **top sheet** (marked `TOP`) is the circuit that runs. **▶ Run** always simulates the top sheet, even when another sheet is on screen. The other sheets are used through blocks.
 
 ## Ports
 
@@ -80,7 +80,7 @@ The sheet opens in a new tab, with a breadcrumb trail above the canvas (**main �
 
 ![Inside filter.nsch: ports in and out, with the trail main › filter](images/07-descend.png)
 
-Edits inside the sheet change every block that uses it. Results and probing stay with the top sheet. To probe, switch back to it. The status bar reminds you if you try from a sub-sheet.
+Edits inside the sheet change every block that uses it. You can probe inside the sheet after a run: a wire plots that net inside the block (`V(xa.n001)`), a part its current (`I(XA.R1)`), and a wire on a port plots the net the block pin is wired to. When several blocks use the sheet, the probe reads the first one and the status bar says which; the vector list has the others.
 
 ## Updating a block after its ports change
 

@@ -98,5 +98,5 @@ export function usePanels({ active, hasSheets, isSch, runs, title, onOpen, autoS
       )}
     </>
   )
-  return { ...s, docked, setParts: (parts: boolean) => set({ parts }), sheetsRail, sheetsHide, results }
+  return { ...s, docked, reveal: () => void (!s.plots && !s.popped && dock()), setParts: (parts: boolean) => set({ parts }), sheetsRail, sheetsHide, results }
 }

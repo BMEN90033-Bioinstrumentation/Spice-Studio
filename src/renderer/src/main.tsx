@@ -31,7 +31,7 @@ import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
 import { TEMPLATES } from './schematic/templates'
 import { annotate } from './schematic/annotate'
-import { blame, currentVectors, findVector, instances, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
+import { blame, currentVectors, findVector, hierNet, hierRef, hopPath, instances, instancesOf, opVoltages, SAVE_CURRENTS, voltageVector, type Blame } from './sim/probe'
 import { diagnose } from './sim/convergence'
 import { erc, type Issue } from './sim/erc'
 import { analysisPos, plotPanes } from './sim/analysis'
@@ -625,7 +625,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
       })
     } else setBlamed([])
     const secs = ((performance.now() - t0) / 1000).toFixed(2)
-    const where = proj && isSch && view !== top ? ` · simulated the top sheet ${stem(top)}; open it to probe` : ''
+    const where = proj && isSch && view !== top ? ` · simulated the top sheet ${stem(top)}` : ''
     const head = stopped === 'user' ? 'Stopped' : stopped ? `Timed out after ${opts.timeoutS} s` : ok ? 'Done' : 'Failed'
     setStatus(`${head}${n > 1 ? ` (${done.length}/${n} runs)` : ''} in ${secs} s${where}`)
   }
@@ -647,27 +647,35 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   }
   // Alt+click in the schematic: toggle that net's voltage / part's current in the current plot tab
   function probe(t: ProbeTarget) {
-    if (view !== top) return setStatus(`Probing works on the top sheet (${stem(top)}): results are for that circuit`)
     if (!cur) return setStatus('Run a simulation first')
+    panels.reveal() // a probe with the results hidden would look like nothing happened
     const plot = cur.runs[0].plot
+    // another sheet than the top one: its nets and parts are inside the block that instances it (the first, if several)
+    const sheets = Object.fromEntries(Object.keys(disk.current).map((f) => [f, live(f)])), nls: Record<string, NetlistResult> = {}
+    const nlOf = (f: string) => (nls[f] ??= f === top ? gen() : netlist(sheets[f], undefined, ctx()))
+    const ways = instancesOf(sheets, top, view, nlOf), hops = ways[0]
+    if (!hops) return setStatus(`${stem(view)} isn't used by the top sheet ${stem(top)}, so the run has no results for it`)
+    const note = ways.length > 1 ? ` (block ${hopPath(hops)}; ${ways.length - 1} more use this sheet)` : ''
+    const up = (n: string) => hierNet(sheets, hops, view, n, nlOf)
     let want: string, v: string | null
     if ('net2' in t) {
       // differential probe: a maths entry Plot evaluates (contracts.ts isExpr)
       const d = t, term = (n: string) => (n === '0' ? '0' : `v(${n.toLowerCase()})`)
-      const e = `=${term(d.net)}-${term(d.net2)}`
-      return setStatus(`${toggleSel(e) ? 'Added' : 'Removed'} ${e.slice(1)}`)
+      const e = `=${term(up(d.net))}-${term(up(d.net2))}`
+      return setStatus(`${toggleSel(e) ? 'Added' : 'Removed'} ${e.slice(1)}${note}`)
     }
     if ('net' in t) {
-      const n = voltageVector(t.net)
+      const n = voltageVector(up(t.net))
       if (!n) return setStatus('Ground is the 0 V reference')
       ;(want = n), (v = findVector(plot, [n]))
     } else {
-      const part = live(top).parts.find((p) => p.id === t.partId), ref = gen().refs[t.partId]
+      const part = sheets[view].parts.find((p) => p.id === t.partId), ref = nlOf(view).refs[t.partId]
       if (!part || !ref) return
-      ;(want = `i(${ref})`), (v = findVector(plot, currentVectors(part, ref)))
+      if (part.kind === 'block') return setStatus(`${ref} is a block: open its sheet and probe the part or wire inside`)
+      ;(want = `i(${ref})`), (v = findVector(plot, currentVectors(part, hierRef(hops, ref))))
     }
     if (!v) return setStatus(`${want} isn't in ${cur.name}`)
-    setStatus(`${toggleSel(v.toLowerCase()) ? 'Added' : 'Removed'} ${pretty(v)}`)
+    setStatus(`${toggleSel(v.toLowerCase()) ? 'Added' : 'Removed'} ${pretty(v)}${note}`)
   }
 
   // jump from a console line to the parts/wires it blames (always on the top sheet)

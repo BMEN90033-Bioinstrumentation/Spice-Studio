@@ -9,6 +9,7 @@ import type { Kind } from '../src/renderer/src/schematic/symbols.ts'
 import { netlist, type NetCtx } from '../src/renderer/src/schematic/netlist.ts'
 import { TEMPLATES } from '../src/renderer/src/schematic/templates.ts'
 import { BUNDLED, resolver, type LibEntry } from '../src/renderer/src/library/library.ts'
+import { currentVectors, findVector, hierNet, hierRef, hopPath, instancesOf } from '../src/renderer/src/sim/probe.ts'
 import { parseRaw } from '../src/main/rawfile.ts'
 
 // flag at a point: '0' ground, 'P:name' sheet port, else a net label
@@ -231,4 +232,37 @@ test('no .global for flat sheets', () => {
   p.value = 'VCC'
   m.parts.push(p)
   assert.doesNotMatch(netlist(m).text, /\.global/)
+})
+
+test('probing a sub-sheet: nets and parts resolve to the flattened vectors (ngspice part skipped if missing)', (t) => {
+  // main: V1 -> XA(stage) -> XB(stage); stage: in -[R]- mid -[X filter]- out, VCC flag on a resistor to ground
+  const stage = emptySheet()
+  const r1 = put(stage, 'res', ['P:in', 'mid'], '1k')
+  block(stage, 'filter.nsch', ['in', 'out'], ['mid', 'P:out'])
+  const filter = rc(), fr = filter.parts.find((p) => p.kind === 'res')!
+  const pw = newPart(filter, 'power', 5000, 0); pw.value = 'VCC'; filter.parts.push(pw)
+  const m = emptySheet()
+  put(m, 'vsrc', ['src', '0'], 'DC 1')
+  block(m, 'stage.nsch', ['in', 'out'], ['src', 'a'])
+  block(m, 'stage.nsch', ['in', 'out'], ['a', 'b'])
+  dir(m, '.op')
+  const sheets = { 'main.nsch': m, 'stage.nsch': stage, 'filter.nsch': filter, 'spare.nsch': rc() }
+  const top = netlist(m, 'probe', { sheets })
+  assert.deepEqual(top.errors, [])
+  const nl = (f: string) => (f === 'main.nsch' ? top : netlist(sheets[f as 'stage.nsch'], undefined, { sheets }))
+  assert.deepEqual(instancesOf(sheets, 'main.nsch', 'main.nsch', nl), [[]])
+  assert.deepEqual(instancesOf(sheets, 'main.nsch', 'spare.nsch', nl), [])
+  const st = instancesOf(sheets, 'main.nsch', 'stage.nsch', nl), fl = instancesOf(sheets, 'main.nsch', 'filter.nsch', nl)
+  assert.deepEqual([st.map(hopPath), fl.map(hopPath)], [['X1', 'X2'], ['X1.X1', 'X2.X1']])
+  const net = (hops: typeof st[0], f: string, n: string) => hierNet(sheets, hops, f, n, nl)
+  assert.deepEqual([net(st[0], 'stage.nsch', 'in'), net(st[1], 'stage.nsch', 'in'), net(st[1], 'stage.nsch', 'mid'), net([], 'main.nsch', 'a')], ['src', 'a', 'X2.mid', 'a'])
+  // filter's ports climb two levels: in -> stage's local mid, out -> stage's port out -> main's net
+  assert.deepEqual([net(fl[0], 'filter.nsch', 'in'), net(fl[0], 'filter.nsch', 'out'), net(fl[1], 'filter.nsch', 'out'), net(fl[1], 'filter.nsch', 'VCC'), net(fl[1], 'filter.nsch', '0')], ['X1.mid', 'a', 'b', 'VCC', '0'])
+  assert.deepEqual([hierRef(st[1], 'R1'), hierRef(fl[0], 'R1'), hierRef([], 'R1')], ['R.X2.R1', 'R.X1.X1.R1', 'R1'])
+  const plots = sim(t, top.text.replace(/^\.end\s*$/m, '.options savecurrents\n.end'))
+  if (!plots) return
+  const op = plots.find((p) => /operating point/i.test(p.plotname))!
+  assert.ok(findVector(op, ['v(' + net(st[1], 'stage.nsch', 'mid').toLowerCase() + ')']))
+  assert.ok(findVector(op, currentVectors(r1, hierRef(st[1], nl('stage.nsch').refs[r1.id]))))
+  assert.ok(findVector(op, currentVectors(fr, hierRef(fl[1], nl('filter.nsch').refs[fr.id]))))
 })
