@@ -43,6 +43,10 @@ export interface Overlay {
   op?: Record<string, number> // net -> volts
   blame?: { parts: string[]; nets: string[] }
 }
+// a probed point's plot: the trace's name and colour, its waveform (path in a 100 × 20 box) with axis titles and
+// ticks (p = 0…1 along the axis). d '' = a single value (.op): just `text`
+export type TagTick = { p: number; t: string }
+export interface ProbeTag { id: string; x: number; y: number; label: string; text: string; d: string; color: string; xl: string; yl: string; xt: TagTick[]; yt: TagTick[] }
 
 type ShapeTool = 'line' | 'arrow' | 'rect' | 'ellipse'
 type Tool = 'select' | 'wire' | 'bus' | 'text' | 'note' | 'comment' | 'probe' | ShapeTool | { place: Kind; extra?: Partial<Part>; title: string; id?: string }
@@ -202,8 +206,8 @@ const D = 'text-[11px] leading-snug text-muted-foreground [&_code]:font-mono [&_
 const MONO = 'font-mono text-xs md:text-xs text-foreground'
 const InspBtn = (p: ComponentProps<typeof Button>) => <Button size="sm" variant="outline" className="h-7 justify-self-start text-xs" {...p} />
 
-export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic', sheetNo }: {
-  active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget) => void
+export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, probes, library = [], browse, sheets = [], netCtx, onOpenSheet, libOpen: libProp, onLibOpen, name = 'schematic', sheetNo }: {
+  active: boolean; initial: Sheet; onDirty: () => void; ref?: Ref<SchematicHandle>; overlay?: Overlay | null; onProbe?: (t: ProbeTarget, at: Pt /* where on the sheet */) => void; probes?: ProbeTag[]
   library?: LibEntry[]; browse?: LibEntry[] /* Parts panel list, default library */; sheets?: SheetItem[]; netCtx?: NetCtx; onOpenSheet?: (file: string) => void
   libOpen?: boolean; onLibOpen?: (open: boolean) => void // parts panel, controlled by the workspace layout when given
   name?: string // export file stem
@@ -211,6 +215,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
 }) {
   const [sheet, setSheet] = useState(initial)
   const [sel, setSel] = useState<Set<string>>(() => new Set())
+  const [tagAt, setTagAt] = useState<Record<string, Pt>>({}) // probe plots the user dragged: bottom-left corner, as an offset from the probed point
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 })
   // the property popup: opened by a double-click on a part, directive, note or title block, placed at that point
   const [pop, setPop] = useState<{ id: string; kind: PopKind; left: number; top: number } | null>(null)
@@ -697,7 +702,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     if (tool === 'probe' || (tool === 'select' && e.altKey)) {
       // a net (wire, flag or pin) may start a differential drag; a click without dragging probes as before
       const t = probeAt(e.target as Element), net = netAt(w, e.target as Element)
-      if (net == null) return void (t && onProbe?.(t))
+      if (net == null) return void (t && onProbe?.(t, w))
       drag.current = { t: 'diff', net, a: w, cx: e.clientX, cy: e.clientY, click: t }
       return e.currentTarget.setPointerCapture(e.pointerId)
     }
@@ -786,11 +791,11 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
     drag.current = null
     if (d?.t === 'diff') {
       setBand(null)
-      if (Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 4) return void (d.click && onProbe?.(d.click))
+      if (Math.hypot(e.clientX - d.cx, e.clientY - d.cy) < 4) return void (d.click && onProbe?.(d.click, d.a))
       const n2 = netAt(world(e), document.elementFromPoint(e.clientX, e.clientY))
       if (n2 == null || n2 === d.net) return
       // ground as either end is just the other net's voltage
-      onProbe?.(d.net === '0' ? { net: n2 } : n2 === '0' ? { net: d.net } : { net: d.net, net2: n2 })
+      onProbe?.(d.net === '0' ? { net: n2 } : n2 === '0' ? { net: d.net } : { net: d.net, net2: n2 }, world(e))
     } else if (d?.t === 'box') {
       setBox(null)
       const b = norm(d.a, world(e))
@@ -892,7 +897,7 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
   function exportSvg(): string {
     const g = svg.current!.querySelector(':scope > g')!.cloneNode(true) as SVGGElement
     g.removeAttribute('transform')
-    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .nc, .hit, .hitf, .band, .mded, title').forEach((e) => e.remove())
+    g.querySelectorAll('.ghost, .preview, .boxsel, .op, .ptag, .nc, .hit, .hitf, .band, .mded, title').forEach((e) => e.remove())
     g.querySelectorAll('[data-id]').forEach((e) => e.removeAttribute('data-id'))
     g.querySelectorAll('.on, .hl, .blame').forEach((e) => e.classList.remove('on', 'hl', 'blame'))
     // crop: bounds() plus the part labels, estimated like the cards (monospace, char = 0.6em)
@@ -1094,6 +1099,43 @@ export function Schematic({ active, initial, onDirty, ref, overlay, onProbe, lib
               <text fontSize={fs} y={0.35 * fs} textAnchor="middle">{t}</text>
             </g>
           ))}
+          {(() => {
+            // probe plots: drawn in units of a 10px font, ~constant on screen like the OP tags. Each starts beside its
+            // probed point (moved up clear of the others) and can be dragged anywhere; a line ties it to the point.
+            const u = fs / 10, put: { x: number; y: number; w: number; h: number }[] = []
+            const W = 196, H = 116, X0 = 48, PW = W - X0 - 10, Y0 = 20, PH = H - Y0 - 30
+            const cards = probes?.map((p) => {
+              const w = p.d ? W : Math.max(84, Math.max(p.label.length * 4.9, p.text.length * 4.6) + 10), h = p.d ? H : 26
+              const o = tagAt[p.id], b = { x: p.x + (o?.x ?? 8 * u), y: p.y + (o?.y ?? -8 * u), w: w * u, h: h * u } // y: the bottom edge
+              if (!o) for (let hit; (hit = put.find((q) => b.x < q.x + q.w && q.x < b.x + b.w && b.y - b.h < q.y && q.y - q.h < b.y)); ) b.y = hit.y - hit.h - 3 * u
+              put.push(b)
+              const drag = (e: RPE<SVGGElement>) => {
+                if (e.button !== 0 || space) return // space+drag pans, the other buttons are the canvas'
+                e.stopPropagation()
+                const g = e.currentTarget, sx = e.clientX, sy = e.clientY, ox = b.x - p.x, oy = b.y - p.y
+                g.setPointerCapture(e.pointerId)
+                g.onpointermove = (m) => setTagAt((t) => ({ ...t, [p.id]: { x: ox + (m.clientX - sx) / view.k, y: oy + (m.clientY - sy) / view.k } }))
+                g.onpointerup = g.onpointercancel = () => (g.onpointermove = null)
+              }
+              return (
+                <g key={p.id} className="ptag card" style={{ color: p.color }} transform={`translate(${b.x} ${b.y}) scale(${u}) translate(0 ${-h})`} onPointerDown={drag}>
+                  <rect width={w} height={h} rx={3} />
+                  <text className="nm" x={6} y={12} fontSize={8.5}>{p.label}</text>
+                  {p.d ? <>
+                    {p.yt.map((t, i) => <g key={i}><line className="grid" x1={X0} x2={X0 + PW} y1={Y0 + PH * (1 - t.p)} y2={Y0 + PH * (1 - t.p)} /><text x={X0 - 4} y={Y0 + PH * (1 - t.p) + 2.5} fontSize={7} textAnchor="end">{t.t}</text></g>)}
+                    {p.xt.map((t, i) => <g key={i}><line className="grid" x1={X0 + PW * t.p} x2={X0 + PW * t.p} y1={Y0} y2={Y0 + PH + 2} /><text x={X0 + PW * t.p} y={Y0 + PH + 10} fontSize={7} textAnchor="middle">{t.t}</text></g>)}
+                    <path className="axis" d={`M${X0} ${Y0}V${Y0 + PH}H${X0 + PW}`} />
+                    <path d={p.d} transform={`translate(${X0} ${Y0}) scale(${PW / 100} ${PH / 20})`} />
+                    <text x={X0 + PW / 2} y={H - 6} fontSize={7.5} textAnchor="middle">{p.xl}</text>
+                    <text transform={`translate(9 ${Y0 + PH / 2}) rotate(-90)`} fontSize={7.5} textAnchor="middle">{p.yl}</text>
+                  </> : <text x={6} y={h - 5} fontSize={7.5}>{p.text}</text>}
+                </g>
+              )
+            })
+            // the lines and dots go under every card; each line ends on the nearest point of its card's edge
+            const near = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v))
+            return <>{probes?.map((p, i) => <g key={p.id} className="ptag" style={{ color: p.color }}><line x1={p.x} y1={p.y} x2={near(p.x, put[i].x, put[i].x + put[i].w)} y2={near(p.y, put[i].y - put[i].h, put[i].y)} /><circle cx={p.x} cy={p.y} r={3 * u} /></g>)}{cards}</>
+          })()}
           {band && <line className="band" x1={band.a.x} y1={band.a.y} x2={band.b.x} y2={band.b.y} />}
           {box && <rect className="boxsel" x={box.x0} y={box.y0} width={box.x1 - box.x0} height={box.y1 - box.y0} />}
         </g>

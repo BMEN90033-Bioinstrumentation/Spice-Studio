@@ -34,6 +34,10 @@ const PREFIX: [number, string][] = [
   [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n'], [1e-12, 'p'], [1e-15, 'f']
 ]
 
+// the colour Plot gives a chart entry (first run): the probe tags on the schematic match their trace with it
+export const traceColor = (plot: RawPlot, sel: string[], key: string) =>
+  color(isExpr(key) ? plot.vars.length - 1 + sel.filter(isExpr).indexOf(key) : plot.vars.findIndex((v) => v.name.toLowerCase() === key) - 1)
+
 export function eng(v: number | null, unit = ''): string {
   if (v == null || !isFinite(v)) return '—'
   if (v === 0) return '0' + unit
@@ -44,11 +48,11 @@ export function eng(v: number | null, unit = ''): string {
 // dB and degrees read better fixed-point than with SI prefixes
 const fmt = (v: number | null, unit: string) => (/^(dB|°)/.test(unit) ? (v == null || !isFinite(v) ? '—' : v.toFixed(2) + unit) : eng(v, unit))
 
-const UNIT: Record<string, string> = { time: 's', frequency: 'Hz', voltage: 'V', current: 'A', impedance: 'Ω', admittance: 'S', 's-param': '1' } // the last three: .sp
+export const UNIT: Record<string, string> = { time: 's', frequency: 'Hz', voltage: 'V', current: 'A', impedance: 'Ω', admittance: 'S', 's-param': '1' } // the last three: .sp
 const INV: Record<string, string> = { s: 'Hz', Hz: 's' } // unit of 1/Δx
 // axis titles: "Voltage (V)"; units without a quantity name show as "(V/s)", dimensionless as nothing
 const QTY: Record<string, string> = { V: 'Voltage', A: 'Current', W: 'Power', 'Ω': 'Impedance', dB: 'Magnitude', '°': 'Phase', s: 'Time', Hz: 'Frequency' }
-const axisTitle = (unit: string, name = '') => (unit && unit !== '1' ? `${QTY[unit] ?? name} (${unit})`.trim() : name)
+export const axisTitle = (unit: string, name = '') => (unit && unit !== '1' ? `${QTY[unit] ?? name} (${unit})`.trim() : name)
 // AC: bode = magnitude and phase stacked (two uPlots, shared x); nyquist/polar/smith: plot/ComplexView
 type Mode = 'bode' | 'db' | 'phase' | CvKind
 type View = 'time' | 'fft' | 'eye'

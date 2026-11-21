@@ -57,6 +57,17 @@
 .sch .op { pointer-events: none; }
 .sch .op rect { fill: var(--s1); stroke: var(--line-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .sch .op text { fill: var(--probe); font-family: var(--mono); }
+/* probe tags: trace colour (currentColor) for the frame, dot, name and waveform */
+.sch .ptag { pointer-events: none; }
+.sch .ptag.card { pointer-events: auto; cursor: move; }
+.sch .ptag line.grid { stroke: var(--line-strong); opacity: 0.35; }
+.sch .ptag path.axis { stroke: var(--dim); stroke-width: 1; }
+.sch .ptag rect { fill: var(--s1); stroke: currentColor; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sch .ptag circle { fill: currentColor; }
+.sch .ptag line { stroke: currentColor; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.sch .ptag path { fill: none; stroke: currentColor; stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.sch .ptag text { fill: var(--dim); font-family: var(--mono); }
+.sch .ptag text.nm { fill: currentColor; }
 
 /* library panel beside the canvas (width = LIBW in Schematic.tsx) */
 .sch.lib > svg { left: 240px; width: calc(100% - 240px); }

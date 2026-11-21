@@ -261,3 +261,32 @@ test('instances / instPath: vectors grouped by the block they are in', () => {
   assert.equal(instPath('i(v.x1.v1)', insts), 'x1')
   assert.equal(instPath('v(a.b)', insts), '') // a dotted top-level net
 })
+
+test('probe tags: seriesOf (vector, expression, AC in dB) and sparkline (range, spikes kept)', async () => {
+  const { seriesOf, sparkline } = await import('../src/renderer/src/sim/probe.ts')
+  const f = (...a: number[]) => Float64Array.from(a)
+  const tran = { title: '', plotname: 'Transient Analysis', complex: false, points: 3, vars: [{ name: 'time', type: 'time', re: f(0, 1, 2) }, { name: 'v(a)', type: 'voltage', re: f(1, 2, 3) }, { name: 'i(@r1[i])', type: 'current', re: f(0, 0, 1) }] }
+  assert.deepEqual(seriesOf(tran, 'v(a)'), { y: f(1, 2, 3), unit: 'V' })
+  assert.equal(seriesOf(tran, 'i(@r1[i])')!.unit, 'A')
+  assert.deepEqual([...seriesOf(tran, '=v(a)-1')!.y], [0, 1, 2])
+  assert.equal(seriesOf(tran, 'v(nope)'), null)
+  const ac = { ...tran, complex: true, vars: [{ name: 'frequency', type: 'frequency', re: f(1, 10, 100), im: f(0, 0, 0) }, { name: 'v(a)', type: 'voltage', re: f(1, 0, 0.1), im: f(0, 10, 0) }] }
+  assert.deepEqual([...seriesOf(ac, 'v(a)')!.y].map(Math.round), [0, 20, -20])
+  // 1000 points, flat but for one sample: the spike is still in the path and the range
+  const x = Float64Array.from({ length: 1000 }, (_, i) => i), y = x.map((i) => (i === 503 ? 5 : 0))
+  const s = sparkline(x, y, 100, 20, 50)
+  assert.deepEqual([s.lo, s.hi], [0, 5])
+  assert.match(s.d, /^M1 20L3 20L/) // starts on the baseline, columns 2 wide
+  assert.match(s.d, /L51 0L51 20L/) // column 25: up to the top and back
+  assert.deepEqual(sparkline(f(0), f(2)), { d: '', lo: 2, hi: 2 }) // .op: a value, no path
+  assert.equal(sparkline(f(0, 1), f(NaN, NaN)).d, '')
+})
+
+test('tagTicks: round ticks with positions; decades on a log axis; a flat signal gets one', async () => {
+  const { tagTicks } = await import('../src/renderer/src/sim/probe.ts')
+  assert.deepEqual(tagTicks(0, 6), [{ p: 0, v: 0 }, { p: 1 / 3, v: 2 }, { p: 2 / 3, v: 4 }, { p: 1, v: 6 }])
+  assert.deepEqual(tagTicks(-2, 3, true).map((t) => t.v), [0.01, 0.1, 1, 10, 100, 1000].filter((v) => tagTicks(-2, 3, true).some((t) => t.v === v)))
+  assert.ok(tagTicks(-2, 3, true).every((t) => Number.isInteger(Math.round(Math.log10(t.v) * 1e9) / 1e9) && t.p >= 0 && t.p <= 1))
+  assert.deepEqual(tagTicks(0.1, 0.4, true).map((t) => t.p), [0, 1]) // under a decade: the ends
+  assert.deepEqual(tagTicks(5, 5), [{ p: 0.5, v: 5 }])
+})

@@ -74,6 +74,8 @@ You can add traces straight from the schematic after a run. It works on every sh
 
 While Alt is held, the net or part under the mouse is highlighted.
 
+Each probe also puts a small plot on the schematic beside the point you clicked, in the colour of its trace, with its own axes (time or frequency along the bottom; volts, amps or dB up the side). A line with a dot ties it to the probed point. Drag a plot to move it; probe more points to add more. An operating point shows the value instead of a plot. The plots follow the tab you are looking at and update on every run. One goes away when you probe the same thing again or untick its trace in the results.
+
 ![Alt+click on the out wire and on the in wire added V(out) and V(in)](images/05-probe.png)
 
 **Differential voltage.** Alt+drag from one net to another (a dashed line follows the mouse) and release on the second net. The app adds the expression `v(first)-v(second)`. Dragging to or from ground gives the plain voltage of the other net.
