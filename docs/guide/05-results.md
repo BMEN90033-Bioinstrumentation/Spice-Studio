@@ -76,7 +76,7 @@ While Alt is held, the net or part under the mouse is highlighted.
 
 Each probe opens a plot beside the point, a compact version of the results panel's charts: drag across it or turn the wheel over it to zoom, double-click to reset, and hover to read each value in the title bar. A dot marks the probed point and a line ties it to its plot. You can do the following with a plot:
 
-- **Move it** by its title bar, and resize it from its bottom-right corner. Plots keep their place and size while you pan and zoom the schematic.
+- **Move it** by its title bar, and resize it from its bottom-right corner. Plots sit on the sheet like parts: they pan and zoom with the schematic.
 - **Move the probe point**: drag its dot onto another wire or part.
 - **Add points**: click **＋** on the plot, then click more wires or parts. Press **Esc** when done. **×** beside a name takes that point off.
 - **All / Δ**: with two or more points, **All** draws each as its own trace and **Δ** draws the first point minus each of the others.

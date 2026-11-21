@@ -1,6 +1,6 @@
 {
   "name": "spice-studio",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Schematic editor and front end for the ngspice circuit simulator",
   "private": true,
   "license": "GPL-3.0-only",
