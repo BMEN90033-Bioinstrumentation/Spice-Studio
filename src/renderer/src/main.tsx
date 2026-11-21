@@ -24,7 +24,8 @@ import { defaultSel, pretty, type Chart, type PlotRun } from './Plot'
 import { logicNets } from './plot/logic'
 import { bom, bomCsv, bomXlsx } from './project/bom'
 import { BOMWIN, BomWindow } from './project/BomWindow'
-import { COMPATS, newProject, type PartInfo, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
+import { FindDialog } from './project/FindDialog'
+import { COMPATS, findParts, type Hit, newProject, type PartInfo, parseProject, refreshBlocks, renameRefs, sheetFile, type Project } from './project/project'
 import { emptySheet, parseSheet, uid, type Sheet } from './schematic/model'
 import { netlist, type NetCtx, type NetlistResult } from './schematic/netlist'
 import { Schematic, type Overlay, type ProbeTarget, type SchematicHandle } from './schematic/Schematic'
@@ -265,7 +266,8 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   const [crumbs, setCrumbs] = useState<string[]>([]) // block descent trail
   const [edit, setEdit] = useState<{ op: 'add' | 'rename' | 'delete'; file?: string; value: string; err?: string } | null>(null)
   const [guard, setGuard] = useState<(() => void) | null>(null) // pending leave() continuation
-  const pendingSel = useRef<string[] | null>(null)
+  const pendingSel = useRef<{ f: string; ids: string[] } | null>(null) // select these once sheet f is on screen
+  const [finding, setFinding] = useState(false) // Edit › Find…
 
   const [schPath, setSchPath] = useState(session.kind === 'loose' ? session.path : null)
   const net0 = session.net
@@ -671,12 +673,19 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
   // jump from a console line to the parts/wires it blames (always on the top sheet)
   function show(b: Blame) {
     const wn = overlay?.wireNets ?? {}
-    pendingSel.current = [...b.parts, ...Object.keys(wn).filter((w) => b.nets.includes(wn[w]))]
+    pendingSel.current = { f: top, ids: [...b.parts, ...Object.keys(wn).filter((w) => b.nets.includes(wn[w]))] }
     switchTo(top)
   }
+  // Edit › Find: open the hit's sheet with the part selected (and in view)
+  function jump(h: Hit) {
+    setFinding(false)
+    pendingSel.current = { f: h.file, ids: [h.id] }
+    switchTo(h.file)
+    if (proj) setStatus(`${h.name} is on ${stem(h.file)}`)
+  }
   useEffect(() => {
-    const h = handles.current[top]
-    if (pendingSel.current && h && view === top) h.select(pendingSel.current), (pendingSel.current = null)
+    const p = pendingSel.current, h = p && handles.current[p.f]
+    if (p && h && view === p.f) h.select(p.ids), (pendingSel.current = null)
   })
 
   // Replace the netlist editor's text with the generated netlist (or the errors as comments).
@@ -797,7 +806,9 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
     { id: 'sim.stop', keys: 'Mod+.', run: stop, enabled: () => running },
     { id: 'sim.viewNetlist', run: peek, enabled: () => isSch && canPeek },
     { id: 'tools.library', run: () => (isSch && snap(view), bump(), go('library')) },
-    { id: 'tools.annotateProject', run: annotateProject, enabled: () => !!proj }
+    { id: 'tools.annotateProject', run: annotateProject, enabled: () => !!proj },
+    // registered on a schematic only: in the netlist editor ⌘F stays the editor's own search
+    ...(route === 'editor' && isSch ? [{ id: 'edit.find', keys: 'Mod+F', run: () => setFinding(true) }] : [])
   ])
 
   const name = isSch ? (proj ? view : (base(schPath) ?? 'untitled.nsch')) : (base(path) ?? 'untitled.cir')
@@ -1082,6 +1093,7 @@ function Workspace({ session, route, go, onClose, sources }: { session: Session;
           packs={sources.packs}
         />
       )}
+      {finding && <FindDialog multi={files.length > 1} find={(q) => findParts(files.map((f) => [f, live(f)]), q)} onPick={jump} onClose={() => setFinding(false)} />}
       {bomOpen && bomData && (
         <BomWindow
           title={`Bill of Materials — ${proj?.name ?? ''}`}

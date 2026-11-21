@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
 import { inside, safeName } from '../src/main/paths.ts'
-import { newProject, parseProject, refreshBlocks, renameRefs, sheetFile, validName } from '../src/renderer/src/project/project.ts'
+import { newProject, parseProject, findParts, refreshBlocks, renameRefs, sheetFile, validName } from '../src/renderer/src/project/project.ts'
 import { blockShape, emptySheet, newPart, pins, sheetPorts, type Sheet } from '../src/renderer/src/schematic/model.ts'
 
 test('newProject round-trips through parseProject', () => {
@@ -94,4 +94,13 @@ test('parseProject: optional sim settings (compat, timeoutS)', () => {
   assert.equal(parseProject(JSON.stringify(p)).sim, undefined)
   for (const [sim, re] of [[{ compat: 'hspice' }, /Unknown compat/], [{ timeoutS: -1 }, /timeoutS/], [{ timeoutS: '5' }, /timeoutS/], [null, /must be an object/], [[1], /must be an object/]] as const)
     assert.throws(() => parseProject(JSON.stringify({ ...p, sim })), re)
+})
+
+test('findParts: references and net labels over every sheet, exact match first', () => {
+  const sh = (...ps: [string, string, string][]): Sheet => ({ ...emptySheet(), parts: ps.map(([kind, name, value], i) => ({ ...newPart(emptySheet(), kind as 'res', 0, 0), id: name + value + i, name, value })) })
+  const sheets: [string, Sheet][] = [['main.nsch', sh(['res', 'R20', '1k'], ['res', 'R2', '10k'], ['label', '', 'r2_out'], ['gnd', '', ''])], ['amp.nsch', sh(['diode', 'D14', '1N4148'], ['res', 'R2', '4k7'])]]
+  assert.deepEqual(findParts(sheets, ' r2 ').map((h) => [h.name, h.file, h.detail]), [['R2', 'main.nsch', '10k'], ['R2', 'amp.nsch', '4k7'], ['r2_out', 'main.nsch', 'Net label'], ['R20', 'main.nsch', '1k']])
+  assert.deepEqual(findParts(sheets, 'D14').map((h) => h.file), ['amp.nsch'])
+  assert.deepEqual(findParts(sheets, ''), [])
+  assert.equal(findParts(sheets, 'r', 2).length, 2)
 })

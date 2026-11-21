@@ -57,6 +57,7 @@ These work when the canvas is active and no text field has focus.
 | ⌘X, ⌘C, ⌘V | Cut, copy, paste |
 | ⌘D | Duplicate |
 | ⌘A | Select all |
+| ⌘F | Find a part (R2, D14) or a net label on any sheet |
 | Delete, ⌫ | Delete the selection |
 | + (or =), − | Zoom in, zoom out |
 | F | Fit the drawing to the window |

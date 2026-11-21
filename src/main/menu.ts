@@ -81,6 +81,7 @@ function template(recents: Recent[]): Item[] {
     cmd('edit.duplicate', 'Duplicate', 'CmdOrCtrl+D'),
     cmd('edit.delete', 'Delete', mac ? 'Backspace' : 'Delete'),
     edit('edit.selectAll', 'Select All', 'CmdOrCtrl+A'),
+    cmd('edit.find', 'Find…', 'CmdOrCtrl+F'),
     sep,
     cmd('edit.rotate', 'Rotate', 'Ctrl+R'),
     cmd('edit.mirror', 'Mirror', 'Ctrl+E')

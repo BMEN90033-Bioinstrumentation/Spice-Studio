@@ -28,6 +28,8 @@ The **Sheets** panel on the left (⌘1) lists the project's sheets and a **Hand-
 - **⤒** makes a sheet the **top sheet**.
 - **×** deletes a sheet (after a confirmation). The top sheet can't be deleted.
 
+To find a part without knowing its sheet, press ⌘F (**Edit › Find…**) and type its reference, for example `R2` or `D14`, or a net label. Pick a match with the arrow keys and **Enter**, or click it: its sheet opens with the part selected.
+
 The list shows the top sheet first, then the rest by name with numbers in order. Number the sheets to list them in signal order (`1-body`, `2-inamp`, … in the [ECG-Frontend](examples/ECG-Frontend/) example).
 
 The **top sheet** (marked `TOP`) is the circuit that runs. **▶ Run** always simulates the top sheet, even when another sheet is on screen, and probing only works on the top sheet. The other sheets are used through blocks.

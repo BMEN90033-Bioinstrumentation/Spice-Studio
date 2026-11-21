@@ -2,7 +2,7 @@
 import type { Compat, ProjectSim } from '../contracts.ts'
 import type { ImportedLib } from '../library/library.ts'
 import { reshapeBlocks, sheetPorts, type Sheet } from '../schematic/model.ts'
-import { SYMBOLS } from '../schematic/symbols.ts'
+import { SYMBOLS, isFlag } from '../schematic/symbols.ts'
 
 // purchasing details per BOM line (key: bom.ts bomKey, e.g. 'res|10k|'), filled in the Bill of materials window
 export interface PartInfo { mfr?: string; mpn?: string; supplier?: string; spn?: string }
@@ -79,4 +79,20 @@ export function refreshBlocks(s: Sheet, file: string, sub: Sheet): Sheet | null 
 export function renameRefs(s: Sheet, from: string, to: string): Sheet | null {
   if (!s.parts.some((p) => p.sheet === from)) return null
   return { ...s, parts: s.parts.map((p) => (p.sheet === from ? { ...p, sheet: to } : p)) }
+}
+
+// Edit › Find: parts by reference ("r2" finds R2, then R20…) and net labels / ports / power flags by net name, over
+// the given sheets in order. Exact matches first, then names that start with q, then names that contain it.
+export interface Hit { file: string; id: string; name: string; detail: string }
+export function findParts(sheets: [file: string, sheet: Sheet][], q: string, max = 50): Hit[] {
+  const want = q.trim().toLowerCase(), ranked: [number, Hit][] = []
+  if (!want) return []
+  for (const [file, s] of sheets)
+    for (const p of s.parts) {
+      const flag = isFlag(p.kind), name = flag ? p.value : p.name, at = name.toLowerCase().indexOf(want)
+      if (at < 0) continue
+      ranked.push([name.length === want.length ? 0 : at === 0 ? 1 : 2, { file, id: p.id, name, detail: flag ? SYMBOLS[p.kind].title : p.value || SYMBOLS[p.kind].title }])
+    }
+  // sort is stable: sheet order survives inside a rank + name
+  return ranked.sort((a, b) => a[0] - b[0] || a[1].name.localeCompare(b[1].name, undefined, { numeric: true })).slice(0, max).map((r) => r[1])
 }
